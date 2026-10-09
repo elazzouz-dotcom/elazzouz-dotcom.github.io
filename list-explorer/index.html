@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Explore long lists of symbols and names locally: search, sort, find duplicates, and export filtered results.">
+  <title>List Explorer | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .list-control:focus-visible,
+    .list-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .result-row[hidden] {
+      display: none;
+    }
+
+    .result-row mark {
+      border-radius: calc(var(--radius) * 0.25);
+      background: var(--color-soft);
+      color: var(--color-text);
+      padding: 0 0.12rem;
+    }
+
+    .mono-output {
+      direction: ltr;
+      text-align: left;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Local list utility</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Make a long list easier to explore.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Paste symbols, command names, package identifiers, or other line-based text. Search, sort, remove duplicates, and export selected results. Everything stays in this browser tab.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="input-heading">
+            <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Step 1 · Add your data</p>
+                <h2 id="input-heading" class="mb-2 text-2xl font-black">Paste a list</h2>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">One entry per line. Blank lines are ignored; original spelling is preserved.</p>
+              </div>
+              <button id="load-sample" type="button" class="list-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold">Load sample</button>
+            </div>
+            <label for="list-input" class="mb-2 block text-sm font-bold">List entries</label>
+            <textarea id="list-input" rows="12" spellcheck="false" class="list-control mono-output w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-sm leading-6 text-[var(--color-text)]" placeholder="Paste one name or symbol per line..."></textarea>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <p id="input-status" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Your input is processed locally and is not uploaded.</p>
+              <button id="clear-input" type="button" class="list-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold">Clear list</button>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="results-heading">
+            <div class="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Step 2 · Explore</p>
+                <h2 id="results-heading" class="mb-1 text-2xl font-black">Your entries</h2>
+                <p id="result-count" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Paste a list to begin.</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button id="copy-results" type="button" class="list-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold">Copy results</button>
+                <button id="download-results" type="button" class="list-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold">Download</button>
+              </div>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_190px]">
+              <label for="search-input" class="sr-only">Search entries</label>
+              <input id="search-input" type="search" class="list-control w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm" placeholder="Search entries..." autocomplete="off">
+              <label class="sr-only" for="sort-order">Sort results</label>
+              <select id="sort-order" class="list-control rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm">
+                <option value="original">Original order</option>
+                <option value="ascending">A–Z</option>
+                <option value="descending">Z–A</option>
+              </select>
+            </div>
+
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <label class="flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)]">
+                <input id="unique-only" type="checkbox" class="accent-[var(--color-primary)]">
+                Show unique entries only
+              </label>
+              <button id="reset-filters" type="button" class="list-button text-sm font-bold text-[var(--color-primary)]">Reset filters</button>
+            </div>
+
+            <div id="summary-cards" class="mt-5 grid gap-3 sm:grid-cols-3">
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Total lines</p>
+                <p id="total-count" class="mb-0 text-2xl font-black">0</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Unique entries</p>
+                <p id="unique-count" class="mb-0 text-2xl font-black">0</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Duplicates</p>
+                <p id="duplicate-count" class="mb-0 text-2xl font-black">0</p>
+              </div>
+            </div>
+
+            <ol id="result-list" class="mt-5 max-h-[34rem] space-y-2 overflow-auto" aria-live="polite"></ol>
+            <p id="empty-state" class="mt-5 hidden rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-5 text-center text-sm text-[var(--color-muted)]">No entries match. Try another search or paste a list.</p>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card overflow-hidden">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Quick insight</p>
+              <h2 class="mb-2 text-2xl font-black">See the shape of your list</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">Find repeated entries and narrow a large collection without altering your original input.</p>
+            </div>
+            <div class="space-y-4 p-5 sm:p-6">
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--color-muted)]">Most common initial</p>
+                <p id="common-initial" class="mb-0 text-xl font-black">—</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--color-muted)]">Longest entry</p>
+                <p id="longest-entry" class="mono-output mb-0 break-all text-sm font-semibold">—</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--color-muted)]">Duplicate entries</p>
+                <ul id="duplicate-list" class="mb-0 space-y-1 text-sm text-[var(--color-muted)]">
+                  <li>None found</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 sm:p-6">
+            <h2 class="mb-2 text-lg font-extrabold">Privacy note</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">This utility runs in your browser tab. The list is not submitted to a server or retained by this page. Avoid pasting secrets or sensitive identifiers on a shared device.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">A local list exploration utility.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const sampleList = `slock\ndialscreenshots\nupscmd\nB::Hooks::EndOfScope::XS\ncmap_finalize\necm-uncompress\ngetpeereid\nmatch::simple\nSGEHRD\nmpdcron\nNet::Z3950::SimpleServer\nCMS_verify\nldns_key_set_algorithm\ng15composer\nbotch-droppable-union\nctermd\ncarmen2simplemap\nctfmerge\ngdaldem\nDPOSVX\npbmtoascii\ndoubleGEeigen\ngifasm\nxsystem35\nsys_rt_sigprocmask\ngetnetbyaddr_r\nNet::DBus::ASyncReply\nunshar\nQFileInfo\npepwheel\ncleanallruv.pl\ndll\npmRegisterDerived\nttfautohint\npbmtolj\nBUF_LOCK\nkeyctl\na+\nsc\ngui_button_proc\nParse::word\nfollow_pfn\nSDL_AudioCVT\nXcmsCIELuvQueryMaxL\nsubliminal\nmongoc_insert_flags_t\nrpc_broadcast\nfwupdate\nTk::FBox\npristine-tar\nsum\nocf_heartbeat_SysInfo\nlibuser.conf\npki -signcrl\nhfst-pmatch2fst\nsampasswd\nsyncnews\nst_snapshot.hourly\nslapo-dyngroup\nDateTime::Locale::el_CY\nCatmandu::Exporter::YAML\nparent_len\nSLACN2\nBusiness::ISMN::Data\nset_item_userptr\nPEM_write_bio_CMS_stream\nSD_JOURNAL_LOCAL_ONLY\nLfrand::lfDice\nel_deletestr\nCSA3S\ngenpng\notbgui_SOMClassification\nApp::ClusterSSH::Getopt\nNNPNTINITD\nkbdrate\nu2f-host\nActivation\nMPI_Wtick\nFBB::BigInt\nCLARFG\nBio::SeqIO\nkdiamond\nSys::Utmp::Utent\nUR::DataSource::MySQL\nmyrescue\nglobus_thread_key_t\nfence_ilo_moonshot\nzrun\nkdb-export\nal_draw_ustr\nrt-dump-metadata\nsy\nman\ncheck_forensic\nLog::Agent::Driver\nTclCommandWriting\nselinux_file_context_cmp\neps2eps\nlp-list-bugs\nGnuPG::UserId\nunibi_set_ext_str_name\nexp2\ngnunet-core\nDSA_verify\nal_change_directory\ncdawson\nfreefoam-refineWallLayer\ngetent\nomniNames\nmHdrtbl\nGetopt::Simple\nnwdiag\npdftohtml\niorheo`;
+
+    const listInput = document.querySelector('#list-input');
+    const searchInput = document.querySelector('#search-input');
+    const sortInput = document.querySelector('#sort-order');
+    const uniqueInput = document.querySelector('#unique-only');
+    const resultList = document.querySelector('#result-list');
+    const resultCount = document.querySelector('#result-count');
+    const emptyState = document.querySelector('#empty-state');
+
+    function parseEntries() {
+      return listInput.value
+        .split(/\r?\n/)
+        .map((value, index) => ({
+          value: value.trim(),
+          originalIndex: index
+        }))
+        .filter((entry) => entry.value.length > 0);
+    }
+
+    function countDuplicates(entries) {
+      const counts = new Map();
+      entries.forEach(({
+        value
+      }) => {
+        const key = value.toLocaleLowerCase();
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+      return [...counts.entries()]
+        .filter(([, count]) => count > 1)
+        .map(([value, count]) => ({
+          value,
+          count
+        }))
+        .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
+    function highlight(value, query) {
+      if (!query) return escapeHtml(value);
+      const index = value.toLocaleLowerCase().indexOf(query.toLocaleLowerCase());
+      if (index < 0) return escapeHtml(value);
+      const before = escapeHtml(value.slice(0, index));
+      const match = escapeHtml(value.slice(index, index + query.length));
+      const after = escapeHtml(value.slice(index + query.length));
+      return `${before}<mark>${match}</mark>${after}`;
+    }
+
+    function updateSummary(entries) {
+      const uniqueMap = new Map();
+      entries.forEach(({
+        value
+      }) => uniqueMap.set(value.toLocaleLowerCase(), value));
+      const duplicates = countDuplicates(entries);
+      document.querySelector('#total-count').textContent = String(entries.length);
+      document.querySelector('#unique-count').textContent = String(uniqueMap.size);
+      document.querySelector('#duplicate-count').textContent = String(entries.length - uniqueMap.size);
+
+      const initialCounts = new Map();
+      entries.forEach(({
+        value
+      }) => {
+        const initial = value.charAt(0).toLocaleUpperCase();
+        if (initial) initialCounts.set(initial, (initialCounts.get(initial) || 0) + 1);
+      });
+      const mostCommon = [...initialCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+      document.querySelector('#common-initial').textContent = mostCommon ? `${mostCommon[0]} · ${mostCommon[1]} entries` : '—';
+      const longest = entries.reduce((current, entry) => entry.value.length > current.length ? entry.value : current, '');
+      document.querySelector('#longest-entry').textContent = longest || '—';
+
+      const duplicateList = document.querySelector('#duplicate-list');
+      duplicateList.replaceChildren();
+      if (!duplicates.length) {
+        const item = document.createElement('li');
+        item.textContent = 'None found';
+        duplicateList.append(item);
+      } else {
+        duplicates.slice(0, 8).forEach(({
+          value,
+          count
+        }) => {
+          const item = document.createElement('li');
+          item.className = 'break-all';
+          item.textContent = `${value} · ${count}×`;
+          duplicateList.append(item);
+        });
+        if (duplicates.length > 8) {
+          const more = document.createElement('li');
+          more.textContent = `And ${duplicates.length - 8} more…`;
+          duplicateList.append(more);
+        }
+      }
+    }
+
+    function render() {
+      const entries = parseEntries();
+      updateSummary(entries);
+      const query = searchInput.value.trim();
+      const duplicateValues = new Set(countDuplicates(entries).map((item) => item.value));
+      const seen = new Set();
+      let filtered = entries.filter((entry) => {
+        if (!entry.value.toLocaleLowerCase().includes(query.toLocaleLowerCase())) return false;
+        if (uniqueInput.checked) {
+          const key = entry.value.toLocaleLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+        }
+        return true;
+      });
+
+      if (sortInput.value === 'ascending') {
+        filtered.sort((a, b) => a.value.localeCompare(b.value, undefined, {
+          sensitivity: 'base'
+        }));
+      } else if (sortInput.value === 'descending') {
+        filtered.sort((a, b) => b.value.localeCompare(a.value, undefined, {
+          sensitivity: 'base'
+        }));
+      } else {
+        filtered.sort((a, b) => a.originalIndex - b.originalIndex);
+      }
+
+      resultList.replaceChildren();
+      filtered.slice(0, 1000).forEach((entry, index) => {
+        const row = document.createElement('li');
+        row.className = 'result-row flex items-center gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] px-4 py-3';
+        const number = document.createElement('span');
+        number.className = 'w-10 shrink-0 text-xs font-bold text-[var(--color-muted)]';
+        number.textContent = String(index + 1).padStart(2, '0');
+        const value = document.createElement('span');
+        value.className = 'mono-output min-w-0 flex-1 break-all text-sm font-semibold';
+        value.innerHTML = highlight(entry.value, query);
+        row.append(number, value);
+        if (duplicateValues.has(entry.value.toLocaleLowerCase())) {
+          const badge = document.createElement('span');
+          badge.className = 'shrink-0 rounded-full bg-[var(--color-soft)] px-2 py-1 text-xs font-bold text-[var(--color-primary)]';
+          badge.textContent = 'Duplicate';
+          row.append(badge);
+        }
+        resultList.append(row);
+      });
+
+      const truncated = filtered.length > 1000;
+      resultCount.textContent = `Showing ${Math.min(filtered.length, 1000)} of ${filtered.length} matching entries${truncated ? ' · first 1,000 displayed' : ''}.`;
+      emptyState.classList.toggle('hidden', filtered.length > 0);
+      document.querySelector('#input-status').textContent = entries.length ? `${entries.length} non-empty entries loaded. Original input is unchanged.` : 'Your input is processed locally and is not uploaded.';
+    }
+
+    function filteredValues() {
+      const entries = parseEntries();
+      const query = searchInput.value.trim().toLocaleLowerCase();
+      const seen = new Set();
+      let values = entries.map((entry) => entry.value).filter((value) => value.toLocaleLowerCase().includes(query));
+      if (uniqueInput.checked) {
+        values = values.filter((value) => {
+          const key = value.toLocaleLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
+      if (sortInput.value === 'ascending') values.sort((a, b) => a.localeCompare(b, undefined, {
+        sensitivity: 'base'
+      }));
+      if (sortInput.value === 'descending') values.sort((a, b) => b.localeCompare(a, undefined, {
+        sensitivity: 'base'
+      }));
+      return values;
+    }
+
+    listInput.addEventListener('input', render);
+    searchInput.addEventListener('input', render);
+    sortInput.addEventListener('change', render);
+    uniqueInput.addEventListener('change', render);
+
+    document.querySelector('#load-sample').addEventListener('click', () => {
+      listInput.value = sampleList;
+      searchInput.value = '';
+      uniqueInput.checked = false;
+      sortInput.value = 'original';
+      render();
+      document.querySelector('#input-status').textContent = 'Sample list loaded locally.';
+    });
+
+    document.querySelector('#clear-input').addEventListener('click', () => {
+      listInput.value = '';
+      render();
+      listInput.focus();
+    });
+
+    document.querySelector('#reset-filters').addEventListener('click', () => {
+      searchInput.value = '';
+      uniqueInput.checked = false;
+      sortInput.value = 'original';
+      render();
+    });
+
+    document.querySelector('#copy-results').addEventListener('click', async () => {
+      const values = filteredValues();
+      if (!values.length) {
+        resultCount.textContent = 'There are no results to copy.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(values.join('\n'));
+        resultCount.textContent = `Copied ${values.length} entries.`;
+      } catch {
+        resultCount.textContent = 'Could not copy automatically. Select the results and copy them manually.';
+      }
+    });
+
+    document.querySelector('#download-results').addEventListener('click', () => {
+      const values = filteredValues();
+      const file = new Blob([values.join('\n') + (values.length ? '\n' : '')], {
+        type: 'text/plain;charset=utf-8'
+      });
+      const fileUrl = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = 'list-explorer-results.txt';
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+      resultCount.textContent = `Downloaded ${values.length} entries.`;
+    });
+
+    render();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

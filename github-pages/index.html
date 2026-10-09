@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="دليل نشر الموقع الثابت الحالي على GitHub Pages مع الحفاظ على صفحاته وملفاته كما هي.">
+  <title>دليل GitHub Pages | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .guide-step {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .guide-code {
+      direction: ltr;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .guide-anchor {
+      scroll-margin-top: 2rem;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="الصفحة الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/hosting-studio">استوديو الاستضافة</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-14 lg:px-8 lg:py-20">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold tracking-[0.12em] text-[var(--color-muted)]">
+          <span class="h-2 w-2 rounded-full bg-[var(--color-primary)]" aria-hidden="true"></span>
+          دليل عملي · موقع HTML ثابت
+        </p>
+        <h1 class="mb-5 max-w-5xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">انشر موقعك الحالي دون أن تغيّر بنيته.</h1>
+        <p class="mb-8 max-w-3xl text-lg leading-8 text-[var(--color-muted)]">هذا المشروع صفحات HTML وCSS وJavaScript، وليس تطبيق React أو Vite. انشر الملفات الموجودة كما هي؛ لا تستبدل الصفحة الرئيسية بقالب React ولا تضف ملفات بناء لا يحتاجها الموقع.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="#steps" class="btn-primary px-5 py-3">عرض خطوات النشر <span aria-hidden="true">↓</span></a>
+          <a href="/" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">العودة إلى الموقع</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="site-type-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">الاختيار المناسب</p>
+            <h2 id="site-type-heading" class="mb-3 text-2xl font-black">الموقع الثابت الحالي يكفيه GitHub Pages.</h2>
+            <p class="mb-5 text-sm leading-7 text-[var(--color-muted)]">للحفاظ على الروابط التي تبدأ من جذر الموقع مثل <code dir="ltr">/tools</code> وملفات المشاركة مثل <code dir="ltr">/theme.css</code>، انشره كموقع حساب مستخدم، وضع الملفات في جذر المستودع المخصص لحسابك.</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <article class="rounded-[calc(var(--radius)*0.65)] bg-[var(--color-bg)] p-5">
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-primary)]">User Site</p>
+                <h3 class="mb-2 text-lg font-extrabold">أقل تعديلًا للموقع الحالي</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">يكون اسم المستودع <code dir="ltr">USERNAME.github.io</code>، وتُنشر الملفات في الجذر. استبدل <code dir="ltr">USERNAME</code> باسم حسابك.</p>
+              </article>
+              <article class="rounded-[calc(var(--radius)*0.65)] bg-[var(--color-bg)] p-5">
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-muted)]">Project Site</p>
+                <h3 class="mb-2 text-lg font-extrabold">يحتاج تهيئة للمسار الفرعي</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">ينشر الموقع تحت اسم المستودع، ولذلك قد تحتاج الروابط المطلقة مثل <code dir="ltr">/tools</code> إلى تعديل لتشير إلى المسار الفرعي. هذا الدليل لا يغيّر ملفات الموقع لهذا النوع.</p>
+              </article>
+            </div>
+          </section>
+
+          <section id="steps" class="feature-card overflow-hidden guide-anchor" aria-labelledby="steps-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)] sm:p-8">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">خطوات النشر</p>
+              <h2 id="steps-heading" class="mb-2 text-2xl font-black">ارفع الملفات الحالية ثم فعّل Pages.</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">لا تنشئ تطبيق React جديدًا ولا تحذف المجلدات الموجودة.</p>
+            </div>
+            <ol class="m-0 list-none p-6 sm:p-8">
+              <li class="guide-step grid gap-3 py-5 sm:grid-cols-[3rem_minmax(0,1fr)]">
+                <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">١</span>
+                <div>
+                  <h3 class="mb-2 text-lg font-extrabold">أنشئ مستودع الحساب</h3>
+                  <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">أنشئ مستودعًا عامًا بالاسم <code dir="ltr">USERNAME.github.io</code>، مع استبدال <code dir="ltr">USERNAME</code> باسم حساب GitHub الخاص بك. اختر <code dir="ltr">main</code> كفرع أساسي. هذا هو إعداد User Site المناسب للمسارات المطلقة الحالية التي تبدأ بـ <code dir="ltr">/</code>.</p>
+                </div>
+              </li>
+              <li class="guide-step grid gap-3 py-5 sm:grid-cols-[3rem_minmax(0,1fr)]">
+                <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">٢</span>
+                <div>
+                  <h3 class="mb-2 text-lg font-extrabold">ارفع المشروع كاملًا إلى الجذر</h3>
+                  <p class="mb-3 text-sm leading-7 text-[var(--color-muted)]">ارفع <code dir="ltr">index.html</code> و<code dir="ltr">theme.css</code> و<code dir="ltr">language.js</code> وجميع مجلدات الصفحات. يجب أن يكون ملف الصفحة الرئيسية في جذر المستودع، لا داخل مجلد إضافي. اجعل المستودع عامًا إذا أردت النشر المجاني المعتاد على GitHub Pages، وتأكد أن الملفات نفسها موجودة في جذر فرع <code dir="ltr">main</code>.</p>
+                  <pre class="guide-code rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]"><code>index.html
+/theme.css
+/language.js
+/tools/index.html
+/contact/index.html
+/github-pages/index.html</code></pre>
+                  <h4 class="mb-2 mt-5 text-base font-extrabold">ارفع الملفات باستخدام Git</h4>
+                  <p class="mb-3 text-sm leading-6 text-[var(--color-muted)]">من مجلد المشروع المحلي، استبدل <code dir="ltr">&lt;repository-remote&gt;</code> بعنوان المستودع الذي أنشأته على GitHub. لا ترفع مجلدًا أبًا يحتوي الموقع داخل مجلد فرعي؛ ارفع محتويات الموقع إلى جذر المستودع.</p>
+                  <pre class="guide-code rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]"><code>cd path/to/your/project
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin &lt;repository-remote&gt;
+git push -u origin main</code></pre>
+                  <h4 class="mb-2 mt-5 text-base font-extrabold">أو ارفع من واجهة GitHub</h4>
+                  <ol class="mb-0 list-decimal space-y-2 pr-5 text-sm leading-6 text-[var(--color-muted)]">
+                    <li>افتح المستودع، ثم اختر إضافة ملف ورفع الملفات.</li>
+                    <li>اسحب محتويات مجلد الموقع، بما فيها مجلدات الصفحات والملفات المشتركة، إلى منطقة الرفع.</li>
+                    <li>أكمل حفظ الملفات على فرع <code dir="ltr">main</code>، وتحقق أن <code dir="ltr">index.html</code> ظاهر في جذر المستودع.</li>
+                  </ol>
+                </div>
+              </li>
+              <li class="guide-step grid gap-3 py-5 sm:grid-cols-[3rem_minmax(0,1fr)]">
+                <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">٣</span>
+                <div>
+                  <h3 class="mb-2 text-lg font-extrabold">فعّل النشر من إعدادات Pages</h3>
+                  <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">في إعدادات المستودع، افتح <strong class="text-[var(--color-text)]">Pages</strong>، واختر النشر من فرع <code dir="ltr">main</code> ومجلد الجذر <code dir="ltr">/(root)</code>، ثم احفظ الإعداد.</p>
+                </div>
+              </li>
+              <li class="guide-step grid gap-3 py-5 sm:grid-cols-[3rem_minmax(0,1fr)]">
+                <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">٤</span>
+                <div>
+                  <h3 class="mb-2 text-lg font-extrabold">تحقق من الموقع المنشور</h3>
+                  <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">انتظر اكتمال عملية النشر التي يعرضها GitHub، ثم افتح عنوان الموقع الذي يظهر في إعدادات Pages. اختبر الصفحة الرئيسية وصفحات مثل الأدوات والتواصل، وتأكد من تحميل CSS وJavaScript.</p>
+                </div>
+              </li>
+            </ol>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="keep-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">حافظ على مشروعك</p>
+            <h2 id="keep-heading" class="mb-4 text-2xl font-black">ما الذي لا ينبغي استبداله؟</h2>
+            <ul class="mb-0 space-y-3 text-sm leading-7 text-[var(--color-muted)]">
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">لا تستبدل <code dir="ltr">index.html</code> الحالي بقالب يحتوي على <code dir="ltr">&lt;div id="root"&gt;</code>؛ ذلك القالب مخصص لتطبيق React منفصل.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">لا تضف <code dir="ltr">package.json</code> أو <code dir="ltr">vite.config.js</code> لهذا الموقع الثابت لمجرد نشره على Pages؛ لا يحتاج بناء React.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">احتفظ ببنية كل صفحة داخل مجلدها، مثل <code dir="ltr">tools/index.html</code>، وأبقِ ملفات الأصول المشتركة في الجذر كما هي.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">GitHub Pages يستضيف ملفات ثابتة فقط. النماذج التي تتطلب API أو خادمًا، مثل مسارات <code dir="ltr">/api/leads</code>، تحتاج خدمة خلفية منفصلة.</li>
+            </ul>
+          </section>
+        </div>
+
+        <aside class="space-y-5 xl:sticky xl:top-6">
+          <section class="feature-card p-5 sm:p-6">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">قبل النشر</p>
+            <h2 class="mb-4 text-xl font-black">قائمة تحقق قصيرة</h2>
+            <ul class="space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3">الصفحة الرئيسية <code dir="ltr">index.html</code> في جذر المستودع.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3">كل مجلد صفحة يحتوي ملفه <code dir="ltr">index.html</code>.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3">ملفات <code dir="ltr">theme.css</code> و<code dir="ltr">language.js</code> مرفوعة مع المشروع.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3">لا توجد مفاتيح API أو أسرار ضمن الملفات المنشورة.</li>
+            </ul>
+            <a href="/hosting-studio" class="mt-5 inline-flex font-bold text-[var(--color-primary)]">افتح استوديو الاستضافة <span class="mr-2" aria-hidden="true">←</span></a>
+          </section>
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5">
+            <h2 class="mb-2 text-lg font-extrabold">تنبيه عن الروابط</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">الموقع الحالي يستخدم مسارات مطلقة تبدأ بـ <code dir="ltr">/</code>، وهذا يناسب موقع الحساب المنشور من الجذر. لا تنشره تحت مسار مستودع فرعي قبل تهيئة هذه الروابط لذلك المسار.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">دليل نشر الموقع الثابت الحالي.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+  <script src="/language.js"></script>
+</body>
+
+</html>

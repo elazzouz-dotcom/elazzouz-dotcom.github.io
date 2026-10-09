@@ -1,32 +1,323 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tools that help you finish the task.</title>
-  <meta name="description" content="A local-first workspace of focused developer, browser, and API utilities.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="استوديو محلي لعرض سجل هذه المحادثة والبحث فيه ونسخه.">
+  <title>استوديو هذه الدردشة | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#0d1117;color:#e6edf3}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#17324a 0,transparent 36rem),#0d1117}a{color:inherit;text-decoration:none}.shell{max-width:1080px;margin:auto;padding:24px}.nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:72px}.brand{font-weight:800;margin-right:auto}.nav a{padding:9px 12px;border:1px solid #263445;border-radius:10px;color:#a9bdd0}.hero{max-width:720px;margin-bottom:46px}.eyebrow{color:#77d6c2;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.76rem}h1{font-size:clamp(2.5rem,6vw,5rem);line-height:.98;margin:14px 0}h2{margin-top:0}p{color:#9eb0c0;line-height:1.65}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.card{border:1px solid #263445;background:#131b25;border-radius:16px;padding:20px;min-height:150px}.card:hover{border-color:#77d6c2}.card h3{margin:0 0 9px}.tag{display:inline-block;color:#77d6c2;font-size:.8rem;margin-bottom:22px}.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.tool{border:1px solid #263445;border-radius:13px;padding:16px;background:#111923}.tool b{display:block;margin-bottom:7px}.tool small{color:#8fa3b5}.toolbar{display:flex;gap:10px;margin:20px 0}.toolbar input{flex:1;background:#111923;color:#e6edf3;border:1px solid #263445;border-radius:10px;padding:12px}footer{margin-top:70px;color:#75899b;font-size:.85rem;border-top:1px solid #263445;padding-top:18px}.hidden{display:none}
+    .chat-search:focus-visible,
+    .chat-action:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .chat-message[hidden],
+    .chat-empty[hidden],
+    .user-message {
+      display: none !important;
+    }
+
+    .chat-message {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .chat-message.user-message {
+      border-inline-start: 4px solid var(--color-primary);
+    }
+
+    .chat-message.assistant-message {
+      border-inline-start: 4px solid var(--color-icon);
+    }
+
   </style>
 </head>
-<body><main class="shell"><nav class="nav"><a class="brand" href="/">Local-first workspace</a><a href="/tools">Tools</a><a href="/chat-studio">Chat Studio</a><a href="/contact/">Contact</a><a href="/hosting-studio">Hosting Studio</a><a href="/github-studios">GitHub Studios</a></nav><div id="app"></div><footer>Static import of the Sandbox preview. Source: https://httpscodesandboxiopsandboxreact-router-custom-link-wxd2j.oneapp.dev/</footer></main>
-<script>
-const githubRepos=[{"name":"-","description":"منصة متكاملة لفرق البرمجة لإدارة المشاريع والمهام والإصدارات والتعاون الهندسي من مساحة عمل واحدة. · مبني باستخدام Manus","private":false,"url":"https://github.com/elazzouz-dotcom/-"},{"name":"XM1","description":"Repository for everything related to XM1","private":false,"url":"https://github.com/elazzouz-dotcom/XM1"},{"name":"forge","description":":electron: A complete tool for building and publishing Electron applications","private":false,"url":"https://github.com/elazzouz-dotcom/forge"},{"name":"astro-blog-starter-template","description":"","private":true,"url":"https://github.com/elazzouz-dotcom/astro-blog-starter-template"},{"name":"vite-react-template1","description":"","private":true,"url":"https://github.com/elazzouz-dotcom/vite-react-template1"},{"name":"azz","description":"","private":false,"url":"https://github.com/elazzouz-dotcom/azz"},{"name":"vite-react-template","description":"","private":true,"url":"https://github.com/elazzouz-dotcom/vite-react-template"},{"name":"docs","description":"The open-source repo for docs.github.com","private":false,"url":"https://github.com/elazzouz-dotcom/docs"},{"name":"AI-Platform","description":"منصة متكاملة للذكاء الاصطناعي - AI Platform with 2500+ AI Models and Tools","private":false,"url":"https://github.com/elazzouz-dotcom/AI-Platform"},{"name":"marketplace-social-platform","description":"Platform e-commerce and social communication website built with JavaScript, Node.js, Express, and MongoDB","private":false,"url":"https://github.com/elazzouz-dotcom/marketplace-social-platform"},{"name":"mega-web-application","description":"تطبيق ويب عملاق بـ 1500+ سطر جافاسكريبت مع واجهة رائعة","private":true,"url":"https://github.com/elazzouz-dotcom/mega-web-application"},{"name":"nvmok","description":"Node Version Manager - POSIX-compliant bash script to manage multiple active node.js versions.","private":false,"url":"https://github.com/elazzouz-dotcom/nvmok"},{"name":"symmetrical-space-couscous","description":"","private":false,"url":"https://github.com/elazzouz-dotcom/symmetrical-space-couscous"},{"name":"single-spa","description":"Single-spa workspace and examples","private":false,"url":"https://github.com/elazzouz-dotcom/single-spa"},{"name":"razo","description":"platform","private":true,"url":"https://github.com/elazzouz-dotcom/razo"},{"name":"c2","description":"","private":false,"url":"https://github.com/elazzouz-dotcom/c2"},{"name":"single-spa-starter-deployment","description":"Single-spa starter deployment","private":true,"url":"https://github.com/elazzouz-dotcom/single-spa-starter-deployment"},{"name":"sooq-smart-marketplace","description":"Smart marketplace platform with AI-powered recommendations and behavioral analysis","private":false,"url":"https://github.com/elazzouz-dotcom/sooq-smart-marketplace"},{"name":"sooq-platform","description":"SOOQ - منصة تجارة اجتماعية بالعربية: متجر منتجات فيزيائية ورقمية + دردشة فورية + RAG AI + Search","private":false,"url":"https://github.com/elazzouz-dotcom/sooq-platform"},{"name":"sooq-marketplace","description":"منصة مجتمعية تجمع بين المتجر الإلكتروني وغرف المحادثة الفورية - SOOQ Marketplace","private":false,"url":"https://github.com/elazzouz-dotcom/sooq-marketplace"},{"name":"mohamedazzouz","description":"","private":false,"url":"https://github.com/elazzouz-dotcom/mohamedazzouz"},{"name":"nextjs","description":"","private":false,"url":"https://github.com/elazzouz-dotcom/nextjs"},{"name":"Gobi","description":"GOBI - Social Network Platform","private":false,"url":"https://github.com/elazzouz-dotcom/Gobi"},{"name":"ok1","description":"","private":false,"url":"https://github.com/elazzouz-dotcom/ok1"},{"name":"mohamed-azzouz","description":"","private":false,"url":"https://github.com/elazzouz-dotcom/mohamed-azzouz"}];
-const tools=[['Developer toolkit','Ten local utilities for code, JSON, text, hashing, Regex, comparison, Markdown, colors, time, and UUIDs.'],['🐺 Hosting Studio','Prepare this site for hosting with a local launch checklist and publishing notes.'],['Chat Studio · هذه الدردشة','اعرض سجل هذه المحادثة، وابحث بين الرسائل أو انسخها محليًا.'],['Research archive','Search published material with a timeline and source classification.'],['AIP Trading Company','Explore an algorithmic trading company profile focused on HFT and quant research.'],['AIPS local dashboard','Check your local service status and request a benchmark result.'],['One App Router playground','Try active links, exact index matching, nested route branches, and history methods locally.'],['Form automation builder','Design a sample form, run local verification, and generate Playwright code.'],['SQL query builder','Generate safe-to-review SQL statements without connecting to a database.'],['HTML lab','Preview sanitized HTML and run a basic accessibility-oriented audit.'],['URI analyzer','Analyze, assemble, resolve, encode, and decode URI components locally.'],['Clipboard lab','Test copy, read, paste, and clipboard events locally.'],['GitHub Studios','افتح جميع استوديوهات ومستودعات GitHub المرتبطة مباشرةً من مصدرها الأصلي.']];
-function layout(title,desc,body){document.querySelector('#app').innerHTML=`<section class="hero"><span class="eyebrow">Local-first workspace</span><h1>${title}</h1><p>${desc}</p></section>${body}`}
-function home(){layout('Tools that help you finish the task.','Use focused browser utilities for code, data, automation planning, API inspection, and safe local transformations. No filler directories—just working interfaces and generators.',`<h2>Three useful workspaces.</h2><div class="grid"><a class="card" href="/tools"><span class="tag">Build and test</span><h3>Developer toolkit</h3><p>Run local playgrounds and practical utilities.</p></a><a class="card" href="/tools"><span class="tag">Browser workflows</span><h3>Browser workflow studio</h3><p>Arrange browser steps and generate reviewed starters.</p></a><a class="card" href="/tools"><span class="tag">API utilities</span><h3>API workbench</h3><p>Inspect supported API requests while keeping credentials local.</p></a><a class="card" href="/github-studios"><span class="tag">GitHub integration</span><h3>GitHub Studios</h3><p>افتح جميع المستودعات والاستوديوهات مباشرةً من مصدرها على GitHub.</p></a></div>`)}
-function toolsPage(){layout('Choose a tool that does something useful.','Every card below opens an interactive tool or a local code generator. Search by task, language, or output.',`<p><b>${tools.length} working tools available.</b></p><div class="toolbar"><input id="search" placeholder="Search tools..."></div><div class="tools" id="tools">${tools.map(([n,d])=>`<article class="tool"><b>${n}</b><small>${d}</small></article>`).join('')}</div>`);document.querySelector('#search').oninput=e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('.tool').forEach(x=>x.classList.toggle('hidden',!x.textContent.toLowerCase().includes(q)))} }
-function githubStudios(){layout('GitHub Studios','اربط جميع الاستوديوهات والمشاريع مباشرةً بمصدرها على GitHub. الموقع يفتح المستودع الأصلي ولا ينسخ الكود أو يخزن مفاتيح الدخول.',`<div class="toolbar"><input id="repoSearch" placeholder="ابحث في المستودعات..."></div><div class="tools" id="repos">${githubRepos.map(r=>`<a class="tool" href="${r.url}" target="_blank" rel="noreferrer"><b>${r.name} ${r.private?'· خاص':''}</b><small>${r.description||'مستودع GitHub مباشر'}</small></a>`).join('')}</div><p>عدد الاستوديوهات المرتبطة: <b>${githubRepos.length}</b>. المستودعات الخاصة تظل محمية بصلاحيات GitHub.</p>`);document.querySelector('#repoSearch').oninput=e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('#repos .tool').forEach(x=>x.classList.toggle('hidden',!x.textContent.toLowerCase().includes(q)))}}
-function chat(){layout('This chat, all in one place.','Browse the request and response history related to adding the chat studio to the site. You can search the messages or copy the history.',`<div class="grid"><div class="card"><span class="tag">Conversation log</span><h3>Hosting Studio and Settings</h3><p>13 messages in this record</p><p>This page does not connect to the chat platform and does not send new messages.</p></div><article class="card" style="border-color:#77d6c2"><span class="tag">OneCompiler · استضافة وتطوير</span><h3>تطوير الموقع مباشرةً</h3><p>افتح مشروع OneCompiler من الهاتف لتعديل الكود وتشغيل المعاينة مباشرةً. يتطلب تسجيل الدخول إلى حسابك.</p><p><strong>المشروع:</strong> vibecode/4557bq5ht</p><div style="margin-top:16px;border:1px solid #263445;border-radius:14px;overflow:hidden;background:#0d1117"><iframe title="OneCompiler project editor" src="https://onecompiler.com/vibecode/4557bq5ht" style="display:block;width:100%;height:520px;border:0" allow="clipboard-read; clipboard-write" loading="lazy" referrerpolicy="no-referrer"></iframe><p style="padding:10px 14px;margin:0;font-size:.85rem">إذا منع OneCompiler العرض داخل الإطار، استخدم زر فتح المحرر أدناه.</p></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><a class="nav" style="margin:0;padding:9px 12px;background:#77d6c2;color:#0d1117" href="https://onecompiler.com/login?redirectTo=/vibecode/4557bq5ht" target="_blank" rel="noreferrer">فتح المحرر والتطوير</a><a class="nav" style="margin:0;padding:9px 12px" href="https://elazzouz-dotcom.github.io/" target="_blank" rel="noreferrer">فتح الموقع المنشور</a></div></article></div>`)}
-function hosting(){layout('Prepare the site for this conversation to be hosted.','Review your website pages and files before publishing, and use the checklist to prepare for hosting.',`<div class="card"><span class="tag">Publishing preparation space</span><h3>Check the site's readiness</h3><p>Project: static HTML pages with shared CSS and JavaScript files.</p><p>Pre-publication list: 0 out of 6 steps completed.</p><p>Your publishing notes remain local to this browser.</p></div>`)}
-const path=location.pathname.replace(/\/$/,'')||'/';if(path==='/tools')toolsPage();else if(path==='/chat-studio')chat();else if(path==='/hosting-studio')hosting();else if(path==='/github-studios')githubStudios();else home();
-</script><script>
-const siteTranslations = {"en":{"name":"English","Tools":"Tools","Chat Studio":"Chat Studio","Hosting Studio":"Hosting Studio","GitHub Studios":"GitHub Studios","Tools that help you finish the task.":"Tools that help you finish the task.","Choose a tool that does something useful.":"Choose a tool that does something useful.","This chat, all in one place.":"This chat, all in one place.","Prepare the site for this conversation to be hosted.":"Prepare the site for this conversation to be hosted.","Search tools...":"Search tools...","ابحث في المستودعات...":"Search repositories...","GitHub integration":"GitHub integration","API utilities":"API utilities","Browser workflows":"Browser workflows","Build and test":"Build and test"},"ar":{"name":"العربية","Tools":"الأدوات","Chat Studio":"استوديو المحادثة","Hosting Studio":"استوديو الاستضافة","GitHub Studios":"استوديوهات GitHub","Tools that help you finish the task.":"أدوات تساعدك على إنجاز المهمة.","Choose a tool that does something useful.":"اختر أداة تنجز شيئًا مفيدًا.","This chat, all in one place.":"هذه المحادثة في مكان واحد.","Prepare the site for this conversation to be hosted.":"جهّز الموقع للاستضافة من أجل هذه المحادثة.","Search tools...":"ابحث في الأدوات...","ابحث في المستودعات...":"ابحث في المستودعات...","GitHub integration":"تكامل GitHub","API utilities":"أدوات API","Browser workflows":"سير عمل المتصفح","Build and test":"البناء والاختبار"},"fr":{"name":"Français","Tools":"Outils","Chat Studio":"Studio de chat","Hosting Studio":"Studio d’hébergement","GitHub Studios":"Studios GitHub","Tools that help you finish the task.":"Des outils pour terminer votre travail.","Choose a tool that does something useful.":"Choisissez un outil utile.","This chat, all in one place.":"Cette conversation, au même endroit.","Prepare the site for this conversation to be hosted.":"Préparez le site pour son hébergement.","Search tools...":"Rechercher des outils...","ابحث في المستودعات...":"Rechercher des dépôts...","GitHub integration":"Intégration GitHub","API utilities":"Outils API","Browser workflows":"Flux du navigateur","Build and test":"Construire et tester"},"es":{"name":"Español","Tools":"Herramientas","Chat Studio":"Estudio de chat","Hosting Studio":"Estudio de alojamiento","GitHub Studios":"Estudios de GitHub","Tools that help you finish the task.":"Herramientas para terminar tu tarea.","Choose a tool that does something useful.":"Elige una herramienta útil.","This chat, all in one place.":"Este chat, todo en un solo lugar.","Prepare the site for this conversation to be hosted.":"Prepara el sitio para alojarlo.","Search tools...":"Buscar herramientas...","ابحث في المستودعات...":"Buscar repositorios...","GitHub integration":"Integración de GitHub","API utilities":"Herramientas API","Browser workflows":"Flujos del navegador","Build and test":"Construir y probar"},"de":{"name":"Deutsch","Tools":"Werkzeuge","Chat Studio":"Chat-Studio","Hosting Studio":"Hosting-Studio","GitHub Studios":"GitHub-Studios","Tools that help you finish the task.":"Werkzeuge, die deine Aufgabe erledigen.","Choose a tool that does something useful.":"Wähle ein nützliches Werkzeug.","This chat, all in one place.":"Dieser Chat an einem Ort.","Prepare the site for this conversation to be hosted.":"Bereite die Website für das Hosting vor.","Search tools...":"Werkzeuge suchen...","ابحث في المستودعات...":"Repositories suchen...","GitHub integration":"GitHub-Integration","API utilities":"API-Werkzeuge","Browser workflows":"Browser-Workflows","Build and test":"Bauen und testen"},"it":{"name":"Italiano","Tools":"Strumenti","Chat Studio":"Studio chat","Hosting Studio":"Studio hosting","GitHub Studios":"Studio GitHub","Tools that help you finish the task.":"Strumenti per completare il lavoro.","Choose a tool that does something useful.":"Scegli uno strumento utile.","This chat, all in one place.":"Questa chat, tutto in un unico posto.","Prepare the site for this conversation to be hosted.":"Prepara il sito per la pubblicazione.","Search tools...":"Cerca strumenti...","ابحث في المستودعات...":"Cerca repository...","GitHub integration":"Integrazione GitHub","API utilities":"Strumenti API","Browser workflows":"Flussi browser","Build and test":"Costruisci e prova"},"pt":{"name":"Português","Tools":"Ferramentas","Chat Studio":"Estúdio de chat","Hosting Studio":"Estúdio de hospedagem","GitHub Studios":"Estúdios GitHub","Tools that help you finish the task.":"Ferramentas para concluir sua tarefa.","Choose a tool that does something useful.":"Escolha uma ferramenta útil.","This chat, all in one place.":"Este chat em um só lugar.","Prepare the site for this conversation to be hosted.":"Prepare o site para hospedagem.","Search tools...":"Buscar ferramentas...","ابحث في المستودعات...":"Buscar repositórios...","GitHub integration":"Integração GitHub","API utilities":"Ferramentas de API","Browser workflows":"Fluxos do navegador","Build and test":"Construir e testar"},"ru":{"name":"Русский","Tools":"Инструменты","Chat Studio":"Студия чата","Hosting Studio":"Студия хостинга","GitHub Studios":"Студии GitHub","Tools that help you finish the task.":"Инструменты для выполнения задачи.","Choose a tool that does something useful.":"Выберите полезный инструмент.","This chat, all in one place.":"Весь этот чат в одном месте.","Prepare the site for this conversation to be hosted.":"Подготовьте сайт к размещению.","Search tools...":"Поиск инструментов...","ابحث في المستودعات...":"Поиск репозиториев...","GitHub integration":"Интеграция GitHub","API utilities":"Инструменты API","Browser workflows":"Сценарии браузера","Build and test":"Сборка и тестирование"},"zh":{"name":"中文","Tools":"工具","Chat Studio":"聊天工作室","Hosting Studio":"托管工作室","GitHub Studios":"GitHub 工作室","Tools that help you finish the task.":"帮助你完成任务的工具。","Choose a tool that does something useful.":"选择一个实用工具。","This chat, all in one place.":"将此聊天集中在一个地方。","Prepare the site for this conversation to be hosted.":"准备托管此网站。","Search tools...":"搜索工具…","ابحث في المستودعات...":"搜索仓库…","GitHub integration":"GitHub 集成","API utilities":"API 工具","Browser workflows":"浏览器工作流","Build and test":"构建与测试"},"ja":{"name":"日本語","Tools":"ツール","Chat Studio":"チャットスタジオ","Hosting Studio":"ホスティングスタジオ","GitHub Studios":"GitHub スタジオ","Tools that help you finish the task.":"タスク完了を支援するツール。","Choose a tool that does something useful.":"役立つツールを選択。","This chat, all in one place.":"このチャットを一か所に。","Prepare the site for this conversation to be hosted.":"サイトをホスティングする準備。","Search tools...":"ツールを検索…","ابحث في المستودعات...":"リポジトリを検索…","GitHub integration":"GitHub 連携","API utilities":"API ツール","Browser workflows":"ブラウザワークフロー","Build and test":"構築とテスト"},"ko":{"name":"한국어","Tools":"도구","Chat Studio":"채팅 스튜디오","Hosting Studio":"호스팅 스튜디오","GitHub Studios":"GitHub 스튜디오","Tools that help you finish the task.":"작업을 완료하는 도구입니다.","Choose a tool that does something useful.":"유용한 도구를 선택하세요.","This chat, all in one place.":"이 채팅을 한곳에서 확인하세요.","Prepare the site for this conversation to be hosted.":"사이트 호스팅을 준비하세요.","Search tools...":"도구 검색…","ابحث في المستودعات...":"저장소 검색…","GitHub integration":"GitHub 통합","API utilities":"API 도구","Browser workflows":"브라우저 워크플로","Build and test":"빌드 및 테스트"},"hi":{"name":"हिन्दी","Tools":"उपकरण","Chat Studio":"चैट स्टूडियो","Hosting Studio":"होस्टिंग स्टूडियो","GitHub Studios":"GitHub स्टूडियो","Tools that help you finish the task.":"काम पूरा करने में मदद करने वाले उपकरण।","Choose a tool that does something useful.":"एक उपयोगी उपकरण चुनें।","This chat, all in one place.":"यह चैट एक ही जगह।","Prepare the site for this conversation to be hosted.":"साइट को होस्ट करने के लिए तैयार करें।","Search tools...":"उपकरण खोजें…","ابحث في المستودعات...":"रिपॉजिटरी खोजें…","GitHub integration":"GitHub एकीकरण","API utilities":"API उपकरण","Browser workflows":"ब्राउज़र वर्कफ़्लो","Build and test":"बनाएँ और जाँचें"},"ur":{"name":"اردو","Tools":"ٹولز","Chat Studio":"چیٹ اسٹوڈیو","Hosting Studio":"ہوسٹنگ اسٹوڈیو","GitHub Studios":"GitHub اسٹوڈیوز","Tools that help you finish the task.":"کام مکمل کرنے میں مدد دینے والے ٹولز۔","Choose a tool that does something useful.":"مفید ٹول منتخب کریں۔","This chat, all in one place.":"یہ چیٹ ایک جگہ۔","Prepare the site for this conversation to be hosted.":"سائٹ کو ہوسٹ کرنے کے لیے تیار کریں۔","Search tools...":"ٹولز تلاش کریں…","ابحث في المستودعات...":"ریپوزٹریز تلاش کریں…","GitHub integration":"GitHub انضمام","API utilities":"API ٹولز","Browser workflows":"براؤزر ورک فلو","Build and test":"بنائیں اور آزمائیں"},"nl":{"name":"Nederlands","Tools":"Tools","Chat Studio":"Chatstudio","Hosting Studio":"Hostingstudio","GitHub Studios":"GitHub-studio’s","Tools that help you finish the task.":"Tools om je taak af te ronden.","Choose a tool that does something useful.":"Kies een nuttige tool.","This chat, all in one place.":"Deze chat op één plek.","Prepare the site for this conversation to be hosted.":"Bereid de site voor op hosting.","Search tools...":"Tools zoeken…","ابحث في المستودعات...":"Repositories zoeken…","GitHub integration":"GitHub-integratie","API utilities":"API-tools","Browser workflows":"Browserworkflows","Build and test":"Bouwen en testen"},"pl":{"name":"Polski","Tools":"Narzędzia","Chat Studio":"Studio czatu","Hosting Studio":"Studio hostingu","GitHub Studios":"Studia GitHub","Tools that help you finish the task.":"Narzędzia pomagające ukończyć zadanie.","Choose a tool that does something useful.":"Wybierz przydatne narzędzie.","This chat, all in one place.":"Ten czat w jednym miejscu.","Prepare the site for this conversation to be hosted.":"Przygotuj witrynę do hostingu.","Search tools...":"Szukaj narzędzi…","ابحث في المستودعات...":"Szukaj repozytoriów…","GitHub integration":"Integracja GitHub","API utilities":"Narzędzia API","Browser workflows":"Przepływy przeglądarki","Build and test":"Budowanie i testowanie"},"vi":{"name":"Tiếng Việt","Tools":"Công cụ","Chat Studio":"Studio trò chuyện","Hosting Studio":"Studio lưu trữ","GitHub Studios":"Studio GitHub","Tools that help you finish the task.":"Công cụ giúp bạn hoàn thành công việc.","Choose a tool that does something useful.":"Chọn một công cụ hữu ích.","This chat, all in one place.":"Toàn bộ cuộc trò chuyện ở một nơi.","Prepare the site for this conversation to be hosted.":"Chuẩn bị lưu trữ trang web.","Search tools...":"Tìm công cụ…","ابحث في المستودعات...":"Tìm kho lưu trữ…","GitHub integration":"Tích hợp GitHub","API utilities":"Công cụ API","Browser workflows":"Quy trình trình duyệt","Build and test":"Xây dựng và kiểm thử"},"id":{"name":"Bahasa Indonesia","Tools":"Alat","Chat Studio":"Studio chat","Hosting Studio":"Studio hosting","GitHub Studios":"Studio GitHub","Tools that help you finish the task.":"Alat untuk menyelesaikan tugas.","Choose a tool that does something useful.":"Pilih alat yang berguna.","This chat, all in one place.":"Chat ini dalam satu tempat.","Prepare the site for this conversation to be hosted.":"Siapkan situs untuk hosting.","Search tools...":"Cari alat…","ابحث في المستودعات...":"Cari repositori…","GitHub integration":"Integrasi GitHub","API utilities":"Alat API","Browser workflows":"Alur kerja browser","Build and test":"Bangun dan uji"}};
-const languageOptions=Object.entries(siteTranslations).map(([code,v])=>`<option value="${code}">${v.name}</option>`).join('');
-const languageSelect=document.createElement('select');languageSelect.id='language-select';languageSelect.setAttribute('aria-label','Language');languageSelect.innerHTML=languageOptions;languageSelect.style.cssText='background:#111923;color:#e6edf3;border:1px solid #263445;border-radius:10px;padding:9px 10px;max-width:150px;';
-document.querySelector('.nav').appendChild(languageSelect);
-function translateText(root,dict){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{let value=node.nodeValue;for(const [from,to] of Object.entries(dict)){if(value.trim()===from) value=value.replace(from,to);}node.nodeValue=value;});root.querySelectorAll('input[placeholder]').forEach(input=>{if(dict[input.placeholder])input.placeholder=dict[input.placeholder];});}
-function applyLanguage(code){const lang=siteTranslations[code]||siteTranslations.en;document.documentElement.lang=code;document.documentElement.dir=code==='ar'||code==='ur'?'rtl':'ltr';translateText(document.body,lang);languageSelect.value=code;localStorage.setItem('site-language',code);}
-languageSelect.addEventListener('change',()=>{localStorage.setItem('site-language',languageSelect.value);location.reload();});
-const savedLanguage=localStorage.getItem('site-language')||'en';languageSelect.value=savedLanguage;applyLanguage(savedLanguage);
-</script></body></html>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]" aria-hidden="true">✳</span>
+        <span class="text-xl font-extrabold">استوديو <span class="text-[var(--color-primary)]">الدردشة</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/hosting-studio">🐺 استوديو الاستضافة</a>
+        <a href="https://onecompiler.com/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2">
+          <span class="flex h-7 w-7 items-center justify-center rounded-[calc(var(--radius)*0.45)] bg-[var(--color-dark)] text-[var(--color-primary-contrast)]" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 3h7v7" />
+              <path d="M10 14 21 3" />
+              <path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6" />
+            </svg>
+          </span>
+          فتح مساحة العمل ↗
+        </a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">مساحة محلية للمحادثة</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">هذه الدردشة، في مكان واحد.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">تصفّح سجل الطلبات والردود المتعلقة بإضافة استوديو الدردشة إلى الموقع. يمكنك البحث في الرسائل أو نسخ السجل. هذه الصفحة لا تتصل بمنصة الدردشة ولا ترسل رسائل جديدة.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="feature-card p-5 sm:p-8" aria-labelledby="conversation-heading">
+          <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">سجل المحادثة</p>
+              <h2 id="conversation-heading" class="mb-1 text-2xl font-black">استوديو الاستضافة والإعدادات</h2>
+              <p id="message-count" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite"></p>
+              <p class="mb-0 text-xs font-semibold text-[var(--color-primary)]">السجل المعروض يضم ردود المساعد فقط.</p>
+            </div>
+            <span class="icon-box shrink-0 text-xl" aria-hidden="true">💬</span>
+          </div>
+
+          <label for="conversation-search" class="mb-5 flex items-center gap-3 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+            <span class="text-xl text-[var(--color-muted)]" aria-hidden="true">⌕</span>
+            <span class="sr-only">ابحث في الرسائل</span>
+            <input id="conversation-search" class="chat-search w-full border-0 bg-transparent text-sm outline-none placeholder:text-[var(--color-muted)]" type="search" placeholder="ابحث في الرسائل..." autocomplete="off">
+          </label>
+
+          <div id="conversation-list" class="space-y-4" aria-live="polite">
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أضف له أيقونة الذئب لأعرفه</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أضفت أيقونة الذئب 🐺 إلى بطاقة استوديو الاستضافة في دليل الأدوات، لتسهُل ملاحظتها.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أضف ه إلى الاعدادات</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أضفت رابط 🐺 Hosting Studio إلى قائمة الإعدادات، ويؤدي إلى /hosting-studio.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">The site preview reports these errors: Script error. Please fix them.</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">تم إصلاح خطأ البرمجة النصية في قائمة الإعدادات، مع الإبقاء على رابط استوديو الاستضافة.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">https://onecompiler.com/vibecode/4557bq5ht أضف ستوديو</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">هل تقصد إضافة استوديو الاستضافة إلى المشروع الموجود في الرابط، أم إنشاء صفحة Studio جديدة؟ استوديو الاستضافة موجود بالفعل في ملفات الموقع الحالي.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">نعم</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أضفت رابطًا مباشرًا إلى 🐺 Hosting Studio في الصفحة الرئيسية، ويأخذك إلى /hosting-studio.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أرجع قاىمة الإعدادات كما كانت قبل تحتوي على جميع الأدوات ستوديو</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أعدت قائمة الإعدادات لتضم الأدوات والاستوديوهات ضمن مجموعات، وأضفت رابط استوديو الاستضافة ودليل الأدوات.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أضف ستوديو فيه هاد الدردشة هادي</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">نعم، يمكن تحويل هذه المحادثة إلى صفحة Chat Studio مستقلة تعرض السجل وتتيح البحث والنسخ محليًا.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">بدون دليل أدات تعمل</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">تم تجهيز أداة Model Card مستقلة تعمل مباشرة عبر المسار /model-card، بدون الاعتماد على دليل الأدوات.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">اكمل</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">تم تجهيز أداة Inference Providers مستقلة عبر /inference-providers، مع اختيار المهمة والمزوّد والسياسة وتوليد أمثلة Python وJavaScript وcURL.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أضف معلومات Inference Providers حول الشركاء، السياسات، والـ OpenAI-compatible endpoint</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">تمت إضافة شرح الشركاء، سياسات fastest وcheapest وpreferred وspecific، والفرق بين Inference Clients وOpenAI-compatible وDirect HTTP.</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">فهمت أنك تريد أن يكون Chat Studio مخصصًا لردودي أنا فقط. تم ضبط العرض والبحث والعداد والنسخ ليعتمدوا على رسائل المساعد دون رسائل المستخدم.</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">تم ربط Chat Studio بالصفحة الرئيسية وبدليل الأدوات عبر المسار النظيف /chat-studio، وأصبح الوصول إليه مباشرًا من أكثر من مكان.</p>
+            </article>
+            <article class="chat-message user-message hidden p-5" data-user-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-primary)]">أنت</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">أنت أيضا جبتي قم بتحويل محادثتك معي إلى هناك هل تستطيع</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">تم إكمال ربط Chat Studio وتحديث سجله ليعرض ردودي أنا فقط، مع استمرار البحث والعداد والنسخ على ردود المساعد دون رسائل المستخدم.</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">اكتمل ربط Chat Studio بالموقع، وأصبح المسار /chat-studio متاحًا من الصفحة الرئيسية ودليل الأدوات، مع عرض ردود المساعد فقط.</p>
+            </article>
+            <article class="chat-message assistant-message p-5" data-message>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--color-icon)]">المساعد</p>
+              <p class="message-text mb-0 whitespace-pre-wrap break-words text-sm leading-7">تمت مواصلة ربط Chat Studio وتحديث السجل ليبقى مخصصًا لردود المساعد فقط، مع استمرار البحث والعداد والنسخ المحلي.</p>
+            </article>
+          </div>
+
+          <div id="chat-empty" class="chat-empty mt-5 rounded-[var(--radius)] bg-[var(--color-bg)] p-6 text-center text-sm text-[var(--color-muted)]" hidden>ما في رسائل مطابقة. جرّب كلمات بحث ثانية.</div>
+        </section>
+
+        <aside class="space-y-5 xl:sticky xl:top-6">
+          <section class="feature-card overflow-hidden">
+            <div class="bg-[var(--color-dark)] p-5 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">أدوات المحادثة</p>
+              <h2 class="mb-0 text-xl font-black">احتفظ بنسخة أو ابحث</h2>
+            </div>
+            <div class="space-y-3 p-5">
+              <button id="copy-conversation" type="button" class="chat-action btn-primary w-full px-4 py-3 text-sm">نسخ سجل المحادثة</button>
+              <p id="copy-status" class="mb-0 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite">تُعرض هنا الرسائل المتعلقة بإعداد استوديو الموقع.</p>
+              <a href="https://onecompiler.com/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-soft)] p-4 text-sm font-bold text-[var(--color-primary)]">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-[calc(var(--radius)*0.45)] bg-[var(--color-dark)] text-[var(--color-primary-contrast)]" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 3h7v7" />
+                    <path d="M10 14 21 3" />
+                    <path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6" />
+                  </svg>
+                </span>
+                <span>فتح مساحة العمل الأصلية <span aria-hidden="true">↗</span></span>
+              </a>
+              <a href="/tools" class="block rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm font-bold">العودة إلى دليل الأدوات <span class="text-[var(--color-primary)]" aria-hidden="true">←</span></a>
+            </div>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5">
+            <h2 class="mb-2 text-lg font-extrabold">ملاحظة عن هذه النسخة</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">هذه صفحة ثابتة تعرض نسخة من سجل المحادثة المتعلق بالاستوديو. لا يمكنها جلب الرسائل الجديدة أو إرسال ردود إلى الدردشة الأصلية.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">نسخة محلية للعرض والبحث في سجل هذه الدردشة.</p>
+      <a href="/hosting-studio" class="footer-link font-semibold">🐺 استوديو الاستضافة</a>
+    </div>
+  </footer>
+
+  <script>
+    const searchInput = document.querySelector('#conversation-search');
+    document.querySelectorAll('[data-user-message]').forEach((message) => message.remove());
+    const messages = [...document.querySelectorAll('[data-message]')];
+    const emptyState = document.querySelector('#chat-empty');
+
+    messages.forEach((message) => {
+      const copyButton = document.createElement('button');
+      copyButton.type = 'button';
+      copyButton.className = 'chat-action mt-4 rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-xs font-bold text-[var(--color-primary)]';
+      copyButton.textContent = 'نسخ الرد';
+      copyButton.setAttribute('aria-label', 'نسخ رد المساعد');
+      copyButton.dataset.copyMessage = 'true';
+      message.append(copyButton);
+    });
+    const messageCount = document.querySelector('#message-count');
+    const copyStatus = document.querySelector('#copy-status');
+
+    function visibleMessages() {
+      const query = searchInput.value.trim().toLocaleLowerCase();
+      let visible = 0;
+
+      messages.forEach((message) => {
+        const matches = message.textContent.toLocaleLowerCase().includes(query);
+        message.hidden = !matches;
+        if (matches) visible += 1;
+      });
+
+      emptyState.hidden = visible > 0;
+      messageCount.textContent = query ? `${visible} رسالة مطابقة من ${messages.length}` : `${messages.length} رسالة في هذا السجل`;
+    }
+
+    function conversationText() {
+      return messages.map((message) => {
+        const speaker = message.querySelector('p').textContent;
+        const content = message.querySelector('.message-text').textContent;
+        return `${speaker}\n${content}`;
+      }).join('\n\n');
+    }
+
+    searchInput.addEventListener('input', visibleMessages);
+
+    document.querySelector('#conversation-list').addEventListener('click', async (event) => {
+      const button = event.target.closest('button[data-copy-message]');
+      if (!button) return;
+
+      const message = button.closest('[data-message]');
+      const content = message?.querySelector('.message-text')?.textContent || '';
+      if (!content) return;
+
+      try {
+        await navigator.clipboard.writeText(content);
+        button.textContent = 'تم النسخ';
+        copyStatus.textContent = 'تم نسخ الرد المحدد.';
+      } catch {
+        copyStatus.textContent = 'تعذر النسخ تلقائيًا. حدّد نص الرد وانسخه يدويًا.';
+      }
+
+      window.setTimeout(() => {
+        button.textContent = 'نسخ الرد';
+      }, 1600);
+    });
+
+    document.querySelector('#copy-conversation').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(conversationText());
+        copyStatus.textContent = 'تم نسخ سجل المحادثة.';
+      } catch {
+        copyStatus.textContent = 'تعذّر النسخ تلقائيًا. حدّد الرسائل وانسخها يدويًا.';
+      }
+    });
+
+    visibleMessages();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

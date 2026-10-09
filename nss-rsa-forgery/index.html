@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="أداة دفاعية محلية لفحص مؤشرات ثغرة تزوير توقيعات RSA في NSS ومشكلات معالجة الشهادات في GnuTLS.">
+  <title>فاحص تزوير RSA في NSS وGnuTLS</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .code-area,
+    .result-output {
+      direction: ltr;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .result-output {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .finding[data-kind="review"] {
+      border-color: color-mix(in srgb, var(--color-icon) 55%, var(--color-border));
+      background: color-mix(in srgb, var(--color-icon) 10%, var(--color-bg));
+    }
+
+    .finding[data-kind="info"] {
+      border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+      background: var(--color-soft);
+    }
+
+    .finding[data-kind="clear"] {
+      border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+      background: var(--color-bg);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/bash-cve-check">فاحص Bash</a>
+        <a href="/security-advisory">الاستشارات الأمنية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">فحص دفاعي محلي · NSS وGnuTLS</p>
+        <h1 class="mb-4 max-w-5xl text-4xl font-black leading-tight sm:text-5xl">افحص مؤشرات تزوير توقيعات RSA.</h1>
+        <p class="mb-6 max-w-3xl text-base leading-7 text-[var(--color-muted)]">ألصق رسالة أمنية أو سجل تحديث أو ملاحظات إصدار، وستبحث الأداة محليًا عن مؤشرات CVE-2014-1568 ومشكلة معالجة الشهادات في GnuTLS. لا تنفذ الأداة تشفيرًا أو شهادات أو طلبات شبكة.</p>
+        <span class="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-primary)]">تحليل نصي دفاعي فقط</span>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="scanner-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">الفحص المحلي</p>
+          <h2 id="scanner-heading" class="mb-3 text-2xl font-black">ألصق النص المراد مراجعته</h2>
+          <p class="mb-5 text-sm leading-7 text-[var(--color-muted)]">استخدم رسالة بريد، سجل تغييرات، رقم إصدار، أو ملاحظة تحديث. النتيجة مؤشر أولي ولا تثبت أن النظام متأثر أو محدث.</p>
+          <textarea id="source-input" rows="16" spellcheck="false" class="code-area w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" placeholder="ألصق نص الاستشارة أو سجل التحديث هنا..."></textarea>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button id="load-example" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 text-sm font-bold">تحميل مثال</button>
+            <button id="scan-button" type="button" class="btn-primary px-5 py-3 text-sm">فحص محلي</button>
+            <button id="clear-button" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 text-sm font-bold">مسح</button>
+          </div>
+          <p id="scan-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">لم يبدأ الفحص بعد.</p>
+        </section>
+
+        <aside class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="result-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">نتيجة الفحص</p>
+              <h2 id="result-heading" class="mb-2 text-2xl font-black">مؤشرات أمنية</h2>
+              <p id="result-summary" class="mb-0 text-sm leading-6 opacity-80">ستظهر النتائج هنا.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <ul id="findings" class="space-y-3 text-sm leading-6" aria-live="polite"></ul>
+            </div>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5">
+            <h2 class="mb-3 text-lg font-extrabold">ما الذي يجب فعله؟</h2>
+            <ul class="mb-0 list-disc space-y-2 pr-5 text-sm leading-6 text-[var(--color-muted)]">
+              <li>تحقق من نسخة NSS وGnuTLS عبر مدير الحزم والتوزيعة.</li>
+              <li>طبّق تحديثات الأمان الرسمية قبل الاعتماد على نتيجة النص.</li>
+              <li>راجع الشهادات التي تم التحقق منها خلال الفترة المتأثرة.</li>
+              <li>لا تختبر التزوير على أنظمة لا تملك إذنًا لفحصها.</li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">فاحص محلي دفاعي لمؤشرات RSA وNSS وGnuTLS.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const sourceInput = document.querySelector('#source-input');
+    const findings = document.querySelector('#findings');
+    const summary = document.querySelector('#result-summary');
+    const status = document.querySelector('#scan-status');
+
+    const example = `Subject: Re: nss RSA forgery (CVE-2014-1568)
+
+Mozilla reports a serious RSA signature verification issue in NSS.
+The issue appears related to certificate signature verification and malformed RSA signatures.
+
+GnuTLS 3.3.8 fixed certificate sanitization before signature verification.
+libtasn1 parser normalized non-DER compliant certificate data before verification.`;
+
+    function addFinding(kind, title, detail) {
+      const item = document.createElement('li');
+      item.className = 'finding rounded-[calc(var(--radius)*0.55)] border p-4';
+      item.dataset.kind = kind;
+      const heading = document.createElement('strong');
+      heading.className = 'mb-1 block';
+      heading.textContent = title;
+      const text = document.createElement('span');
+      text.className = 'text-[var(--color-muted)]';
+      text.textContent = detail;
+      item.append(heading, text);
+      findings.append(item);
+    }
+
+    function scan() {
+      const source = sourceInput.value;
+      findings.replaceChildren();
+
+      if (!source.trim()) {
+        summary.textContent = 'ألصق نصًا أولًا.';
+        status.textContent = 'لا توجد بيانات للفحص.';
+        return;
+      }
+
+      const hasCve = /CVE-2014-1568/i.test(source);
+      const hasNss = /\bNSS\b|RSA forgery|signature verification|تزوير.*RSA/i.test(source);
+      const hasGnutls = /GnuTLS|libtasn1|non-DER|DER compliant|sanitiz/i.test(source);
+      const hasFix = /3\.3\.8|patched|fixed|update|تحديث|إصلاح|مصحح/i.test(source);
+      const indicatorCount = Number(hasCve) + Number(hasNss) + Number(hasGnutls);
+
+      if (hasCve || hasNss) {
+        addFinding('review', 'NSS · RSA signature verification', hasCve ? 'ظهر CVE-2014-1568 أو وصف قريب منه. تحقق من إصدار NSS والتحديث المطبق بدل الاعتماد على النص وحده.' : 'ظهر وصف لمشكلة تزوير أو تحقق توقيع RSA؛ ابحث عن رقم CVE ونسخة الحزمة في سجل النظام.');
+      }
+
+      if (hasGnutls) {
+        addFinding('review', 'GnuTLS / libtasn1 · certificate normalization', 'ظهر مؤشر لمعالجة شهادات أو ASN.1/DER قبل التحقق. راجع إصدار GnuTLS وlibtasn1 وسجل التحديثات.');
+      }
+
+      if (hasFix) {
+        addFinding('info', 'مؤشر على إصلاح أو تحديث', 'وجد النص كلمات أو إصدارًا يشير إلى إصلاح محتمل. هذا لا يثبت أن الإصلاح مثبت على جهازك.');
+      }
+
+      if (!indicatorCount) {
+        addFinding('clear', 'لم تظهر مؤشرات مباشرة', 'لم يجد الفحص رقم CVE أو كلمات NSS/GnuTLS المعروفة في النص. هذا لا يثبت خلو النظام من الثغرات.');
+      }
+
+      summary.textContent = `${indicatorCount} مؤشرات مرتبطة ظهرت في النص. تحقق من الإصدارات الرسمية قبل اتخاذ قرار.`;
+      status.textContent = 'اكتمل الفحص محليًا. لم تُنفذ الشيفرة ولم تُرسل البيانات.';
+    }
+
+    document.querySelector('#load-example').addEventListener('click', () => {
+      sourceInput.value = example;
+      scan();
+    });
+    document.querySelector('#scan-button').addEventListener('click', scan);
+    document.querySelector('#clear-button').addEventListener('click', () => {
+      sourceInput.value = '';
+      scan();
+      sourceInput.focus();
+    });
+    sourceInput.addEventListener('input', scan);
+    scan();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

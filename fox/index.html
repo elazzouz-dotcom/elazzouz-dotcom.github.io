@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="مساحة Fox موحدة لإرشادات MoinMoin وPhpWiki ونشر الويكي واستكشاف مشكلة تحديث تعريفات lpfc وbe2net على RHEL.">
+  <title>Fox Wiki Workspace | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html {
+      scroll-padding-top: 1.5rem;
+    }
+
+    .fox-section {
+      scroll-margin-top: 1.5rem;
+    }
+
+    .fox-code {
+      direction: ltr;
+      overflow: auto;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .fox-tab[aria-current="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+      color: var(--color-primary);
+    }
+
+    .fox-control:focus-visible,
+    .fox-tab:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .fox-panel[hidden] {
+      display: none;
+    }
+
+    .fox-result:empty {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <a class="skip-link" href="#main-content">انتقل إلى المحتوى</a>
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]" aria-hidden="true">🦊</span>
+        <span class="text-xl font-extrabold">Fox <span class="text-[var(--color-primary)]">Wiki Workspace</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-14 lg:px-8 lg:py-20">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          <span aria-hidden="true">🦊</span>
+          مساحة موحّدة · إرشادات وأدوات محلية
+        </p>
+        <h1 class="mb-5 max-w-5xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">أدوات الثعلب، كلها في صفحة واحدة.</h1>
+        <p class="mb-8 max-w-3xl text-lg leading-8 text-[var(--color-muted)]">تصفّح تخطيط MoinMoin، حوّل صياغة PhpWiki، راجع إرشادات النشر التاريخية، واستكشف ملاحظة تحديث تعريفات Linux. تعمل أدوات المعاينة والتحويل داخل المتصفح؛ لا تنفّذ أوامر النظام.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="#layout" class="btn-primary px-5 py-3">تخطيط الويكي</a>
+          <a href="#converter" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">محوّل PhpWiki</a>
+          <a href="#deployment" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">إرشادات النشر</a>
+          <a href="#linux-drivers" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">تعريفات RHEL</a>
+          <a href="#shell-language" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">مختبر shell</a>
+          <a href="/fox/css-lab" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">مختبر CSS</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-10" aria-label="أقسام مساحة الثعلب">
+      <nav class="mx-auto flex max-w-7xl flex-wrap gap-2">
+        <a class="fox-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold" href="#layout">Layout &amp; accessibility</a>
+        <a class="fox-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold" href="#converter">PhpWiki converter</a>
+        <a class="fox-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold" href="#deployment">MoinMoin deployment</a>
+        <a class="fox-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold" href="#linux-drivers">RHEL driver update</a>
+        <a class="fox-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold" href="#shell-language">POSIX shell lab</a>
+        <a class="fox-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold" href="#open-functions">open() / openat()</a>
+      </nav>
+    </section>
+
+    <section id="layout" class="fox-section px-5 pb-8 lg:px-8 lg:pb-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="layout-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">01 · Layout &amp; accessibility</p>
+          <h2 id="layout-heading" class="mb-3 text-2xl font-black">عاين بنية صفحة الويكي</h2>
+          <p class="mb-5 text-sm leading-7 text-[var(--color-muted)]">بدّل موضع التنقل وجرّب عناصر تسهيلات الاستخدام. هذه معاينة محلية وليست تثبيتًا لـ MoinMoin.</p>
+          <fieldset>
+            <legend class="mb-3 text-sm font-bold">موضع التنقل</legend>
+            <div class="grid gap-2 sm:grid-cols-3" role="group" aria-label="اختيار موضع التنقل">
+              <button class="layout-choice fox-control rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-sm font-bold" type="button" data-layout="sidebar" aria-pressed="true">شريط جانبي</button>
+              <button class="layout-choice fox-control rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-sm font-bold" type="button" data-layout="top" aria-pressed="false">تنقل علوي</button>
+              <button class="layout-choice fox-control rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-sm font-bold" type="button" data-layout="right" aria-pressed="false">شريط يميني</button>
+            </div>
+          </fieldset>
+          <div class="mt-5 space-y-3">
+            <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+              <input id="skip-toggle" type="checkbox" checked class="mt-1 accent-[var(--color-primary)]">
+              <span><strong>رابط تجاوز التنقل</strong><br><span class="text-[var(--color-muted)]">يساعد مستخدمي لوحة المفاتيح على الوصول للمحتوى بسرعة.</span></span>
+            </label>
+            <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+              <input id="relations-toggle" type="checkbox" checked class="mt-1 accent-[var(--color-primary)]">
+              <span><strong>روابط البحث والفهرس والمساعدة</strong><br><span class="text-[var(--color-muted)]">أظهر روابط الوثائق المرتبطة.</span></span>
+            </label>
+            <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+              <input id="alt-toggle" type="checkbox" checked class="mt-1 accent-[var(--color-primary)]">
+              <span><strong>اسم وصول للصورة</strong><br><span class="text-[var(--color-muted)]">امنح الصور ذات المعنى وصفًا بديلًا مناسبًا.</span></span>
+            </label>
+          </div>
+          <p id="layout-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite"></p>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="preview-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">معاينة مباشرة</p>
+              <h2 id="preview-heading" class="mb-0 text-2xl font-black">صفحة MoinMoin</h2>
+            </div>
+            <div class="p-4 sm:p-6">
+              <div id="wiki-preview" class="grid min-h-80 overflow-hidden rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-bg)] md:grid-cols-[14rem_minmax(0,1fr)]"></div>
+            </div>
+          </section>
+          <section class="feature-card p-6" aria-labelledby="audit-heading">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">مراجعة وصول محلية</p>
+                <h2 id="audit-heading" class="mb-0 text-xl font-black">قائمة تحقق المعاينة</h2>
+              </div>
+              <button id="run-audit" type="button" class="btn-primary px-4 py-2.5 text-sm">إعادة الفحص</button>
+            </div>
+            <p id="audit-summary" class="mb-4 text-sm text-[var(--color-muted)]" aria-live="polite"></p>
+            <ul id="audit-list" class="space-y-2 text-sm leading-6" aria-live="polite"></ul>
+            <h3 class="mb-2 mt-5 text-base font-extrabold">مخطط قارئ الشاشة</h3>
+            <pre id="reader-outline" class="fox-code rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></pre>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="converter" class="fox-section px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-2">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="converter-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">02 · محوّل PhpWiki محلي</p>
+          <h2 id="converter-heading" class="mb-3 text-2xl font-black">حوّل الصياغة الشائعة إلى MoinMoin</h2>
+          <p class="mb-5 text-sm leading-6 text-[var(--color-muted)]">يدعم التحويل التقريبي للعناوين والروابط وبعض الماكروهات والكتل المنسقة. راجع النتائج يدويًا؛ لا تُرفع البيانات ولا تُستورد تلقائيًا.</p>
+          <label for="source-input" class="mb-2 block text-sm font-bold">مصدر PhpWiki</label>
+          <textarea id="source-input" rows="16" spellcheck="false" class="fox-control fox-code w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" placeholder="ألصق صياغة PhpWiki هنا..."></textarea>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button id="load-example" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تحميل مثال</button>
+            <button id="convert-button" type="button" class="btn-primary px-5 py-3 text-sm">حوّل محليًا</button>
+            <button id="clear-button" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">مسح</button>
+          </div>
+          <p id="conversion-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">لم يبدأ التحويل بعد.</p>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="output-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">ناتج محلي</p>
+              <h2 id="output-heading" class="mb-0 text-2xl font-black">صياغة MoinMoin</h2>
+            </div>
+            <div class="p-5 sm:p-6">
+              <label for="conversion-output" class="sr-only">الناتج المحوّل</label>
+              <textarea id="conversion-output" rows="16" class="fox-control fox-code w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]"></textarea>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-output" type="button" class="btn-primary px-4 py-3 text-sm">نسخ الناتج</button>
+                <button id="download-output" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تنزيل TXT</button>
+              </div>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">لا يوجد ناتج للنسخ.</p>
+            </div>
+          </section>
+          <section class="feature-card p-6" aria-labelledby="warnings-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">قائمة المراجعة</p>
+            <h2 id="warnings-heading" class="mb-3 text-xl font-black">تحقق قبل الاستيراد</h2>
+            <ul id="conversion-warnings" class="space-y-3 text-sm leading-6" aria-live="polite"></ul>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="deployment" class="fox-section px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <section class="feature-card border-[var(--color-icon)] bg-[var(--color-soft)] p-6 sm:p-8">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-icon)]">03 · مرجع تاريخي</p>
+          <h2 class="mb-3 text-2xl font-black">ملاحظات نشر MoinMoin 1.9.8 / Debian 8</h2>
+          <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">هذه تعليمات قديمة تعتمد Python 2 وبيئة Debian 8 غير المدعومة. استخدمها كمرجع تاريخي فقط؛ لا تنفذها كما هي على خادم متصل بالإنترنت. اختر إصدارًا مدعومًا من الويكي وبيئة التشغيل، واختبر الترحيل والاستعادة في بيئة معزولة.</p>
+        </section>
+        <div class="grid gap-5 lg:grid-cols-2">
+          <article class="feature-card p-6">
+            <h3 class="mb-3 text-lg font-extrabold">مبادئ العزل</h3>
+            <ul class="mb-0 list-disc space-y-2 pr-5 text-sm leading-7 text-[var(--color-muted)]">
+              <li>استخدم حساب خدمة غير تفاعليًا وصلاحيات أقل ما يمكن.</li>
+              <li>احتفظ بالإعدادات والصفحات خارج جذر الويب العام.</li>
+              <li>تحقق من ملكية ملفات التطبيق والمجلدات والسجلات والمقبس.</li>
+              <li>اختبر النسخ الاحتياطي والاستعادة قبل التحديث أو الترحيل.</li>
+            </ul>
+          </article>
+          <article class="feature-card p-6">
+            <h3 class="mb-3 text-lg font-extrabold">حدود الخدمة والوكيل</h3>
+            <ul class="mb-0 list-disc space-y-2 pr-5 text-sm leading-7 text-[var(--color-muted)]">
+              <li>شغّل uWSGI تحت حساب الخدمة، واجعل المقبس خاصًا بمجموعة خادم الويب.</li>
+              <li>اجعل Nginx وكيلًا أمام التطبيق، وفعّل HTTPS قبل إرسال بيانات الدخول.</li>
+              <li>اختبر إعدادات systemd وNginx في بيئة مرحلية قبل إعادة التحميل.</li>
+              <li>إذا استخدمت مصادقة الوكيل العكسي، لا تثق بـ <code dir="ltr">REMOTE_USER</code> إلا من وكيل موثوق يمنع إدخال العميل لهذا الرأس.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a href="#linux-drivers" class="btn-primary px-5 py-3">تابع إلى ملاحظة تعريفات Linux ↓</a>
+          <a href="/tools" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">دليل الأدوات</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="linux-drivers" class="fox-section px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <section class="feature-card border-[var(--color-icon)] bg-[var(--color-soft)] p-6 sm:p-8" aria-labelledby="drivers-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-icon)]">04 · ملاحظة دعم Linux</p>
+          <h2 id="drivers-heading" class="mb-3 text-2xl font-black">تعريفَا lpfc وbe2net بعد تحديث نواة RHEL</h2>
+          <p class="mb-4 text-sm leading-7 text-[var(--color-muted)]"><strong class="text-[var(--color-text)]">معرّف المقالة: 1211161387067.</strong> قد لا تتحدث حزم تثبيت تعريفَي <code dir="ltr">lpfc</code> و<code dir="ltr">be2net</code> كما هو متوقع بعد تطبيق نواة errata، مثل الانتقال من RHEL 5.4 إلى RHEL 5.5 بالتحديثات بدل تثبيت جديد. وُصفت الحالة مع حزم تعريف محددة وعلى RHEL 5.4 المحدّث إلى 5.5؛ لا يعني ذلك انطباق الخطوات على أنظمة أخرى.</p>
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <h3 class="mb-2 text-base font-extrabold">العَرَض</h3>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">بعد تحديث النواة وإعادة التشغيل، يُحمّل تعريف النظام المدمج، وقد لا ينتقل أحد التعريفين أو كلاهما إلى الإصدار المرغوب بعد إعادة تثبيت حزمة التعريف.</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <h3 class="mb-2 text-base font-extrabold">السبب والحل الرسمي</h3>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">لم يحدد المقال سببًا أو حلًا رسميًا؛ خانتا السبب والحل: غير متاح. الإجراء أدناه هو workaround تاريخي موصوف في المقال، وليس إصلاحًا عامًا مضمونًا.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="driver-safety-heading">
+          <div class="mb-5 flex items-start gap-3">
+            <span class="icon-box shrink-0 text-xl" aria-hidden="true">!</span>
+            <div>
+              <h2 id="driver-safety-heading" class="mb-2 text-xl font-black">تحذير قبل تنفيذ خطوات التعريفات</h2>
+              <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">هذه الخطوات قد توقف اتصال الشبكة أو SAN، وتزيل تعريفات محمّلة. لا تنفذها على نظام إنتاج من جلسة SSH وحيدة أو دون وصول إلى وحدة تحكم خارج النطاق وخطة استرجاع. تحقّق أولًا من حزمة المورّد، وإصدار النواة، وتوافق التعريفات، ونافذة الصيانة. الأداة هنا تعرض نصًا للمراجعة فقط ولا تشغّل أوامر.</p>
+            </div>
+          </div>
+          <ul class="mb-0 list-disc space-y-2 pr-5 text-sm leading-7 text-[var(--color-muted)]">
+            <li>خذ نسخة احتياطية وإعدادات استعادة قابلة للاختبار، وتأكد من توفر console أو وصول بديل.</li>
+            <li>نسّق مع مسؤولي التخزين والشبكة قبل إيقاف وحدات SAN أو الشبكة.</li>
+            <li>نفّذ فقط على التوزيعة والإصدارات المطابقة للتعليمات التي تحققت منها.</li>
+            <li>أوامر التثبيت وإعادة التشغيل ذات أثر تغييري؛ افحص المسارات والأسماء قبل التنفيذ.</li>
+          </ul>
+        </section>
+
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="driver-workaround-heading">
+          <div class="mb-5">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Workaround تاريخي · للمراجعة</p>
+            <h2 id="driver-workaround-heading" class="mb-2 text-2xl font-black">تسلسل الإجراء الوارد في المقال</h2>
+            <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">يعرض المقتطف أسماء الوحدات وحزم التثبيت وتعليمات <code dir="ltr">depmod</code>. استخدم النسخة التي تم التحقق منها في بيئتك؛ لا تنسخ أوامر إزالة الوحدات وإعادة التشغيل إلى خادم دون خطة صيانة.</p>
+          </div>
+
+          <div class="space-y-5">
+            <section class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" aria-labelledby="step-one-heading">
+              <h3 id="step-one-heading" class="mb-2 text-base font-extrabold">1. ابدأ بالنواة الجديدة في وضع الصيانة</h3>
+              <p class="mb-3 text-sm leading-6 text-[var(--color-muted)]">المقال يوصي بالإقلاع إلى single-user mode ثم إزالة وحدات SAN والشبكة ذات الصلة. تحقق من الاعتماديات وأثر فصل الأجهزة قبل المتابعة.</p>
+              <pre id="driver-code-boot" class="fox-code rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-4 text-xs leading-6 text-[var(--color-primary-contrast)]"><code># Historical example only — review before use
+rmmod lpfc
+rmmod be2net
+lsmod | egrep "lpfc|be2net"</code></pre>
+              <button class="copy-driver mt-3 rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold" type="button" data-copy="driver-code-boot">نسخ المقتطف</button>
+            </section>
+
+            <section class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" aria-labelledby="step-two-heading">
+              <h3 id="step-two-heading" class="mb-2 text-base font-extrabold">2. أزل وأعد تثبيت be2net</h3>
+              <p class="mb-3 text-sm leading-6 text-[var(--color-muted)]">يفترض المقال أن حزمة التعريف مفكوكة مسبقًا، وأن الأمر يُنفذ من مجلد الحزمة المناسب. ملف إعداد depmod قد لا يكون موجودًا؛ غيابه في أمر الإزالة مقبول وفق المقال.</p>
+              <pre id="driver-code-be2net" class="fox-code rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-4 text-xs leading-6 text-[var(--color-primary-contrast)]"><code># Run from the verified be2net driver-kit directory
+./elx_net_install.sh --uninstall
+rm -f /etc/depmod.d/elxbe2net.conf
+echo "override be2net * weak-updates/updates/be2net" >> /etc/depmod.d/elxbe2net.conf
+echo "override be2net * weak-updates/be2net" >> /etc/depmod.d/elxbe2net.conf
+./elx_net_install.sh</code></pre>
+              <button class="copy-driver mt-3 rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold" type="button" data-copy="driver-code-be2net">نسخ المقتطف</button>
+            </section>
+
+            <section class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" aria-labelledby="step-three-heading">
+              <h3 id="step-three-heading" class="mb-2 text-base font-extrabold">3. أزل وأعد تثبيت lpfc</h3>
+              <p class="mb-3 text-sm leading-6 text-[var(--color-muted)]">نفّذ الجزء التالي من مجلد حزمة lpfc التي تم التحقق منها. راجع صيغة السكربت ومساراته قبل تشغيله على النظام المستهدف.</p>
+              <pre id="driver-code-lpfc" class="fox-code rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-4 text-xs leading-6 text-[var(--color-primary-contrast)]"><code># Run from the verified lpfc driver-kit directory
+./elx_lpfc_install.sh --uninstall
+rm -f /etc/depmod.d/elxlpfc.conf
+echo "override lpfc * weak-updates/updates/elx-lpfc" >> /etc/depmod.d/elxlpfc.conf
+echo "override lpfc * weak-updates/elx-lpfc" >> /etc/depmod.d/elxlpfc.conf
+./elx_lpfc_install.sh</code></pre>
+              <button class="copy-driver mt-3 rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold" type="button" data-copy="driver-code-lpfc">نسخ المقتطف</button>
+            </section>
+
+            <section class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" aria-labelledby="step-four-heading">
+              <h3 id="step-four-heading" class="mb-2 text-base font-extrabold">4. أعد التشغيل وتحقق من النتيجة</h3>
+              <p class="mb-3 text-sm leading-6 text-[var(--color-muted)]">المقال يذكر إعادة تشغيل قسرية. لا تستخدم إعادة تشغيل قسرية كخطوة تلقائية؛ خطط لإيقاف منظم، وتحقق من حالة الخدمات والتعريف الفعلي بعد الإقلاع وفق إجراءات بيئتك.</p>
+              <pre id="driver-code-reboot" class="fox-code rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-4 text-xs leading-6 text-[var(--color-primary-contrast)]"><code># Historical article command; prefer a reviewed, orderly reboot plan
+shutdown -fr now</code></pre>
+              <button class="copy-driver mt-3 rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold" type="button" data-copy="driver-code-reboot">نسخ المقتطف</button>
+            </section>
+          </div>
+          <p id="driver-copy-status" class="mt-4 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">المقتطفات للعرض والمراجعة فقط؛ لم يتم تشغيل أي أمر.</p>
+        </section>
+
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="driver-notes-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">تفاصيل مهمة</p>
+          <h2 id="driver-notes-heading" class="mb-4 text-xl font-black">ملاحظات من المقال</h2>
+          <ul class="space-y-3 text-sm leading-7 text-[var(--color-muted)]">
+            <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">قد يظهر <code dir="ltr">be2net</code> مع الوحدة <code dir="ltr">8021q</code> في قائمة الوحدات التابعة. إذا بقي تعريف ظاهرًا، يذكر المقال احتمال وجود alias؛ ويفيد سجل التجربة بأن التحديث استمر بالعمل كما هو متوقع.</li>
+            <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">تأكد من تنزيل الحزم وفكها في مجلدين منفصلين، ومن صحة الملفات التنفيذية وأسماء ملفات التكوين قبل البدء.</li>
+            <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">بعد إعادة التشغيل، تحقق من النواة النشطة وإصدار التعريفات المحمّلة واتصال SAN والشبكة، ثم راجع سجلات النظام.</li>
+          </ul>
+        </section>
+      </div>
+    </section>
+    <section id="open-functions" class="fox-section px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="open-lab-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">06 · POSIX file opening lab</p>
+          <h2 id="open-lab-heading" class="mb-3 text-2xl font-black">ركّب خيارات open() وopenat() بأمان</h2>
+          <p class="mb-5 max-w-4xl text-sm leading-7 text-[var(--color-muted)]">اختر نمط الوصول والأعلام، وشاهد صيغة C وملاحظات مراجعة مستندة إلى مرجع POSIX الذي أرسلته. هذه أداة شرح محلية فقط: لا تفتح ملفات، ولا تتحقق من صلاحيات النظام، ولا تنفّذ استدعاءات نظام.</p>
+
+          <form id="open-lab-form" class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.85fr)]">
+            <div class="space-y-4">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label for="open-function" class="text-sm font-bold">الدالة
+                  <select id="open-function" class="fox-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                    <option value="open">open()</option>
+                    <option value="openat">openat()</option>
+                  </select>
+                </label>
+                <label for="open-access" class="text-sm font-bold">نمط الوصول
+                  <select id="open-access" class="fox-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                    <option value="O_RDONLY">O_RDONLY · قراءة</option>
+                    <option value="O_WRONLY">O_WRONLY · كتابة</option>
+                    <option value="O_RDWR">O_RDWR · قراءة وكتابة</option>
+                    <option value="O_SEARCH">O_SEARCH · البحث في دليل</option>
+                    <option value="O_EXEC">O_EXEC · تنفيذ ملف</option>
+                  </select>
+                </label>
+              </div>
+
+              <label for="open-path" class="block text-sm font-bold">المسار
+                <input id="open-path" class="fox-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-mono text-sm text-[var(--color-text)]" value="reports/output.txt" autocomplete="off" spellcheck="false">
+              </label>
+
+              <div id="openat-dirfd-field" class="hidden">
+                <label for="open-dirfd" class="block text-sm font-bold">اسم واصف الدليل لـ openat()
+                  <input id="open-dirfd" class="fox-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-mono text-sm text-[var(--color-text)]" value="dirfd" autocomplete="off" spellcheck="false">
+                </label>
+                <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">مع المسار النسبي، dirfd يحدد الدليل الذي تُحل النسبة إليه. استخدم AT_FDCWD إذا أردت مجلد العمل الحالي.</p>
+              </div>
+
+              <fieldset class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <legend class="px-1 text-sm font-bold">أعلام اختيارية</legend>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3 text-sm leading-6"><input id="open-create" type="checkbox" class="mt-1 accent-[var(--color-primary)]"><span><strong>O_CREAT</strong><br><span class="text-[var(--color-muted)]">إنشاء الملف إذا لم يكن موجودًا.</span></span></label>
+                  <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3 text-sm leading-6"><input id="open-exclusive" type="checkbox" class="mt-1 accent-[var(--color-primary)]"><span><strong>O_EXCL</strong><br><span class="text-[var(--color-muted)]">مع O_CREAT: يفشل إذا كان الاسم موجودًا.</span></span></label>
+                  <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3 text-sm leading-6"><input id="open-truncate" type="checkbox" class="mt-1 accent-[var(--color-primary)]"><span><strong>O_TRUNC</strong><br><span class="text-[var(--color-muted)]">قد يصفّر محتوى ملف قائم عند الكتابة.</span></span></label>
+                  <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3 text-sm leading-6"><input id="open-directory" type="checkbox" class="mt-1 accent-[var(--color-primary)]"><span><strong>O_DIRECTORY</strong><br><span class="text-[var(--color-muted)]">يفشل إذا لم يكن الهدف دليلًا.</span></span></label>
+                  <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3 text-sm leading-6"><input id="open-nofollow" type="checkbox" class="mt-1 accent-[var(--color-primary)]"><span><strong>O_NOFOLLOW</strong><br><span class="text-[var(--color-muted)]">يرفض الرابط الرمزي في المكوّن الأخير.</span></span></label>
+                  <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3 text-sm leading-6"><input id="open-append" type="checkbox" class="mt-1 accent-[var(--color-primary)]"><span><strong>O_APPEND</strong><br><span class="text-[var(--color-muted)]">يوجّه الكتابة إلى نهاية الملف.</span></span></label>
+                  <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3 text-sm leading-6"><input id="open-nonblock" type="checkbox" class="mt-1 accent-[var(--color-primary)]"><span><strong>O_NONBLOCK</strong><br><span class="text-[var(--color-muted)]">قد يغيّر سلوك FIFO والأجهزة.</span></span></label>
+                  <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3 text-sm leading-6"><input id="open-cloexec" type="checkbox" class="mt-1 accent-[var(--color-primary)]"><span><strong>O_CLOEXEC</strong><br><span class="text-[var(--color-muted)]">يضبط FD_CLOEXEC عند إنشاء الواصف.</span></span></label>
+                </div>
+              </fieldset>
+
+              <div id="open-create-mode-field" class="hidden">
+                <label for="open-mode" class="block text-sm font-bold">وضع الإنشاء عند O_CREAT
+                  <input id="open-mode" class="fox-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-mono text-sm text-[var(--color-text)]" value="0600" autocomplete="off" spellcheck="false">
+                </label>
+                <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">مثال: S_IRUSR | S_IWUSR أو 0600. صلاحيات الملف الفعلية تتأثر بقناع umask.</p>
+              </div>
+
+              <div class="flex flex-wrap gap-3">
+                <button id="open-reset" type="button" class="fox-control rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold">إعادة الإعدادات</button>
+                <button id="open-copy" type="button" class="fox-control rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold">نسخ الصيغة</button>
+              </div>
+            </div>
+
+            <aside class="space-y-4">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <h3 class="mb-2 text-base font-extrabold">الصيغة الناتجة</h3>
+                <pre id="open-flags-output" class="fox-code overflow-auto rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-4 text-xs leading-6 text-[var(--color-primary-contrast)]" aria-live="polite"></pre>
+                <p id="open-lab-status" class="mt-3 mb-0 text-xs leading-5 text-[var(--color-muted)]" aria-live="polite">لا يتم فتح ملفات أو تشغيل استدعاءات نظام.</p>
+              </div>
+              <div>
+                <h3 class="mb-2 text-base font-extrabold">مراجعة التركيبة</h3>
+                <ul id="open-review-list" class="space-y-2 text-sm leading-6" aria-live="polite"></ul>
+              </div>
+              <p class="mb-0 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-soft)] p-4 text-xs leading-5 text-[var(--color-muted)]">هذه الأداة مولّد تعليمي للخيارات فقط؛ لا تختبر وجود الملف أو صلاحياته أو errno، ولا تحل محل مراجعة POSIX ومراجع النظام المستهدف.</p>
+            </aside>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <section id="shell-language" class="fox-section px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="shell-lab-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">05 · POSIX shell language lab</p>
+          <h2 id="shell-lab-heading" class="mb-3 text-2xl font-black">حلّل الرموز وجرّب الاقتباس دون تشغيل الأوامر</h2>
+          <p class="mb-5 max-w-4xl text-sm leading-7 text-[var(--color-muted)]">مختبر محلي مستوحى من مقتطفات POSIX.1-2017 التي أرسلتها. يفحص تقسيمًا لغويًا مبسطًا، ويولّد اقتباسًا لقيمة حرفية، ويحاكي توسعات متغيرات محدودة. لا يشغّل Shell ولا ينفذ command substitution أو redirection أو أي نص ملصق.</p>
+          <div class="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
+            <div>
+              <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <label for="shell-source" class="text-sm font-bold">مقتطف shell للتحليل</label>
+                <button id="shell-load-sample" type="button" class="rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">تحميل مثال</button>
+              </div>
+              <textarea id="shell-source" rows="11" spellcheck="false" class="fox-control fox-code w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-label="مقتطف shell للتحليل"></textarea>
+              <div class="mt-3 flex flex-wrap gap-3">
+                <button id="shell-analyze" type="button" class="btn-primary px-5 py-3 text-sm">حلّل الرموز</button>
+                <button id="shell-clear" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 text-sm font-bold">مسح</button>
+              </div>
+              <p id="shell-analysis-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">الفحص تقريبي؛ ليس مدققًا كاملًا لقواعد POSIX.</p>
+              <div class="mt-4 overflow-x-auto rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)]">
+                <table class="w-full min-w-[34rem] text-left text-sm">
+                  <thead class="bg-[var(--color-dark)] text-xs uppercase text-[var(--color-muted)]">
+                    <tr><th class="p-3">النوع</th><th class="p-3">السطر</th><th class="p-3">النص الحرفي</th></tr>
+                  </thead>
+                  <tbody id="shell-token-list"></tbody>
+                </table>
+              </div>
+              <ul id="shell-findings" class="mt-4 space-y-2 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite"></ul>
+            </div>
+
+            <div class="space-y-5">
+              <section class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" aria-labelledby="shell-quote-heading">
+                <h3 id="shell-quote-heading" class="mb-2 text-lg font-extrabold">اقتباس قيمة حرفية</h3>
+                <p class="mb-3 text-xs leading-5 text-[var(--color-muted)]">أدخل نصًا عاديًا؛ الأداة تولّد صيغة POSIX آمنة للاستخدام كوسيط واحد.</p>
+                <label for="shell-literal" class="mb-2 block text-sm font-bold">القيمة</label>
+                <input id="shell-literal" class="fox-control w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm" value="it's $HOME; not a command">
+                <div class="mt-3 flex items-center justify-between gap-2">
+                  <span class="text-xs font-bold text-[var(--color-muted)]">صيغة الاقتباس المفرد</span>
+                  <button id="shell-copy-quote" type="button" class="rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] px-3 py-2 text-xs font-bold">نسخ</button>
+                </div>
+                <pre id="shell-quote-output" class="fox-code mt-2 overflow-auto rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-3 text-xs leading-6 text-[var(--color-primary-contrast)]" aria-live="polite"></pre>
+                <p id="shell-quote-status" class="mt-2 mb-0 text-xs text-[var(--color-muted)]" aria-live="polite">لا يتم تشغيل النص المقتبس.</p>
+              </section>
+
+              <section class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" aria-labelledby="shell-expansion-heading">
+                <h3 id="shell-expansion-heading" class="mb-2 text-lg font-extrabold">محاكاة parameter expansion</h3>
+                <p class="mb-3 text-xs leading-5 text-[var(--color-muted)]">يدعم أشكالًا أساسية من <code>${'${name:-word}'}</code> و<code>${'${name:+word}'}</code> والطول وحذف نمط بادئة/لاحقة بسيط. كل شيء يُحسب محليًا.</p>
+                <label for="shell-variables" class="mb-2 block text-sm font-bold">متغيرات تجريبية، سطر لكل اسم=قيمة</label>
+                <textarea id="shell-variables" rows="3" class="fox-control fox-code w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-xs leading-5 text-[var(--color-text)]">name=Fox
+empty=</textarea>
+                <label for="shell-expression" class="mb-2 mt-3 block text-sm font-bold">توسعة واحدة</label>
+                <input id="shell-expression" class="fox-control w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-mono text-sm" value="${'${name:-default}'}">
+                <button id="shell-expand" type="button" class="btn-primary mt-3 px-4 py-2.5 text-sm">احسب محليًا</button>
+                <pre id="shell-expansion-output" class="fox-code mt-3 min-h-12 overflow-auto rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-3 text-xs leading-6 text-[var(--color-primary-contrast)]" aria-live="polite">ستظهر النتيجة هنا.</pre>
+                <p id="shell-expansion-status" class="mt-2 mb-0 text-xs text-[var(--color-muted)]" aria-live="polite">لا يُنفّذ محتوى الأقواس أو أي أمر.</p>
+              </section>
+            </div>
+          </div>
+        </section>
+        <aside class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 text-sm leading-6 text-[var(--color-muted)]">
+          <h3 class="mb-2 text-lg font-extrabold text-[var(--color-text)]">حدود المختبر</h3>
+          <p class="mb-0">محلل الرموز هنا تعليمي وتقريبي؛ لا يتحقق من كامل قواعد grammar أو heredoc المتداخل، ولا يحاكي تنفيذ الأوامر أو الصلاحيات أو آثارها. راجع نص POSIX الذي وفرته واختبر الشيفرة في بيئة معزولة موثوقة.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Fox Wiki Workspace</a>
+      <p class="mb-0">صفحة واحدة لأدوات الثعلب ومراجعها.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const preview = document.querySelector('#wiki-preview');
+      let selectedLayout = 'sidebar';
+
+      function renderLayout() {
+        const skip = document.querySelector('#skip-toggle').checked;
+        const relations = document.querySelector('#relations-toggle').checked;
+        const alt = document.querySelector('#alt-toggle').checked;
+        const nav = '<nav class="space-y-2 text-sm" aria-label="تنقل الويكي"><a class="block font-bold text-[var(--color-primary)]" href="#layout">Front Page</a><a class="block" href="#converter">Recent Changes</a><a class="block" href="#deployment">Help Contents</a></nav>';
+        const search = '<form class="mt-6" action="#layout"><label for="wiki-search" class="mb-2 block text-xs font-bold text-[var(--color-muted)]">Search</label><input id="wiki-search" class="w-full rounded-[calc(var(--radius)*0.45)] border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm" type="search" placeholder="Search pages"></form>';
+        const sidebar = `<aside class="border-[var(--color-border)] bg-[var(--color-surface)] p-4 md:border-e" aria-label="أدوات الويكي"><a href="#layout" class="mb-4 block font-extrabold text-[var(--color-primary)]">MoinMoin Wiki</a>${nav}${search}</aside>`;
+        const content = `<article id="wiki-main" class="min-w-0 p-5 sm:p-8">${skip ? '<a class="mb-4 inline-block font-bold text-[var(--color-primary)]" href="#wiki-main">تجاوز التنقل إلى المحتوى</a>' : ''}<header><p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Front Page</p><h3 class="mb-3 text-2xl font-black">MoinMoin</h3>${relations ? '<div class="mb-4 flex flex-wrap gap-3 text-xs"><a class="text-[var(--color-primary)] underline" href="#converter">Search</a><a class="text-[var(--color-primary)] underline" href="#layout">Index</a><a class="text-[var(--color-primary)] underline" href="#deployment">Help</a></div>' : ''}</header><main><p class="mb-4 text-sm leading-7 text-[var(--color-muted)]">MoinMoin is an extensible wiki engine for collaboration on editable pages.</p><p class="mb-4 text-sm leading-7 text-[var(--color-muted)]">استخدم هذه المعاينة لمراجعة بنية الصفحة وروابط الوصول.</p><img src="" alt="${alt ? 'شعار ويكي MoinMoin' : ''}" class="mb-4 h-12 w-12 rounded bg-[var(--color-soft)]"><h4 class="mb-2 text-lg font-extrabold">Overview</h4><p class="mb-4 text-sm leading-7 text-[var(--color-muted)]">ضع المحتوى الأساسي في منطقة واضحة، مع عناوين وروابط ذات أسماء مفهومة.</p><a class="font-bold text-[var(--color-primary)] underline" href="#converter">انتقل إلى محوّل PhpWiki</a></main></article>`;
+        const layoutClass = selectedLayout === 'top' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-[14rem_minmax(0,1fr)]';
+        preview.className = `grid min-h-80 overflow-hidden rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-bg)] ${layoutClass}`;
+        preview.innerHTML = selectedLayout === 'top' ? `<div class="p-4"><div class="mb-4 flex flex-wrap items-center justify-between gap-4"><a class="font-extrabold text-[var(--color-primary)]" href="#layout">MoinMoin Wiki</a>${nav}</div>${search}</div>${content}` : selectedLayout === 'right' ? `${content}${sidebar}` : `${sidebar}${content}`;
+        document.querySelector('#layout-status').textContent = `المعاينة الحالية: ${selectedLayout === 'top' ? 'تنقل علوي' : selectedLayout === 'right' ? 'شريط جانبي يميني' : 'شريط جانبي'}.`;
+        renderAudit();
+      }
+
+      function renderAudit() {
+        const checks = [
+          [document.querySelector('#skip-toggle').checked, 'رابط تجاوز التنقل مفعّل.', 'أضف رابطًا لتجاوز التنقل المتكرر.'],
+          [document.querySelector('#relations-toggle').checked, 'روابط البحث والفهرس والمساعدة ظاهرة.', 'اعرض علاقات الوثيقة الأساسية.'],
+          [document.querySelector('#alt-toggle').checked, 'للصورة وصف بديل.', 'أضف وصفًا بديلًا للصورة ذات المعنى.'],
+          [true, 'المعاينة تتضمن مناطق تنقل ومحتوى دلالية.', 'استخدم عناصر HTML الدلالية المناسبة.']
+        ];
+        document.querySelector('#audit-list').replaceChildren(...checks.map(([passed, ok, issue]) => {
+          const item = document.createElement('li');
+          item.className = 'rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-bg)] p-3';
+          item.textContent = `${passed ? '✓' : '!'} ${passed ? ok : issue}`;
+          return item;
+        }));
+        const problems = checks.filter(([passed]) => !passed).length;
+        document.querySelector('#audit-summary').textContent = problems ? `${problems} نقطة تحتاج مراجعة.` : 'اجتازت الإعدادات الحالية الفحوصات المحلية البسيطة.';
+        document.querySelector('#reader-outline').textContent = [
+          document.querySelector('#skip-toggle').checked ? 'رابط: تجاوز التنقل إلى المحتوى' : null,
+          'منطقة: تنقل الويكي',
+          'منطقة: المحتوى الرئيسي',
+          'عنوان: Front Page',
+          document.querySelector('#relations-toggle').checked ? 'روابط: Search · Index · Help' : null,
+          document.querySelector('#alt-toggle').checked ? 'صورة: شعار ويكي MoinMoin' : 'صورة بلا وصف — تحتاج مراجعة',
+          'عنوان: Overview'
+        ].filter(Boolean).join('\n');
+      }
+
+      document.querySelectorAll('.layout-choice').forEach((button) => {
+        button.addEventListener('click', () => {
+          selectedLayout = button.dataset.layout;
+          document.querySelectorAll('.layout-choice').forEach((choice) => choice.setAttribute('aria-pressed', String(choice === button)));
+          renderLayout();
+        });
+      });
+      ['skip-toggle', 'relations-toggle', 'alt-toggle'].forEach((id) => document.querySelector(`#${id}`).addEventListener('change', renderLayout));
+      document.querySelector('#run-audit').addEventListener('click', renderAudit);
+      renderLayout();
+    })();
+
+    (() => {
+      const sourceInput = document.querySelector('#source-input');
+      const output = document.querySelector('#conversion-output');
+      const warnings = document.querySelector('#conversion-warnings');
+      const conversionStatus = document.querySelector('#conversion-status');
+      const copyStatus = document.querySelector('#copy-status');
+      const example = `! Front Page\n\nMoinMoin is an advanced, easy to use and extensible WikiEngine.\n\n*strong* and _emphasis_\n\n[Front Page]\n[HomePage|The home page]\n[#overview]\n\n!!! Overview\nThis line has a forced break %%%\n\nfoo:: bar\n> quoted email text\n\n<verbatim>\ncode example\n</verbatim>\n\n<?plugin RandomPage pages||||=10 info||||=''?>\n<?plugin OrphanedPages info||||=hits,pagename,mtime?>\n<?plugin TitleSearch s=Category noheader=1 exclude=CategoryCategory?>`;
+
+      function appendWarning(kind, title, detail) {
+        const item = document.createElement('li');
+        item.className = 'rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] p-3';
+        item.dataset.kind = kind;
+        const heading = document.createElement('strong');
+        heading.className = 'mb-1 block';
+        heading.textContent = title;
+        const message = document.createElement('span');
+        message.className = 'text-[var(--color-muted)]';
+        message.textContent = detail;
+        item.append(heading, message);
+        warnings.append(item);
+      }
+
+      function convert(source) {
+        let text = source.replace(/\r\n?/g, '\n');
+        const reviewItems = [];
+        text = text.replace(/<verbatim>([\s\S]*?)<\/verbatim>/gi, '{{{\n$1\n}}}');
+        text = text.replace(/<pre>([\s\S]*?)<\/pre>/gi, '{{{\n$1\n}}}');
+        text = text.replace(/<code>([\s\S]*?)<\/code>/gi, '{{{\n$1\n}}}');
+        text = text.replace(/%%%\s*/g, '[[BR]]\n');
+        text = text.replace(/^!!!\s*(.+)$/gm, '= $1 =');
+        text = text.replace(/^!!\s*(.+)$/gm, '== $1 ==');
+        text = text.replace(/^!\s*(.+)$/gm, '=== $1 ===');
+        text = text.replace(/\[#([^\]]+)\]/g, '<<Anchor($1)>>');
+        text = text.replace(/\[([^\]|]+)\|([^\]]+)\]/g, '[[$2|$1]]');
+        text = text.replace(/\[([^\]]+)\]/g, '[[$1]]');
+        text = text.replace(/^([^:\n]+)::\s*(.+)$/gm, '$1:: $2');
+        text = text.replace(/^>\s?(.*)$/gm, ' $1');
+        text = text.replace(/<\?plugin\s+RandomPage[^?]*\?>/gi, '<<RandomPage(10)>>');
+        text = text.replace(/<\?plugin\s+OrphanedPages[^?]*\?>/gi, '<<OrphanedPages>>');
+        text = text.replace(/<\?plugin\s+TitleSearch[^?]*\?>/gi, '<<PageList(^Category.*)>>');
+        text = text.replace(/<\?plugin\s+([^?]+)\?>/gi, (match, plugin) => {
+          reviewItems.push(`راجع الماكرو يدويًا: ${String(plugin).trim()}`);
+          return `<<${String(plugin).trim()}>>`;
+        });
+        text = text.replace(/<\/?[A-Za-z][^>]*>/g, (match) => {
+          reviewItems.push(`مقطع HTML يحتاج مراجعة يدوية: ${match}`);
+          return match;
+        });
+        if (/\|\|/.test(source)) reviewItems.push('عُثر على صياغة جدول؛ راجع الفواصل وتنسيق الصفوف يدويًا.');
+        if (/\[\s*HomePage\s*\]/i.test(source)) reviewItems.push('تم تحويل HomePage إلى FrontPage؛ تحقق من اسم الصفحة المقصودة.');
+        return {
+          text,
+          reviewItems
+        };
+      }
+
+      function runConversion() {
+        const source = sourceInput.value;
+        warnings.replaceChildren();
+        if (!source.trim()) {
+          output.value = '';
+          conversionStatus.textContent = 'ألصق صياغة PhpWiki أولًا.';
+          return;
+        }
+        const result = convert(source);
+        output.value = result.text;
+        appendWarning('info', 'راجع الروابط والماكروهات', 'تحقق من أسماء الصفحات وتوفر الماكروهات في تثبيت MoinMoin المستهدف.');
+        result.reviewItems.forEach((message) => appendWarning('warning', 'مراجعة يدوية', message));
+        appendWarning('info', 'الترحيل والنسخ الاحتياطي', 'احتفظ بنسخة من المصدر. الأداة تحول النص الملصق فقط ولا تستورد قاعدة بيانات أو تكتب صفحات.');
+        conversionStatus.textContent = `اكتمل التحويل محليًا؛ الناتج ${result.text.split('\n').length} سطرًا للمراجعة.`;
+      }
+
+      document.querySelector('#load-example').addEventListener('click', () => {
+        sourceInput.value = example;
+        runConversion();
+      });
+      document.querySelector('#convert-button').addEventListener('click', runConversion);
+      sourceInput.addEventListener('input', runConversion);
+      document.querySelector('#clear-button').addEventListener('click', () => {
+        sourceInput.value = '';
+        output.value = '';
+        warnings.replaceChildren();
+        conversionStatus.textContent = 'تم مسح المحوّل.';
+        sourceInput.focus();
+      });
+      document.querySelector('#copy-output').addEventListener('click', async () => {
+        if (!output.value) {
+          copyStatus.textContent = 'حوّل صفحة أولًا.';
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(output.value);
+          copyStatus.textContent = 'تم نسخ ناتج MoinMoin.';
+        } catch {
+          copyStatus.textContent = 'الحافظة غير متاحة؛ حدد الناتج وانسخه يدويًا.';
+        }
+      });
+      document.querySelector('#download-output').addEventListener('click', () => {
+        if (!output.value) {
+          copyStatus.textContent = 'حوّل صفحة أولًا.';
+          return;
+        }
+        const url = URL.createObjectURL(new Blob([output.value], {
+          type: 'text/plain;charset=utf-8'
+        }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'moinmoin-page.txt';
+        link.click();
+        URL.revokeObjectURL(url);
+        copyStatus.textContent = 'تم تنزيل النص محليًا.';
+      });
+      document.querySelector('#load-example').click();
+    })();
+
+    document.querySelectorAll('.copy-driver').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const code = document.querySelector(`#${button.dataset.copy}`);
+        const status = document.querySelector('#driver-copy-status');
+        try {
+          await navigator.clipboard.writeText(code.textContent);
+          status.textContent = 'تم نسخ المقتطف. راجعه وتحقق من توافقه قبل أي استخدام.';
+        } catch {
+          status.textContent = 'تعذر النسخ تلقائيًا؛ حدد المقتطف وانسخه يدويًا.';
+        }
+      });
+    });
+
+    const foxSections = [...document.querySelectorAll('.fox-section')];
+    const foxTabs = [...document.querySelectorAll('.fox-tab')];
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        foxTabs.forEach((link) => {
+          link.setAttribute('aria-current', String(link.hash === `#${entry.target.id}`));
+        });
+      });
+    }, {
+      rootMargin: '-15% 0px -70% 0px'
+    });
+    foxSections.forEach((section) => sectionObserver.observe(section));
+
+  </script>
+  <script src="/fox/driver-readiness.js"></script>
+  <script src="/fox/shell-lab.js"></script>
+  <script src="/fox/open-lab.js"></script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

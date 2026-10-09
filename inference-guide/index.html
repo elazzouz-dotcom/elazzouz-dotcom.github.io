@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="دليل عربي لاستخدام نماذج Hugging Face للاستدلال عبر Inference API وInference Endpoints ومكتبة InferenceClient.">
+  <title>تشغيل الاستدلال على الخوادم | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .guide-section {
+      scroll-margin-top: 2rem;
+    }
+
+    .guide-code {
+      direction: ltr;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .task-row+.task-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .guide-anchor:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="الصفحة الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold tracking-tight">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/inference-providers">مخطط Inference Providers</a>
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-14 lg:px-8 lg:py-20">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold tracking-[0.15em] text-[var(--color-muted)]">
+          <span class="h-2 w-2 rounded-full bg-[var(--color-primary)]" aria-hidden="true"></span>
+          Hugging Face · دليل الاستدلال
+        </p>
+        <h1 class="mb-5 max-w-5xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">شغّل استدلال النماذج على الخوادم.</h1>
+        <p class="mb-7 max-w-3xl text-lg leading-8 text-[var(--color-muted)]">الاستدلال هو استخدام نموذج مدرّب لإنتاج تنبؤات أو نتائج لبيانات جديدة. يشرح هذا الدليل طرق تشغيل نماذج Hugging Face، وكيفية اختيار الخدمة المناسبة واستخدام مكتبة Python.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="#quick-start" class="btn-primary px-5 py-3">ابدأ بسرعة <span aria-hidden="true">↓</span></a>
+          <a href="/inference-providers" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">افتح مخطط Inference Providers</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-10 lg:px-8 lg:py-14">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <aside class="feature-card h-fit p-4 lg:sticky lg:top-6">
+          <p class="mb-3 px-3 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-muted)]">محتويات الدليل</p>
+          <nav class="grid gap-1 text-sm font-bold" aria-label="أقسام الدليل">
+            <a class="guide-anchor rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#services">اختيار الخدمة</a>
+            <a class="guide-anchor rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#quick-start">البدء السريع</a>
+            <a class="guide-anchor rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#models">اختيار نموذج أو نقطة نهاية</a>
+            <a class="guide-anchor rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#authentication">المصادقة</a>
+            <a class="guide-anchor rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#tasks">المهام المدعومة</a>
+            <a class="guide-anchor rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#async">العميل غير المتزامن</a>
+            <a class="guide-anchor rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#advanced">نصائح متقدمة</a>
+          </nav>
+        </aside>
+
+        <div class="min-w-0 space-y-6">
+          <section id="services" class="guide-section feature-card p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">اختيار الخدمة</p>
+            <h2 class="mb-3 text-2xl font-black">اختر بين التجربة السريعة والبنية المخصصة.</h2>
+            <p class="mb-5 max-w-3xl text-sm leading-7 text-[var(--color-muted)]">قد تكون مهام الاستدلال كثيفة الحسابات، لذلك يمكن تشغيلها على خادم بدلًا من الجهاز المحلي. توفّر Hugging Face أكثر من طريقة للاتصال بالنماذج المستضافة:</p>
+            <div class="grid gap-4 md:grid-cols-2">
+              <article class="rounded-[calc(var(--radius)*0.65)] bg-[var(--color-bg)] p-5">
+                <span class="mb-3 inline-flex rounded-full bg-[var(--color-soft)] px-3 py-1 text-xs font-bold text-[var(--color-primary)]">للتجربة والنماذج الأولية</span>
+                <h3 class="mb-2 text-lg font-extrabold">Inference API</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">تشغّل الاستدلال على بنية Hugging Face، وتساعدك على تجربة النماذج وبناء نموذج أولي بسرعة. قد تختلف الإتاحة والحصة المجانية وفق الحساب وشروط الخدمة الحالية؛ راجع التفاصيل قبل الاستخدام.</p>
+              </article>
+              <article class="rounded-[calc(var(--radius)*0.65)] bg-[var(--color-bg)] p-5">
+                <span class="mb-3 inline-flex rounded-full bg-[var(--color-soft)] px-3 py-1 text-xs font-bold text-[var(--color-primary)]">للنشر والإنتاج</span>
+                <h3 class="mb-2 text-lg font-extrabold">Inference Endpoints</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">تنشر نموذجًا على بنية مخصصة ومدارة، ضمن بيئة سحابية تختارها. بعد النشر تحصل على عنوان نقطة نهاية تتصل به من تطبيقك.</p>
+              </article>
+            </div>
+            <div class="mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-muted)]">
+              <strong class="text-[var(--color-text)]">ما وظيفة InferenceClient؟</strong>
+              <span> إنها مكتبة Python ترسل طلبات HTTP إلى خدمة الاستدلال نيابةً عنك. إذا أردت إرسال الطلبات مباشرة باستخدام cURL أو Postman، فراجع توثيق الخدمة. تتوفر أيضًا مكتبة JavaScript لتطبيقات الويب.</span>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-4 text-sm font-bold text-[var(--color-primary)]">
+              <a class="guide-anchor" href="https://huggingface.co/docs/api-inference/index" target="_blank" rel="noopener noreferrer">توثيق Inference API ↗</a>
+              <a class="guide-anchor" href="https://huggingface.co/docs/inference-endpoints/index" target="_blank" rel="noopener noreferrer">توثيق Inference Endpoints ↗</a>
+              <a class="guide-anchor" href="https://huggingface.co/docs/huggingface.js/inference/README" target="_blank" rel="noopener noreferrer">مكتبة JavaScript ↗</a>
+            </div>
+          </section>
+
+          <section id="quick-start" class="guide-section feature-card overflow-hidden">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)] sm:p-8">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">البدء السريع</p>
+              <h2 class="mb-2 text-2xl font-black">أنشئ صورة من وصف نصي</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">هذا مثال Python يستخدم InferenceClient لإنشاء صورة وحفظها على جهازك.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <pre class="guide-code overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-7 text-[var(--color-text)]"><code>from huggingface_hub import InferenceClient
+
+client = InferenceClient()
+
+image = client.text_to_image("An astronaut riding a horse on the moon.")
+image.save("astronaut.png")</code></pre>
+              <p class="mt-4 mb-0 text-sm leading-6 text-[var(--color-muted)]">يختار العميل افتراضيًا نموذجًا مقترحًا للمهمة، وهنا هي تحويل النص إلى صورة. النتيجة كائن صورة من مكتبة PIL، ويمكن حفظه كملف.</p>
+              <p class="mt-4 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-muted)]"><strong class="text-[var(--color-text)]">تنبيه:</strong> لا تعرض الواجهة كل خيارات كل نموذج. راجع توثيق المعاملات التفصيلية وبطاقة النموذج لمعرفة المدخلات والخيارات المتاحة.</p>
+            </div>
+          </section>
+
+          <section id="models" class="guide-section feature-card p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">النماذج ونقاط النهاية</p>
+            <h2 class="mb-3 text-2xl font-black">حدّد نموذجًا بعينه أو استخدم عنوان نقطة نهاية.</h2>
+            <p class="mb-4 text-sm leading-7 text-[var(--color-muted)]">يمكنك تحديد النموذج عند إنشاء العميل، أو تمريره إلى استدعاء المهمة. إذا نشرت نموذجًا عبر Inference Endpoints، مرّر عنوان نقطة النهاية بدل معرّف النموذج.</p>
+            <pre class="guide-code overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-7 text-[var(--color-text)]"><code>from huggingface_hub import InferenceClient
+
+# حدّد النموذج عند إنشاء العميل
+client = InferenceClient(model="prompthero/openjourney-v4")
+image = client.text_to_image("A quiet mountain lake at sunrise.")
+
+# أو مرّر النموذج إلى استدعاء المهمة
+client = InferenceClient()
+image = client.text_to_image(
+    "A quiet mountain lake at sunrise.",
+    model="prompthero/openjourney-v4",
+)
+
+# استخدم عنوان نقطة النهاية المنشورة لديك
+endpoint_client = InferenceClient(model=ENDPOINT_URL)
+image = endpoint_client.text_to_image("A quiet mountain lake at sunrise.")</code></pre>
+            <p class="mt-4 mb-0 text-sm leading-6 text-[var(--color-muted)]"><code>ENDPOINT_URL</code> اسم متغير توضيحي؛ استبدله بعنوان نقطة النهاية الخاصة بك أو اقرأه من متغير بيئة. لا تضع عنوانًا خاصًا أو رمز وصول في صفحة عامة. بعد اختيار نموذج، ثبّت معرّفه لتقليل تغيّر النتائج، وتأكد من توافقه مع المهمة.</p>
+            <a class="guide-anchor mt-4 inline-flex font-bold text-[var(--color-primary)]" href="https://huggingface.co/models" target="_blank" rel="noopener noreferrer">تصفّح النماذج على Hugging Face ↗</a>
+          </section>
+
+          <section id="authentication" class="guide-section feature-card p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">المصادقة</p>
+            <h2 class="mb-3 text-2xl font-black">احتفظ برمز الوصول في بيئة موثوقة.</h2>
+            <p class="mb-4 text-sm leading-7 text-[var(--color-muted)]">يمكن لـInferenceClient استخدام رمز Hugging Face المحفوظ عند تسجيل الدخول محليًا. ويمكنك تمرير الرمز صراحةً عند الحاجة. بعض الاستخدامات قد تسمح بطلب غير موثّق، لكن المصادقة تمنح الحساب حصة أعلى بحسب الشروط الحالية، وهي ضرورية للوصول إلى النماذج الخاصة أو نقاط النهاية الخاصة.</p>
+            <pre class="guide-code overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-dark)] p-5 text-sm leading-7 text-[var(--color-primary-contrast)]"><code>import os
+from huggingface_hub import InferenceClient
+
+client = InferenceClient(token=os.environ["HF_TOKEN"])</code></pre>
+            <div class="mt-4 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-muted)]"><strong class="text-[var(--color-text)]">الأمان:</strong> لا تلصق الرمز في هذه الصفحة أو في واجهة عامة أو مستودع منشور. خزّنه في إعدادات بيئة محلية أو على الخادم، واستخدم صلاحيات مناسبة.</div>
+            <div class="mt-4 flex flex-wrap gap-4 text-sm font-bold text-[var(--color-primary)]">
+              <a class="guide-anchor" href="https://huggingface.co/docs/hub/security-tokens" target="_blank" rel="noopener noreferrer">دليل رموز الوصول ↗</a>
+              <a class="guide-anchor" href="https://huggingface.co/docs/huggingface_hub/quick-start#authentication" target="_blank" rel="noopener noreferrer">دليل تسجيل الدخول والمصادقة ↗</a>
+            </div>
+          </section>
+
+          <section id="tasks" class="guide-section feature-card overflow-hidden">
+            <div class="border-b border-[var(--color-border)] p-6 sm:p-8">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">المهام المدعومة</p>
+              <h2 class="mb-2 text-2xl font-black">مجموعة واسعة من مهام الاستدلال.</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">تعرض القائمة أمثلة للمهام التي تتوفر لها واجهات في InferenceClient. تذكّر أن التوافق الفعلي يعتمد على النموذج ومزوّد الخدمة.</p>
+            </div>
+            <div class="divide-y divide-[var(--color-border)]">
+              <div class="task-row grid gap-2 p-5 sm:grid-cols-[150px_minmax(0,1fr)]"><strong class="text-[var(--color-primary)]">الصوت</strong>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">تصنيف الصوت، تحويل الصوت إلى صوت، التعرّف الآلي على الكلام، وتحويل النص إلى كلام.</p>
+              </div>
+              <div class="task-row grid gap-2 p-5 sm:grid-cols-[150px_minmax(0,1fr)]"><strong class="text-[var(--color-primary)]">الرؤية الحاسوبية</strong>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">تصنيف الصور وتقسيمها وتحويلها، وصف الصور، اكتشاف الأجسام، توليد الصور من النص، والتصنيف الصفري للصور.</p>
+              </div>
+              <div class="task-row grid gap-2 p-5 sm:grid-cols-[150px_minmax(0,1fr)]"><strong class="text-[var(--color-primary)]">متعدد الوسائط</strong>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">الإجابة عن الأسئلة المتعلقة بالوثائق والصور.</p>
+              </div>
+              <div class="task-row grid gap-2 p-5 sm:grid-cols-[150px_minmax(0,1fr)]"><strong class="text-[var(--color-primary)]">اللغة الطبيعية</strong>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">المحادثة، استخراج السمات والتضمينات، ملء الكلمات المحذوفة، الإجابة عن الأسئلة، تشابه الجمل، التلخيص، تصنيف النص وتوليده، تصنيف الرموز، الترجمة، والتصنيف الصفري.</p>
+              </div>
+              <div class="task-row grid gap-2 p-5 sm:grid-cols-[150px_minmax(0,1fr)]"><strong class="text-[var(--color-primary)]">البيانات الجدولية</strong>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">تصنيف البيانات الجدولية والانحدار عليها.</p>
+              </div>
+            </div>
+            <div class="border-t border-[var(--color-border)] p-5"><a class="guide-anchor inline-flex font-bold text-[var(--color-primary)]" href="https://huggingface.co/tasks" target="_blank" rel="noopener noreferrer">استعرض جميع المهام والنماذج الشائعة ↗</a></div>
+          </section>
+
+          <section id="async" class="guide-section feature-card p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">العميل غير المتزامن</p>
+            <h2 class="mb-3 text-2xl font-black">استخدم AsyncInferenceClient مع asyncio.</h2>
+            <p class="mb-4 text-sm leading-7 text-[var(--color-muted)]">توجد نسخة غير متزامنة من العميل تعتمد على aiohttp. ثبّت الاعتمادية الإضافية أو حزمة inference، ثم نفّذ الاستدعاءات داخل سياق asyncio.</p>
+            <pre class="guide-code overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-7 text-[var(--color-text)]"><code>pip install --upgrade "huggingface_hub[inference]"
+# أو: pip install aiohttp</code></pre>
+            <pre class="guide-code mt-4 overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-dark)] p-5 text-sm leading-7 text-[var(--color-primary-contrast)]"><code>import asyncio
+from huggingface_hub import AsyncInferenceClient
+
+async def main():
+    client = AsyncInferenceClient()
+
+    image = await client.text_to_image(
+        "An astronaut riding a horse on the moon."
+    )
+    image.save("astronaut.png")
+
+    async for token in await client.text_generation(
+        "The Hugging Face Hub is",
+        stream=True,
+    ):
+        print(token, end="")
+
+asyncio.run(main())</code></pre>
+            <p class="mt-4 mb-0 text-sm leading-6 text-[var(--color-muted)]">قد تعيد بعض المهام تدفقًا من النتائج. راجع توثيق Python الرسمي لاستخدام asyncio، وتحقق من نوع النتيجة الذي تعيده المهمة قبل معالجة التدفق.</p>
+            <a class="guide-anchor mt-4 inline-flex font-bold text-[var(--color-primary)]" href="https://docs.python.org/3/library/asyncio.html" target="_blank" rel="noopener noreferrer">توثيق asyncio الرسمي ↗</a>
+          </section>
+
+          <section id="advanced" class="guide-section feature-card p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">نصائح متقدمة</p>
+            <h2 class="mb-4 text-2xl font-black">خطط للمهل الزمنية والمدخلات الثنائية.</h2>
+            <div class="grid gap-4 md:grid-cols-2">
+              <article class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <h3 class="mb-2 text-base font-extrabold">المهلة الزمنية</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">قد يستغرق تحميل النموذج أو تنفيذ الاستدلال وقتًا. يقبل العميل قيمة timeout بالثواني؛ وإذا انتهت المهلة يرفع <code>InferenceTimeoutError</code>. اختر مدة مناسبة وتعامل مع الاستثناء.</p>
+              </article>
+              <article class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <h3 class="mb-2 text-base font-extrabold">المدخلات الثنائية</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">يمكن لبعض المهام استقبال بايتات، أو ملف مفتوح للقراءة الثنائية، أو مسار ملف محلي، أو عنوان URL. قد ينزّل العميل الملف من العنوان قبل إرساله إلى خدمة الاستدلال.</p>
+              </article>
+            </div>
+            <pre class="guide-code mt-4 overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-dark)] p-5 text-sm leading-7 text-[var(--color-primary-contrast)]"><code>from huggingface_hub import InferenceClient, InferenceTimeoutError
+
+client = InferenceClient(timeout=30)
+
+try:
+    image = client.text_to_image("A small cabin in a snowy forest.")
+except InferenceTimeoutError:
+    print("لم يكتمل طلب الاستدلال خلال المهلة المحددة.")</code></pre>
+            <div class="mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-muted)]"><strong class="text-[var(--color-text)]">قبل الاستخدام:</strong> راجع أحدث التوثيق وبطاقة النموذج لمعرفة المعاملات المدعومة والتوافق والتكاليف والحدود. قد تتغير هذه التفاصيل.</div>
+            <a class="guide-anchor mt-4 inline-flex font-bold text-[var(--color-primary)]" href="https://huggingface.co/docs/api-inference/detailed_parameters" target="_blank" rel="noopener noreferrer">راجع معاملات المهام بالتفصيل ↗</a>
+          </section>
+
+          <section class="feature-card bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)] sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">الخطوة التالية</p>
+            <h2 class="mb-3 text-2xl font-black">حضّر أمثلتك البرمجية محليًا.</h2>
+            <p class="mb-5 max-w-2xl text-sm leading-6 opacity-80">يمكنك استخدام مخطط Inference Providers لاختيار المهمة وسياسة المزوّد وإنشاء أمثلة Python وJavaScript وcURL. هذه الصفحة لا تطلب رمزًا ولا ترسل طلبات استدلال.</p>
+            <a href="/inference-providers" class="btn-primary px-5 py-3">افتح مخطط Inference Providers <span aria-hidden="true">→</span></a>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">دليل عربي لاستدلال نماذج Hugging Face.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+  <script src="/language.js"></script>
+</body>
+
+</html>

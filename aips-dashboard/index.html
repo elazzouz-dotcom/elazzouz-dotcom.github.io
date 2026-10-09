@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="لوحة محلية لعرض حالة AIPS-BLACKBOX ونتائج benchmark من خادمك المحلي.">
+  <title>لوحة AIPS-BLACKBOX المحلية</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .dashboard-control:focus-visible,
+    .dashboard-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .dashboard-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .status-dot {
+      width: 0.65rem;
+      height: 0.65rem;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: var(--color-muted);
+    }
+
+    .status-dot.is-online {
+      background: var(--color-primary);
+    }
+
+    .status-dot.is-error {
+      background: var(--color-icon);
+    }
+
+    .data-row+.data-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">A</span>
+        <span class="text-xl font-extrabold">AIPS <span class="text-[var(--color-primary)]">Dashboard</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/developer-tools">أدوات المطورين</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">لوحة مراقبة محلية</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">راقب حالة خادم AIPS-BLACKBOX.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">تتصل هذه الصفحة من متصفحك بمسارات الحالة وBenchmark التي ذكرتها. لا تتصل بقاعدة البيانات مباشرة، ولا تعرض محتوى الملفات أو كلمات المرور.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(360px,1.15fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="connection-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">الاتصال</p>
+            <h2 id="connection-heading" class="mb-3 text-2xl font-black">عنوان الخادم المحلي</h2>
+            <p class="mb-5 text-sm leading-6 text-[var(--color-muted)]">يُستخدم العنوان لبناء مسارات الحالة وBenchmark فقط. إذا كانت الواجهة على منفذ مختلف، أدخل أصل الخادم الذي تشغّله بنفسك.</p>
+            <label for="server-origin" class="mb-2 block text-sm font-bold">أصل الخادم</label>
+            <input id="server-origin" type="url" inputmode="url" autocomplete="url" value="http://localhost:3000" class="dashboard-control mb-4 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+            <label for="api-token" class="mb-2 block text-sm font-bold">رمز API <span class="font-normal text-[var(--color-muted)]">(اختياري، لا يُحفظ)</span></label>
+            <input id="api-token" type="password" autocomplete="off" spellcheck="false" placeholder="Bearer token عند تفعيل حماية API" class="dashboard-control mb-4 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+            <p class="mb-4 text-xs leading-5 text-[var(--color-muted)]">أدخل الرمز فقط من جهاز موثوق. لا تضعه في كود الواجهة المنشور ولا تشاركه مع الزوار.</p>
+            <div class="flex flex-wrap gap-3">
+              <button id="check-status" type="button" class="dashboard-button btn-primary px-5 py-3">فحص الحالة</button>
+              <button id="run-benchmark" type="button" class="dashboard-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">طلب Benchmark</button>
+            </div>
+            <p id="connection-status" class="mt-4 mb-0 flex items-center gap-2 text-sm text-[var(--color-muted)]" aria-live="polite">
+              <span id="status-dot" class="status-dot" aria-hidden="true"></span>
+              <span id="status-text">لم يُجرَ اتصال بعد. شغّل الخادم محليًا أولًا.</span>
+            </p>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="safety-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">الخصوصية والسلامة</p>
+            <h2 id="safety-heading" class="mb-3 text-xl font-black">مراقبة فقط</h2>
+            <ul class="mb-0 space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">الصفحة لا تحتوي على Prisma أو وصول مباشر لقاعدة البيانات؛ تستقبل فقط ما يختار الخادم إرجاعه.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">لم تتم إضافة حذف تلقائي أو حرق أو تعديل لملفاتك.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">قد يمنع المتصفح الاتصال إذا كانت إعدادات CORS في الخادم لا تسمح بأصل هذه الصفحة.</li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="status-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">GET /v1/status</p>
+              <h2 id="status-heading" class="mb-2 text-2xl font-black">حالة الخدمة</h2>
+              <p id="status-meta" class="mb-0 text-sm leading-6 opacity-80">بانتظار فحص الحالة.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <dl id="status-summary" class="mb-4 grid gap-3 sm:grid-cols-2" aria-live="polite">
+                <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                  <dt class="mb-1 text-xs font-bold text-[var(--color-muted)]">الاتصال</dt>
+                  <dd class="mb-0 font-extrabold">غير مفحوص</dd>
+                </div>
+                <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                  <dt class="mb-1 text-xs font-bold text-[var(--color-muted)]">عدد الملفات</dt>
+                  <dd class="mb-0 font-extrabold">—</dd>
+                </div>
+              </dl>
+              <pre id="status-output" class="dashboard-output min-h-32 overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite">لا توجد استجابة بعد.</pre>
+            </div>
+          </section>
+
+          <section class="feature-card overflow-hidden" aria-labelledby="benchmark-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">GET /v1/benchmark</p>
+              <h2 id="benchmark-heading" class="mb-2 text-2xl font-black">نتيجة Benchmark</h2>
+              <p id="benchmark-meta" class="mb-0 text-sm leading-6 opacity-80">لم يُطلب Benchmark بعد.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <pre id="benchmark-output" class="dashboard-output min-h-40 overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite">لا توجد استجابة بعد.</pre>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">AIPS Dashboard</a>
+      <p class="mb-0">واجهة محلية لقراءة استجابات الخادم فقط.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const originInput = document.querySelector('#server-origin');
+    const apiTokenInput = document.querySelector('#api-token');
+    const statusButton = document.querySelector('#check-status');
+    const benchmarkButton = document.querySelector('#run-benchmark');
+    const connectionText = document.querySelector('#status-text');
+    const statusDot = document.querySelector('#status-dot');
+    const statusMeta = document.querySelector('#status-meta');
+    const statusOutput = document.querySelector('#status-output');
+    const statusSummary = document.querySelector('#status-summary');
+    const benchmarkMeta = document.querySelector('#benchmark-meta');
+    const benchmarkOutput = document.querySelector('#benchmark-output');
+
+    function getBaseUrl() {
+      let parsed;
+      try {
+        parsed = new URL(originInput.value.trim());
+      } catch {
+        throw new Error('أدخل عنوانًا صالحًا يبدأ بـ http:// أو https://.');
+      }
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error('يُسمح بعناوين HTTP أو HTTPS فقط.');
+      }
+      if (parsed.username || parsed.password) {
+        throw new Error('لا تضع بيانات اعتماد ضمن عنوان الخادم.');
+      }
+      return parsed.origin;
+    }
+
+    function setBusy(button, busy, label) {
+      button.disabled = busy;
+      if (busy) button.dataset.previousLabel = button.textContent;
+      button.textContent = busy ? 'جارٍ الاتصال…' : label;
+    }
+
+    function showConnection(message, kind = 'idle') {
+      connectionText.textContent = message;
+      statusDot.classList.toggle('is-online', kind === 'online');
+      statusDot.classList.toggle('is-error', kind === 'error');
+    }
+
+    async function requestJson(path) {
+      const base = getBaseUrl();
+      const headers = {
+        Accept: 'application/json'
+      };
+      const token = apiTokenInput.value.trim();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetch(`${base}${path}`, {
+        method: 'GET',
+        headers,
+        cache: 'no-store'
+      });
+      const raw = await response.text();
+      let data;
+      try {
+        data = raw ? JSON.parse(raw) : null;
+      } catch {
+        data = raw;
+      }
+      return {
+        response,
+        data
+      };
+    }
+
+    function renderStatusSummary(data, online) {
+      statusSummary.replaceChildren();
+      const values = [
+        ['الاتصال', online ? 'متصل' : 'تعذر الاتصال'],
+        ['عدد الملفات', data && typeof data === 'object' && data.files !== undefined ? String(data.files) : 'غير متوفر'],
+        ['الحالة', data && typeof data === 'object' && data.status !== undefined ? String(data.status) : 'غير متوفر'],
+        ['البروتوكول', data && typeof data === 'object' && data.protocol !== undefined ? String(data.protocol) : 'غير متوفر']
+      ];
+
+      values.forEach(([label, value]) => {
+        const card = document.createElement('div');
+        card.className = 'rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4';
+        const term = document.createElement('dt');
+        term.className = 'mb-1 text-xs font-bold text-[var(--color-muted)]';
+        term.textContent = label;
+        const description = document.createElement('dd');
+        description.className = 'mb-0 break-words font-extrabold';
+        description.textContent = value;
+        card.append(term, description);
+        statusSummary.append(card);
+      });
+    }
+
+    statusButton.addEventListener('click', async () => {
+      setBusy(statusButton, true, 'فحص الحالة');
+      statusMeta.textContent = 'جارٍ طلب /v1/status.';
+      statusOutput.textContent = 'بانتظار استجابة الخادم…';
+      try {
+        const {
+          response,
+          data
+        } = await requestJson('/v1/status');
+        statusMeta.textContent = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`;
+        statusOutput.textContent = typeof data === 'string' ? data || '(استجابة فارغة)' : JSON.stringify(data, null, 2);
+        renderStatusSummary(data, response.ok);
+        showConnection(response.ok ? 'تم الاتصال بالخادم المحلي بنجاح.' : `رد الخادم بحالة HTTP ${response.status}.`, response.ok ? 'online' : 'error');
+      } catch (error) {
+        statusMeta.textContent = 'تعذر إكمال الطلب.';
+        statusOutput.textContent = `${error.message || 'خطأ اتصال غير معروف.'}\n\nتأكد من تشغيل الخادم والسماح بالاتصال من هذا الأصل عبر CORS.`;
+        renderStatusSummary(null, false);
+        showConnection('فشل الاتصال. تحقق من الخادم المحلي وإعدادات CORS.', 'error');
+      } finally {
+        setBusy(statusButton, false, 'فحص الحالة');
+      }
+    });
+
+    benchmarkButton.addEventListener('click', async () => {
+      setBusy(benchmarkButton, true, 'طلب Benchmark');
+      benchmarkMeta.textContent = 'جارٍ طلب /v1/benchmark.';
+      benchmarkOutput.textContent = 'بانتظار استجابة الخادم…';
+      try {
+        const {
+          response,
+          data
+        } = await requestJson('/v1/benchmark');
+        benchmarkMeta.textContent = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`;
+        benchmarkOutput.textContent = typeof data === 'string' ? data || '(استجابة فارغة)' : JSON.stringify(data, null, 2);
+        if (!response.ok) showConnection(`طلب Benchmark انتهى بحالة HTTP ${response.status}.`, 'error');
+        else showConnection('اكتمل طلب Benchmark.', 'online');
+      } catch (error) {
+        benchmarkMeta.textContent = 'تعذر إكمال الطلب.';
+        benchmarkOutput.textContent = `${error.message || 'خطأ اتصال غير معروف.'}\n\nتأكد من أن مسار Benchmark متاح وأن إعدادات CORS تسمح بالطلب.`;
+        showConnection('تعذر الوصول إلى Benchmark.', 'error');
+      } finally {
+        setBusy(benchmarkButton, false, 'طلب Benchmark');
+      }
+    });
+
+    originInput.addEventListener('change', () => {
+      try {
+        originInput.value = getBaseUrl();
+      } catch (error) {
+        showConnection(error.message, 'error');
+      }
+    });
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

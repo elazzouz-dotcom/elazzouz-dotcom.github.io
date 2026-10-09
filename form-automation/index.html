@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Build, test, and export a browser form-filling workflow locally, with no server connection.">
+  <title>Local Form Automation | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .automation-input:focus-visible,
+    .automation-select:focus-visible,
+    .automation-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .field-row[hidden] {
+      display: none;
+    }
+
+    .field-row+.field-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .preview-form input:focus,
+    .preview-form select:focus,
+    .preview-form textarea:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .code-output {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-4 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tool directory</a>
+        <a href="/community">Community</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid overflow-hidden px-5 py-10 lg:px-8 lg:py-14">
+      <div class="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1fr_360px]">
+        <div>
+          <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-muted)]">
+            <span class="h-2 w-2 rounded-full bg-[var(--color-primary)]"></span>
+            Local workspace · No server
+          </p>
+          <h1 class="mb-4 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">Form automation, built and tested here.</h1>
+          <p class="mb-0 max-w-2xl text-base leading-7 text-[var(--color-muted)]">Design a sample form, map values, run a local test, verify the result, and export a Playwright snippet. Your inputs stay in this browser.</p>
+        </div>
+        <div class="feature-card overflow-hidden p-5 sm:p-6">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Workflow status</p>
+              <h2 class="mb-0 text-xl font-black">Ready to test</h2>
+            </div>
+            <span class="icon-box text-xl" aria-hidden="true">⌁</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold text-[var(--color-muted)]">
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3"><span class="mb-1 block text-lg text-[var(--color-primary)]">01</span>Build</div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3"><span class="mb-1 block text-lg text-[var(--color-primary)]">02</span>Run</div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3"><span class="mb-1 block text-lg text-[var(--color-primary)]">03</span>Verify</div>
+          </div>
+          <p class="mt-4 mb-0 text-sm leading-6 text-[var(--color-muted)]">This tool runs a simulated form locally. Exported scripts are examples for forms you are authorized to automate.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-10">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="builder-heading">
+            <div class="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--color-border)] p-5 sm:p-7">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Form designer</p>
+                <h2 id="builder-heading" class="mb-2 text-2xl font-black">Configure your test form</h2>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Add fields and test values. Field names become stable selectors in the exported code.</p>
+              </div>
+              <button id="add-field" type="button" class="btn-primary automation-button shrink-0 px-4 py-3 text-sm">Add a field <span aria-hidden="true">＋</span></button>
+            </div>
+            <div class="grid gap-3 border-b border-[var(--color-border)] bg-[var(--color-bg)] px-5 py-3 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--color-muted)] sm:grid-cols-[1fr_1fr_130px_1fr_36px] sm:px-7">
+              <span>Label</span>
+              <span>Field name</span>
+              <span>Type</span>
+              <span>Test value</span>
+              <span class="sr-only">Remove</span>
+            </div>
+            <div id="field-list" class="px-5 sm:px-7"></div>
+            <div class="flex flex-wrap items-center justify-between gap-3 p-5 sm:px-7 sm:py-5">
+              <p id="field-status" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">3 sample fields ready.</p>
+              <button id="reset-fields" type="button" class="automation-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold">Restore sample</button>
+            </div>
+          </section>
+
+          <section class="feature-card p-5 sm:p-7" aria-labelledby="run-heading">
+            <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Run and verify</p>
+                <h2 id="run-heading" class="mb-2 text-2xl font-black">Test the workflow</h2>
+                <p class="mb-0 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">The preview below is generated locally. Run fills each field, submits the preview form, and checks the confirmation state.</p>
+              </div>
+              <button id="run-workflow" type="button" class="btn-primary automation-button px-5 py-3">Run test <span aria-hidden="true">→</span></button>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Fields</p>
+                <p id="stat-fields" class="mb-0 text-2xl font-black">3</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Required</p>
+                <p id="stat-required" class="mb-0 text-2xl font-black">2</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Last result</p>
+                <p id="stat-result" class="mb-0 text-sm font-extrabold">Not run</p>
+              </div>
+            </div>
+            <p id="run-status" class="mt-4 mb-0 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">Ready. No data has been submitted.</p>
+          </section>
+
+          <section class="feature-card overflow-hidden" aria-labelledby="code-heading">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-border)] p-5 sm:px-7">
+              <div>
+                <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Take it with you</p>
+                <h2 id="code-heading" class="mb-0 text-xl font-black">Export automation code</h2>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <select id="language-select" class="automation-select rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold" aria-label="Code language">
+                  <option value="javascript">Playwright · JavaScript</option>
+                  <option value="python">Playwright · Python</option>
+                </select>
+                <button id="copy-code" type="button" class="automation-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold">Copy</button>
+              </div>
+            </div>
+            <pre id="code-output" class="code-output max-h-[28rem] overflow-auto bg-[var(--color-dark)] p-5 text-xs leading-6 text-[var(--color-primary-contrast)] sm:p-7" aria-live="polite"></pre>
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-border)] px-5 py-4 sm:px-7">
+              <p class="mb-0 text-xs leading-5 text-[var(--color-muted)]">The snippet is generated locally. Add your own authorized page URL and adapt selectors for your target form.</p>
+              <button id="download-code" type="button" class="automation-button font-bold text-[var(--color-primary)]">Download code</button>
+            </div>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="preview-heading">
+            <div class="flex items-center justify-between gap-3 bg-[var(--color-dark)] p-5 text-[var(--color-primary-contrast)] sm:p-6">
+              <div>
+                <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Live local preview</p>
+                <h2 id="preview-heading" class="mb-0 text-xl font-black">Sample submission form</h2>
+              </div>
+              <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-xl" aria-hidden="true">↗</span>
+            </div>
+            <div class="p-5 sm:p-6">
+              <div id="preview-container"></div>
+              <div id="preview-success" class="mt-4 hidden rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-soft)] p-4 text-sm font-bold text-[var(--color-text)]" role="status">Your sample submission was received.</div>
+              <div class="mt-4 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-muted)]">Privacy</p>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">This preview never sends data anywhere. No login, API key, cloud browser, or server is used.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-card p-5 sm:p-6" aria-labelledby="activity-heading">
+            <div class="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Execution trace</p>
+                <h2 id="activity-heading" class="mb-0 text-xl font-black">Activity</h2>
+              </div>
+              <button id="clear-activity" type="button" class="automation-button text-xs font-bold text-[var(--color-muted)]">Clear</button>
+            </div>
+            <ol id="activity-log" class="space-y-3 text-sm text-[var(--color-muted)]" aria-live="polite">
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3">Workspace initialized. Ready for a local test.</li>
+            </ol>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Local form automation workspace.</p>
+      <a href="/developer-tools" class="footer-link font-semibold">More local tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const sampleFields = [{
+        label: 'Your name',
+        name: 'name',
+        type: 'text',
+        value: 'Alex Morgan',
+        required: true,
+        options: ''
+      },
+      {
+        label: 'Preferred plan',
+        name: 'plan',
+        type: 'select',
+        value: 'Starter',
+        required: true,
+        options: 'Starter, Team, Enterprise'
+      },
+      {
+        label: 'Send me product updates',
+        name: 'updates',
+        type: 'checkbox',
+        value: 'true',
+        required: false,
+        options: ''
+      }
+    ];
+
+    let fields = sampleFields.map((field) => ({
+      ...field
+    }));
+    const fieldList = document.querySelector('#field-list');
+    const previewContainer = document.querySelector('#preview-container');
+    const activityLog = document.querySelector('#activity-log');
+    const runStatus = document.querySelector('#run-status');
+    const previewSuccess = document.querySelector('#preview-success');
+    const languageSelect = document.querySelector('#language-select');
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
+    function normalizedName(value, index) {
+      const result = value.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '');
+      return result || `field_${index + 1}`;
+    }
+
+    function addActivity(message, isSuccess = false) {
+      const item = document.createElement('li');
+      item.className = 'rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3';
+      const time = new Intl.DateTimeFormat(undefined, {
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date());
+      item.textContent = `${time} · ${message}`;
+      if (isSuccess) item.classList.add('font-semibold');
+      activityLog.prepend(item);
+      while (activityLog.children.length > 8) activityLog.lastElementChild.remove();
+    }
+
+    function renderFields() {
+      fieldList.replaceChildren();
+      fields.forEach((field, index) => {
+        const row = document.createElement('div');
+        row.className = 'field-row grid gap-3 py-4 sm:grid-cols-[1fr_1fr_130px_1fr_36px] sm:items-start';
+
+        const labelInput = document.createElement('input');
+        labelInput.className = 'automation-input min-w-0 rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm';
+        labelInput.value = field.label;
+        labelInput.placeholder = 'Field label';
+        labelInput.setAttribute('aria-label', `Label for field ${index + 1}`);
+        labelInput.addEventListener('input', () => {
+          fields[index].label = labelInput.value;
+          renderPreview();
+          updateStats();
+          updateCode();
+        });
+
+        const nameInput = document.createElement('input');
+        nameInput.className = 'automation-input min-w-0 rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm';
+        nameInput.value = field.name;
+        nameInput.placeholder = 'field_name';
+        nameInput.setAttribute('aria-label', `Selector name for field ${index + 1}`);
+        nameInput.addEventListener('input', () => {
+          fields[index].name = normalizedName(nameInput.value, index);
+          nameInput.value = fields[index].name;
+          renderPreview();
+          updateStats();
+          updateCode();
+        });
+
+        const typeSelect = document.createElement('select');
+        typeSelect.className = 'automation-select w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm';
+        typeSelect.setAttribute('aria-label', `Type for field ${index + 1}`);
+        [
+          ['text', 'Text'],
+          ['email', 'Email'],
+          ['select', 'Select'],
+          ['radio', 'Radio'],
+          ['checkbox', 'Checkbox'],
+          ['textarea', 'Textarea']
+        ].forEach(([value, text]) => {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = text;
+          option.selected = field.type === value;
+          typeSelect.append(option);
+        });
+        typeSelect.addEventListener('change', () => {
+          fields[index].type = typeSelect.value;
+          if (typeSelect.value === 'checkbox') fields[index].value = 'true';
+          if (typeSelect.value === 'select' || typeSelect.value === 'radio') fields[index].options ||= 'Option 1, Option 2';
+          renderFields();
+          renderPreview();
+          updateStats();
+          updateCode();
+        });
+
+        const valueInput = document.createElement('input');
+        valueInput.className = 'automation-input min-w-0 rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm';
+        valueInput.value = field.value;
+        valueInput.placeholder = field.type === 'checkbox' ? 'true / false' : 'Test value';
+        valueInput.setAttribute('aria-label', `Test value for field ${index + 1}`);
+        valueInput.addEventListener('input', () => {
+          fields[index].value = valueInput.value;
+          renderPreview();
+          updateCode();
+        });
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'automation-button flex h-10 w-10 items-center justify-center rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] text-lg font-bold text-[var(--color-muted)] hover:text-[var(--color-primary)]';
+        removeButton.textContent = '×';
+        removeButton.setAttribute('aria-label', `Remove field ${field.label || index + 1}`);
+        removeButton.addEventListener('click', () => {
+          fields.splice(index, 1);
+          renderAll();
+          addActivity(`Removed field ${field.name}.`);
+        });
+
+        row.append(labelInput, nameInput, typeSelect, valueInput, removeButton);
+        fieldList.append(row);
+
+        const optionsRow = document.createElement('div');
+        optionsRow.className = 'field-row grid gap-3 pb-4 sm:grid-cols-[1fr_1fr_130px_1fr_36px]';
+        optionsRow.hidden = !['select', 'radio'].includes(field.type);
+        const optionsInput = document.createElement('input');
+        optionsInput.className = 'automation-input rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm sm:col-start-4';
+        optionsInput.value = field.options || '';
+        optionsInput.placeholder = 'Option 1, Option 2';
+        optionsInput.setAttribute('aria-label', `Options for ${field.label}`);
+        optionsInput.addEventListener('input', () => {
+          fields[index].options = optionsInput.value;
+          renderPreview();
+          updateCode();
+        });
+        optionsRow.append(optionsInput);
+        fieldList.append(optionsRow);
+
+        const requiredRow = document.createElement('label');
+        requiredRow.className = 'field-row flex items-center gap-2 pb-4 text-xs font-semibold text-[var(--color-muted)]';
+        const requiredInput = document.createElement('input');
+        requiredInput.type = 'checkbox';
+        requiredInput.checked = Boolean(field.required);
+        requiredInput.className = 'accent-[var(--color-primary)]';
+        requiredInput.addEventListener('change', () => {
+          fields[index].required = requiredInput.checked;
+          renderPreview();
+          updateStats();
+          updateCode();
+        });
+        requiredRow.append(requiredInput, document.createTextNode('Required field'));
+        fieldList.append(requiredRow);
+      });
+
+      document.querySelector('#field-status').textContent = `${fields.length} field${fields.length === 1 ? '' : 's'} configured.`;
+    }
+
+    function renderPreview() {
+      previewSuccess.classList.add('hidden');
+      const form = document.createElement('form');
+      form.className = 'preview-form space-y-4';
+      form.noValidate = true;
+
+      fields.forEach((field, index) => {
+        const group = document.createElement('div');
+        const label = document.createElement('label');
+        label.className = 'mb-2 block text-sm font-bold';
+        label.textContent = field.label || `Field ${index + 1}`;
+        const id = `preview-${normalizedName(field.name, index)}`;
+        label.htmlFor = id;
+        let control;
+
+        if (field.type === 'select') {
+          control = document.createElement('select');
+          control.className = 'automation-select w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm';
+          (field.options || 'Option 1, Option 2').split(',').map((option) => option.trim()).filter(Boolean).forEach((text) => {
+            const option = document.createElement('option');
+            option.value = text;
+            option.textContent = text;
+            control.append(option);
+          });
+          control.value = field.value;
+        } else if (field.type === 'radio') {
+          control = document.createElement('div');
+          control.className = 'space-y-2 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3';
+          (field.options || 'Option 1, Option 2').split(',').map((option) => option.trim()).filter(Boolean).forEach((text, optionIndex) => {
+            const radioLabel = document.createElement('label');
+            radioLabel.className = 'flex items-center gap-2 text-sm';
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = field.name;
+            radio.value = text;
+            radio.checked = field.value === text || (!field.value && optionIndex === 0);
+            radio.required = Boolean(field.required);
+            radio.dataset.fieldName = field.name;
+            radio.className = 'accent-[var(--color-primary)]';
+            radioLabel.append(radio, document.createTextNode(text));
+            control.append(radioLabel);
+          });
+        } else if (field.type === 'textarea') {
+          control = document.createElement('textarea');
+          control.rows = 3;
+          control.value = field.value;
+          control.className = 'automation-input w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm';
+        } else if (field.type === 'checkbox') {
+          const checkboxWrap = document.createElement('label');
+          checkboxWrap.className = 'flex items-center gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3 text-sm';
+          control = document.createElement('input');
+          control.type = 'checkbox';
+          control.checked = field.value === 'true';
+          control.className = 'accent-[var(--color-primary)]';
+          checkboxWrap.append(control, document.createTextNode(field.label || 'Check this box'));
+          label.textContent = '';
+          label.append(checkboxWrap);
+        } else {
+          control = document.createElement('input');
+          control.type = field.type;
+          control.value = field.value;
+          control.className = 'automation-input w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm';
+        }
+
+        if (field.type !== 'checkbox' && field.type !== 'radio') {
+          control.id = id;
+          control.name = field.name;
+          control.required = Boolean(field.required);
+          control.dataset.fieldName = field.name;
+          group.append(label, control);
+        } else if (field.type === 'checkbox') {
+          control.name = field.name;
+          control.required = Boolean(field.required);
+          control.dataset.fieldName = field.name;
+          group.append(label);
+        } else {
+          group.append(label, control);
+        }
+        form.append(group);
+      });
+
+      const submit = document.createElement('button');
+      submit.type = 'submit';
+      submit.className = 'btn-primary px-5 py-3 text-sm';
+      submit.textContent = 'Submit sample';
+      form.append(submit);
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        previewSuccess.classList.remove('hidden');
+        addActivity('Sample form submitted from the preview.', true);
+      });
+      previewContainer.replaceChildren(form);
+    }
+
+    function updateStats() {
+      document.querySelector('#stat-fields').textContent = String(fields.length);
+      document.querySelector('#stat-required').textContent = String(fields.filter((field) => field.required).length);
+    }
+
+    function jsString(value) {
+      return JSON.stringify(String(value));
+    }
+
+    function pythonString(value) {
+      return `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
+    }
+
+    function generateJavaScript() {
+      const actions = fields.map((field, index) => {
+        const selector = `input[name="${field.name}"], textarea[name="${field.name}"], select[name="${field.name}"]`;
+        const locator = `page.locator(${jsString(selector)})`;
+        if (field.type === 'checkbox') return `  await ${locator}.setChecked(${field.value === 'true'});`;
+        if (field.type === 'radio') return `  await page.locator(${jsString(`input[type="radio"][name="${field.name}"][value="${field.value}"]`)}).check();`;
+        if (field.type === 'select') return `  await page.locator(${jsString(`select[name="${field.name}"]`)}).selectOption(${jsString(field.value)});`;
+        return `  await ${locator}.fill(${jsString(field.value)});`;
+      }).join('\n');
+
+      return `import { chromium } from "playwright";\n\nasync function main() {\n  const targetUrl = process.env.FORM_URL;\n  if (!targetUrl) throw new Error("Set FORM_URL to a form you are authorized to automate.");\n\n  const browser = await chromium.launch({ headless: false });\n  const page = await browser.newPage();\n  await page.goto(targetUrl);\n  await page.locator('form').waitFor({ state: "visible" });\n\n${actions}\n\n  await page.locator('button[type="submit"]').click();\n  await page.getByText("Your response has been recorded.").waitFor();\n  console.log("Submission verified.");\n  await browser.close();\n}\n\nmain().catch(console.error);`;
+    }
+
+    function generatePython() {
+      const actions = fields.map((field) => {
+        const selector = `input[name="${field.name}"], textarea[name="${field.name}"], select[name="${field.name}"]`;
+        if (field.type === 'checkbox') return `    page.locator(${pythonString(selector)}).set_checked(${String(field.value === 'true').toLowerCase()})`;
+        if (field.type === 'radio') return `    page.locator(${pythonString(`input[type="radio"][name="${field.name}"][value="${field.value}"]`)}).check()`;
+        if (field.type === 'select') return `    page.locator(${pythonString(`select[name="${field.name}"]`)}).select_option(${pythonString(field.value)})`;
+        return `    page.locator(${pythonString(selector)}).fill(${pythonString(field.value)})`;
+      }).join('\n');
+
+      return `import os\nfrom playwright.sync_api import sync_playwright\n\ntarget_url = os.environ.get("FORM_URL")\nif not target_url:\n    raise RuntimeError("Set FORM_URL to a form you are authorized to automate.")\n\nwith sync_playwright() as playwright:\n    browser = playwright.chromium.launch(headless=False)\n    page = browser.new_page()\n    page.goto(target_url)\n    page.locator("form").wait_for(state="visible")\n\n${actions}\n\n    page.locator('button[type="submit"]').click()\n    page.get_by_text("Your response has been recorded.").wait_for()\n    print("Submission verified.")\n    browser.close()`;
+    }
+
+    function updateCode() {
+      document.querySelector('#code-output').textContent = languageSelect.value === 'python' ? generatePython() : generateJavaScript();
+    }
+
+    function renderAll() {
+      renderFields();
+      renderPreview();
+      updateStats();
+      updateCode();
+    }
+
+    document.querySelector('#add-field').addEventListener('click', () => {
+      const next = fields.length + 1;
+      fields.push({
+        label: `New field ${next}`,
+        name: `field_${next}`,
+        type: 'text',
+        value: '',
+        required: false,
+        options: ''
+      });
+      renderAll();
+      addActivity(`Added field_${next}.`);
+    });
+
+    document.querySelector('#reset-fields').addEventListener('click', () => {
+      fields = sampleFields.map((field) => ({
+        ...field
+      }));
+      runStatus.textContent = 'Sample form restored. No data has been submitted.';
+      document.querySelector('#stat-result').textContent = 'Not run';
+      renderAll();
+      addActivity('Restored the sample form.');
+    });
+
+    document.querySelector('#run-workflow').addEventListener('click', () => {
+      previewSuccess.classList.add('hidden');
+      const invalid = fields.filter((field) => field.required && (field.type === 'checkbox' ? field.value !== 'true' : !field.value.trim()));
+      if (invalid.length) {
+        runStatus.textContent = `Test stopped: provide values for ${invalid.map((field) => field.label || field.name).join(', ')}.`;
+        document.querySelector('#stat-result').textContent = 'Needs input';
+        addActivity('Validation failed. Review required fields.');
+        return;
+      }
+
+      const form = previewContainer.querySelector('form');
+      fields.forEach((field) => {
+        const controls = [...form.querySelectorAll('[data-field-name]')].filter((control) => control.dataset.fieldName === field.name);
+        if (field.type === 'radio') {
+          const matchingRadio = controls.find((control) => control.value === field.value);
+          if (matchingRadio) matchingRadio.checked = true;
+        } else if (controls[0]) {
+          if (field.type === 'checkbox') controls[0].checked = field.value === 'true';
+          else controls[0].value = field.value;
+          controls[0].dispatchEvent(new Event('input', { bubbles: true }));
+          controls[0].dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        addActivity(`Filled ${field.label || field.name}.`);
+      });
+      form.requestSubmit();
+      runStatus.textContent = `Success. Filled ${fields.length} field${fields.length === 1 ? '' : 's'}, submitted the local preview, and verified its confirmation.`;
+      document.querySelector('#stat-result').textContent = 'Verified';
+      addActivity('Submission verified in the local preview.', true);
+    });
+
+    languageSelect.addEventListener('change', updateCode);
+
+    document.querySelector('#copy-code').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      try {
+        await navigator.clipboard.writeText(document.querySelector('#code-output').textContent);
+        button.textContent = 'Copied';
+        addActivity('Copied the generated code.');
+      } catch {
+        runStatus.textContent = 'Clipboard is unavailable. Select the code block and copy it manually.';
+      }
+      window.setTimeout(() => {
+        button.textContent = 'Copy';
+      }, 1600);
+    });
+
+    document.querySelector('#download-code').addEventListener('click', () => {
+      const isPython = languageSelect.value === 'python';
+      const blob = new Blob([document.querySelector('#code-output').textContent], {
+        type: 'text/plain;charset=utf-8'
+      });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = isPython ? 'form-automation.py' : 'form-automation.js';
+      link.click();
+      URL.revokeObjectURL(downloadUrl);
+      addActivity('Downloaded the generated script.');
+    });
+
+    document.querySelector('#clear-activity').addEventListener('click', () => {
+      activityLog.replaceChildren();
+      addActivity('Activity log cleared.');
+    });
+
+    renderAll();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

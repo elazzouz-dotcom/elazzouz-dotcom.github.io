@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive Go test-suite configuration builder for FreightService Shipper service tests.">
+  <title>Go Test Suite Config Builder</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .code-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .tool-control:focus-visible,
+    .tool-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .status-error {
+      color: var(--color-muted);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">G</span>
+        <span class="text-xl font-extrabold tracking-tight">Go <span class="text-[var(--color-primary)]">Workbench</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Go testing · local builder</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Configure a service test suite without guessing.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Build a reviewable configuration for <code>FreightServiceShipperTestSuiteConfig</code>. The page validates required callbacks locally and generates a Go setup skeleton; it does not run tests or connect to a service.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(360px,1.15fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="config-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Configuration checklist</p>
+          <h2 id="config-heading" class="mb-5 text-2xl font-black">Describe your test package</h2>
+
+          <div class="space-y-5">
+            <label for="service-type" class="block text-sm font-bold">Service server type
+              <input id="service-type" value="FreightServiceServer" class="tool-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" autocomplete="off">
+            </label>
+            <label for="resource-type" class="block text-sm font-bold">Resource type
+              <input id="resource-type" value="Shipper" class="tool-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" autocomplete="off">
+            </label>
+            <label for="service-factory" class="block text-sm font-bold">Service callback
+              <input id="service-factory" value="newFreightServiceServer" class="tool-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" autocomplete="off">
+              <span class="mt-2 block text-xs font-normal leading-5 text-[var(--color-muted)]">Must return the server implementation used by multiple tests.</span>
+            </label>
+            <label for="context-factory" class="block text-sm font-bold">Context callback
+              <input id="context-factory" value="newTestContext" class="tool-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" autocomplete="off">
+            </label>
+            <label for="create-factory" class="block text-sm font-bold">Create callback
+              <input id="create-factory" value="validShipperForCreate" class="tool-control mt-2 w-full rounded-[var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" autocomplete="off">
+            </label>
+            <label for="id-generator" class="block text-sm font-bold">ID generator <span class="font-normal text-[var(--color-muted)]">(optional only when the ID is not required)</span>
+              <input id="id-generator" value="nextShipperID" class="tool-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" autocomplete="off">
+            </label>
+            <label for="update-factory" class="block text-sm font-bold">Update callback
+              <input id="update-factory" value="validShipperForUpdate" class="tool-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" autocomplete="off">
+            </label>
+            <label for="skip-tests" class="block text-sm font-bold">Tests to skip <span class="font-normal text-[var(--color-muted)]">(comma separated)</span>
+              <input id="skip-tests" placeholder="Get, Update/persisted" class="tool-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" autocomplete="off">
+            </label>
+          </div>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="output-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Generated locally</p>
+              <h2 id="output-heading" class="mb-2 text-2xl font-black">Go configuration skeleton</h2>
+              <p id="config-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">Update the fields to generate a configuration.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <pre id="code-output" class="code-output min-h-96 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></pre>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-code" type="button" class="tool-button btn-primary px-5 py-3">Copy Go code</button>
+                <button id="download-code" type="button" class="tool-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-bold">Download .go</button>
+              </div>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Generated text is not compiled or executed.</p>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="meaning-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">What each callback means</p>
+            <h2 id="meaning-heading" class="mb-4 text-xl font-black">Contract at a glance</h2>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong>Service</strong>
+                <p class="mb-0 mt-1 text-sm leading-6 text-[var(--color-muted)]">Creates the implementation under test for repeated requests.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong>Context</strong>
+                <p class="mb-0 mt-1 text-sm leading-6 text-[var(--color-muted)]">Returns a fresh context so tests do not share cancellation or values.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong>Create / Update</strong>
+                <p class="mb-0 mt-1 text-sm leading-6 text-[var(--color-muted)]">Supply valid fixtures with required fields populated.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong>Skip</strong>
+                <p class="mb-0 mt-1 text-sm leading-6 text-[var(--color-muted)]">Skip a whole test or a named subtest using its path.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Go Workbench</a>
+      <p class="mb-0">Local Go test configuration builder.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const ids = ['service-type', 'resource-type', 'service-factory', 'context-factory', 'create-factory', 'id-generator', 'update-factory', 'skip-tests'];
+    const fields = Object.fromEntries(ids.map((id) => [id, document.querySelector(`#${id}`)]));
+    const output = document.querySelector('#code-output');
+    const status = document.querySelector('#config-status');
+    const copyStatus = document.querySelector('#copy-status');
+
+    function goIdentifier(value, fallback) {
+      const cleaned = value.trim().replace(/[^A-Za-z0-9_]/g, '');
+      return cleaned || fallback;
+    }
+
+    function generateCode() {
+      const serviceType = goIdentifier(fields['service-type'].value, 'FreightServiceServer');
+      const resourceType = goIdentifier(fields['resource-type'].value, 'Shipper');
+      const serviceFactory = goIdentifier(fields['service-factory'].value, 'newFreightServiceServer');
+      const contextFactory = goIdentifier(fields['context-factory'].value, 'newTestContext');
+      const createFactory = goIdentifier(fields['create-factory'].value, `valid${resourceType}ForCreate`);
+      const idGenerator = fields['id-generator'].value.trim() ? goIdentifier(fields['id-generator'].value, `next${resourceType}ID`) : '';
+      const updateFactory = goIdentifier(fields['update-factory'].value, `valid${resourceType}ForUpdate`);
+      const skips = fields['skip-tests'].value.split(',').map((value) => value.trim()).filter(Boolean);
+      const skipCode = skips.length ? `[]string{${skips.map((value) => JSON.stringify(value)).join(', ')}}` : 'nil';
+      const idLine = idGenerator ? `\n\t\tIDGenerator: func() string { return ${idGenerator}() },` : '\n\t\t// IDGenerator: func() string { return nextResourceID() },';
+
+      output.textContent = `// Generated locally for review. Adapt package names and fixture helpers.\n\nfunc new${resourceType}TestSuiteConfig() FreightService${resourceType}TestSuiteConfig {\n\treturn FreightService${resourceType}TestSuiteConfig{\n\t\tService: func() ${serviceType} {\n\t\t\treturn ${serviceFactory}()\n\t\t},\n\t\tContext: func() context.Context {\n\t\t\treturn ${contextFactory}()\n\t\t},\n\t\tCreate: func() *${resourceType} {\n\t\t\treturn ${createFactory}()\n\t\t},${idLine}\n\t\tUpdate: func() *${resourceType} {\n\t\t\treturn ${updateFactory}()\n\t\t},\n\t\tSkip: ${skipCode},\n\t}\n}`;
+
+      const required = [fields['service-factory'], fields['context-factory'], fields['create-factory'], fields['update-factory']];
+      const missing = required.filter((field) => !field.value.trim()).length;
+      status.textContent = missing ? 'Complete the required callbacks before using this skeleton.' : `Ready. ${skips.length} skip pattern${skips.length === 1 ? '' : 's'} configured locally.`;
+      status.className = missing ? 'mb-0 text-sm leading-6 status-error' : 'mb-0 text-sm leading-6 opacity-80';
+    }
+
+    ids.forEach((id) => {
+      fields[id].addEventListener('input', generateCode);
+      fields[id].addEventListener('change', generateCode);
+    });
+
+    document.querySelector('#copy-code').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(output.textContent);
+        copyStatus.textContent = 'Go code copied. Review package names and helper signatures before compiling.';
+      } catch {
+        copyStatus.textContent = 'Clipboard unavailable. Select the code and copy it manually.';
+      }
+    });
+
+    document.querySelector('#download-code').addEventListener('click', () => {
+      const url = URL.createObjectURL(new Blob([output.textContent], {
+        type: 'text/plain;charset=utf-8'
+      }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'freight-service-test-suite-config.go';
+      link.click();
+      URL.revokeObjectURL(url);
+      copyStatus.textContent = 'Go skeleton downloaded locally. It was not compiled or executed.';
+    });
+
+    generateCode();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

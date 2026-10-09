@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="أداة محلية لتخطيط وتحسين أداء أتمتة المتصفح عبر التوازي، إعداد الجلسات، انتظار تحميل الصفحة، وتقليل التبويبات.">
+  <title>مخطط أداء أتمتة المتصفح | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .performance-input:focus-visible,
+    .performance-select:focus-visible,
+    .performance-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .recommendation-card[hidden] {
+      display: none;
+    }
+
+    .code-output {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      direction: ltr;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">لوحة الأدوات</a>
+        <a href="/form-automation">أتمتة النماذج</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">أداة تخطيط محلية</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">حسّن سير عمل أتمتة المتصفح.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">اختر خصائص المهمة لتحصل على قائمة تحسينات وخطة تشغيل ومثال شيفرة قابل للنسخ. هذه الأداة تخطط محليًا فقط؛ لا تشغّل متصفحًا ولا تقيس الزمن الفعلي.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="settings-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">إعداد الخطة</p>
+          <h2 id="settings-heading" class="mb-5 text-2xl font-black">صف المهمة التي تريد تسريعها</h2>
+
+          <div class="space-y-5">
+            <div>
+              <label for="runtime" class="mb-2 block text-sm font-bold">بيئة التشغيل للمقارنة</label>
+              <select id="runtime" class="performance-select w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                <option value="javascript">Node.js · Playwright</option>
+                <option value="python">Python · Playwright</option>
+              </select>
+              <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">الأداة لا تفترض أن لغة أسرع دائمًا؛ قارن القياس في بيئة تشغيلك الفعلية.</p>
+            </div>
+
+            <div>
+              <label for="jobs" class="mb-2 block text-sm font-bold">عدد المهام المستقلة</label>
+              <input id="jobs" type="number" min="1" max="1000" value="12" class="performance-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+              <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">استخدم قيمة تقريبية لتوضيح حجم العمل؛ لا تُستخدم لحساب زمن أو سعة مضمونة.</p>
+            </div>
+
+            <div>
+              <label for="concurrency" class="mb-2 block text-sm font-bold">حد التوازي الذي تريد تجربته</label>
+              <input id="concurrency" type="number" min="1" max="100" value="4" class="performance-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+              <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">ابدأ بقيمة محافظة، ثم عدّلها بعد القياس ومراعاة حدود الموقع المستهدف.</p>
+            </div>
+
+            <fieldset>
+              <legend class="mb-3 text-sm font-bold">خصائص سير العمل</legend>
+              <div class="space-y-3">
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input id="parallel-work" type="checkbox" checked class="mt-1 accent-[var(--color-primary)]">
+                  <span><strong>مهام مستقلة يمكن تشغيلها بالتوازي</strong><br><span class="text-[var(--color-muted)]">مثل معالجة عناصر مختلفة دون اعتماد متبادل.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input id="setup-work" type="checkbox" checked class="mt-1 accent-[var(--color-primary)]">
+                  <span><strong>هناك إعداد أو إنشاء جلسة قبل بدء المعالجة</strong><br><span class="text-[var(--color-muted)]">قد يتداخل الإعداد مع عمل مستقل لتقليل الوقت المحسوس.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input id="many-tabs" type="checkbox" class="mt-1 accent-[var(--color-primary)]">
+                  <span><strong>المهمة تستخدم عدة تبويبات في الجلسة الواحدة</strong><br><span class="text-[var(--color-muted)]">اختبر جلسات أحادية التبويب عند مقارنة الأداء.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input id="external-heavy" type="checkbox" checked class="mt-1 accent-[var(--color-primary)]">
+                  <span><strong>الصفحات غنية بالموارد الخارجية</strong><br><span class="text-[var(--color-muted)]">قد يفيد انتظار DOM بدل انتظار اكتمال جميع الموارد.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input id="remote-region" type="checkbox" class="mt-1 accent-[var(--color-primary)]">
+                  <span><strong>رمز الأتمتة بعيد جغرافيًا عن المتصفح</strong><br><span class="text-[var(--color-muted)]">قرّب بيئة التشغيل من منطقة الجلسة لتقليل زمن الرحلة عند الإمكان.</span></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <button id="build-plan" type="button" class="performance-button btn-primary px-5 py-3">أنشئ خطة التحسين <span aria-hidden="true">←</span></button>
+          </div>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="plan-heading">
+            <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">النتيجة</p>
+                <h2 id="plan-heading" class="mb-1 text-2xl font-black">خطة التحسين</h2>
+                <p id="plan-summary" class="mb-0 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite">عدّل الخيارات ثم أنشئ خطة مخصصة.</p>
+              </div>
+              <span class="icon-box shrink-0 text-xl" aria-hidden="true">⚡</span>
+            </div>
+            <ol id="recommendations" class="space-y-3"></ol>
+            <div class="mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6">
+              <p class="mb-1 font-extrabold">مهم</p>
+              <p class="mb-0 text-[var(--color-muted)]">التوازي لا يعني تجاوز حدود الاستخدام أو حماية المواقع. استخدم الأتمتة فقط على الصفحات التي تملك إذنًا لاختبارها، وراقب الأخطاء والتحميل قبل زيادة عدد المهام.</p>
+            </div>
+          </section>
+
+          <section class="feature-card overflow-hidden" aria-labelledby="code-heading">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-5 sm:px-7">
+              <div>
+                <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">مثال قابل للتعديل</p>
+                <h2 id="code-heading" class="mb-0 text-xl font-black">نمط تنفيذ أولي</h2>
+              </div>
+              <button id="copy-code" type="button" class="performance-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold">نسخ الشيفرة</button>
+            </div>
+            <pre id="code-output" class="code-output max-h-[32rem] overflow-auto bg-[var(--color-dark)] p-5 text-xs leading-6 text-[var(--color-primary-contrast)] sm:p-7"></pre>
+            <p id="copy-status" class="mb-0 px-5 py-3 text-xs text-[var(--color-muted)]" aria-live="polite">الشيفرة نموذج تعليمي؛ أضف دالة المهمة وإعداد البيئة لديك.</p>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="measure-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">تحقق قبل وبعد</p>
+            <h2 id="measure-heading" class="mb-3 text-xl font-black">قِس بدل التخمين</h2>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">الزمن</p>
+                <p class="mb-0 text-sm font-semibold">قِس زمن كل خطوة.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">النجاح</p>
+                <p class="mb-0 text-sm font-semibold">تابع الإكمال وإعادة المحاولة.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">الاستقرار</p>
+                <p class="mb-0 text-sm font-semibold">ارصد المهلات والأخطاء.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">مخطط محلي لتحسين أداء أتمتة المتصفح.</p>
+      <a href="/developer-tools" class="footer-link font-semibold">أدوات البرمجة</a>
+    </div>
+  </footer>
+
+  <script>
+    const fields = {
+      runtime: document.querySelector('#runtime'),
+      jobs: document.querySelector('#jobs'),
+      concurrency: document.querySelector('#concurrency'),
+      parallel: document.querySelector('#parallel-work'),
+      setup: document.querySelector('#setup-work'),
+      tabs: document.querySelector('#many-tabs'),
+      external: document.querySelector('#external-heavy'),
+      remote: document.querySelector('#remote-region')
+    };
+    const recommendations = document.querySelector('#recommendations');
+    const planSummary = document.querySelector('#plan-summary');
+    const codeOutput = document.querySelector('#code-output');
+
+    function boundedNumber(input, fallback, maximum) {
+      const value = Number.parseInt(input.value, 10);
+      if (!Number.isFinite(value)) return fallback;
+      return Math.min(maximum, Math.max(1, value));
+    }
+
+    function buildPlan() {
+      const jobs = boundedNumber(fields.jobs, 12, 1000);
+      const concurrency = Math.min(boundedNumber(fields.concurrency, 4, 100), jobs);
+      fields.jobs.value = jobs;
+      fields.concurrency.value = Math.min(boundedNumber(fields.concurrency, 4, 100), 100);
+
+      const items = [];
+      if (fields.remote.checked) {
+        items.push(['قلّل زمن الرحلة', 'شغّل رمز الأتمتة في منطقة قريبة من منطقة المتصفح أو المستخدم. قلّل التفاعلات البعيدة المتكررة، لأنها قد تتحول إلى عدة أوامر متتابعة.']);
+      }
+      if (fields.parallel.checked && jobs > 1) {
+        items.push(['وزّع المهام المستقلة', `لديك ${jobs} مهمة تقريبًا؛ جرّب تشغيلها على دفعات بحد أقصى ${concurrency} مهام متزامنة، ثم راقب الضغط ومعدل النجاح قبل رفع الحد.`]);
+      } else {
+        items.push(['تحقق من اعتماد الخطوات', 'لا توازِ خطوات تعتمد إحداها على نتيجة الأخرى. اجمع الخطوات التابعة في تسلسل واضح، وابحث عن مهام مستقلة يمكن تشغيلها بالتوازي.']);
+      }
+      if (fields.setup.checked) {
+        items.push(['تداخل الإعداد مع العمل', 'ابدأ إنشاء الجلسة أو تهيئتها بالتزامن مع تجهيز بيانات المهمة المستقلة، بدل انتظار انتهاء كل الإعداد قبل بدء أي عمل.']);
+      }
+      if (fields.tabs.checked) {
+        items.push(['قارن جلسة أحادية التبويب', 'الجلسات متعددة التبويبات قد تكون أبطأ لبعض الأحمال. قارنها بعدة جلسات أحادية التبويب مع الحفاظ على حد التوازي الآمن.']);
+      }
+      if (fields.external.checked) {
+        items.push(['انتظر الحدث المناسب', 'عند التنقل، جرّب انتظار domcontentloaded بدل load إذا كانت الخطوة التالية تحتاج DOM فقط. انتظر ظهور العنصر المحدد قبل التفاعل، ولا تستخدم مهلات ثابتة بلا حاجة.']);
+      }
+      items.push(['قارن بيئات التشغيل', `الخيار المحدد: ${fields.runtime.value === 'javascript' ? 'Node.js' : 'Python'}. قارن زمن التنفيذ ومعدل النجاح في بيئة مماثلة للإنتاج؛ تختلف النتيجة باختلاف العمل والاعتماديات.`]);
+      items.push(['راقب النتيجة', 'سجل زمن التنقل والتفاعل والتحقق كلًا على حدة، مع الأخطاء والمهلات. احتفظ بخط أساس قبل تغيير أكثر من عامل.']);
+
+      recommendations.replaceChildren();
+      items.forEach(([title, description], index) => {
+        const item = document.createElement('li');
+        item.className = 'flex gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4';
+        const number = document.createElement('span');
+        number.className = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] text-sm font-black text-[var(--color-primary)]';
+        number.textContent = String(index + 1).padStart(2, '0');
+        const content = document.createElement('div');
+        const heading = document.createElement('h3');
+        heading.className = 'mb-1 text-sm font-extrabold';
+        heading.textContent = title;
+        const text = document.createElement('p');
+        text.className = 'mb-0 text-sm leading-6 text-[var(--color-muted)]';
+        text.textContent = description;
+        content.append(heading, text);
+        item.append(number, content);
+        recommendations.append(item);
+      });
+
+      planSummary.textContent = `خطة لمهمة تضم نحو ${jobs} مهمة، بحد توازٍ تجريبي ${concurrency}. هذه قيم تخطيط وليست توقعًا لزمن التنفيذ.`;
+      codeOutput.textContent = fields.runtime.value === 'python' ? generatePython(concurrency) : generateJavaScript(concurrency);
+      document.querySelector('#copy-status').textContent = 'الشيفرة نموذج تعليمي؛ أضف دالة المهمة وإعداد البيئة لديك.';
+    }
+
+    function generateJavaScript(concurrency) {
+      if (!fields.parallel.checked) {
+        return `// Playwright · Node.js\n// استخدم هذا النمط عندما تعتمد كل خطوة على السابقة.\nimport { chromium } from "playwright";\n\nconst browser = await chromium.launch();\nconst page = await browser.newPage();\n\ntry {\n  await page.goto(process.env.TARGET_URL, { waitUntil: "domcontentloaded" });\n  await page.locator('input[name="email"]').waitFor({ state: "visible" });\n  // نفّذ تفاعلات الصفحة المطلوبة هنا.\n} finally {\n  await browser.close();\n}\n`;
+      }
+      return `// Playwright · Node.js\n// حد التوازي هنا إعداد محلي قابل للتعديل، وليس توصية عامة ثابتة.\nimport { chromium } from "playwright";\n\nconst jobs = []; // ضع مهامًا مستقلة ومصرحًا بها هنا.\nconst concurrency = ${concurrency};\nlet nextJob = 0;\n\nasync function worker() {\n  const browser = await chromium.launch();\n  try {\n    while (nextJob < jobs.length) {\n      const job = jobs[nextJob++];\n      const page = await browser.newPage();\n      try {\n        await page.goto(job.url, { waitUntil: "domcontentloaded" });\n        await page.locator(job.readySelector).waitFor({ state: "visible" });\n        await job.run(page);\n      } finally {\n        await page.close();\n      }\n    }\n  } finally {\n    await browser.close();\n  }\n}\n\nawait Promise.all(\n  Array.from({ length: Math.min(concurrency, jobs.length) }, () => worker())\n);\n`;
+    }
+
+    function generatePython(concurrency) {
+      if (!fields.parallel.checked) {
+        return `# Playwright · Python\n# استخدم هذا النمط عندما تعتمد كل خطوة على السابقة.\nfrom playwright.async_api import async_playwright\nimport os\n\nasync def main():\n    async with async_playwright() as playwright:\n        browser = await playwright.chromium.launch()\n        page = await browser.new_page()\n        try:\n            await page.goto(os.environ["TARGET_URL"], wait_until="domcontentloaded")\n            await page.locator('input[name="email"]').wait_for(state="visible")\n            # نفّذ تفاعلات الصفحة المطلوبة هنا.\n        finally:\n            await browser.close()\n`;
+      }
+      return `# Playwright · Python\n# حد التوازي هنا إعداد محلي قابل للتعديل، وليس توصية عامة ثابتة.\nimport asyncio\nfrom playwright.async_api import async_playwright\n\njobs = []  # ضع مهامًا مستقلة ومصرحًا بها هنا.\nCONCURRENCY = ${concurrency}\n\nasync def run_job(browser, job, semaphore):\n    async with semaphore:\n        page = await browser.new_page()\n        try:\n            await page.goto(job["url"], wait_until="domcontentloaded")\n            await page.locator(job["ready_selector"]).wait_for(state="visible")\n            await job["run"](page)\n        finally:\n            await page.close()\n\nasync def main():\n    semaphore = asyncio.Semaphore(CONCURRENCY)\n    async with async_playwright() as playwright:\n        browser = await playwright.chromium.launch()\n        try:\n            await asyncio.gather(*(run_job(browser, job, semaphore) for job in jobs))\n        finally:\n            await browser.close()\n`;
+    }
+
+    document.querySelector('#build-plan').addEventListener('click', buildPlan);
+    [fields.runtime, fields.jobs, fields.concurrency, fields.parallel, fields.setup, fields.tabs, fields.external, fields.remote].forEach((control) => {
+      control.addEventListener('change', buildPlan);
+      control.addEventListener('input', buildPlan);
+    });
+
+    document.querySelector('#copy-code').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      try {
+        await navigator.clipboard.writeText(codeOutput.textContent);
+        document.querySelector('#copy-status').textContent = 'تم نسخ المثال. راجعه وعدّله قبل التشغيل.';
+        button.textContent = 'تم النسخ';
+      } catch {
+        document.querySelector('#copy-status').textContent = 'تعذر النسخ تلقائيًا؛ حدّد الشيفرة وانسخها يدويًا.';
+      }
+      window.setTimeout(() => {
+        button.textContent = 'نسخ الشيفرة';
+      }, 1600);
+    });
+
+    buildPlan();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

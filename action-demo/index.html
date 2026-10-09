@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A browser-based demonstration of a React Router form action response with a custom header and HTTP status.">
+  <title>React Router Action Demo | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tool directory</a>
+        <a href="/developer-tools">Developer tools</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Interactive code demo</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">React Router action response</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Submit the form to see a local browser demonstration of reading form data, creating an item, and returning a response body with a custom header and status code.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="form-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Create an item</p>
+          <h2 id="form-heading" class="mb-3 text-2xl font-black">Try the action flow</h2>
+          <p class="mb-6 text-sm leading-6 text-[var(--color-muted)]">This form creates a real record from your input and saves it in this browser using local storage, so it remains available after a refresh. It does not send the data to a server or create an actual React Router HTTP response.</p>
+
+          <form id="item-form" class="space-y-4">
+            <div>
+              <label for="item-name" class="mb-2 block text-sm font-bold">Item name</label>
+              <input id="item-name" name="name" type="text" required maxlength="100" placeholder="For example, Review API response" class="w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+            </div>
+            <div>
+              <label for="item-description" class="mb-2 block text-sm font-bold">Description <span class="font-normal text-[var(--color-muted)]">(optional)</span></label>
+              <textarea id="item-description" name="description" rows="4" maxlength="500" placeholder="Add a short note about this item" class="w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"></textarea>
+            </div>
+            <button type="submit" class="btn-primary px-5 py-3">Create item <span aria-hidden="true">→</span></button>
+          </form>
+        </section>
+
+        <aside class="feature-card overflow-hidden" aria-labelledby="result-heading">
+          <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Action result</p>
+            <h2 id="result-heading" class="mb-2 text-2xl font-black">Response preview</h2>
+            <p id="result-status" class="mb-0 text-sm text-[var(--color-primary-contrast)] opacity-80" aria-live="polite">Submit the form to create a demo response.</p>
+          </div>
+          <div class="space-y-5 p-6">
+            <div>
+              <h3 class="mb-2 text-sm font-extrabold">Response headers</h3>
+              <pre id="response-headers" class="overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6 text-[var(--color-text)]">No response yet.</pre>
+            </div>
+            <div>
+              <h3 class="mb-2 text-sm font-extrabold">Response data</h3>
+              <pre id="response-data" class="min-h-32 overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6 text-[var(--color-text)]">No item created yet.</pre>
+            </div>
+            <div>
+              <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h3 class="mb-0 text-sm font-extrabold">Saved items in this browser</h3>
+                <div class="flex flex-wrap items-center gap-3">
+                  <button id="export-items" type="button" class="text-xs font-bold text-[var(--color-primary)]">Export JSON</button>
+                  <button id="clear-items" type="button" class="text-xs font-bold text-[var(--color-primary)]">Clear all</button>
+                </div>
+              </div>
+              <label for="saved-item-search" class="sr-only">Search saved items</label>
+              <input id="saved-item-search" type="search" placeholder="Search saved items..." class="mb-3 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+              <ul id="saved-items" class="space-y-2 text-sm text-[var(--color-muted)]" aria-live="polite">
+                <li>No saved items yet.</li>
+              </ul>
+              <p id="storage-status" class="mt-3 mb-0 text-xs text-[var(--color-muted)]" aria-live="polite"></p>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="mx-auto mt-6 grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="loader-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Loader demo</p>
+          <h2 id="loader-heading" class="mb-3 text-2xl font-black">Load a product by route parameter</h2>
+          <p class="mb-6 text-sm leading-6 text-[var(--color-muted)]">Choose a product ID to preview how a React Router loader reads <code>params.pid</code>, fetches a product, and passes it to the page component.</p>
+          <label for="product-id" class="mb-2 block text-sm font-bold">Product ID (<code>pid</code>)</label>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <select id="product-id" class="min-w-0 flex-1 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+              <option value="101">101 · Field notebook</option>
+              <option value="202">202 · Signal lantern</option>
+              <option value="303">303 · Trail flask</option>
+            </select>
+            <button id="load-product" type="button" class="btn-primary px-5 py-3">Run loader <span aria-hidden="true">→</span></button>
+          </div>
+        </section>
+
+        <aside class="feature-card overflow-hidden" aria-labelledby="product-result-heading">
+          <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Component output</p>
+            <h2 id="product-result-heading" class="mb-2 text-2xl font-black">Product preview</h2>
+            <p id="product-loader-status" class="mb-0 text-sm text-[var(--color-primary-contrast)] opacity-80" aria-live="polite">Ready to load a product.</p>
+          </div>
+          <div class="p-6">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-muted)]">Rendered product name</p>
+            <p id="product-name" class="mb-0 text-xl font-black">No product loaded yet.</p>
+          </div>
+        </aside>
+      </div>
+
+      <div class="mx-auto mt-6 max-w-7xl">
+        <section class="feature-card overflow-hidden">
+          <div class="p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">React Router example</p>
+            <h2 class="mb-4 text-2xl font-black">Loader and product component</h2>
+            <p class="mb-5 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">In a configured React Router app, <code>params.pid</code> comes from the route segment (for example, <code>products/:pid</code>). Replace <code>getProduct</code> with your real data source.</p>
+            <pre class="overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-6 text-[var(--color-text)]"><code>import { Route } from "./+types/product";
+
+export async function loader({ params }: Route.LoaderArgs) {
+  const product = await getProduct(params.pid);
+  return { product };
+}
+
+export default function Product({ loaderData }: Route.ComponentProps) {
+  return &lt;div&gt;{loaderData.product.name}&lt;/div&gt;;
+}</code></pre>
+            <p class="mt-4 mb-0 text-sm leading-6 text-[var(--color-muted)]"><strong>Note:</strong> this static-site preview uses sample products in your browser. It demonstrates the loader-to-component data flow but does not run React Router or load data from a server.</p>
+          </div>
+        </section>
+      </div>
+
+      <div class="mx-auto mt-6 max-w-7xl">
+        <section class="feature-card overflow-hidden">
+          <div class="p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">React Router configuration</p>
+            <h2 class="mb-4 text-2xl font-black">Enable the Vite Environment API</h2>
+            <p class="mb-5 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">Place this in <code>react-router.config.ts</code> in a configured React Router project. It enables the v8 Vite Environment API future flag; it does not run in this static-site preview by itself.</p>
+            <pre class="overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-6 text-[var(--color-text)]"><code>import type { Config } from "@react-router/dev/config";
+
+export default {
+  future: {
+    v8_viteEnvironmentApi: true,
+  },
+} satisfies Config;</code></pre>
+          </div>
+        </section>
+      </div>
+
+      <div class="mx-auto mt-6 max-w-7xl">
+        <section class="feature-card overflow-hidden">
+          <div class="p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Corrected example</p>
+            <h2 class="mb-4 text-2xl font-black">Server-side React Router action</h2>
+            <p class="mb-5 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">For a real HTTP response with status 201 and a custom header, run this in a configured React Router application with a real <code>createItem</code> implementation. The comma after <code>headers</code> is required.</p>
+            <pre class="overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-6 text-[var(--color-text)]"><code>import { data } from "react-router";
+
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const item = await createItem(formData);
+
+  return data(item, {
+    headers: { "X-Custom-Header": "value" },
+    status: 201,
+  });
+}</code></pre>
+          </div>
+          <div class="border-t border-[var(--color-border)] bg-[var(--color-soft)] px-6 py-4 sm:px-8">
+            <p class="mb-0 text-sm leading-6 text-[var(--color-text)]"><strong>Important:</strong> this static-site demo mirrors the form-to-result flow only. It cannot run a React Router server action or create an actual HTTP 201 response.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-[var(--color-muted)] sm:flex-row">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Browser-only demonstration of an action response.</p>
+      <a href="/tools" class="footer-link font-semibold">API overview</a>
+    </div>
+  </footer>
+
+  <script>
+    const itemForm = document.querySelector('#item-form');
+    const resultStatus = document.querySelector('#result-status');
+    const responseHeaders = document.querySelector('#response-headers');
+    const responseData = document.querySelector('#response-data');
+
+    const STORAGE_KEY = 'action-demo-items';
+    const savedItemsList = document.querySelector('#saved-items');
+    const storageStatus = document.querySelector('#storage-status');
+
+    function readSavedItems() {
+      try {
+        const savedItems = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return Array.isArray(savedItems) ? savedItems : [];
+      } catch {
+        storageStatus.textContent = 'Saved data could not be read. Browser storage may be unavailable.';
+        return [];
+      }
+    }
+
+    function renderSavedItems() {
+      const savedItems = readSavedItems();
+      const query = document.querySelector('#saved-item-search').value.trim().toLowerCase();
+      const visibleItems = savedItems.filter((item) =>
+        `${item.name} ${item.description || ''}`.toLowerCase().includes(query)
+      );
+      savedItemsList.replaceChildren();
+
+      if (visibleItems.length === 0) {
+        const emptyItem = document.createElement('li');
+        emptyItem.textContent = savedItems.length ? 'No saved items match your search.' : 'No saved items yet.';
+        savedItemsList.append(emptyItem);
+        return;
+      }
+
+      visibleItems.forEach((item) => {
+        const listItem = document.createElement('li');
+        listItem.className = 'rounded-[calc(var(--radius)*0.5)] bg-[var(--color-bg)] p-3';
+        listItem.dataset.itemId = item.id;
+
+        const itemContent = document.createElement('div');
+        itemContent.className = 'flex flex-col justify-between gap-3 sm:flex-row sm:items-start';
+
+        const textContent = document.createElement('div');
+        textContent.className = 'min-w-0';
+        const itemName = document.createElement('p');
+        itemName.className = 'mb-1 break-words font-bold text-[var(--color-text)]';
+        itemName.textContent = item.name;
+        const itemDescription = document.createElement('p');
+        itemDescription.className = 'mb-0 whitespace-pre-wrap break-words leading-5';
+        itemDescription.textContent = item.description || 'No description';
+        textContent.append(itemName, itemDescription);
+
+        const actions = document.createElement('div');
+        actions.className = 'flex shrink-0 gap-3';
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.dataset.itemAction = 'edit';
+        editButton.className = 'text-xs font-bold text-[var(--color-primary)]';
+        editButton.textContent = 'Edit';
+        editButton.setAttribute('aria-label', `Edit ${item.name}`);
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.dataset.itemAction = 'delete';
+        deleteButton.className = 'text-xs font-bold text-[var(--color-muted)]';
+        deleteButton.textContent = 'Delete';
+        deleteButton.setAttribute('aria-label', `Delete ${item.name}`);
+        actions.append(editButton, deleteButton);
+
+        itemContent.append(textContent, actions);
+        listItem.append(itemContent);
+        savedItemsList.append(listItem);
+      });
+    }
+
+    async function createItem(formData) {
+      const item = {
+        id: crypto.randomUUID(),
+        name: String(formData.get('name') || '').trim(),
+        description: String(formData.get('description') || '').trim(),
+        createdAt: new Date().toISOString()
+      };
+      const savedItems = readSavedItems();
+      savedItems.unshift(item);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedItems));
+      return item;
+    }
+
+    itemForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(itemForm);
+      const demoHeaders = {
+        'X-Custom-Header': 'value',
+        'Content-Type': 'application/json'
+      };
+
+      try {
+        const item = await createItem(formData);
+        resultStatus.textContent = 'Item saved in this browser · simulated status 201 Created';
+        responseHeaders.textContent = JSON.stringify(demoHeaders, null, 2);
+        responseData.textContent = JSON.stringify(item, null, 2);
+        storageStatus.textContent = 'This item is saved only in this browser on this device.';
+        renderSavedItems();
+        itemForm.reset();
+      } catch {
+        resultStatus.textContent = 'Item could not be saved';
+        responseHeaders.textContent = 'No response headers were created.';
+        responseData.textContent = 'Browser storage is unavailable or full. The item was not saved.';
+      }
+    });
+
+    document.querySelector('#clear-items').addEventListener('click', () => {
+      if (!window.confirm('Clear every saved item from this browser?')) return;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        storageStatus.textContent = 'Saved items cleared from this browser.';
+        renderSavedItems();
+      } catch {
+        storageStatus.textContent = 'Could not clear browser storage.';
+      }
+    });
+
+    document.querySelector('#saved-item-search').addEventListener('input', renderSavedItems);
+
+    savedItemsList.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-item-action]');
+      if (!button) return;
+
+      const listItem = button.closest('[data-item-id]');
+      const savedItems = readSavedItems();
+      const item = savedItems.find((entry) => entry.id === listItem.dataset.itemId);
+      if (!item) return;
+
+      if (button.dataset.itemAction === 'delete') {
+        if (!window.confirm(`Delete “${item.name}”?`)) return;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(savedItems.filter((entry) => entry.id !== item.id)));
+          storageStatus.textContent = 'Item deleted from this browser.';
+          renderSavedItems();
+        } catch {
+          storageStatus.textContent = 'Could not update browser storage.';
+        }
+        return;
+      }
+
+      const updatedName = window.prompt('Edit item name:', item.name);
+      if (updatedName === null) return;
+      const name = updatedName.trim();
+      if (!name || name.length > 100) {
+        storageStatus.textContent = 'Name must contain 1–100 characters. No changes were saved.';
+        return;
+      }
+
+      const updatedDescription = window.prompt('Edit description (optional):', item.description || '');
+      if (updatedDescription === null) return;
+      if (updatedDescription.length > 500) {
+        storageStatus.textContent = 'Description must be 500 characters or fewer. No changes were saved.';
+        return;
+      }
+
+      try {
+        const updatedItems = savedItems.map((entry) => entry.id === item.id ? {
+          ...entry,
+          name,
+          description: updatedDescription.trim(),
+          updatedAt: new Date().toISOString()
+        } : entry);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedItems));
+        storageStatus.textContent = 'Item updated in this browser.';
+        renderSavedItems();
+      } catch {
+        storageStatus.textContent = 'Could not update browser storage.';
+      }
+    });
+
+    document.querySelector('#export-items').addEventListener('click', () => {
+      const items = readSavedItems();
+      const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = 'action-demo-items.json';
+      link.click();
+      URL.revokeObjectURL(downloadUrl);
+      storageStatus.textContent = `Exported ${items.length} item${items.length === 1 ? '' : 's'} as JSON.`;
+    });
+
+    renderSavedItems();
+
+    const products = {
+      '101': { name: 'Field notebook' },
+      '202': { name: 'Signal lantern' },
+      '303': { name: 'Trail flask' }
+    };
+    const productIdInput = document.querySelector('#product-id');
+    const productNameOutput = document.querySelector('#product-name');
+    const productLoaderStatus = document.querySelector('#product-loader-status');
+
+    async function getProduct(pid) {
+      const product = products[pid];
+      if (!product) throw new Error('Product not found.');
+      return product;
+    }
+
+    async function runProductLoader() {
+      const params = { pid: productIdInput.value };
+      productLoaderStatus.textContent = 'Loading product…';
+      productNameOutput.textContent = 'Loading…';
+
+      try {
+        const loaderData = await (async function loader({ params }) {
+          const product = await getProduct(params.pid);
+          return { product };
+        })({ params });
+
+        productNameOutput.textContent = loaderData.product.name;
+        productLoaderStatus.textContent = `Loaded product ${params.pid}.`;
+      } catch (error) {
+        productNameOutput.textContent = 'Product unavailable.';
+        productLoaderStatus.textContent = error.message;
+      }
+    }
+
+    document.querySelector('#load-product').addEventListener('click', runProductLoader);
+    productIdInput.addEventListener('change', runProductLoader);
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

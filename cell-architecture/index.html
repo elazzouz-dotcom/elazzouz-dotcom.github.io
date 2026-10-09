@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A reviewable architecture plan for evolving the local vault into a secure event-driven cloud system.">
+  <title>Vault Cell Architecture | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .flow-step {
+      position: relative;
+    }
+
+    .flow-step:not(:last-child)::after {
+      position: absolute;
+      top: 50%;
+      right: -1.2rem;
+      width: 2.4rem;
+      height: 1px;
+      background: var(--color-primary);
+      content: "";
+      opacity: 0.55;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: var(--color-soft);
+      padding: 0.4rem 0.7rem;
+      color: var(--color-primary);
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .status-pill::before {
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 999px;
+      background: var(--color-primary);
+      content: "";
+    }
+
+    @media (max-width: 1023px) {
+      .flow-step:not(:last-child)::after {
+        display: none;
+      }
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold tracking-tight">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/slaksi">Local vault</a>
+        <a href="/tools">Tool directory</a>
+        <a href="/hosting-studio">Hosting Studio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-14 lg:px-8 lg:py-20">
+      <div class="mx-auto max-w-7xl">
+        <span class="status-pill">Architecture plan · not connected to cloud services</span>
+        <h1 class="mb-5 mt-5 max-w-5xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">Turn the local vault into an event-driven secure cell.</h1>
+        <p class="mb-0 max-w-3xl text-lg leading-8 text-[var(--color-muted)]">This page separates the current browser-only vault from the proposed production architecture. It shows where authentication, temporary credentials, object storage, workers, events, results, and the viewer belong.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-10 lg:px-8 lg:py-14">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-6">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--color-primary)]">End-to-end flow</p>
+          <h2 class="mb-2 text-3xl font-black">One controlled path from browser to result.</h2>
+          <p class="mb-0 max-w-3xl text-sm leading-7 text-[var(--color-muted)]">The browser never receives broad cloud permissions. It receives a short-lived, narrowly scoped capability for the operation the user requested.</p>
+        </div>
+        <div class="grid gap-5 lg:grid-cols-5">
+          <article class="flow-step feature-card p-5">
+            <span class="icon-box mb-4 text-xl">01</span>
+            <h3 class="mb-2 text-lg font-extrabold">Validate</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">API validates JWT, tenant, file policy, size, and requested operation.</p>
+          </article>
+          <article class="flow-step feature-card p-5">
+            <span class="icon-box mb-4 text-xl">02</span>
+            <h3 class="mb-2 text-lg font-extrabold">Broker</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Token Broker exchanges identity for temporary scoped STS credentials.</p>
+          </article>
+          <article class="flow-step feature-card p-5">
+            <span class="icon-box mb-4 text-xl">03</span>
+            <h3 class="mb-2 text-lg font-extrabold">Store</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Encrypted object lands in a private bucket and emits an object-created event.</p>
+          </article>
+          <article class="flow-step feature-card p-5">
+            <span class="icon-box mb-4 text-xl">04</span>
+            <h3 class="mb-2 text-lg font-extrabold">Process</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Importer or isolated runner processes the object with network policy and limits.</p>
+          </article>
+          <article class="flow-step feature-card p-5">
+            <span class="icon-box mb-4 text-xl">05</span>
+            <h3 class="mb-2 text-lg font-extrabold">Publish</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Results are stored, status events are emitted, and the viewer reads filtered data.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 pb-10 lg:px-8 lg:pb-14">
+      <div class="mx-auto grid max-w-7xl gap-5 lg:grid-cols-3">
+        <article class="feature-card p-6">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Control plane</p>
+          <h2 class="mb-3 text-2xl font-black">Hawk API Server</h2>
+          <ul class="mb-0 space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+            <li>FastAPI or the existing Fastify service behind an HTTPS load balancer.</li>
+            <li>JWT verification, tenant authorization, idempotency keys, and audit records.</li>
+            <li>Helm release orchestration only from a trusted server-side worker.</li>
+          </ul>
+        </article>
+        <article class="feature-card p-6">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Data plane</p>
+          <h2 class="mb-3 text-2xl font-black">Private processing</h2>
+          <ul class="mb-0 space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+            <li>S3 stores encrypted objects and evaluation logs with a lifecycle policy.</li>
+            <li>EventBridge routes object and job status events through a custom bus.</li>
+            <li>AWS Batch or EKS runner pods process jobs with CPU, memory, time, and network limits.</li>
+          </ul>
+        </article>
+        <article class="feature-card p-6">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Read plane</p>
+          <h2 class="mb-3 text-2xl font-black">Results and viewer</h2>
+          <ul class="mb-0 space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+            <li>Aurora PostgreSQL stores normalized results, job state, ownership, and indexes.</li>
+            <li>Valkey is optional and must never be the source of truth.</li>
+            <li>Web Viewer supports browse, filter, export, and status without exposing secrets.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="px-5 pb-10 lg:px-8 lg:pb-14" aria-labelledby="simulation-heading">
+      <div class="mx-auto max-w-7xl">
+        <section class="feature-card overflow-hidden">
+          <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)] sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--color-primary)]">Local event simulation</p>
+            <h2 id="simulation-heading" class="mb-2 text-3xl font-black">Run the cell flow safely in this browser.</h2>
+            <p class="mb-0 max-w-3xl text-sm leading-7 opacity-80">This simulation mirrors validation, scoped credentials, object-created events, importing, result storage, and viewer updates. It never contacts AWS, creates a Helm release, uploads a file, or sends data outside this page.</p>
+          </div>
+          <div class="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div>
+              <label for="simulation-file" class="mb-2 block text-sm font-bold">Demo object name</label>
+              <input id="simulation-file" value="evaluation-results.eval" class="w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-text)]" autocomplete="off">
+              <button id="run-simulation" type="button" class="btn-primary mt-4 px-5 py-3">Run local flow <span aria-hidden="true">→</span></button>
+              <p id="simulation-status" class="mt-4 mb-0 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite">Ready. No cloud operation has been started.</p>
+            </div>
+            <ol id="simulation-steps" class="grid gap-2 text-sm" aria-live="polite"></ol>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="px-5 pb-16 lg:px-8 lg:pb-20">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.75fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="migration-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Migration plan</p>
+          <h2 id="migration-heading" class="mb-5 text-3xl font-black">Build it in safe increments.</h2>
+          <ol class="space-y-4 text-sm leading-7 text-[var(--color-muted)]">
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">1</span><span><strong class="text-[var(--color-text)]">Keep local mode working.</strong> The existing IndexedDB and Web Crypto vault remains the offline fallback and demo mode.</span></li>
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">2</span><span><strong class="text-[var(--color-text)]">Add authenticated API boundaries.</strong> Implement JWT validation, ownership checks, upload sessions, and audit events before cloud access.</span></li>
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">3</span><span><strong class="text-[var(--color-text)]">Add private object storage.</strong> Use server-created presigned multipart uploads with encryption, checksum validation, and expiry.</span></li>
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">4</span><span><strong class="text-[var(--color-text)]">Add event processing.</strong> Object-created events create idempotent jobs; retries go to a dead-letter path instead of silently duplicating work.</span></li>
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">5</span><span><strong class="text-[var(--color-text)]">Add isolated runners.</strong> Choose AWS Batch first for simpler operations, then EKS/Karpenter when workload density requires it.</span></li>
+          </ol>
+        </section>
+
+        <aside class="space-y-5">
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-6">
+            <h2 class="mb-3 text-xl font-black">Current state</h2>
+            <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">The local vault page does not upload files, contact AWS, create Helm releases, exchange JWTs, or submit jobs. This distinction is intentional until real credentials, policies, infrastructure, and monitoring are configured.</p>
+          </section>
+          <section class="feature-card p-6">
+            <h2 class="mb-3 text-xl font-black">Next implementation target</h2>
+            <p class="mb-4 text-sm leading-7 text-[var(--color-muted)]">Start with an authenticated upload-session endpoint and a private object-store adapter. Keep cloud credentials server-side and make every event handler idempotent.</p>
+            <a href="/slaksi" class="font-bold text-[var(--color-primary)]">Open the local vault <span aria-hidden="true">→</span></a>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">Reviewable architecture for a secure event-driven vault.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const simulationSteps = [
+      ['validate', 'Validate JWT, tenant, file policy, and operation'],
+      ['broker', 'Issue a simulated scoped STS capability'],
+      ['store', 'Place an encrypted object in the simulated private bucket'],
+      ['event', 'Publish object-created to the simulated event bus'],
+      ['import', 'Submit and complete a simulated importer job'],
+      ['results', 'Write normalized results to the simulated warehouse'],
+      ['viewer', 'Refresh the viewer with the job status']
+    ];
+    const simulationList = document.querySelector('#simulation-steps');
+    const simulationStatus = document.querySelector('#simulation-status');
+    const simulationFile = document.querySelector('#simulation-file');
+
+    function renderSimulation(active = -1) {
+      simulationList.replaceChildren();
+      simulationSteps.forEach(([key, label], index) => {
+        const item = document.createElement('li');
+        item.className = 'flex items-center gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3 text-[var(--color-muted)]';
+        const marker = document.createElement('span');
+        marker.className = 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] text-xs font-black text-[var(--color-primary)]';
+        marker.textContent = active >= index ? '✓' : String(index + 1).padStart(2, '0');
+        item.append(marker, document.createTextNode(label));
+        if (active === index) item.classList.add('border', 'border-[var(--color-primary)]', 'text-[var(--color-text)]');
+        simulationList.append(item);
+      });
+    }
+
+    document.querySelector('#run-simulation').addEventListener('click', async (event) => {
+      const fileName = simulationFile.value.trim() || 'evaluation-results.eval';
+      const button = event.currentTarget;
+      button.disabled = true;
+      renderSimulation(-1);
+      for (let index = 0; index < simulationSteps.length; index += 1) {
+        renderSimulation(index);
+        simulationStatus.textContent = `${simulationSteps[index][1]}…`;
+        await new Promise((resolve) => window.setTimeout(resolve, 260));
+      }
+      simulationStatus.textContent = `Completed locally for ${fileName}. No network request, cloud credential, upload, or job was created.`;
+      button.disabled = false;
+    });
+
+    renderSimulation();
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generate a local CMake starter for CGAL example, demo, or test projects.">
+  <title>CGAL CMake Starter Builder | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .builder-control:focus-visible,
+    .builder-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .code-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Local CMake generator · CGAL</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Build a CMake starter for your CGAL project.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Choose the project style and enter the source files. This browser tool creates a starter CMakeLists.txt; it does not scan folders, run CMake, or compile code.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="setup-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Project setup</p>
+          <h2 id="setup-heading" class="mb-5 text-2xl font-black">Choose a script type</h2>
+          <div class="space-y-5">
+            <div>
+              <label for="script-type" class="mb-2 block text-sm font-bold">Script type</label>
+              <select id="script-type" class="builder-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                <option value="example">example · one executable per listed source file</option>
+                <option value="demo">demo · one executable from all listed source files</option>
+                <option value="test">test · CTest starter for you to adapt</option>
+              </select>
+            </div>
+            <div>
+              <label for="project-name" class="mb-2 block text-sm font-bold">Project name</label>
+              <input id="project-name" value="CGALProject" maxlength="80" class="builder-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]" autocomplete="off">
+            </div>
+            <div id="sources-field">
+              <label for="source-files" class="mb-2 block text-sm font-bold">Source files, one per line</label>
+              <textarea id="source-files" rows="7" class="builder-control code-output w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-sm text-[var(--color-text)]" placeholder="main.cpp&#10;geometry.cpp"></textarea>
+              <p id="source-help" class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">For example mode, list each .c or .cpp file that contains its own main() function. For demo mode, list all source files in the application.</p>
+            </div>
+            <div id="test-note" class="hidden rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6 text-[var(--color-muted)]">
+              The supplied command description says test mode is suited to CGAL's developer testsuite, but does not specify its exact generated contents. This starter uses standard CTest scaffolding and leaves test targets for you to define.
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6">
+              <p class="mb-1 font-extrabold">What this page can and cannot do</p>
+              <p class="mb-0 text-[var(--color-muted)]">A web page cannot discover files in your current terminal directory. Enter source file names here, then save the generated text as CMakeLists.txt in your project folder. This is an independent starter generator, not the official cgal_create_cmake_script command.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="feature-card overflow-hidden" aria-labelledby="output-heading">
+          <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Generated locally</p>
+            <h2 id="output-heading" class="mb-2 text-2xl font-black">CMakeLists.txt</h2>
+            <p id="output-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">The starter updates as you change the options.</p>
+          </div>
+          <div class="p-5 sm:p-6">
+            <pre id="code-output" class="code-output min-h-80 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></pre>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="copy-code" type="button" class="builder-button btn-primary px-4 py-3 text-sm">Copy CMake</button>
+              <button id="download-code" type="button" class="builder-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">Download CMakeLists.txt</button>
+            </div>
+            <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Review the generated file and adjust it to your installed CGAL version and project structure.</p>
+            <div class="mt-5 border-t border-[var(--color-border)] pt-5">
+              <h3 class="mb-2 text-lg font-extrabold">Next steps</h3>
+              <ol class="mb-0 list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--color-muted)]">
+                <li>Save the output as CMakeLists.txt beside your source files.</li>
+                <li>Configure your project with CMake in your local development environment.</li>
+                <li>Review CGAL's current installation and CMake documentation for platform-specific requirements.</li>
+              </ol>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Local CMake starter generator for CGAL projects.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const typeInput = document.querySelector('#script-type');
+    const projectInput = document.querySelector('#project-name');
+    const sourcesInput = document.querySelector('#source-files');
+    const output = document.querySelector('#code-output');
+    const outputStatus = document.querySelector('#output-status');
+    const sourceHelp = document.querySelector('#source-help');
+    const testNote = document.querySelector('#test-note');
+
+    function cmakeQuoted(value) {
+      return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+    }
+
+    function safeTargetName(source, index) {
+      const filename = source.split(/[\\/]/).pop().replace(/\.(c|cc|cpp|cxx)$/i, '');
+      const normalized = filename.replace(/[^A-Za-z0-9_.+-]/g, '_');
+      return normalized || `example_${index + 1}`;
+    }
+
+    function generate() {
+      const type = typeInput.value;
+      const projectName = projectInput.value.trim().replace(/[^A-Za-z0-9_.+-]/g, '') || 'CGALProject';
+      projectInput.value = projectName;
+      const sources = sourcesInput.value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+      const lines = [
+        'cmake_minimum_required(VERSION 3.16)',
+        `project(${projectName} LANGUAGES CXX)`,
+        '',
+        'find_package(CGAL REQUIRED)',
+        ''
+      ];
+
+      if (type === 'example') {
+        lines.push('# Each listed source file should contain its own main() function.');
+        if (!sources.length) {
+          lines.push('# Add one source file per executable, for example:');
+          lines.push('# add_executable(example_name "example_name.cpp")');
+          lines.push('# target_link_libraries(example_name PRIVATE CGAL::CGAL)');
+        } else {
+          const names = new Set();
+          sources.forEach((source, index) => {
+            let target = safeTargetName(source, index);
+            if (names.has(target)) target = `${target}_${index + 1}`;
+            names.add(target);
+            lines.push(`add_executable(${target} ${cmakeQuoted(source)})`);
+            lines.push(`target_link_libraries(${target} PRIVATE CGAL::CGAL)`);
+            if (index < sources.length - 1) lines.push('');
+          });
+        }
+      } else if (type === 'demo') {
+        lines.push('# All listed source files are compiled into one application.');
+        if (sources.length) {
+          lines.push(`add_executable(${projectName}`);
+          sources.forEach((source) => lines.push(`  ${cmakeQuoted(source)}`));
+          lines.push(')');
+          lines.push(`target_link_libraries(${projectName} PRIVATE CGAL::CGAL)`);
+        } else {
+          lines.push('# Add all application source files to this target.');
+          lines.push(`# add_executable(${projectName} main.cpp other_source.cpp)`);
+          lines.push(`# target_link_libraries(${projectName} PRIVATE CGAL::CGAL)`);
+        }
+      } else {
+        lines.push('# CTest starter scaffold. Define your test executables and add_test() calls.');
+        lines.push('include(CTest)');
+        lines.push('');
+        if (sources.length) {
+          lines.push('# Listed files are provided as a starting point; adapt target grouping to your test suite.');
+          lines.push(`add_executable(${projectName}_tests`);
+          sources.forEach((source) => lines.push(`  ${cmakeQuoted(source)}`));
+          lines.push(')');
+          lines.push(`target_link_libraries(${projectName}_tests PRIVATE CGAL::CGAL)`);
+          lines.push(`add_test(NAME ${projectName}_tests COMMAND ${projectName}_tests)`);
+        } else {
+          lines.push('# Add the test sources and targets required by your project here.');
+          lines.push(`# add_executable(${projectName}_tests test.cpp)`);
+          lines.push(`# target_link_libraries(${projectName}_tests PRIVATE CGAL::CGAL)`);
+          lines.push(`# add_test(NAME ${projectName}_tests COMMAND ${projectName}_tests)`);
+        }
+      }
+
+      output.textContent = lines.join('\n') + '\n';
+      if (type === 'test') {
+        outputStatus.textContent = 'CTest scaffold generated. Adapt test commands and conventions to the CGAL testsuite you use.';
+      } else if (!sources.length) {
+        outputStatus.textContent = 'Starter generated. Add source file names to create concrete targets.';
+      } else {
+        outputStatus.textContent = `${sources.length} source file${sources.length === 1 ? '' : 's'} included. No files were scanned or compiled.`;
+      }
+      sourceHelp.textContent = type === 'example' ?
+        'List each .c or .cpp file that contains its own main() function; each becomes a separate executable.' :
+        type === 'demo' ?
+        'List all .c and .cpp files that belong to this one application. Add headers only if your project needs to list them explicitly.' :
+        'Optional: list test source files for a basic CTest starter. The CGAL developer testsuite may require additional project-specific conventions.';
+      sourcesInput.disabled = false;
+      testNote.classList.toggle('hidden', type !== 'test');
+    }
+
+    [typeInput, projectInput, sourcesInput].forEach((control) => {
+      control.addEventListener('input', generate);
+      control.addEventListener('change', generate);
+    });
+
+    document.querySelector('#copy-code').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(output.textContent);
+        document.querySelector('#copy-status').textContent = 'CMakeLists.txt copied. Review it before using it in your project.';
+      } catch {
+        document.querySelector('#copy-status').textContent = 'Clipboard unavailable. Select the generated text and copy it manually.';
+      }
+    });
+
+    document.querySelector('#download-code').addEventListener('click', () => {
+      const fileUrl = URL.createObjectURL(new Blob([output.textContent], {
+        type: 'text/plain;charset=utf-8'
+      }));
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = 'CMakeLists.txt';
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+      document.querySelector('#copy-status').textContent = 'CMakeLists.txt downloaded locally. No project files were changed.';
+    });
+
+    generate();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

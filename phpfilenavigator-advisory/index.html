@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="أداة دفاعية محلية لفحص مؤشرات XSS في HTML ومعاينة نسخة منزوعة المحتوى النشط.">
+  <title>PHPfileNavigator XSS Lab | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .code-area,
+    .audit-output {
+      direction: ltr;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .audit-item[data-kind="danger"] {
+      border-color: color-mix(in srgb, var(--color-icon) 55%, var(--color-border));
+      background: color-mix(in srgb, var(--color-icon) 10%, var(--color-bg));
+    }
+
+    .audit-item[data-kind="warning"] {
+      border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+      background: var(--color-soft);
+    }
+
+    .audit-item[data-kind="safe"] {
+      border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+      background: var(--color-bg);
+    }
+
+    .preview-frame {
+      width: 100%;
+      min-height: 18rem;
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.6);
+      background: var(--color-surface);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/security-advisory">استشارة CUCM</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">أداة دفاعية · XSS</p>
+        <h1 class="mb-4 max-w-5xl text-4xl font-black leading-tight sm:text-5xl">PHPfileNavigator XSS Lab</h1>
+        <p class="mb-6 max-w-3xl text-base leading-7 text-[var(--color-muted)]">افحص مقتطف HTML محليًا بحثًا عن مؤشرات XSS، ثم اعرض نسخة آمنة منه. الأداة لا تنفذ JavaScript، ولا ترسل البيانات، ولا تختبر أي خادم.</p>
+        <span class="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-primary)]">فحص دفاعي محلي فقط</span>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.85fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="scanner-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">الفحص المحلي</p>
+          <h2 id="scanner-heading" class="mb-3 text-2xl font-black">ألصق HTML للفحص</h2>
+          <p class="mb-5 text-sm leading-6 text-[var(--color-muted)]">سيبحث الفحص عن عناصر script، وخصائص الأحداث مثل onerror، وروابط javascript، وحقول قد تعيد قيمًا غير موثوقة. هذه مؤشرات أولية وليست بديلًا عن مراجعة أمنية كاملة.</p>
+          <textarea id="html-input" rows="14" class="code-area w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" spellcheck="false" placeholder="ألصق HTML هنا للمراجعة الدفاعية..."></textarea>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button id="load-example" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 text-sm font-bold">تحميل مثال</button>
+            <button id="scan-button" type="button" class="btn-primary px-5 py-3 text-sm">فحص محلي</button>
+            <button id="clear-button" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 text-sm font-bold">مسح</button>
+          </div>
+          <p id="scan-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">لم يبدأ الفحص بعد.</p>
+        </section>
+
+        <aside class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="result-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">نتيجة الفحص</p>
+              <h2 id="result-heading" class="mb-2 text-2xl font-black">مؤشرات أمنية</h2>
+              <p id="result-summary" class="mb-0 text-sm leading-6 opacity-80">ستظهر النتائج هنا.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <ul id="audit-results" class="space-y-3 text-sm leading-6" aria-live="polite"></ul>
+            </div>
+          </section>
+
+          <section class="feature-card overflow-hidden" aria-labelledby="preview-heading">
+            <div class="border-b border-[var(--color-border)] p-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">معاينة معزولة</p>
+              <h2 id="preview-heading" class="mb-0 text-xl font-black">نسخة منزوعة المحتوى النشط</h2>
+            </div>
+            <div class="p-4">
+              <iframe id="preview-frame" class="preview-frame" sandbox="" title="معاينة HTML منزوعة المحتوى النشط"></iframe>
+              <p class="mt-3 mb-0 text-xs leading-5 text-[var(--color-muted)]">أزيلت السكربتات، وخصائص الأحداث، والروابط الخارجية قبل المعاينة.</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="px-5 pb-16 lg:px-8 lg:pb-20">
+      <div class="mx-auto grid max-w-7xl gap-6 lg:grid-cols-2">
+        <article class="feature-card p-6 sm:p-8">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">الاستشارة التاريخية</p>
+          <h2 class="mb-3 text-2xl font-black">PHPfileNavigator v2.3.3</h2>
+          <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">تتعلق الاستشارة التاريخية بثغرات XSS مستمرة ومنعكسة، وبالمعاملات nome وusuario وemail وdir في مناطق الإدارة. لا تستخدم هذه الصفحة لمهاجمة أنظمة حقيقية.</p>
+        </article>
+        <article class="feature-card p-6 sm:p-8">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">إجراءات الإصلاح</p>
+          <h2 class="mb-3 text-2xl font-black">كيف تتعامل مع النتائج؟</h2>
+          <ul class="mb-0 list-disc space-y-2 pr-5 text-sm leading-7 text-[var(--color-muted)]">
+            <li>طبّق ترميز المخرجات حسب سياق HTML أو JavaScript.</li>
+            <li>أضف حماية CSRF وتحققًا صارمًا من الصلاحيات.</li>
+            <li>فعّل CSP وراجع سجلات الوصول والحقول المخزنة.</li>
+            <li>حدّث المنتج أو استبدله بإصدار مدعوم.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">مختبر دفاعي محلي لفحص مؤشرات XSS.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const htmlInput = document.querySelector('#html-input');
+    const auditResults = document.querySelector('#audit-results');
+    const resultSummary = document.querySelector('#result-summary');
+    const scanStatus = document.querySelector('#scan-status');
+    const previewFrame = document.querySelector('#preview-frame');
+
+    const example = `<main>
+  <h1>Profile</h1>
+  <div class="name">User content</div>
+  <script>alert('review only')
+
+  </script>
+  <img src="avatar.png" onerror="runSomething()">
+  <a href="javascript:doSomething()">Open</a>
+  </main>`;
+
+  function safePreview(source) {
+  const documentNode = new DOMParser().parseFromString(source, 'text/html');
+  documentNode.querySelectorAll('script, iframe, object, embed, applet, base, meta[http-equiv]').forEach((node) => node.remove());
+  documentNode.querySelectorAll('*').forEach((element) => {
+  [...element.attributes].forEach((attribute) => {
+  const name = attribute.name.toLowerCase();
+  const value = attribute.value.trim().toLowerCase();
+  if (name.startsWith('on') || name === 'srcdoc' || (['href', 'src', 'action', 'formaction'].includes(name) && value && !value.startsWith('#'))) {
+  element.removeAttribute(attribute.name);
+  }
+  });
+  });
+  return `
+  <!doctype html>${documentNode.documentElement.outerHTML}`;
+  }
+
+  function addFinding(kind, title, detail) {
+  const item = document.createElement('li');
+  item.className = 'audit-item rounded-[calc(var(--radius)*0.55)] border p-3';
+  item.dataset.kind = kind;
+  item.append(
+  Object.assign(document.createElement('strong'), { className: 'block mb-1', textContent: title }),
+  Object.assign(document.createElement('span'), { className: 'text-[var(--color-muted)]', textContent: detail })
+  );
+  auditResults.append(item);
+  }
+
+  function scan() {
+  const source = htmlInput.value.trim();
+  auditResults.replaceChildren();
+  if (!source) {
+  resultSummary.textContent = 'ألصق HTML أولًا.';
+  scanStatus.textContent = 'لا توجد بيانات للفحص.';
+  previewFrame.srcdoc = '<p>لا توجد معاينة بعد.</p>';
+  return;
+  }
+
+  const parsed = new DOMParser().parseFromString(source, 'text/html');
+  const scripts = parsed.querySelectorAll('script').length;
+  const eventAttributes = [...parsed.querySelectorAll('*')].flatMap((element) => [...element.attributes].filter((attribute) => attribute.name.toLowerCase().startsWith('on')));
+  const javascriptLinks = [...parsed.querySelectorAll('[href], [src], [action]')].filter((element) => /^javascript:/i.test(element.getAttribute('href') || element.getAttribute('src') || element.getAttribute('action') || ''));
+  const forms = parsed.querySelectorAll('form').length;
+  const findings = scripts + eventAttributes.length + javascriptLinks.length;
+
+  if (scripts) addFinding('danger', `تم العثور على ${scripts} عنصر script`, 'أزل JavaScript غير الموثوق وطبّق سياسة CSP مناسبة.');
+  if (eventAttributes.length) addFinding('danger', `تم العثور على ${eventAttributes.length} خاصية حدث`, 'مثل onerror أو onclick؛ استخدم معالجات موثوقة خارج HTML بعد التحقق.');
+  if (javascriptLinks.length) addFinding('danger', `تم العثور على ${javascriptLinks.length} رابط javascript`, 'امنع مخططات javascript في القيم القادمة من المستخدم.');
+  if (forms) addFinding('warning', `تم العثور على ${forms} نموذج`, 'راجع action وCSRF والتحقق من الصلاحيات قبل قبول البيانات.');
+  if (!findings && !forms) addFinding('safe', 'لم تظهر مؤشرات XSS أولية', 'هذا لا يثبت سلامة التطبيق؛ راجع التخزين والترميز وسياق العرض.');
+
+  resultSummary.textContent = findings ? `تم العثور على ${findings} مؤشر نشط للمراجعة.` : 'لم تظهر مؤشرات نشطة في الفحص الأولي.';
+  scanStatus.textContent = 'اكتمل الفحص محليًا. لم تُرسل البيانات ولم تُنفذ الشيفرة.';
+  previewFrame.srcdoc = safePreview(source);
+  }
+
+  document.querySelector('#load-example').addEventListener('click', () => {
+  htmlInput.value = example;
+  scan();
+  });
+  document.querySelector('#scan-button').addEventListener('click', scan);
+  document.querySelector('#clear-button').addEventListener('click', () => {
+  htmlInput.value = '';
+  scan();
+  htmlInput.focus();
+  });
+  htmlInput.addEventListener('input', scan);
+  scan();
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

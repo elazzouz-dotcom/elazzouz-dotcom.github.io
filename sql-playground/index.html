@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Build common SQL SELECT, JOIN, INSERT, UPDATE, DELETE, and aggregate queries in your browser.">
+  <title>SQL Query Builder | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .sql-control:focus-visible,
+    .query-tab:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .query-panel[hidden] {
+      display: none;
+    }
+
+    .query-tab[aria-selected="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+
+    .sql-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Local SQL builder</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Build a query, one step at a time.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Create common SELECT, JOIN, data-change, and aggregate statements without memorizing the syntax. The builder only generates text; it does not connect to a database or run your query.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-5 sm:p-7" aria-labelledby="builder-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Query builder</p>
+            <h2 id="builder-heading" class="mb-5 text-2xl font-black">Choose a query type</h2>
+            <div class="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4" role="tablist" aria-label="SQL query types">
+              <button id="tab-select" class="query-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-sm font-bold" type="button" role="tab" aria-selected="true" aria-controls="panel-select">SELECT</button>
+              <button id="tab-join" class="query-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-sm font-bold" type="button" role="tab" aria-selected="false" aria-controls="panel-join">JOIN</button>
+              <button id="tab-change" class="query-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-sm font-bold" type="button" role="tab" aria-selected="false" aria-controls="panel-change">INSERT / UPDATE / DELETE</button>
+              <button id="tab-aggregate" class="query-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-sm font-bold" type="button" role="tab" aria-selected="false" aria-controls="panel-aggregate">AGGREGATE</button>
+            </div>
+
+            <section id="panel-select" class="query-panel space-y-4" role="tabpanel" aria-labelledby="tab-select">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label class="text-sm font-bold" for="select-table">Table name
+                  <input id="select-table" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="employees" autocomplete="off">
+                </label>
+                <label class="text-sm font-bold" for="select-columns">Columns (comma separated)
+                  <input id="select-columns" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="*" autocomplete="off" placeholder="name, department">
+                </label>
+              </div>
+              <fieldset class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <legend class="px-1 text-sm font-bold">Optional filter</legend>
+                <div class="grid gap-3 sm:grid-cols-3">
+                  <label for="select-where-column" class="text-xs font-bold text-[var(--color-muted)]">Column<input id="select-where-column" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.45)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm font-normal" placeholder="department"></label>
+                  <label for="select-operator" class="text-xs font-bold text-[var(--color-muted)]">Operator<select id="select-operator" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.45)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm font-normal">
+                      <option>=</option>
+                      <option>&lt;&gt;</option>
+                      <option>&gt;</option>
+                      <option>&gt;=</option>
+                      <option>&lt;</option>
+                      <option>&lt;=</option>
+                      <option>LIKE</option>
+                    </select></label>
+                  <label for="select-where-value" class="text-xs font-bold text-[var(--color-muted)]">Value<input id="select-where-value" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.45)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm font-normal" placeholder="Engineering"></label>
+                </div>
+              </fieldset>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label for="select-order" class="text-sm font-bold">Order by (optional)<input id="select-order" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="last_name"></label>
+                <label for="select-direction" class="text-sm font-bold">Direction<select id="select-direction" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+                    <option value="ASC">Ascending (ASC)</option>
+                    <option value="DESC">Descending (DESC)</option>
+                  </select></label>
+              </div>
+              <label for="select-limit" class="block max-w-xs text-sm font-bold">Limit (optional)<input id="select-limit" type="number" min="1" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="10"></label>
+            </section>
+
+            <section id="panel-join" class="query-panel space-y-4" role="tabpanel" aria-labelledby="tab-join" hidden>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label for="join-type" class="text-sm font-bold">Join type<select id="join-type" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+                    <option>INNER JOIN</option>
+                    <option>LEFT JOIN</option>
+                    <option>RIGHT JOIN</option>
+                    <option>FULL OUTER JOIN</option>
+                  </select></label>
+                <label for="join-columns" class="text-sm font-bold">Selected columns<input id="join-columns" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="a.name, b.title" placeholder="a.name, b.title"></label>
+                <label for="join-table-a" class="text-sm font-bold">First table<input id="join-table-a" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="employees"></label>
+                <label for="join-table-b" class="text-sm font-bold">Second table<input id="join-table-b" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="departments"></label>
+                <label for="join-left-key" class="text-sm font-bold">First table join key<input id="join-left-key" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="department_id"></label>
+                <label for="join-right-key" class="text-sm font-bold">Second table join key<input id="join-right-key" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="id"></label>
+              </div>
+              <p class="mb-0 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm leading-6 text-[var(--color-muted)]">Aliases <code>a</code> and <code>b</code> are added automatically. Right and full outer joins are not supported by every database.</p>
+            </section>
+
+            <section id="panel-change" class="query-panel space-y-4" role="tabpanel" aria-labelledby="tab-change" hidden>
+              <label for="change-type" class="block max-w-sm text-sm font-bold">Operation<select id="change-type" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+                  <option value="insert">INSERT</option>
+                  <option value="update">UPDATE</option>
+                  <option value="delete">DELETE</option>
+                </select></label>
+              <label for="change-table" class="block max-w-md text-sm font-bold">Table name<input id="change-table" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="employees"></label>
+              <div id="insert-fields" class="space-y-3">
+                <label for="insert-columns" class="block text-sm font-bold">Columns, comma separated<input id="insert-columns" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="first_name, department"></label>
+                <label for="insert-values" class="block text-sm font-bold">Values in the same order, comma separated<input id="insert-values" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="Taylor, Engineering"></label>
+              </div>
+              <div id="update-fields" class="space-y-4" hidden>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <label for="update-column" class="text-sm font-bold">Column to update<input id="update-column" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="department"></label>
+                  <label for="update-value" class="text-sm font-bold">New value<input id="update-value" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="Operations"></label>
+                </div>
+                <p class="mb-0 text-xs leading-5 text-[var(--color-muted)]">The WHERE filter below is strongly recommended to avoid updating every row.</p>
+              </div>
+              <div id="delete-fields" hidden>
+                <p class="mb-0 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-soft)] p-4 text-sm leading-6">DELETE without a WHERE condition removes every row from the table. Add a filter and review the query carefully.</p>
+              </div>
+              <fieldset id="change-where" class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4" hidden>
+                <legend class="px-1 text-sm font-bold">WHERE condition</legend>
+                <div class="grid gap-3 sm:grid-cols-3">
+                  <label for="change-where-column" class="text-xs font-bold text-[var(--color-muted)]">Column<input id="change-where-column" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.45)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm font-normal" value="id"></label>
+                  <label for="change-operator" class="text-xs font-bold text-[var(--color-muted)]">Operator<select id="change-operator" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.45)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm">
+                      <option>=</option>
+                      <option>&lt;&gt;</option>
+                      <option>&gt;</option>
+                      <option>&gt;=</option>
+                      <option>&lt;</option>
+                      <option>&lt;=</option>
+                      <option>LIKE</option>
+                    </select></label>
+                  <label for="change-where-value" class="text-xs font-bold text-[var(--color-muted)]">Value<input id="change-where-value" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.45)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm font-normal" value="1"></label>
+                </div>
+              </fieldset>
+            </section>
+
+            <section id="panel-aggregate" class="query-panel space-y-4" role="tabpanel" aria-labelledby="tab-aggregate" hidden>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label for="aggregate-table" class="text-sm font-bold">Table name<input id="aggregate-table" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="orders"></label>
+                <label for="aggregate-function" class="text-sm font-bold">Aggregate function<select id="aggregate-function" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+                    <option>COUNT</option>
+                    <option>SUM</option>
+                    <option>AVG</option>
+                    <option>MIN</option>
+                    <option>MAX</option>
+                  </select></label>
+                <label for="aggregate-column" class="text-sm font-bold">Column to aggregate<input id="aggregate-column" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="amount" placeholder="Use * with COUNT"></label>
+                <label for="group-column" class="text-sm font-bold">GROUP BY column (optional)<input id="group-column" class="sql-control mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="customer_id"></label>
+              </div>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">COUNT, SUM, AVG, MIN, and MAX are common SQL aggregate functions. Aggregation rules and data types can differ across database engines.</p>
+            </section>
+
+            <div class="flex flex-wrap items-center gap-3 border-t border-[var(--color-border)] pt-5">
+              <button id="generate-query" type="button" class="btn-primary px-5 py-3">Generate SQL</button>
+              <button id="load-example" type="button" class="sql-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Load example</button>
+              <p id="builder-status" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Choose a query type and generate a statement.</p>
+            </div>
+          </section>
+
+          <section class="feature-card overflow-hidden" aria-labelledby="output-heading">
+            <div class="bg-[var(--color-dark)] p-5 text-[var(--color-primary-contrast)] sm:p-6">
+              <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Generated locally</p>
+              <h2 id="output-heading" class="mb-0 text-xl font-black">SQL statement</h2>
+            </div>
+            <div class="p-5 sm:p-6">
+              <textarea id="sql-output" rows="8" class="sql-output sql-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-sm text-[var(--color-text)]" spellcheck="false" aria-label="Generated SQL query" placeholder="Your query will appear here. You can edit it before copying."></textarea>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-query" type="button" class="btn-primary px-5 py-3">Copy SQL</button>
+                <button id="clear-query" type="button" class="sql-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-bold">Clear</button>
+              </div>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Generated text is not executed or sent anywhere.</p>
+            </div>
+          </section>
+
+          <aside class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 sm:p-6">
+            <h2 class="mb-2 text-lg font-extrabold">Review before running</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">This tool generates SQL only. Test queries against a safe database, check your database dialect, and use transactions or backups for data-changing statements. UPDATE or DELETE without a WHERE clause affects all rows.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">A browser-only SQL query builder.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const queryTabs = [...document.querySelectorAll('.query-tab')];
+    const queryPanels = [...document.querySelectorAll('.query-panel')];
+    const output = document.querySelector('#sql-output');
+    const builderStatus = document.querySelector('#builder-status');
+    const changeType = document.querySelector('#change-type');
+
+    function activeQueryType() {
+      return document.querySelector('.query-tab[aria-selected="true"]').id.replace('tab-', '');
+    }
+
+    function activateTab(tab) {
+      queryTabs.forEach((item) => {
+        const active = item === tab;
+        item.setAttribute('aria-selected', String(active));
+        item.tabIndex = active ? 0 : -1;
+      });
+      queryPanels.forEach((panel) => {
+        panel.hidden = panel.id !== tab.getAttribute('aria-controls');
+      });
+      updateChangeFields();
+    }
+
+    function validIdentifier(value, label) {
+      const trimmed = value.trim();
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(trimmed)) {
+        throw new Error(`${label} must start with a letter or underscore and contain only letters, digits, or underscores.`);
+      }
+      return trimmed;
+    }
+
+    function identifierList(value, label, allowStar = false) {
+      const values = value.split(',').map((item) => item.trim()).filter(Boolean);
+      if (!values.length) throw new Error(`Enter at least one ${label}.`);
+      return values.map((item) => {
+        if (allowStar && item === '*') return '*';
+        const parts = item.split('.');
+        return parts.map((part) => validIdentifier(part, label)).join('.');
+      });
+    }
+
+    function sqlValue(value) {
+      const trimmed = value.trim();
+      if (trimmed === '') throw new Error('Enter a value for the condition or field.');
+      if (/^-?(?:\d+\.?\d*|\.\d+)$/.test(trimmed) || /^(TRUE|FALSE|NULL)$/i.test(trimmed)) {
+        return trimmed.toUpperCase() === 'NULL' ? 'NULL' : trimmed;
+      }
+      return `'${trimmed.replace(/'/g, "''")}'`;
+    }
+
+    function condition(columnSelector, operatorSelector, valueSelector) {
+      const column = validIdentifier(document.querySelector(columnSelector).value, 'Column name');
+      const operator = document.querySelector(operatorSelector).value;
+      const value = sqlValue(document.querySelector(valueSelector).value);
+      return `${column} ${operator} ${value}`;
+    }
+
+    function buildSelect() {
+      const table = validIdentifier(document.querySelector('#select-table').value, 'Table name');
+      const columns = identifierList(document.querySelector('#select-columns').value, 'column', true);
+      const whereColumn = document.querySelector('#select-where-column').value.trim();
+      const whereValue = document.querySelector('#select-where-value').value.trim();
+      const orderBy = document.querySelector('#select-order').value.trim();
+      const limitValue = document.querySelector('#select-limit').value.trim();
+      let sql = `SELECT ${columns.join(', ')}\nFROM ${table}`;
+      if (whereColumn || whereValue) sql += `\nWHERE ${condition('#select-where-column', '#select-operator', '#select-where-value')}`;
+      if (orderBy) sql += `\nORDER BY ${validIdentifier(orderBy, 'Order column')} ${document.querySelector('#select-direction').value}`;
+      if (limitValue) {
+        const limit = Number(limitValue);
+        if (!Number.isInteger(limit) || limit < 1) throw new Error('Limit must be a positive whole number.');
+        sql += `\nLIMIT ${limit}`;
+      }
+      return `${sql};`;
+    }
+
+    function buildJoin() {
+      const columns = identifierList(document.querySelector('#join-columns').value, 'selected column');
+      const tableA = validIdentifier(document.querySelector('#join-table-a').value, 'First table name');
+      const tableB = validIdentifier(document.querySelector('#join-table-b').value, 'Second table name');
+      const leftKey = validIdentifier(document.querySelector('#join-left-key').value, 'First join key');
+      const rightKey = validIdentifier(document.querySelector('#join-right-key').value, 'Second join key');
+      const joinType = document.querySelector('#join-type').value;
+      return `SELECT ${columns.join(', ')}\nFROM ${tableA} a\n${joinType} ${tableB} b ON a.${leftKey} = b.${rightKey};`;
+    }
+
+    function buildChange() {
+      const table = validIdentifier(document.querySelector('#change-table').value, 'Table name');
+      const type = changeType.value;
+      if (type === 'insert') {
+        const columns = identifierList(document.querySelector('#insert-columns').value, 'column');
+        const rawValues = document.querySelector('#insert-values').value.split(',').map((item) => item.trim());
+        if (rawValues.length !== columns.length || rawValues.some((item) => item === '')) {
+          throw new Error('Enter one value for each column, in the same order. Commas inside a text value are not supported by this simple builder.');
+        }
+        return `INSERT INTO ${table} (${columns.join(', ')})\nVALUES (${rawValues.map(sqlValue).join(', ')});`;
+      }
+      const whereColumn = document.querySelector('#change-where-column').value.trim();
+      const whereValue = document.querySelector('#change-where-value').value.trim();
+      const hasWhere = Boolean(whereColumn || whereValue);
+      if (type === 'update') {
+        const column = validIdentifier(document.querySelector('#update-column').value, 'Column name');
+        const value = sqlValue(document.querySelector('#update-value').value);
+        const where = hasWhere ? `\nWHERE ${condition('#change-where-column', '#change-operator', '#change-where-value')}` : '';
+        return `UPDATE ${table}\nSET ${column} = ${value}${where};`;
+      }
+      const where = hasWhere ? `\nWHERE ${condition('#change-where-column', '#change-operator', '#change-where-value')}` : '';
+      return `DELETE FROM ${table}${where};`;
+    }
+
+    function buildAggregate() {
+      const table = validIdentifier(document.querySelector('#aggregate-table').value, 'Table name');
+      const fn = document.querySelector('#aggregate-function').value;
+      const columnValue = document.querySelector('#aggregate-column').value.trim();
+      const column = fn === 'COUNT' && columnValue === '*' ? '*' : validIdentifier(columnValue, 'Aggregate column');
+      const groupBy = document.querySelector('#group-column').value.trim();
+      let sql = `SELECT ${fn}(${column}) AS ${fn.toLowerCase()}_${column === '*' ? 'all' : column}\nFROM ${table}`;
+      if (groupBy) sql += `\nGROUP BY ${validIdentifier(groupBy, 'Group column')}`;
+      return `${sql};`;
+    }
+
+    function generateQuery() {
+      try {
+        const type = activeQueryType();
+        const builders = {
+          select: buildSelect,
+          join: buildJoin,
+          change: buildChange,
+          aggregate: buildAggregate
+        };
+        output.value = builders[type]();
+        builderStatus.textContent = 'Query generated locally. Review it before running it in your database.';
+        document.querySelector('#copy-status').textContent = 'This statement has not been run or sent anywhere.';
+      } catch (error) {
+        builderStatus.textContent = error.message;
+      }
+    }
+
+    function updateChangeFields() {
+      const visible = activeQueryType() === 'change';
+      const type = changeType.value;
+      document.querySelector('#insert-fields').hidden = !visible || type !== 'insert';
+      document.querySelector('#update-fields').hidden = !visible || type !== 'update';
+      document.querySelector('#delete-fields').hidden = !visible || type !== 'delete';
+      document.querySelector('#change-where').hidden = !visible || type === 'insert';
+    }
+
+    function loadExample() {
+      const examples = {
+        select: `SELECT first_name, department\nFROM employees\nWHERE department = 'Engineering'\nORDER BY last_name ASC\nLIMIT 10;`,
+        join: `SELECT a.name, b.title\nFROM employees a\nINNER JOIN departments b ON a.department_id = b.id;`,
+        change: `INSERT INTO employees (first_name, department)\nVALUES ('Taylor', 'Engineering');`,
+        aggregate: `SELECT COUNT(*) AS count_all\nFROM orders\nGROUP BY customer_id;`
+      };
+      output.value = examples[activeQueryType()];
+      builderStatus.textContent = 'Example loaded into the editable SQL area. Nothing was executed.';
+      document.querySelector('#copy-status').textContent = 'Review the example and adapt table and column names to your database.';
+    }
+
+    queryTabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activateTab(tab));
+      tab.addEventListener('keydown', (event) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        let next = index;
+        if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = queryTabs.length - 1;
+        else next = event.key === 'ArrowRight' ? (index + 1) % queryTabs.length : (index - 1 + queryTabs.length) % queryTabs.length;
+        activateTab(queryTabs[next]);
+        queryTabs[next].focus();
+      });
+    });
+
+    changeType.addEventListener('change', () => {
+      updateChangeFields();
+      generateQuery();
+    });
+
+    document.querySelector('#generate-query').addEventListener('click', generateQuery);
+    document.querySelector('#load-example').addEventListener('click', loadExample);
+    document.querySelector('#copy-query').addEventListener('click', async () => {
+      if (!output.value.trim()) {
+        document.querySelector('#copy-status').textContent = 'Generate or enter a query first.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(output.value);
+        document.querySelector('#copy-status').textContent = 'SQL copied to the clipboard.';
+      } catch {
+        document.querySelector('#copy-status').textContent = 'Clipboard unavailable. Select the SQL text and copy it manually.';
+      }
+    });
+    document.querySelector('#clear-query').addEventListener('click', () => {
+      output.value = '';
+      document.querySelector('#copy-status').textContent = 'Output cleared.';
+    });
+
+    updateChangeFields();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

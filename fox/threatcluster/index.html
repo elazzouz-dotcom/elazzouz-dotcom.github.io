@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="جهّز طلب ThreatCluster لعرض كيان برمجية خبيثة مع إبقاء مفتاح API في متغير بيئة محلي.">
+  <title>ThreatCluster · مستكشف الكيانات | Fox Wiki Workspace</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .command-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .tool-control:focus-visible,
+    .tool-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/fox" class="flex items-center gap-3" aria-label="العودة إلى مساحة الثعلب">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]" aria-hidden="true">🦊</span>
+        <span class="text-xl font-extrabold">Fox <span class="text-[var(--color-primary)]">Wiki Workspace</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/fox">مساحة الثعلب</a>
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Fox Workspace · ThreatCluster</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">جهّز طلب استعلام عن كيان.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">أدخل اسم البرمجية الخبيثة لإنشاء أمر cURL للمسار الذي زوّدتنا به. لا ترسل هذه الصفحة الطلب ولا تطلب مفتاحك؛ يحتفظ جهازك بالمفتاح في متغير البيئة <code dir="ltr">TC_KEY</code> عند تشغيل الأمر بنفسك.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="request-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">إعداد الطلب</p>
+          <h2 id="request-heading" class="mb-3 text-2xl font-black">بيانات الكيان</h2>
+          <p class="mb-5 text-sm leading-6 text-[var(--color-muted)]">المسار مضبوط على نوع الكيان <code dir="ltr">malware</code> كما في المثال الذي أرسلته.</p>
+          <label for="entity-name" class="mb-2 block text-sm font-bold">اسم البرمجية الخبيثة</label>
+          <input id="entity-name" class="tool-control mb-4 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]" value="Morris Worm" autocomplete="off" maxlength="200">
+          <p class="mb-0 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-muted)]"><strong class="text-[var(--color-text)]">حماية المفتاح:</strong> لا تلصق المفتاح هنا. عيّن <code dir="ltr">TC_KEY</code> في الطرفية المحلية قبل تشغيل الأمر، ولا تشارك الأمر بعد استبدال المتغير بقيمة المفتاح.</p>
+        </section>
+
+        <section class="feature-card overflow-hidden" aria-labelledby="output-heading">
+          <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">مولّد محلي · لا يُرسل الطلب</p>
+            <h2 id="output-heading" class="mb-2 text-2xl font-black">أمر cURL للمراجعة</h2>
+            <p id="request-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">يتحدث الأمر عند تعديل اسم الكيان.</p>
+          </div>
+          <div class="p-5 sm:p-6">
+            <pre id="command-output" class="command-output min-h-32 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-7 text-[var(--color-text)]" aria-live="polite"></pre>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="copy-command" type="button" class="tool-button btn-primary px-5 py-3">نسخ الأمر</button>
+              <button id="download-command" type="button" class="tool-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">تنزيل ملف .sh</button>
+            </div>
+            <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">لن يُضمّن مفتاح API في الأمر أو الملف.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="px-5 pb-16 lg:px-8 lg:pb-20">
+      <div class="mx-auto grid max-w-7xl gap-5 md:grid-cols-2">
+        <article class="feature-card p-6">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">قبل التشغيل</p>
+          <h2 class="mb-3 text-xl font-black">نفّذ الأمر محليًا</h2>
+          <ol class="mb-0 list-decimal space-y-2 pr-5 text-sm leading-7 text-[var(--color-muted)]">
+            <li>احفظ مفتاح ThreatCluster في إعدادات بيئتك المحلية باسم <code dir="ltr">TC_KEY</code>.</li>
+            <li>راجع اسم الكيان والمسار قبل إرسال الطلب.</li>
+            <li>شغّل cURL في الطرفية الموثوقة لديك، وتعامل مع الاستجابة كبيانات غير موثوقة.</li>
+          </ol>
+        </article>
+        <article class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-6">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-icon)]">حدود الصفحة</p>
+          <h2 class="mb-3 text-xl font-black">لا اتصال مباشر من المتصفح</h2>
+          <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">هذه صفحة HTML ثابتة ولا تملك بيئة خادم لإخفاء الأسرار. لذلك تجهّز الأمر فقط ولا ترسل مفتاحًا أو طلبًا إلى ThreatCluster.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/fox" class="font-extrabold text-[var(--color-text)]">Fox Wiki Workspace</a>
+      <p class="mb-0">مولّد طلب ThreatCluster محلي.</p>
+      <a href="/tools" class="font-semibold text-[var(--color-primary)]">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const entityInput = document.querySelector('#entity-name');
+    const commandOutput = document.querySelector('#command-output');
+    const requestStatus = document.querySelector('#request-status');
+    const copyStatus = document.querySelector('#copy-status');
+
+    function updateCommand() {
+      const entityName = entityInput.value.trim();
+      if (!entityName) {
+        commandOutput.textContent = '# أدخل اسم الكيان لإنشاء الأمر.';
+        requestStatus.textContent = 'أدخل اسم الكيان أولًا.';
+        return;
+      }
+
+      const encodedEntity = encodeURIComponent(entityName);
+      commandOutput.textContent = `curl -H "X-API-Key: $TC_KEY" \\\n  "https://threatcluster.io/api/public/v1/entities/malware/${encodedEntity}"`;
+      requestStatus.textContent = `تم إعداد طلب كيان malware باسم ${entityName}. لم يُرسل أي طلب.`;
+      copyStatus.textContent = 'لن يُضمّن مفتاح API في الأمر أو الملف.';
+    }
+
+    entityInput.addEventListener('input', updateCommand);
+
+    document.querySelector('#copy-command').addEventListener('click', async () => {
+      if (!entityInput.value.trim()) {
+        copyStatus.textContent = 'أدخل اسم الكيان قبل نسخ الأمر.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(commandOutput.textContent);
+        copyStatus.textContent = 'نُسخ الأمر. عيّن TC_KEY محليًا قبل تشغيله.';
+      } catch {
+        copyStatus.textContent = 'تعذر النسخ تلقائيًا؛ حدّد الأمر وانسخه يدويًا.';
+      }
+    });
+
+    document.querySelector('#download-command').addEventListener('click', () => {
+      if (!entityInput.value.trim()) {
+        copyStatus.textContent = 'أدخل اسم الكيان قبل تنزيل الأمر.';
+        return;
+      }
+      const content = `#!/bin/sh\nset -eu\n: "${'${TC_KEY:?Set TC_KEY in your local environment first}'}"\n\n${commandOutput.textContent}\n`;
+      const fileUrl = URL.createObjectURL(new Blob([content], {
+        type: 'text/x-shellscript;charset=utf-8'
+      }));
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = 'threatcluster-entity-lookup.sh';
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+      copyStatus.textContent = 'نُزّل ملف الأمر محليًا، من دون تضمين مفتاح API.';
+    });
+
+    updateCommand();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

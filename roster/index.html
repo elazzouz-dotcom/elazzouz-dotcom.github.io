@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="قائمة أسماء مرقمة من 48 إلى 97 مع بحث محلي داخل المتصفح.">
+  <title>قائمة الأسماء | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --color-roster-header: color-mix(in srgb, var(--color-primary) 35%, var(--color-dark));
+      --color-roster-stripe: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface));
+      --color-roster-row: color-mix(in srgb, var(--color-surface) 88%, var(--color-bg));
+    }
+
+    .roster-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-family: var(--font-body);
+    }
+
+    .roster-table th,
+    .roster-table td {
+      border: 1px solid var(--color-border);
+      padding: 0.38rem 0.65rem;
+      line-height: 1.25;
+    }
+
+    .roster-table thead th {
+      position: sticky;
+      z-index: 1;
+      top: 0;
+      background: var(--color-roster-header);
+      color: var(--color-text);
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .roster-table tbody tr {
+      background: var(--color-roster-row);
+      transition: background-color 150ms ease;
+    }
+
+    .roster-table tbody tr:nth-child(even) {
+      background: var(--color-roster-stripe);
+    }
+
+    .roster-table tbody tr:hover {
+      background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+    }
+
+    .roster-number {
+      width: 5.8rem;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .roster-name {
+      direction: ltr;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    .roster-search:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 480px) {
+
+      .roster-table th,
+      .roster-table td {
+        padding: 0.42rem 0.5rem;
+        font-size: 0.85rem;
+      }
+
+      .roster-number {
+        width: 4rem;
+      }
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]" aria-hidden="true">P</span>
+        <span class="text-xl font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/list-explorer">مستكشف القوائم</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">قائمة مرقمة · عرض محلي</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">قائمة الأسماء</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">جدول بسيط مستوحى من الصورة المرفقة، مع أرقام الصفوف من 48 إلى 97 وبحث يعمل محليًا داخل الصفحة.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto max-w-5xl">
+        <section class="feature-card overflow-hidden" aria-labelledby="roster-heading">
+          <div class="border-b border-[var(--color-border)] p-5 sm:p-7">
+            <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Répertoire</p>
+                <h2 id="roster-heading" class="mb-1 text-2xl font-black">Noms</h2>
+                <p id="roster-count" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">50 noms</p>
+              </div>
+              <button id="clear-search" type="button" class="rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold">مسح البحث</button>
+            </div>
+            <label for="roster-search" class="mb-2 block text-sm font-bold">البحث بالاسم أو الرقم</label>
+            <input id="roster-search" type="search" class="roster-search w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]" placeholder="اكتب رقمًا أو اسمًا..." autocomplete="off">
+          </div>
+
+          <div class="max-h-[72vh] overflow-auto">
+            <table class="roster-table">
+              <caption class="sr-only">قائمة الأسماء المرقمة من 48 إلى 97</caption>
+              <thead>
+                <tr>
+                  <th class="roster-number" scope="col">N°</th>
+                  <th scope="col">Nom</th>
+                </tr>
+              </thead>
+              <tbody id="roster-body"></tbody>
+            </table>
+          </div>
+          <p id="roster-empty" class="hidden m-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-center text-sm text-[var(--color-muted)]" role="status">ما لقيناش نتيجة مطابقة. جرّب رقمًا أو اسمًا آخر.</p>
+        </section>
+        <p class="mt-4 text-xs leading-5 text-[var(--color-muted)]">تم إدخال الأسماء الظاهرة في الصورة المرفقة. راجع الإملاء عند الحاجة؛ البحث لا يرسل البيانات إلى أي خدمة.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">قائمة أسماء مع بحث محلي.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const roster = [
+      [48, 'Hassan Houssein Hasan'],
+      [49, 'Houssein Ahmed Houssein'],
+      [50, 'Houssein Dahir Osman'],
+      [51, 'Houssein Elmi Osman'],
+      [52, 'Houssein Zeid Arif'],
+      [53, 'Ibrahim Barkhad'],
+      [54, 'Idriss Jirde'],
+      [55, 'Itireh Moud Itire'],
+      [56, 'Ilyas Hassan Abreh'],
+      [57, 'Ilyas Said Moussa'],
+      [58, 'Ismail Said Aden'],
+      [59, 'Jimcaleh Abdou'],
+      [60, 'Kamil Areyta'],
+      [61, 'Liban Med Issa'],
+      [62, 'Mahamoud Hachie Awaleh'],
+      [63, 'Mahamud Ismail Guelh'],
+      [64, 'Mahamud Moro'],
+      [65, 'Mahdi Hasan Abdilah'],
+      [66, 'Med Hasan Kheireh'],
+      [67, 'Mohamed Abdurahman Awaleh'],
+      [68, 'Mohamed Aden Hamad'],
+      [69, 'Mohamed Ahmed Moussa'],
+      [70, 'Mohamed Ahmed Nour'],
+      [71, 'Mohamed Ahmed Youssouf'],
+      [72, 'Mohamed Ali Moussa'],
+      [73, 'Mohamed Ali Wais'],
+      [74, 'Mohamed Idriss Abdi'],
+      [75, 'Mohamed Ismail Osoleh'],
+      [76, 'Mohamed Moussa Darar'],
+      [77, 'Mohamed Said Abneh'],
+      [78, 'Mohamoud Aden Elmi'],
+      [79, 'Mohamoud Ali Robles'],
+      [80, 'Mohamoud Hassan Sougeh'],
+      [81, 'Moktar Med Youssouf'],
+      [82, 'Moktar Youssouf Omar'],
+      [83, 'Moussa Abdillah Bahdon'],
+      [84, 'Moussa Med Moussa'],
+      [85, 'Moussa Nouh Hassan'],
+      [86, 'Moustapha Ahmed'],
+      [87, 'Naqueb Abdirahman Saad'],
+      [88, 'Omar Kalil'],
+      [89, 'Radwan Abdirahman'],
+      [90, 'Rashid Hersi Galab'],
+      [91, 'Sabira'],
+      [92, 'Sameh Saleh Elebeh'],
+      [93, 'Samatar Mohamed Robleh'],
+      [94, 'Sami Salem'],
+      [95, 'Souleiman Mohamed Nouh'],
+      [96, 'Souleiman Obsie Abdi'],
+      [97, 'Yacin Farah Haed']
+    ];
+
+    const body = document.querySelector('#roster-body');
+    const search = document.querySelector('#roster-search');
+    const count = document.querySelector('#roster-count');
+    const empty = document.querySelector('#roster-empty');
+
+    function renderRoster() {
+      const query = search.value.trim().toLocaleLowerCase();
+      const filtered = roster.filter(([number, name]) =>
+        String(number).includes(query) || name.toLocaleLowerCase().includes(query)
+      );
+
+      body.replaceChildren();
+      filtered.forEach(([number, name]) => {
+        const row = document.createElement('tr');
+        const numberCell = document.createElement('td');
+        const nameCell = document.createElement('td');
+        numberCell.className = 'roster-number';
+        numberCell.textContent = String(number);
+        nameCell.className = 'roster-name';
+        nameCell.textContent = name;
+        row.append(numberCell, nameCell);
+        body.append(row);
+      });
+
+      count.textContent = query ? `${filtered.length} من ${roster.length} اسمًا` : `${roster.length} اسمًا`;
+      empty.classList.toggle('hidden', filtered.length > 0);
+    }
+
+    search.addEventListener('input', renderRoster);
+    document.querySelector('#clear-search').addEventListener('click', () => {
+      search.value = '';
+      renderRoster();
+      search.focus();
+    });
+
+    renderRoster();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

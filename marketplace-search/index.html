@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Build and open a Facebook Marketplace search URL using location, category, price, condition, delivery, and sorting filters.">
+  <title>Marketplace Search Builder | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .market-control:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .filter-panel[hidden] {
+      display: none;
+    }
+
+    .url-output {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Interactive search builder</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Build a Marketplace search.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Choose a location and filters to create a Facebook Marketplace search link, then open the results on Facebook.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="form-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Search settings</p>
+          <h2 id="form-heading" class="mb-6 text-2xl font-black">Set your filters</h2>
+
+          <form id="search-form" class="space-y-5">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label for="query" class="text-sm font-bold">What are you looking for?
+                <input id="query" type="search" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="e.g. used bike" autocomplete="off">
+              </label>
+              <label for="location" class="text-sm font-bold">Search area
+                <select id="location" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal">
+                  <option value="austin">Austin</option>
+                  <option value="nyc">New York City</option>
+                  <option value="la">Los Angeles</option>
+                  <option value="sanfrancisco">San Francisco / Bay Area</option>
+                  <option value="chicago">Chicago</option>
+                  <option value="boston">Boston</option>
+                  <option value="seattle">Seattle</option>
+                  <option value="atlanta">Atlanta</option>
+                  <option value="miami">Miami</option>
+                  <option value="portland">Portland</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label for="category" class="text-sm font-bold">Category
+                <select id="category" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal">
+                  <option value="">All categories</option>
+                  <option value="vehicles">Vehicles</option>
+                  <option value="propertyrentals">Property rentals</option>
+                  <option value="apparel">Apparel</option>
+                  <option value="electronics">Electronics</option>
+                  <option value="family">Family</option>
+                  <option value="free">Free stuff</option>
+                  <option value="garden">Garden</option>
+                  <option value="hobbies">Hobbies</option>
+                  <option value="home">Home</option>
+                  <option value="homeimprovement">Home improvement</option>
+                  <option value="musicalinstruments">Musical instruments</option>
+                  <option value="officesupplies">Office supplies</option>
+                  <option value="petsupplies">Pet supplies</option>
+                  <option value="sportinggoods">Sporting goods</option>
+                  <option value="toys">Toys</option>
+                  <option value="bookmoviesmusic">Books, movies &amp; music</option>
+                </select>
+              </label>
+              <label for="radius" class="text-sm font-bold">Distance
+                <select id="radius" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal">
+                  <option value="">Default (40 miles)</option>
+                  <option value="5">5 miles</option>
+                  <option value="10">10 miles</option>
+                  <option value="20">20 miles</option>
+                  <option value="40">40 miles</option>
+                  <option value="60">60 miles</option>
+                  <option value="80">80 miles</option>
+                  <option value="100">100 miles</option>
+                  <option value="250">250 miles</option>
+                  <option value="500">500 miles</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label for="min-price" class="text-sm font-bold">Minimum price
+                <input id="min-price" type="number" min="0" step="1" inputmode="numeric" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="No minimum">
+              </label>
+              <label for="max-price" class="text-sm font-bold">Maximum price
+                <input id="max-price" type="number" min="0" step="1" inputmode="numeric" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="No maximum">
+              </label>
+            </div>
+
+            <fieldset class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <legend class="px-1 text-sm font-bold">Condition</legend>
+              <div class="flex flex-wrap gap-x-5 gap-y-3 text-sm">
+                <label class="flex items-center gap-2"><input type="checkbox" name="condition" value="new" class="accent-[var(--color-primary)]"> New</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="condition" value="used_like_new" class="accent-[var(--color-primary)]"> Used · like new</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="condition" value="used_good" class="accent-[var(--color-primary)]"> Used · good</label>
+                <label class="flex items-center gap-2"><input type="checkbox" name="condition" value="used_fair" class="accent-[var(--color-primary)]"> Used · fair</label>
+              </div>
+            </fieldset>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label for="listed" class="text-sm font-bold">Listed within
+                <select id="listed" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal">
+                  <option value="">Any time</option>
+                  <option value="1">Last 24 hours</option>
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                </select>
+              </label>
+              <label for="sort" class="text-sm font-bold">Sort results
+                <select id="sort" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal">
+                  <option value="">Best match</option>
+                  <option value="creation_time_descend">Newest first</option>
+                  <option value="distance_ascend">Nearest first</option>
+                  <option value="price_ascend">Price: low to high</option>
+                  <option value="price_descend">Price: high to low</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+              <input id="shipping" type="checkbox" class="mt-1 accent-[var(--color-primary)]">
+              <span>Limit to shipping listings</span>
+            </label>
+
+            <div id="vehicle-filters" class="filter-panel space-y-4 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] p-4" hidden>
+              <div>
+                <p class="mb-3 font-bold">Vehicle details</p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <label class="text-sm font-semibold" for="vehicle-make">Make<input id="vehicle-make" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="e.g. Ford"></label>
+                  <label class="text-sm font-semibold" for="vehicle-model">Model<input id="vehicle-model" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="e.g. F-150"></label>
+                  <label class="text-sm font-semibold" for="body-style">Body style<select id="body-style" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal">
+                      <option value="">Any</option>
+                      <option value="sedan">Sedan</option>
+                      <option value="coupe">Coupe</option>
+                      <option value="hatchback">Hatchback</option>
+                      <option value="suv">SUV</option>
+                      <option value="truck">Truck</option>
+                      <option value="van">Van</option>
+                      <option value="convertible">Convertible</option>
+                      <option value="wagon">Wagon</option>
+                      <option value="minivan">Minivan</option>
+                      <option value="other">Other</option>
+                    </select></label>
+                  <label class="text-sm font-semibold" for="transmission">Transmission<select id="transmission" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal">
+                      <option value="">Any</option>
+                      <option value="automatic">Automatic</option>
+                      <option value="manual">Manual</option>
+                    </select></label>
+                  <label class="text-sm font-semibold" for="min-year">Minimum year<input id="min-year" type="number" min="1900" max="2100" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold" for="max-year">Maximum year<input id="max-year" type="number" min="1900" max="2100" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold" for="min-mileage">Minimum mileage<input id="min-mileage" type="number" min="0" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold" for="max-mileage">Maximum mileage<input id="max-mileage" type="number" min="0" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                </div>
+              </div>
+            </div>
+
+            <div id="rental-filters" class="filter-panel space-y-4 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] p-4" hidden>
+              <div>
+                <p class="mb-3 font-bold">Rental details</p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <label class="text-sm font-semibold" for="min-bedrooms">Minimum bedrooms<input id="min-bedrooms" type="number" min="0" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold" for="max-bedrooms">Maximum bedrooms<input id="max-bedrooms" type="number" min="0" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold" for="min-bathrooms">Minimum bathrooms<input id="min-bathrooms" type="number" min="0" step="0.5" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold" for="max-bathrooms">Maximum bathrooms<input id="max-bathrooms" type="number" min="0" step="0.5" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold" for="min-area">Minimum area (sq ft)<input id="min-area" type="number" min="0" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold" for="max-area">Maximum area (sq ft)<input id="max-area" type="number" min="0" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="Any"></label>
+                  <label class="text-sm font-semibold sm:col-span-2" for="property-type">Property type<select id="property-type" class="market-control mt-2 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal">
+                      <option value="">Any</option>
+                      <option value="apartment_condo">Apartment / condo</option>
+                      <option value="house">House</option>
+                      <option value="room">Room</option>
+                      <option value="townhouse">Townhouse</option>
+                      <option value="mobile_manufactured">Mobile / manufactured</option>
+                      <option value="other">Other</option>
+                    </select></label>
+                </div>
+              </div>
+            </div>
+
+            <label class="flex items-center gap-2 text-sm font-semibold">
+              <input id="exact" type="checkbox" class="accent-[var(--color-primary)]">
+              Exact-match search
+            </label>
+          </form>
+        </section>
+
+        <aside class="space-y-6 lg:sticky lg:top-6">
+          <section class="feature-card overflow-hidden">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Ready to open</p>
+              <h2 class="mb-2 text-2xl font-black">Your search link</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">The link updates as you change filters.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <p id="url-output" class="url-output mb-4 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></p>
+              <div class="flex flex-wrap gap-3">
+                <a id="open-search" class="btn-primary px-5 py-3 text-sm" href="https://www.facebook.com/marketplace/austin/search/" target="_blank" rel="noopener noreferrer">Open on Facebook <span aria-hidden="true">↗</span></a>
+                <button id="copy-link" type="button" class="market-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">Copy link</button>
+              </div>
+              <p id="tool-status" class="mt-4 mb-0 text-xs leading-5 text-[var(--color-muted)]" aria-live="polite">This tool builds a search URL; Facebook displays and controls the results.</p>
+            </div>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 sm:p-6">
+            <h2 class="mb-2 text-lg font-extrabold">Access and privacy</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">This page does not scrape listings, collect seller information, log in, or bypass access restrictions. Search parameters may be changed or ignored by Facebook. Review Facebook's current terms and use Marketplace only where you are authorized to access it.</p>
+          </section>
+
+          <section class="feature-card p-5">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Skill reference</p>
+            <h2 class="mb-2 text-lg font-extrabold">Marketplace Search</h2>
+            <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">This interactive builder is a practical, browser-based starting point for the read-only skill. It does not implement automated listing extraction.</p>
+            <a href="/tools" class="font-bold text-[var(--color-primary)]">Browse working tools <span aria-hidden="true">→</span></a>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Local Marketplace search-link builder.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const form = document.querySelector('#search-form');
+    const category = document.querySelector('#category');
+    const urlOutput = document.querySelector('#url-output');
+    const openSearch = document.querySelector('#open-search');
+    const toolStatus = document.querySelector('#tool-status');
+
+    function addIfValue(params, key, selector) {
+      const value = document.querySelector(selector).value.trim();
+      if (value) params.set(key, value);
+    }
+
+    function buildSearchUrl() {
+      const slug = document.querySelector('#location').value;
+      const url = new URL(`https://www.facebook.com/marketplace/${slug}/search/`);
+      const params = url.searchParams;
+      const query = document.querySelector('#query').value.trim();
+
+      if (query) params.set('query', query);
+      addIfValue(params, 'category', '#category');
+      addIfValue(params, 'radius', '#radius');
+      addIfValue(params, 'minPrice', '#min-price');
+      addIfValue(params, 'maxPrice', '#max-price');
+      addIfValue(params, 'daysSinceListed', '#listed');
+      addIfValue(params, 'sortBy', '#sort');
+
+      const conditions = [...document.querySelectorAll('input[name="condition"]:checked')]
+        .map((input) => input.value);
+      if (conditions.length) params.set('itemCondition', conditions.join(','));
+      if (document.querySelector('#shipping').checked) params.set('deliveryMethod', 'shipping');
+      if (document.querySelector('#exact').checked) params.set('exact', 'true');
+
+      if (category.value === 'vehicles') {
+        addIfValue(params, 'make', '#vehicle-make');
+        addIfValue(params, 'model', '#vehicle-model');
+        addIfValue(params, 'carType', '#body-style');
+        addIfValue(params, 'transmissionType', '#transmission');
+        addIfValue(params, 'minYear', '#min-year');
+        addIfValue(params, 'maxYear', '#max-year');
+        addIfValue(params, 'minMileage', '#min-mileage');
+        addIfValue(params, 'maxMileage', '#max-mileage');
+      }
+
+      if (category.value === 'propertyrentals') {
+        addIfValue(params, 'minBedrooms', '#min-bedrooms');
+        addIfValue(params, 'maxBedrooms', '#max-bedrooms');
+        addIfValue(params, 'minBathrooms', '#min-bathrooms');
+        addIfValue(params, 'maxBathrooms', '#max-bathrooms');
+        addIfValue(params, 'minAreaSize', '#min-area');
+        addIfValue(params, 'maxAreaSize', '#max-area');
+        addIfValue(params, 'propertyType', '#property-type');
+      }
+
+      return url.toString();
+    }
+
+    function updateSearch() {
+      const url = buildSearchUrl();
+      urlOutput.textContent = url;
+      openSearch.href = url;
+      toolStatus.textContent = 'Link updated. Facebook may adjust or ignore some filters; results open on Facebook.';
+    }
+
+    function updateCategoryFields() {
+      document.querySelector('#vehicle-filters').hidden = category.value !== 'vehicles';
+      document.querySelector('#rental-filters').hidden = category.value !== 'propertyrentals';
+      updateSearch();
+    }
+
+    form.addEventListener('input', updateSearch);
+    form.addEventListener('change', updateSearch);
+    category.addEventListener('change', updateCategoryFields);
+
+    document.querySelector('#copy-link').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      try {
+        await navigator.clipboard.writeText(buildSearchUrl());
+        toolStatus.textContent = 'Search link copied.';
+        button.textContent = 'Copied';
+      } catch {
+        toolStatus.textContent = 'Could not copy automatically. Select the link text and copy it manually.';
+      }
+      window.setTimeout(() => {
+        button.textContent = 'Copy link';
+      }, 1600);
+    });
+
+    updateCategoryFields();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

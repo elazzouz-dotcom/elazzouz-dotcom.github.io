@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="مساحة Rust محلية تجمع محررًا نصيًا ومحاكاة ذرية فعلية في المتصفح ومولّد واجهات مرتبطًا بنتيجة متحققة.">
+  <title>Rust Atomic Lab | مساحة عمل واحدة</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --lab-panel: color-mix(in srgb, var(--color-surface) 94%, transparent);
+      --lab-code: color-mix(in srgb, var(--color-bg) 88%, var(--color-dark));
+      --lab-success: var(--color-primary);
+      --lab-warning: var(--color-icon);
+      --lab-error: color-mix(in srgb, var(--color-icon) 78%, var(--color-text));
+    }
+
+    .lab-panel {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--lab-panel);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .lab-input:focus-visible,
+    .lab-button:focus-visible,
+    .lab-tab:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .lab-code,
+    .lab-output,
+    .lab-gutter {
+      direction: ltr;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      tab-size: 4;
+    }
+
+    .lab-code {
+      white-space: pre;
+      overflow: auto;
+    }
+
+    .lab-output {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .lab-gutter {
+      user-select: none;
+      color: var(--color-muted);
+      text-align: right;
+    }
+
+    .lab-tab[aria-selected="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+
+    .lab-status[data-kind="success"] {
+      color: var(--lab-success);
+    }
+
+    .lab-status[data-kind="warning"] {
+      color: var(--lab-warning);
+    }
+
+    .lab-status[data-kind="error"] {
+      color: var(--lab-error);
+    }
+
+    .log-entry+.log-entry {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .log-entry[data-kind="success"] {
+      color: var(--lab-success);
+    }
+
+    .log-entry[data-kind="warning"] {
+      color: var(--lab-warning);
+    }
+
+    .log-entry[data-kind="error"] {
+      color: var(--lab-error);
+    }
+
+    .meter-track {
+      height: 0.6rem;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: var(--color-bg);
+    }
+
+    .meter-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--color-primary);
+      transition: width 180ms ease;
+    }
+
+    .result-card {
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.7);
+      background: var(--color-bg);
+      padding: 1rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <a class="skip-link" href="#main-content">انتقل إلى المحتوى</a>
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">R</span>
+        <span class="text-xl font-extrabold">Rust <span class="text-[var(--color-primary)]">Atomic Lab</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/developer-tools">أدوات المطورين</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">مساحة واحدة · تنفيذ محلي</p>
+        <h1 class="mb-4 max-w-5xl text-4xl font-black leading-tight sm:text-5xl">اكتب، اختبر الذرّية، وولّد واجهتك من النتيجة.</h1>
+        <p class="mb-6 max-w-3xl text-base leading-7 text-[var(--color-muted)]">محرر Rust بفحوصات نصية إرشادية، ومحاكاة تنافس فعلية بعمال المتصفح وAtomics، ومولّد مكوّنات متصل بالنتيجة المتحقق منها. لا تُرفع الشيفرة أو القيم.</p>
+        <div class="flex flex-wrap gap-2 text-sm">
+          <span class="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 font-bold text-[var(--color-muted)]">لا ترجمة Rust داخل المتصفح</span>
+          <span id="runtime-capability" class="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 font-bold text-[var(--color-muted)]" role="status">جارٍ فحص إمكانات المتصفح…</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <section class="lab-panel p-5 sm:p-7" aria-labelledby="editor-heading">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">١ · محرر Rust</p>
+              <h2 id="editor-heading" class="mb-2 text-2xl font-black">حرّر وافحص محليًا</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">المراجعة التقريبية لا تترجم Rust ولا تثبت صحة البرنامج. استخدم الطرفية وCargo للتحقق الحقيقي.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <label class="lab-button cursor-pointer rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">فتح .rs<input id="file-input" type="file" accept=".rs,text/plain" class="sr-only"></label>
+              <button id="load-sample" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">تحميل مثال</button>
+              <button id="copy-source" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">نسخ</button>
+              <button id="download-source" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">تنزيل .rs</button>
+            </div>
+          </div>
+          <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
+            <div class="min-w-0">
+              <div class="flex overflow-hidden rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)]">
+                <pre id="line-gutter" class="tool-output lab-gutter m-0 max-h-[30rem] min-w-10 overflow-hidden p-4 text-xs leading-6" aria-hidden="true">1</pre>
+                <textarea id="code-editor" class="lab-code lab-input min-w-0 flex-1 border-0 bg-transparent p-4 text-xs leading-6 text-[var(--color-text)]" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="محرر نص Rust"></textarea>
+              </div>
+              <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <label class="text-xs font-bold text-[var(--color-muted)]" for="find-input">بحث
+                  <input id="find-input" type="search" class="lab-input mt-1 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)]" placeholder="عبارة للبحث">
+                </label>
+                <label class="text-xs font-bold text-[var(--color-muted)]" for="replace-input">استبدال بـ
+                  <input id="replace-input" class="lab-input mt-1 w-full rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)]" placeholder="النص البديل">
+                </label>
+              </div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <button id="find-next" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">التالي</button>
+                <button id="replace-one" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">استبدال المحدد</button>
+                <button id="replace-all" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">استبدال الكل</button>
+                <button id="undo-edit" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">تراجع</button>
+                <button id="redo-edit" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">إعادة</button>
+              </div>
+              <p id="editor-status" class="lab-status mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite"></p>
+            </div>
+            <aside class="space-y-4">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <h3 class="mb-3 text-base font-extrabold">معلومات النص</h3>
+                <dl class="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <dt class="text-[var(--color-muted)]">الأسطر</dt>
+                    <dd id="line-count" class="mb-0 mt-1 text-xl font-black">0</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[var(--color-muted)]">الكلمات</dt>
+                    <dd id="word-count" class="mb-0 mt-1 text-xl font-black">0</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[var(--color-muted)]">الحروف</dt>
+                    <dd id="char-count" class="mb-0 mt-1 text-xl font-black">0</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[var(--color-muted)]">الحجم</dt>
+                    <dd id="byte-count" class="mb-0 mt-1 text-xl font-black">0 B</dd>
+                  </div>
+                </dl>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <h3 class="mb-0 text-base font-extrabold">مراجعة تقريبية</h3><span id="review-count" class="text-xs text-[var(--color-muted)]"></span>
+                </div>
+                <ul id="review-list" class="space-y-2 text-sm text-[var(--color-muted)]"></ul>
+              </div>
+              <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6">
+                <input id="autosave-toggle" type="checkbox" class="mt-1 accent-[var(--color-primary)]">
+                <span><strong>حفظ اختياري محلي</strong><br><span class="text-[var(--color-muted)]">متوقف افتراضيًا. لا تحفظ أسرارًا أو مفاتيح.</span></span>
+              </label>
+              <div class="flex flex-wrap items-center gap-3"><button id="delete-saved" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">حذف المحفوظ</button>
+                <p id="privacy-status" class="mb-0 text-xs text-[var(--color-muted)]" aria-live="polite">لم تُحفظ الشيفرة.</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="lab-panel p-5 sm:p-7" aria-labelledby="atomic-heading">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٢ · محاكي تنافس ذري فعلي بالمتصفح</p>
+              <h2 id="atomic-heading" class="mb-2 text-2xl font-black">عاملان يتنافسان على قيمة مشتركة</h2>
+              <p class="mb-0 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">يستخدم Web Workers وSharedArrayBuffer وAtomics. اختر Int32 أو BigInt64. هذه ذاكرة ذرية فعلية في المتصفح، لكنها ليست تنفيذ Rust أو Crossbeam.</p>
+            </div>
+            <span id="atomic-badge" class="rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] px-3 py-2 text-xs font-extrabold text-[var(--color-muted)]">بانتظار التشغيل</span>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <label for="atomic-type" class="text-sm font-bold">نوع الخلية
+              <select id="atomic-type" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]">
+                <option value="int32">Int32</option>
+                <option value="bigint64">BigInt64</option>
+              </select>
+            </label>
+            <label for="initial-value" class="text-sm font-bold">القيمة الابتدائية
+              <input id="initial-value" type="number" value="100" step="1" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]">
+            </label>
+            <label for="delta-a" class="text-sm font-bold">تحديث العامل A
+              <input id="delta-a" type="number" value="7" step="1" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]">
+            </label>
+            <label for="delta-b" class="text-sm font-bold">تحديث العامل B
+              <input id="delta-b" type="number" value="13" step="1" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]">
+            </label>
+          </div>
+          <div class="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <label for="timeout-ms" class="text-sm font-bold">مهلة الإيقاف (مللي ثانية)
+              <input id="timeout-ms" type="number" min="1000" max="30000" step="500" value="8000" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]">
+            </label>
+            <div class="flex flex-wrap gap-2">
+              <button id="run-cas" type="button" class="lab-button btn-primary px-5 py-3">تشغيل العاملين</button>
+              <button id="stop-cas" type="button" class="lab-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-bold" disabled>إيقاف</button>
+              <button id="reset-cas" type="button" class="lab-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-bold">إعادة ضبط</button>
+              <button id="run-self-tests" type="button" class="lab-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-bold">فحوصات ذاتية</button>
+            </div>
+          </div>
+          <div class="mt-4 meter-track" role="progressbar" aria-label="تقدم محاكاة العاملين" aria-valuemin="0" aria-valuemax="2" aria-valuenow="0">
+            <div id="run-progress" class="meter-fill"></div>
+          </div>
+          <p id="cas-status" class="lab-status mt-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm leading-6 text-[var(--color-muted)]" role="status" aria-live="polite">جاهز. لن تُعتمد النتيجة حتى يكتمل العاملان ويجتازا فحص القيمة النهائية.</p>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">قبل التحديث</p>
+              <p id="cas-start" class="mb-0 break-all text-xl font-black">100</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">الذرّي النهائي</p>
+              <p id="cas-final" class="mb-0 break-all text-xl font-black">—</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">محاولات CAS</p>
+              <p id="cas-attempts" class="mb-0 text-xl font-black">—</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">إعادات المحاولة</p>
+              <p id="cas-retries" class="mb-0 text-xl font-black">—</p>
+            </div>
+          </div>
+          <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.75fr)]">
+            <div>
+              <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h3 class="mb-0 text-lg font-extrabold">سجل التنفيذ</h3><button id="clear-log" type="button" class="lab-button rounded-[calc(var(--radius)*0.5)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-bold">مسح السجل</button>
+              </div>
+              <ol id="cas-log" class="max-h-72 overflow-auto rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-bg)]" aria-live="polite"></ol>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <h3 class="mb-2 text-base font-extrabold">فحوصات الأداة</h3>
+              <p id="self-test-status" class="mb-3 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite">يمكن للفحوصات الذاتية اختبار الحسابات والتحقق وإدارة النتيجة. اختبار العمال الحقيقي يعتمد على دعم المضيف الحالي.</p>
+              <ul id="self-test-list" class="space-y-2 text-sm text-[var(--color-muted)]"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="lab-panel p-5 sm:p-7" aria-labelledby="interface-heading">
+          <div class="mb-5">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٣ · مولّد واجهات مربوط بالنتيجة</p>
+            <h2 id="interface-heading" class="mb-2 text-2xl font-black">نسّق المكوّن وصدّره</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">لا تُحقن النتيجة إلا بعد إتمام المحاكاة والتحقق منها. تغيير الشكل لا يغيّر حالة المحاكاة.</p>
+          </div>
+          <div class="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+            <div class="space-y-4">
+              <label for="ui-framework" class="block text-sm font-bold">الصيغة
+                <select id="ui-framework" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                  <option value="html">HTML + JavaScript</option>
+                  <option value="react">React</option>
+                  <option value="vue">Vue</option>
+                  <option value="svelte">Svelte</option>
+                </select>
+              </label>
+              <label for="ui-title" class="block text-sm font-bold">عنوان البطاقة
+                <input id="ui-title" value="نتيجة الدمج الذري" maxlength="80" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+              </label>
+              <label for="ui-accent" class="block text-sm font-bold">رمز أو أيقونة
+                <input id="ui-accent" value="⚛" maxlength="8" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+              </label>
+              <label for="ui-detail" class="block text-sm font-bold">الوصف
+                <input id="ui-detail" value="تم تحديث الحالة المشتركة بأمان." maxlength="140" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button id="copy-ui" type="button" class="lab-button btn-primary px-4 py-3 text-sm">نسخ المكوّن</button>
+                <button id="download-ui" type="button" class="lab-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تنزيل المكوّن</button>
+              </div>
+              <p id="ui-status" class="lab-status mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">شغّل المحاكاة لتغذية المكوّن بنتيجة ذرية متحقق منها.</p>
+            </div>
+            <div class="space-y-4">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+                  <h3 class="mb-0 text-sm font-extrabold">معاينة مباشرة</h3><span id="preview-state" class="rounded-full bg-[var(--color-soft)] px-3 py-1 text-xs font-bold text-[var(--color-muted)]">بانتظار نتيجة متحقق منها</span>
+                </div>
+                <article class="result-card">
+                  <p id="preview-accent" class="mb-2 text-2xl text-[var(--color-primary)]">⚛</p>
+                  <h4 id="preview-title" class="mb-2 text-xl font-black">نتيجة الدمج الذري</h4>
+                  <p id="preview-detail" class="mb-3 text-sm leading-6 text-[var(--color-muted)]">شغّل المحاكاة لرؤية النتيجة هنا.</p>
+                  <output id="preview-value" class="lab-output text-2xl font-black text-[var(--color-primary)]">—</output>
+                </article>
+              </div>
+              <div>
+                <h3 class="mb-2 text-sm font-extrabold">الشيفرة المولّدة</h3>
+                <pre id="ui-output" class="tool-output lab-code lab-output max-h-[32rem] min-h-64 overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-dark)] p-4 text-xs leading-6 text-[var(--color-primary-contrast)]" aria-live="polite"></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 text-sm leading-6 text-[var(--color-muted)]">
+          <h2 class="mb-2 text-lg font-extrabold text-[var(--color-text)]">حدود الاستخدام</h2>
+          <p class="mb-0">المحاكي يستخدم الذاكرة المشتركة والعمال والعمليات الذرية في المتصفح. لا يشغّل Rust ولا يثبت صحة كود Rust ولا يحاكي Crossbeam Epoch. الحفظ المحلي اختياري ومتوقف افتراضيًا.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 text-sm text-[var(--color-muted)]"><a href="/" class="font-extrabold text-[var(--color-text)]">Rust Atomic Lab</a>
+      <p class="mb-0">محرر ومحاكي ومولّد واجهات في مساحة واحدة.</p><a href="/tools" class="font-semibold text-[var(--color-primary)]">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const $ = (id) => document.getElementById(id);
+      const editor = $('code-editor');
+      const gutter = $('line-gutter');
+      const SAVE_KEY = 'rust-atomic-workspace-code-v5';
+      const AUTOSAVE_KEY = 'rust-atomic-workspace-autosave-v5';
+      const MAX_SOURCE_BYTES = 5 * 1024 * 1024;
+      const WORKER_TIMEOUT_DEFAULT = 8000;
+      const I32_MIN = -2147483648;
+      const I32_MAX = 2147483647;
+      const I64_MIN = -(1n << 63n);
+      const I64_MAX = (1n << 63n) - 1n;
+
+      const sampleCode = `use std::sync::atomic::{AtomicI32, Ordering};
+
+fn add_with_retry(state: &AtomicI32, delta: i32) -> i32 {
+    let mut current = state.load(Ordering::Acquire);
+
+    loop {
+        let next = current.checked_add(delta)
+            .expect("counter overflow");
+
+        match state.compare_exchange_weak(
+            current,
+            next,
+            Ordering::AcqRel,
+            Ordering::Acquire,
+        ) {
+            Ok(_) => return next,
+            Err(observed) => current = observed,
+        }
+    }
+}`;
+
+      let activeRun = null;
+      let validatedResult = null;
+      const undoStack = [];
+      const redoStack = [];
+      let previousEditorValue = '';
+      let undoTimer = 0;
+
+      function setStatus(id, text, kind = '') {
+        const element = $(id);
+        element.textContent = text;
+        element.dataset.kind = kind;
+      }
+
+      function appendLog(text, kind = '') {
+        const item = document.createElement('li');
+        item.className = 'log-entry p-3 text-sm leading-6';
+        item.dataset.kind = kind;
+        item.textContent = `${new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date())} · ${text}`;
+        $('cas-log').append(item);
+        while ($('cas-log').children.length > 150) $('cas-log').firstElementChild.remove();
+        $('cas-log').scrollTop = $('cas-log').scrollHeight;
+      }
+
+      function updateGutter() {
+        const count = Math.max(1, editor.value.split('\n').length);
+        gutter.textContent = Array.from({
+          length: count
+        }, (_, index) => index + 1).join('\n');
+        gutter.scrollTop = editor.scrollTop;
+      }
+
+      function lineAt(source, offset) {
+        return source.slice(0, offset).split('\n').length;
+      }
+
+      function renderFindings() {
+        const source = editor.value;
+        const findings = [];
+        const checks = [
+          ['unsafe block', /\bunsafe\b/g, 'راجع شروط السلامة لكل كتلة unsafe.'],
+          ['unwrap()', /\.unwrap\s*\(/g, 'راجع مسار الخطأ بدل افتراض النجاح.'],
+          ['expect()', /\.expect\s*\(/g, 'تحقق من سبب التوقع في سياق البرنامج.'],
+          ['panic!', /panic!\s*\(/g, 'تأكد أن الذعر مقصود ولا يصل إلى مدخل غير موثوق.'],
+          ['TODO', /TODO|todo!\s*\(/g, 'تحقق من الأعمال غير المكتملة.'],
+          ['compare_exchange', /compare_exchange(?:_weak)?\s*\(/g, 'تحقق من معالجة القيمة المرصودة عند فشل CAS.']
+        ];
+        for (const [label, pattern, advice] of checks) {
+          pattern.lastIndex = 0;
+          let match;
+          while ((match = pattern.exec(source)) && findings.length < 80) {
+            findings.push({
+              label,
+              advice,
+              line: lineAt(source, match.index)
+            });
+            if (match[0].length === 0) pattern.lastIndex += 1;
+          }
+        }
+        const structural = [
+          ['الدوال', (source.match(/\bfn\s+[A-Za-z_][\w]*/g) || []).length],
+          ['البنى', (source.match(/\bstruct\s+[A-Za-z_][\w]*/g) || []).length],
+          ['التعدادات', (source.match(/\benum\s+[A-Za-z_][\w]*/g) || []).length]
+        ];
+        $('review-count').textContent = `${findings.length} ملاحظة`;
+        const rows = structural.map(([name, count]) => {
+          const item = document.createElement('li');
+          item.className = 'rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] px-3 py-2';
+          item.textContent = `مكتشف نصيًا: ${count} ${name}`;
+          return item;
+        });
+        findings.forEach((finding) => {
+          const item = document.createElement('li');
+          item.className = 'rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] px-3 py-2';
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'lab-button text-left font-semibold underline decoration-dotted underline-offset-4';
+          button.textContent = `${finding.label} · السطر ${finding.line}`;
+          button.title = finding.advice;
+          button.addEventListener('click', () => {
+            const lines = source.split('\n');
+            const offset = lines.slice(0, finding.line - 1).reduce((total, value) => total + value.length + 1, 0);
+            editor.focus();
+            editor.setSelectionRange(offset, offset + (lines[finding.line - 1] || '').length);
+            setStatus('editor-status', finding.advice, 'warning');
+          });
+          item.append(button);
+          rows.push(item);
+        });
+        if (!source.trim()) {
+          const item = document.createElement('li');
+          item.className = 'rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] px-3 py-2';
+          item.textContent = 'أضف شيفرة لبدء المراجعة.';
+          rows.push(item);
+        }
+        $('review-list').replaceChildren(...rows);
+      }
+
+      function updateEditor() {
+        const source = editor.value;
+        const lines = source.split('\n');
+        $('line-count').textContent = String(source ? lines.length : 0);
+        $('word-count').textContent = String(source.trim() ? source.trim().split(/\s+/).length : 0);
+        $('char-count').textContent = String(source.length);
+        const bytes = new Blob([source]).size;
+        $('byte-count').textContent = bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
+        updateGutter();
+        renderFindings();
+        if ($('autosave-toggle').checked) {
+          try {
+            if (bytes > MAX_SOURCE_BYTES) throw new Error('تجاوز حد 5 MB.');
+            localStorage.setItem(SAVE_KEY, source);
+            $('privacy-status').textContent = 'حُفظت الشيفرة محليًا في هذا المتصفح فقط.';
+          } catch {
+            $('privacy-status').textContent = 'تعذر الحفظ المحلي أو تجاوز الملف حد 5 MB.';
+          }
+        }
+        setStatus('editor-status', `${source ? lines.length : 0} سطر · فحص نصي إرشادي، لا يترجم Rust ولا يشغّله.`);
+      }
+
+      function queueUndoSnapshot() {
+        window.clearTimeout(undoTimer);
+        undoTimer = window.setTimeout(() => {
+          if (previousEditorValue !== editor.value) {
+            undoStack.push(previousEditorValue);
+            if (undoStack.length > 100) undoStack.shift();
+            redoStack.length = 0;
+            previousEditorValue = editor.value;
+          }
+        }, 300);
+      }
+
+      function replaceSource(nextValue) {
+        undoStack.push(editor.value);
+        if (undoStack.length > 100) undoStack.shift();
+        redoStack.length = 0;
+        editor.value = nextValue;
+        previousEditorValue = nextValue;
+        updateEditor();
+      }
+
+      editor.addEventListener('input', () => {
+        queueUndoSnapshot();
+        updateEditor();
+      });
+      editor.addEventListener('scroll', updateGutter);
+
+      $('file-input').addEventListener('change', async (event) => {
+        const file = event.currentTarget.files?.[0];
+        if (!file) return;
+        try {
+          if (file.size > MAX_SOURCE_BYTES) throw new Error('الملف أكبر من الحد 5 MB.');
+          if (editor.value && !window.confirm('استبدال محتوى المحرر بالملف؟')) return;
+          replaceSource(await file.text());
+          setStatus('editor-status', `فُتح ${file.name} محليًا.`);
+        } catch (error) {
+          setStatus('editor-status', error.message || 'تعذر قراءة الملف.', 'error');
+        } finally {
+          event.currentTarget.value = '';
+        }
+      });
+      $('load-sample').addEventListener('click', () => replaceSource(sampleCode));
+      $('copy-source').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(editor.value);
+          setStatus('editor-status', 'نُسخت الشيفرة.', 'success');
+        } catch {
+          setStatus('editor-status', 'تعذر النسخ تلقائيًا؛ حدّد النص وانسخه يدويًا.', 'warning');
+        }
+      });
+      $('download-source').addEventListener('click', () => download(editor.value, 'rust-source.rs', 'text/plain;charset=utf-8'));
+
+      function findNext() {
+        const term = $('find-input').value;
+        if (!term) return setStatus('editor-status', 'اكتب عبارة للبحث أولًا.', 'warning');
+        const source = editor.value.toLocaleLowerCase();
+        let index = source.indexOf(term.toLocaleLowerCase(), editor.selectionEnd);
+        if (index < 0) index = source.indexOf(term.toLocaleLowerCase());
+        if (index < 0) return setStatus('editor-status', 'لم يُعثر على تطابق.', 'warning');
+        editor.focus();
+        editor.setSelectionRange(index, index + term.length);
+        setStatus('editor-status', `تطابق عند السطر ${lineAt(editor.value, index)}.`);
+      }
+      $('find-next').addEventListener('click', findNext);
+      $('find-input').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') findNext();
+      });
+      $('replace-one').addEventListener('click', () => {
+        const term = $('find-input').value;
+        const selected = editor.value.slice(editor.selectionStart, editor.selectionEnd);
+        if (!term || selected.toLocaleLowerCase() !== term.toLocaleLowerCase()) {
+          setStatus('editor-status', 'ابحث وحدد تطابقًا قبل الاستبدال.', 'warning');
+          return;
+        }
+        const next = editor.value.slice(0, editor.selectionStart) + $('replace-input').value + editor.value.slice(editor.selectionEnd);
+        replaceSource(next);
+      });
+      $('replace-all').addEventListener('click', () => {
+        const term = $('find-input').value;
+        if (!term) return setStatus('editor-status', 'اكتب عبارة للبحث أولًا.', 'warning');
+        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escaped, 'gi');
+        const matches = editor.value.match(regex) || [];
+        replaceSource(editor.value.replace(regex, $('replace-input').value));
+        setStatus('editor-status', `تم استبدال ${matches.length} تطابق.`);
+      });
+      $('undo-edit').addEventListener('click', () => {
+        if (!undoStack.length) return setStatus('editor-status', 'لا توجد خطوة تراجع.', 'warning');
+        redoStack.push(editor.value);
+        editor.value = undoStack.pop();
+        previousEditorValue = editor.value;
+        updateEditor();
+      });
+      $('redo-edit').addEventListener('click', () => {
+        if (!redoStack.length) return setStatus('editor-status', 'لا توجد خطوة إعادة.', 'warning');
+        undoStack.push(editor.value);
+        editor.value = redoStack.pop();
+        previousEditorValue = editor.value;
+        updateEditor();
+      });
+
+      $('autosave-toggle').addEventListener('change', (event) => {
+        try {
+          localStorage.setItem(AUTOSAVE_KEY, String(event.currentTarget.checked));
+          if (event.currentTarget.checked) updateEditor();
+          else $('privacy-status').textContent = 'الحفظ التلقائي متوقف؛ استخدم «حذف المحفوظ» لمسح النسخة السابقة.';
+        } catch {
+          $('privacy-status').textContent = 'تعذر تغيير إعداد الحفظ المحلي.';
+        }
+      });
+      $('delete-saved').addEventListener('click', () => {
+        try {
+          localStorage.removeItem(SAVE_KEY);
+          $('privacy-status').textContent = 'حُذفت النسخة المحفوظة من هذا المتصفح.';
+        } catch {
+          $('privacy-status').textContent = 'تعذر حذف النسخة المحفوظة.';
+        }
+      });
+
+      function download(content, filename, mimeType) {
+        const url = URL.createObjectURL(new Blob([content], {
+          type: mimeType
+        }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function parseInteger(id, label, type) {
+        const value = $(id).value.trim();
+        if (!value || !/^-?\d+$/.test(value)) throw new Error(`${label}: أدخل عددًا صحيحًا.`);
+        if (type === 'int32') {
+          const number = Number(value);
+          if (!Number.isSafeInteger(number) || number < I32_MIN || number > I32_MAX) throw new Error(`${label}: القيمة خارج مجال Int32.`);
+          return number;
+        }
+        const number = BigInt(value);
+        if (number < I64_MIN || number > I64_MAX) throw new Error(`${label}: القيمة خارج مجال BigInt64.`);
+        return number;
+      }
+
+      function validateInput(type, initial, deltaA, deltaB) {
+        if (type === 'int32') {
+          for (const value of [initial + deltaA, initial + deltaB, initial + deltaA + deltaB]) {
+            if (!Number.isSafeInteger(value) || value < I32_MIN || value > I32_MAX) throw new Error('إحدى القيم الوسيطة أو النهائية تتجاوز مجال Int32.');
+          }
+          return initial + deltaA + deltaB;
+        }
+        for (const value of [initial + deltaA, initial + deltaB, initial + deltaA + deltaB]) {
+          if (value < I64_MIN || value > I64_MAX) throw new Error('إحدى القيم الوسيطة أو النهائية تتجاوز مجال BigInt64.');
+        }
+        return initial + deltaA + deltaB;
+      }
+
+      function makeWorkerSource(type) {
+        const sharedArray = type === 'int32' ? 'Int32Array' : 'BigInt64Array';
+        return `self.onmessage = ({ data }) => {
+  const shared = new ${sharedArray}(data.buffer);
+  const control = new Int32Array(data.control);
+  const start = Atomics.load(shared, 0);
+  Atomics.add(control, 0, 1);
+  Atomics.notify(control, 0);
+  self.postMessage({ type: 'ready', label: data.label, start: String(start) });
+  while (Atomics.load(control, 1) === 0) {
+    if (Atomics.load(control, 2) !== 0) return;
+    Atomics.wait(control, 1, 0, 100);
+  }
+  let expected = start;
+  let attempts = 0;
+  while (true) {
+    if (Atomics.load(control, 2) !== 0) return;
+    const desired = expected + data.delta;
+    const observed = Atomics.compareExchange(shared, 0, expected, desired);
+    attempts += 1;
+    if (observed === expected) {
+      self.postMessage({ type: 'done', label: data.label, start: String(start), delta: String(data.delta), attempts, retries: attempts - 1, value: String(desired) });
+      return;
+    }
+    expected = observed;
+    self.postMessage({ type: 'retry', label: data.label, expected: String(expected), attempts });
+  }
+};`;
+      }
+
+      function stopActiveRun(reason = 'أوقفت المحاكاة.') {
+        if (!activeRun) return;
+        const run = activeRun;
+        activeRun = null;
+        window.clearTimeout(run.timeout);
+        window.clearInterval(run.poll);
+        try {
+          Atomics.store(run.control, 2, 1);
+          Atomics.store(run.control, 1, 1);
+          Atomics.notify(run.control, 1, 2);
+        } catch {}
+        run.workers.forEach((worker) => {
+          worker.onmessage = null;
+          worker.onerror = null;
+          worker.terminate();
+        });
+        if (run.workerUrl) URL.revokeObjectURL(run.workerUrl);
+        $('run-cas').disabled = false;
+        $('stop-cas').disabled = true;
+        ['atomic-type', 'initial-value', 'delta-a', 'delta-b', 'timeout-ms'].forEach((id) => {
+          $(id).disabled = false;
+        });
+        $('atomic-badge').textContent = 'توقفت';
+        setStatus('cas-status', reason, 'warning');
+        $('run-progress').style.width = '0%';
+        $('run-progress').parentElement.setAttribute('aria-valuenow', '0');
+      }
+
+      function setProgress(done) {
+        $('run-progress').style.width = `${done * 50}%`;
+        $('run-progress').parentElement.setAttribute('aria-valuenow', String(done));
+      }
+
+      function finishRun(run) {
+        if (activeRun !== run || run.done.size !== 2) return;
+        const actual = Atomics.load(run.shared, 0);
+        const expected = run.expectedFinal;
+        const resultText = String(actual);
+        if (actual !== expected || [...run.results.values()].some((result) => result.value === undefined)) {
+          stopActiveRun(`فشل التحقق النهائي. المتوقع ${String(expected)} والمرصود ${resultText}. لم تُنقل قيمة إلى الواجهة.`);
+          $('atomic-badge').textContent = 'فشل التحقق';
+          return;
+        }
+        validatedResult = Object.freeze({
+          value: resultText,
+          initial: String(run.initial),
+          deltaA: String(run.deltaA),
+          deltaB: String(run.deltaB),
+          attempts: run.results.get('العامل A').attempts + run.results.get('العامل B').attempts,
+          retries: run.retries,
+          type: run.type,
+          checkedAt: new Date().toISOString()
+        });
+        $('cas-final').textContent = resultText;
+        $('cas-attempts').textContent = String(validatedResult.attempts);
+        $('cas-retries').textContent = String(run.retries);
+        $('atomic-badge').textContent = 'اكتملت وتحققت';
+        setStatus('cas-status', `نجح التحديثان الذريان والتحقق المستقل: ${String(run.initial)} + ${String(run.deltaA)} + ${String(run.deltaB)} = ${resultText}.`, 'success');
+        appendLog(`تحقق نهائي: القيمة المشتركة ${resultText} مطابقة للمجموع المتوقع.`, 'success');
+        setProgress(2);
+        updateInterface();
+        const completed = run;
+        window.clearTimeout(completed.timeout);
+        window.clearInterval(completed.poll);
+        completed.workers.forEach((worker) => {
+          worker.onmessage = null;
+          worker.onerror = null;
+          worker.terminate();
+        });
+        URL.revokeObjectURL(completed.workerUrl);
+        activeRun = null;
+        $('run-cas').disabled = false;
+        $('stop-cas').disabled = true;
+        ['atomic-type', 'initial-value', 'delta-a', 'delta-b', 'timeout-ms'].forEach((id) => {
+          $(id).disabled = false;
+        });
+      }
+
+      function handleWorkerMessage(run, data) {
+        if (activeRun !== run) return;
+        if (data.type === 'ready') {
+          run.ready.add(data.label);
+          appendLog(`${data.label}: قرأ الحالة الابتدائية ${data.start}.`, 'success');
+          if (run.ready.size === 2 && !run.gateOpened) {
+            run.gateOpened = true;
+            Atomics.store(run.control, 1, 1);
+            Atomics.notify(run.control, 1, 2);
+            appendLog('اكتملت قراءة العاملين؛ فُتح حاجز البدء بالتزامن.', 'success');
+          }
+          return;
+        }
+        if (data.type === 'retry') {
+          run.retries += 1;
+          $('cas-retries').textContent = String(run.retries);
+          appendLog(`${data.label}: CAS لم يطابق القيمة المتوقعة؛ أُعيدت القراءة والمحاولة (${data.attempts}).`, 'warning');
+          return;
+        }
+        if (data.type === 'error') {
+          stopActiveRun(`${data.label}: ${data.message || 'خطأ في العامل.'}`);
+          $('atomic-badge').textContent = 'تعذر التشغيل';
+          return;
+        }
+        if (data.type !== 'done' || run.done.has(data.label)) return;
+        run.done.add(data.label);
+        run.results.set(data.label, {
+          value: data.value,
+          attempts: data.attempts,
+          retries: data.retries
+        });
+        setProgress(run.done.size);
+        $('cas-attempts').textContent = String([...run.results.values()].reduce((sum, item) => sum + item.attempts, 0));
+        $('cas-retries').textContent = String(run.retries);
+        appendLog(`${data.label}: نجح CAS بعد ${data.attempts} محاولة؛ أُضيف ${data.delta} وأصبحت القيمة ${data.value}.`, 'success');
+        finishRun(run);
+      }
+
+      $('run-cas').addEventListener('click', () => {
+        if (activeRun) return;
+        const type = $('atomic-type').value;
+        const bigMode = type === 'bigint64';
+        if (typeof SharedArrayBuffer === 'undefined' || !window.crossOriginIsolated || typeof Worker === 'undefined' || typeof Atomics.wait !== 'function' || (bigMode && typeof BigInt64Array === 'undefined')) {
+          $('atomic-badge').textContent = 'غير متاح';
+          setStatus('cas-status', 'يلزم SharedArrayBuffer وcrossOriginIsolated وWeb Workers. قد تتطلب بعض المضيفات ترويسات COOP/COEP. لم تُنشأ نتيجة بديلة.', 'error');
+          return;
+        }
+        let initial;
+        let deltaA;
+        let deltaB;
+        let timeoutMs;
+        try {
+          initial = parseInteger('initial-value', 'الحالة الابتدائية', type);
+          deltaA = parseInteger('delta-a', 'تحديث العامل A', type);
+          deltaB = parseInteger('delta-b', 'تحديث العامل B', type);
+          const expectedFinal = validateInput(type, initial, deltaA, deltaB);
+          timeoutMs = Number($('timeout-ms').value);
+          if (!Number.isInteger(timeoutMs) || timeoutMs < 1000 || timeoutMs > 30000) throw new Error('المهلة يجب أن تكون بين 1000 و30000 مللي ثانية.');
+          startAtomicRun({
+            type,
+            initial,
+            deltaA,
+            deltaB,
+            expectedFinal,
+            timeoutMs
+          });
+        } catch (error) {
+          $('atomic-badge').textContent = 'مدخلات غير صالحة';
+          setStatus('cas-status', error.message || 'تعذر التحقق من المدخلات.', 'error');
+        }
+      });
+
+      function startAtomicRun(config) {
+        validatedResult = null;
+        updateInterface();
+        $('cas-start').textContent = String(config.initial);
+        $('cas-final').textContent = '…';
+        $('cas-attempts').textContent = '0';
+        $('cas-retries').textContent = '0';
+        $('cas-log').replaceChildren();
+        $('atomic-badge').textContent = 'جارٍ التشغيل';
+        setStatus('cas-status', 'إنشاء عاملين ومزامنة قراءتهما الابتدائية قبل فتح التنافس…');
+        setProgress(0);
+        $('run-cas').disabled = true;
+        $('stop-cas').disabled = false;
+        ['atomic-type', 'initial-value', 'delta-a', 'delta-b', 'timeout-ms'].forEach((id) => {
+          $(id).disabled = true;
+        });
+        const Shared = config.type === 'int32' ? Int32Array : BigInt64Array;
+        const shared = new Shared(new SharedArrayBuffer(Shared.BYTES_PER_ELEMENT * 4));
+        const control = new Int32Array(new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * 3));
+        Atomics.store(shared, 0, config.initial);
+        Atomics.store(shared, 1, config.type === 'int32' ? 0 : 0n);
+        Atomics.store(shared, 2, config.type === 'int32' ? 0 : 0n);
+        Atomics.store(shared, 3, config.type === 'int32' ? 0 : 0n);
+        Atomics.store(control, 0, 0);
+        Atomics.store(control, 1, 0);
+        Atomics.store(control, 2, 0);
+        const workerUrl = URL.createObjectURL(new Blob([makeWorkerSource(config.type)], {
+          type: 'text/javascript'
+        }));
+        const run = {
+          ...config,
+          shared,
+          control,
+          workerUrl,
+          workers: [],
+          ready: new Set(),
+          done: new Set(),
+          results: new Map(),
+          retries: 0,
+          gateOpened: false,
+          timeout: 0,
+          poll: 0
+        };
+        activeRun = run;
+        try {
+          for (const [label, delta] of [
+              ['العامل A', config.deltaA],
+              ['العامل B', config.deltaB]
+            ]) {
+            const worker = new Worker(workerUrl);
+            run.workers.push(worker);
+            worker.onmessage = (event) => handleWorkerMessage(run, event.data);
+            worker.onerror = () => {
+              if (activeRun === run) stopActiveRun(`تعذر تشغيل ${label}.`);
+            };
+            worker.postMessage({
+              buffer: shared.buffer,
+              control: control.buffer,
+              delta,
+              label
+            });
+          }
+          run.timeout = window.setTimeout(() => {
+            if (activeRun === run) {
+              stopActiveRun('انتهت المهلة. أُوقفت العمال ولم تُعتمد نتيجة ناقصة.');
+              $('atomic-badge').textContent = 'انتهت المهلة';
+            }
+          }, config.timeoutMs);
+        } catch (error) {
+          stopActiveRun(`تعذر إنشاء عامل: ${error.message || 'خطأ غير معروف'}`);
+          $('atomic-badge').textContent = 'تعذر البدء';
+        }
+      }
+
+      $('stop-cas').addEventListener('click', () => stopActiveRun('أوقفت المحاكاة يدويًا؛ لم تُقبل نتيجة جزئية.'));
+      $('reset-cas').addEventListener('click', () => {
+        if (activeRun) stopActiveRun('أُوقفت المحاكاة لإعادة الضبط.');
+        validatedResult = null;
+        $('initial-value').value = '100';
+        $('delta-a').value = '7';
+        $('delta-b').value = '13';
+        $('atomic-type').value = 'int32';
+        $('timeout-ms').value = String(WORKER_TIMEOUT_DEFAULT);
+        $('cas-start').textContent = '100';
+        $('cas-final').textContent = '—';
+        $('cas-attempts').textContent = '—';
+        $('cas-retries').textContent = '—';
+        $('atomic-badge').textContent = 'بانتظار التشغيل';
+        $('cas-log').replaceChildren();
+        setProgress(0);
+        setStatus('cas-status', 'أُعيدت القيم. شغّل المحاكاة للحصول على نتيجة جديدة.');
+        updateInterface();
+      });
+      $('clear-log').addEventListener('click', () => $('cas-log').replaceChildren());
+
+      function htmlEscape(value) {
+        return String(value).replace(/[&<>"']/g, (character) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[character]);
+      }
+
+      function getDesign() {
+        return {
+          heading: $('ui-title').value.trim().slice(0, 80) || 'نتيجة الدمج الذري',
+          symbol: $('ui-accent').value.trim().slice(0, 8) || '⚛',
+          description: $('ui-detail').value.trim().slice(0, 140) || 'تم تحديث الحالة المشتركة بأمان.',
+          result: validatedResult
+        };
+      }
+
+      function makeComponentSource(framework, design) {
+        const viewModel = {
+          heading: design.heading,
+          symbol: design.symbol,
+          description: design.description,
+          value: design.result ? design.result.value : null
+        };
+        const json = JSON.stringify(viewModel, null, 2);
+        if (framework === 'html') {
+          const safe = JSON.stringify(viewModel);
+          return `<!-- مكوّن عرض فقط. أرسل نتيجة موثوقة من منطق تطبيقك. -->
+<article class="atomic-card">
+  <p class="accent" id="atomic-symbol"></p>
+  <h2 id="atomic-heading"></h2>
+  <p id="atomic-description"></p>
+  <output id="atomic-value"></output>
+</article>
+<script>
+const model = ${safe};
+const values = {
+  "atomic-symbol": model.symbol,
+  "atomic-heading": model.heading,
+  "atomic-description": model.description,
+  "atomic-value": model.value === null ? "بانتظار نتيجة متحقق منها" : String(model.value)
+};
+for (const [id, value] of Object.entries(values)) {
+  document.getElementById(id).textContent = value;
+}
+<\\/script>`;
+        }
+        if (framework === 'react') return `const model = ${json};
+
+export default function AtomicResult() {
+  return (
+    <article className="atomic-card">
+      <p className="accent">{model.symbol}</p>
+      <h2>{model.heading}</h2>
+      <p>{model.description}</p>
+      <output>{model.value === null ? "بانتظار نتيجة متحقق منها" : model.value}</output>
+    </article>
+  );
+}`;
+        if (framework === 'vue') return `<script setup>
+import { computed } from "vue";
+const model = ${json};
+const displayValue = computed(() => model.value === null ? "بانتظار نتيجة متحقق منها" : model.value);
+<\\/script>
+
+<template>
+  <article class="atomic-card">
+    <p class="accent">{{ model.symbol }}</p>
+    <h2>{{ model.heading }}</h2>
+    <p>{{ model.description }}</p>
+    <output>{{ displayValue }}</output>
+  </article>
+</template>`;
+        return `<script>
+  const model = ${json};
+  const displayValue = model.value === null ? "بانتظار نتيجة متحقق منها" : model.value;
+<\\/script>
+
+<article class="atomic-card">
+  <p class="accent">{model.symbol}</p>
+  <h2>{model.heading}</h2>
+  <p>{model.description}</p>
+  <output>{displayValue}</output>
+</article>`;
+      }
+
+      function updateInterface() {
+        const design = getDesign();
+        $('preview-title').textContent = design.heading;
+        $('preview-accent').textContent = design.symbol;
+        $('preview-detail').textContent = design.result ?
+          `${design.description} · ${design.result.initial} + ${design.result.deltaA} + ${design.result.deltaB}` :
+          'شغّل المحاكاة لرؤية النتيجة هنا.';
+        $('preview-value').textContent = design.result ? design.result.value : '—';
+        $('preview-state').textContent = design.result ?
+          `نتيجة متحقق منها · ${design.result.retries} إعادة · ${design.result.type}` :
+          'بانتظار نتيجة متحقق منها';
+        $('preview-state').classList.toggle('text-[var(--color-primary)]', Boolean(design.result));
+        $('ui-output').textContent = makeComponentSource($('ui-framework').value, design);
+        setStatus('ui-status', design.result ?
+          `المكوّن متصل بنتيجة متحقق منها ${design.result.value}. تغيير التصميم لا يغيّر المحاكاة.` :
+          'الشيفرة تعرض حالة الانتظار؛ لا توجد نتيجة ذرية متحقق منها بعد.', design.result ? 'success' : '');
+      }
+
+      ['ui-framework', 'ui-title', 'ui-accent', 'ui-detail'].forEach((id) => {
+        $(id).addEventListener('input', updateInterface);
+        $(id).addEventListener('change', updateInterface);
+      });
+      $('copy-ui').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText($('ui-output').textContent);
+          setStatus('ui-status', validatedResult ? `نُسخ المكوّن مع القيمة المتحقق منها ${validatedResult.value}.` : 'نُسخ المكوّن بحالة انتظار واضحة.', validatedResult ? 'success' : 'warning');
+        } catch {
+          setStatus('ui-status', 'تعذر النسخ؛ حدّد الشيفرة وانسخها يدويًا.', 'warning');
+        }
+      });
+      $('download-ui').addEventListener('click', () => {
+        const ext = {
+          html: 'html',
+          react: 'jsx',
+          vue: 'vue',
+          svelte: 'svelte'
+        } [$('ui-framework').value];
+        download($('ui-output').textContent, `atomic-result.${ext}`, 'text/plain;charset=utf-8');
+        setStatus('ui-status', 'نُزّلت الشيفرة محليًا؛ لا يتضمن الملف تنفيذ محاكاة أو وصولًا للشبكة.', 'success');
+      });
+
+      async function runSelfTests() {
+        const status = $('self-test-status');
+        const list = $('self-test-list');
+        const cases = [];
+        const check = (label, callback) => {
+          try {
+            callback();
+            cases.push({
+              label,
+              ok: true
+            });
+          } catch (error) {
+            cases.push({
+              label: `${label}: ${error.message}`,
+              ok: false
+            });
+          }
+        };
+        check('جمع Int32 المتوقع', () => {
+          if (validateInput('int32', 100, 7, 13) !== 120) throw new Error('قيمة غير متوقعة');
+        });
+        check('رفض تجاوز Int32', () => {
+          let rejected = false;
+          try {
+            validateInput('int32', I32_MAX, 1, 0);
+          } catch {
+            rejected = true;
+          }
+          if (!rejected) throw new Error('لم يُرفض التجاوز');
+        });
+        check('جمع BigInt64 المتوقع', () => {
+          if (validateInput('bigint64', 100n, -7n, 13n) !== 106n) throw new Error('قيمة غير متوقعة');
+        });
+        check('رفض تجاوز BigInt64', () => {
+          let rejected = false;
+          try {
+            validateInput('bigint64', I64_MAX, 1n, 0n);
+          } catch {
+            rejected = true;
+          }
+          if (!rejected) throw new Error('لم يُرفض التجاوز');
+        });
+        check('صيغة HTML تتضمن حماية نصية', () => {
+          const result = makeComponentSource('html', {
+            heading: '<unsafe>',
+            symbol: '⚛',
+            description: 'demo',
+            result: null
+          });
+          if (!result.includes('textContent') || !result.includes('"<unsafe>"')) throw new Error('توليد غير آمن أو غير متوقع');
+        });
+        check('صيغ المكونات الأربع تُولّد نصًا', () => {
+          for (const format of ['html', 'react', 'vue', 'svelte'])
+            if (!makeComponentSource(format, getDesign()).trim()) throw new Error(`فشل ${format}`);
+        });
+        list.replaceChildren(...cases.map((item) => {
+          const row = document.createElement('li');
+          row.className = 'rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] px-3 py-2';
+          row.textContent = `${item.ok ? '✓' : '✕'} ${item.label}`;
+          row.dataset.kind = item.ok ? 'success' : 'error';
+          return row;
+        }));
+        const passed = cases.filter((item) => item.ok).length;
+        status.textContent = `${passed}/${cases.length} فحوصات منطقية اجتازت. لا تختبر هذه الفحوصات كفاءة Worker أو توافق خادم النشر.`;
+        status.dataset.kind = passed === cases.length ? 'success' : 'error';
+        appendLog(`فحوصات ذاتية منطقية: ${passed}/${cases.length} اجتازت.`, passed === cases.length ? 'success' : 'error');
+      }
+      $('run-self-tests').addEventListener('click', runSelfTests);
+
+      $('atomic-type').addEventListener('change', () => {
+        const big = $('atomic-type').value === 'bigint64';
+        $('initial-value').value = big ? '100' : '100';
+        $('delta-a').value = big ? '7' : '7';
+        $('delta-b').value = big ? '13' : '13';
+        $('initial-value').type = 'text';
+        $('delta-a').type = 'text';
+        $('delta-b').type = 'text';
+        $('initial-value').inputMode = 'numeric';
+        $('delta-a').inputMode = 'numeric';
+        $('delta-b').inputMode = 'numeric';
+      });
+
+      function getCapability() {
+        const missing = [];
+        if (typeof SharedArrayBuffer === 'undefined') missing.push('SharedArrayBuffer');
+        if (!window.crossOriginIsolated) missing.push('crossOriginIsolated');
+        if (typeof Worker === 'undefined') missing.push('Web Workers');
+        if (typeof Atomics?.wait !== 'function') missing.push('Atomics.wait');
+        const label = $('runtime-capability');
+        if (missing.length) {
+          label.textContent = `المحاكي غير متاح: ${missing.join(' · ')}`;
+          label.dataset.kind = 'warning';
+        } else {
+          label.textContent = 'المتصفح يدعم الذاكرة المشتركة والعمال';
+          label.dataset.kind = 'success';
+        }
+      }
+
+      window.addEventListener('pagehide', () => stopActiveRun('غادرت الصفحة؛ أوقفت المحاكاة ونظفت العمال.'), {
+        once: true
+      });
+      try {
+        $('autosave-toggle').checked = localStorage.getItem(AUTOSAVE_KEY) === 'true';
+        editor.value = $('autosave-toggle').checked ? (localStorage.getItem(SAVE_KEY) || sampleCode) : sampleCode;
+        if ($('autosave-toggle').checked && localStorage.getItem(SAVE_KEY)) $('privacy-status').textContent = 'استُرجعت نسخة محفوظة من هذا المتصفح.';
+      } catch {
+        editor.value = sampleCode;
+        $('privacy-status').textContent = 'التخزين غير متاح؛ تعمل الصفحة دون حفظ.';
+      }
+      $('autosave-toggle').addEventListener('change', (event) => {
+        try {
+          localStorage.setItem(AUTOSAVE_KEY, String(event.currentTarget.checked));
+          if (event.currentTarget.checked) updateEditor();
+          else $('privacy-status').textContent = 'الحفظ التلقائي متوقف. احذف النسخة السابقة إن أردت مسحها.';
+        } catch {
+          $('privacy-status').textContent = 'تعذر تغيير إعداد الحفظ المحلي.';
+        }
+      });
+
+      getCapability();
+      updateEditor();
+      updateInterface();
+      $('cas-start').textContent = $('initial-value').value;
+      appendLog('جاهز. سيظهر ترتيب العاملين ومحاولات CAS عند بدء محاكاة مدعومة.');
+    })();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

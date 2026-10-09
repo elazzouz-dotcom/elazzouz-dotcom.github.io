@@ -1,0 +1,4586 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="أداة تعليمية محلية لتشفير ملف وإخفائه داخل صورة PNG باستخدام Web Crypto.">
+  <title>SPECTRE ARCHIVE — الأرشيف الشبح</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --spectre-bg: #070b12;
+      --spectre-card: #0f1622;
+      --spectre-card2: #0b121d;
+      --spectre-line: #1c2940;
+      --spectre-line2: #24344f;
+      --spectre-txt: #dbe6f3;
+      --spectre-dim: #7186a0;
+      --spectre-dim2: #4a5c75;
+      --spectre-acc: #3ddc97;
+      --spectre-warn: #e8b13f;
+      --spectre-err: #f06a6a;
+      --spectre-gold: #d4af37;
+      --spectre-mono: 'Courier New', monospace;
+    }
+
+    body {
+      background: radial-gradient(1200px 500px at 50% -10%, #0d1830 0%, var(--spectre-bg) 60%);
+      color: var(--spectre-txt);
+    }
+
+    .spectre-wrap {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      padding: 1.25rem 1rem 2.5rem;
+    }
+
+    .classbar {
+      background: var(--spectre-gold);
+      color: #141005;
+      padding: 0.45rem 0.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+    }
+
+    .docline {
+      border-bottom: 1px solid var(--spectre-line);
+      background: #101825;
+      padding: 0.3rem;
+      color: var(--spectre-dim2);
+      font: 0.625rem var(--spectre-mono);
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+
+    .spectre-header {
+      padding: 1.75rem 0.5rem 0.65rem;
+      text-align: center;
+    }
+
+    .kicker,
+    .mono,
+    .logbox,
+    .meta,
+    code {
+      font-family: var(--spectre-mono);
+    }
+
+    .kicker {
+      color: var(--spectre-acc);
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+    }
+
+    .spectre-header h1 {
+      margin: 0.5rem 0 0.25rem;
+      color: #fff;
+      font-size: clamp(2rem, 7vw, 2.15rem);
+      font-weight: 800;
+      letter-spacing: 0.2em;
+    }
+
+    .spectre-header h1 em {
+      color: var(--spectre-acc);
+      font-style: normal;
+    }
+
+    .sub {
+      color: var(--spectre-dim);
+      font-size: 0.8rem;
+    }
+
+    .chips,
+    .tabs,
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .chips {
+      justify-content: center;
+      margin: 1rem 0 0.25rem;
+    }
+
+    .chip {
+      border: 1px solid color-mix(in srgb, var(--spectre-acc) 25%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--spectre-acc) 6%, transparent);
+      padding: 0.3rem 0.7rem;
+      color: var(--spectre-acc);
+      font: 0.68rem var(--spectre-mono);
+      letter-spacing: 0.05em;
+    }
+
+    .chip.gold {
+      border-color: color-mix(in srgb, var(--spectre-gold) 35%, transparent);
+      background: color-mix(in srgb, var(--spectre-gold) 6%, transparent);
+      color: var(--spectre-gold);
+    }
+
+    .tabs {
+      margin: 1.6rem 0 1rem;
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 9rem;
+      border: 1px solid var(--spectre-line);
+      border-radius: 0.65rem;
+      background: var(--spectre-card2);
+      padding: 0.8rem 0.5rem;
+      color: var(--spectre-dim);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tab:hover,
+    .tab.on {
+      border-color: var(--spectre-acc);
+      color: var(--spectre-acc);
+    }
+
+    .tab.on {
+      background: #12202f;
+      box-shadow: 0 0 1.4rem color-mix(in srgb, var(--spectre-acc) 12%, transparent);
+    }
+
+    .panel {
+      display: none;
+      border: 1px solid var(--spectre-line);
+      border-radius: 0.9rem;
+      background: linear-gradient(180deg, var(--spectre-card), var(--spectre-card2));
+      padding: clamp(1rem, 4vw, 1.4rem);
+    }
+
+    .panel.on {
+      display: block;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin: 0.9rem 0 0.6rem;
+    }
+
+    .step .n {
+      display: flex;
+      width: 2.1rem;
+      height: 2.1rem;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid color-mix(in srgb, var(--spectre-acc) 30%, transparent);
+      border-radius: 0.5rem;
+      background: #0e2b21;
+      color: var(--spectre-acc);
+      font: 800 0.8rem var(--spectre-mono);
+    }
+
+    .step .n.gold {
+      border-color: color-mix(in srgb, var(--spectre-gold) 35%, transparent);
+      background: color-mix(in srgb, var(--spectre-gold) 10%, transparent);
+      color: var(--spectre-gold);
+    }
+
+    .step .t {
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+
+    .step small,
+    .drop small {
+      display: block;
+      margin-top: 0.18rem;
+      color: var(--spectre-dim);
+      font-size: 0.7rem;
+      font-weight: 400;
+    }
+
+    .drop {
+      margin: 0.6rem 0;
+      border: 2px dashed var(--spectre-line2);
+      border-radius: 0.75rem;
+      background: rgb(255 255 255 / 1%);
+      padding: 1.6rem 1rem;
+      color: var(--spectre-dim);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .drop:hover,
+    .drop.hover,
+    .drop.sel {
+      border-color: var(--spectre-acc);
+      background: rgb(61 220 151 / 5%);
+    }
+
+    .drop.gold:hover,
+    .drop.gold.hover,
+    .drop.gold.sel {
+      border-color: var(--spectre-gold);
+      background: rgb(212 175 55 / 5%);
+    }
+
+    .drop .ico {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 1.8rem;
+    }
+
+    .drop b {
+      color: var(--spectre-txt);
+    }
+
+    .drop img {
+      max-width: 100%;
+      max-height: 9rem;
+      margin-top: 0.75rem;
+      border: 1px solid var(--spectre-line);
+      border-radius: 0.5rem;
+    }
+
+    .row {
+      align-items: flex-end;
+      margin-top: 0.9rem;
+    }
+
+    .f {
+      min-width: 14rem;
+      flex: 1;
+    }
+
+    .spectre-label {
+      display: block;
+      margin-bottom: 0.4rem;
+      color: var(--spectre-dim);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .spectre-input {
+      width: 100%;
+      border: 1px solid var(--spectre-line2);
+      border-radius: 0.55rem;
+      background: #0a111c;
+      padding: 0.7rem 0.8rem;
+      color: var(--spectre-txt);
+    }
+
+    .spectre-input:focus {
+      border-color: var(--spectre-acc);
+      outline: none;
+      box-shadow: 0 0 0.9rem rgb(61 220 151 / 12%);
+    }
+
+    .spectre-input.gold:focus {
+      border-color: var(--spectre-gold);
+      box-shadow: 0 0 0.9rem rgb(212 175 55 / 15%);
+    }
+
+    .meter {
+      height: 0.5rem;
+      overflow: hidden;
+      margin: 0.65rem 0 0.25rem;
+      border: 1px solid var(--spectre-line);
+      border-radius: 0.4rem;
+      background: #0a111c;
+    }
+
+    .meter i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--spectre-acc);
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+
+    .meter i.warn {
+      background: var(--spectre-warn);
+    }
+
+    .meter i.err {
+      background: var(--spectre-err);
+    }
+
+    .mrow {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--spectre-dim);
+      font: 0.68rem var(--spectre-mono);
+    }
+
+    .go {
+      border: 0;
+      border-radius: 0.55rem;
+      background: linear-gradient(180deg, #3ddc97, #2bb37b);
+      padding: 0.8rem 1.6rem;
+      color: #05271a;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .go:disabled {
+      background: var(--spectre-line);
+      color: var(--spectre-dim2);
+      cursor: not-allowed;
+    }
+
+    .msg {
+      display: none;
+      margin-top: 0.75rem;
+      border-radius: 0.55rem;
+      padding: 0.7rem 0.85rem;
+      font-size: 0.8rem;
+      line-height: 1.7;
+    }
+
+    .msg.ok,
+    .msg.err,
+    .msg.warn {
+      display: block;
+    }
+
+    .msg.ok {
+      border: 1px solid rgb(61 220 151 / 40%);
+      background: rgb(61 220 151 / 6%);
+      color: var(--spectre-acc);
+    }
+
+    .msg.err {
+      border: 1px solid rgb(240 106 106 / 40%);
+      background: rgb(240 106 106 / 6%);
+      color: var(--spectre-err);
+    }
+
+    .msg.warn {
+      border: 1px solid rgb(232 177 63 / 40%);
+      background: rgb(232 177 63 / 6%);
+      color: var(--spectre-warn);
+    }
+
+    .result {
+      display: none;
+      margin-top: 1rem;
+      border: 1px solid var(--spectre-line2);
+      border-radius: 0.75rem;
+      background: #0a111c;
+      padding: 1.1rem;
+      text-align: center;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .codename {
+      display: inline-block;
+      margin-bottom: 0.75rem;
+      border: 1px dashed rgb(212 175 55 / 40%);
+      border-radius: 0.5rem;
+      padding: 0.6rem;
+      color: var(--spectre-gold);
+      font: 1rem var(--spectre-mono);
+      letter-spacing: 0.15em;
+    }
+
+    .result img {
+      max-width: 100%;
+      max-height: 20rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--spectre-line2);
+      border-radius: 0.6rem;
+    }
+
+    .meta {
+      margin-bottom: 0.8rem;
+      color: var(--spectre-dim);
+      font-size: 0.7rem;
+      line-height: 1.9;
+    }
+
+    .log {
+      margin-top: 1.1rem;
+    }
+
+    .log h4 {
+      margin-bottom: 0.5rem;
+      color: var(--spectre-dim);
+      font: 0.7rem var(--spectre-mono);
+      letter-spacing: 0.12em;
+    }
+
+    .logbox {
+      max-height: 10rem;
+      overflow-y: auto;
+      border: 1px solid var(--spectre-line);
+      border-radius: 0.55rem;
+      background: #060a11;
+      padding: 0.75rem;
+      color: #8ba3c0;
+      font-size: 0.7rem;
+      line-height: 1.9;
+      text-align: left;
+    }
+
+    .logbox .ok {
+      color: var(--spectre-acc);
+    }
+
+    .logbox .err {
+      color: var(--spectre-err);
+    }
+
+    .logbox .t {
+      color: var(--spectre-dim2);
+    }
+
+    .guide h2 {
+      margin-bottom: 0.8rem;
+      color: var(--spectre-acc);
+    }
+
+    .guide h3 {
+      margin: 1rem 0 0.4rem;
+      color: var(--spectre-gold);
+    }
+
+    .guide p,
+    .guide li {
+      color: var(--spectre-txt);
+      font-size: 0.82rem;
+      line-height: 2;
+    }
+
+    .guide ul {
+      padding-right: 1.4rem;
+    }
+
+    .guide code {
+      border: 1px solid var(--spectre-line);
+      border-radius: 0.3rem;
+      background: #0a111c;
+      padding: 0.15rem 0.4rem;
+      color: var(--spectre-acc);
+    }
+
+    footer {
+      padding: 1.6rem 0.5rem;
+      color: var(--spectre-dim2);
+      font: 0.68rem var(--spectre-mono);
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 99;
+      bottom: 1.4rem;
+      left: 50%;
+      transform: translate(-50%, 5rem);
+      border: 1px solid var(--spectre-acc);
+      border-radius: 0.6rem;
+      background: #0f1b2c;
+      padding: 0.7rem 1.2rem;
+      color: var(--spectre-acc);
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .toast.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    .opts {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .opt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--spectre-line2);
+      border-radius: 9px;
+      background: var(--spectre-card2);
+      padding: 10px 14px;
+      color: var(--spectre-txt);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: border-color 180ms ease;
+    }
+
+    .opt input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--spectre-acc);
+    }
+
+    .opt:hover {
+      border-color: var(--spectre-acc);
+    }
+
+    .sharebox {
+      display: none;
+      margin-top: 10px;
+      border: 1px solid color-mix(in srgb, var(--spectre-gold) 40%, transparent);
+      border-radius: 9px;
+      background: #060a11;
+      padding: 12px;
+      color: var(--spectre-gold);
+      font: 11px/1.9 var(--spectre-mono);
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .tool {
+      margin-top: 16px;
+      border: 1px solid var(--spectre-line);
+      border-radius: 12px;
+      background: var(--spectre-card2);
+      padding: 18px;
+    }
+
+    .tool h3 {
+      margin-bottom: 12px;
+      color: var(--spectre-acc);
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .tool .dim {
+      color: var(--spectre-dim);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      resize: vertical;
+      border: 1px solid var(--spectre-line2);
+      border-radius: 9px;
+      background: #0a111c;
+      padding: 12px;
+      color: var(--spectre-txt);
+      font: 13px/1.6 inherit;
+    }
+
+    textarea:focus {
+      border-color: var(--spectre-acc);
+      outline: none;
+    }
+
+    hr.sep {
+      margin: 16px 0;
+      border: 0;
+      border-top: 1px solid var(--spectre-line);
+    }
+
+    @media (max-width: 600px) {
+      .tabs {
+        flex-direction: column;
+      }
+
+      .f {
+        min-width: 100%;
+      }
+
+      .spectre-header h1 {
+        font-size: 1.7rem;
+      }
+    }
+
+    .secwrap{margin-top:18px;background:#0a111c;border:1px solid var(--line2);border-radius:12px;padding:14px}
+    .sec-head{font-size:13px;font-weight:700;color:var(--txt);letter-spacing:.5px;margin-bottom:10px}
+    .sec-head span{font-family:var(--mono);font-size:12px;font-weight:400}
+    .sec-meter{height:10px;background:#060a11;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+    .sec-meter i{display:block;height:100%;width:0;background:var(--acc);transition:.4s}
+    .sec-meter i.warn{background:var(--warn)}
+    .sec-meter i.danger{background:var(--err)}
+    .sec-sub{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);font-family:var(--mono);margin:6px 0 10px}
+    .sec-row{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.7;padding:7px 10px;border-radius:7px;margin-bottom:6px}
+    .sec-row.danger{border:1px solid rgba(240,106,106,.5);color:var(--err);background:rgba(240,106,106,.07)}
+    .sec-row.warn{border:1px solid rgba(232,177,63,.5);color:var(--warn);background:rgba(232,177,63,.07)}
+    .sec-row.info{border:1px solid var(--line2);color:var(--dim);background:rgba(255,255,255,.02)}
+    .sec-row.ok{border:1px solid rgba(61,220,151,.5);color:var(--acc);background:rgba(61,220,151,.06)}
+
+    .vault-ico {
+      display: block;
+      margin: 4px 0 10px;
+      font-size: 46px;
+      text-align: center;
+      animation: lockSwing 2.6s ease-in-out infinite;
+      transform-origin: top center;
+      filter: drop-shadow(0 0 12px rgb(61 220 151 / 35%));
+    }
+
+    .vault-ico {
+      display: block;
+      margin: 4px 0 10px;
+      font-size: 46px;
+      text-align: center;
+      animation: lockSwing 2.6s ease-in-out infinite;
+      transform-origin: top center;
+      filter: drop-shadow(0 0 12px rgb(61 220 151 / 35%));
+    }
+
+    .vcell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      border: 1px solid var(--spectre-line2);
+      border-radius: 9px;
+      background: var(--spectre-card2);
+      padding: 10px 12px;
+      font-size: 13px;
+      animation: cellIn 350ms ease both;
+      transition: border-color 200ms ease;
+    }
+
+    .vcell:hover {
+      border-color: var(--spectre-acc);
+    }
+
+    .vcell .cn {
+      color: var(--spectre-gold);
+      font: 12px var(--spectre-mono);
+      overflow-wrap: anywhere;
+    }
+
+    .vbtn {
+      border: 1px solid var(--spectre-line2);
+      border-radius: 7px;
+      background: #12202f;
+      padding: 7px 12px;
+      color: var(--spectre-txt);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: border-color 200ms ease, color 200ms ease;
+    }
+
+    .vbtn:hover {
+      border-color: var(--spectre-acc);
+      color: var(--spectre-acc);
+    }
+
+    .vbtn.red {
+      border-color: rgb(240 106 106 / 40%);
+      color: var(--spectre-err);
+    }
+
+    .vbtn.red:hover {
+      border-color: var(--spectre-err);
+    }
+
+    .vcount {
+      color: var(--spectre-dim);
+      font: 11px var(--spectre-mono);
+    }
+
+    @keyframes lockSwing {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-9deg); }
+      75% { transform: rotate(9deg); }
+    }
+
+    @keyframes doorOpen {
+      from { opacity: 0; transform: scale(0.9) rotateX(10deg); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes cellIn {
+      from { opacity: 0; transform: translateX(18px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes vaultPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgb(61 220 151 / 0%); }
+      50% { box-shadow: 0 0 24px 3px rgb(61 220 151 / 14%); }
+    }
+
+    .doorOpen {
+      animation: doorOpen 550ms ease both;
+    }
+
+    .panel.unlocked {
+      animation: vaultPulse 3s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .vault-ico,
+      .vcell,
+      .panel.unlocked {
+        animation: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .vault-ico,
+      .vcell,
+      .panel.unlocked {
+        animation: none;
+      }
+    }
+
+    .vgauge {
+      height: 10px;
+      margin: 10px 0 4px;
+      overflow: hidden;
+      border: 1px solid var(--spectre-line);
+      border-radius: 6px;
+      background: #060a11;
+    }
+
+    .vgauge i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--spectre-acc), var(--spectre-gold));
+      transition: width 0.5s ease;
+    }
+
+    .vwrap {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .vbody {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+    }
+
+    .vwrap.expanded {
+      border-color: var(--spectre-acc);
+    }
+
+    .vwrap.expanded .vbody {
+      max-height: 300px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .vgauge i,
+      .vbody {
+        transition: none;
+      }
+    }
+
+    .vgauge {
+      height: 10px;
+      overflow: hidden;
+      margin: 10px 0 4px;
+      border: 1px solid var(--spectre-line);
+      border-radius: 6px;
+      background: #060a11;
+    }
+
+    .vgauge i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--spectre-acc), var(--spectre-gold));
+      transition: width 0.5s ease;
+    }
+
+    .vwrap {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .vbody {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+    }
+
+    .vwrap.expanded {
+      border-color: var(--spectre-acc);
+    }
+
+    .vwrap.expanded .vbody {
+      max-height: 300px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .vbody,
+      .vgauge i {
+        transition: none;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="classbar">LOCAL EXPERIMENT // PNG ONLY — تجربة محلية تعليمية</div>
+  <div class="docline">SPECTRE ARCHIVE // AES-GCM // LSB RGB // NO NETWORK</div>
+
+  <main class="spectre-wrap">
+    <header class="spectre-header">
+      <div class="kicker">// CLASSIFIED TOOL</div>
+      <h1>SPECTRE <em>ARCHIVE</em></h1>
+      <p class="sub">تشفير محلي · الصورة هي الحاوية · لا رفع ولا تخزين دائم</p>
+      <p class="mt-4 text-center text-xs leading-5 text-[var(--spectre-dim)]">بغيت نسخة سحابية منظمة؟ <a href="/cell-architecture" class="font-bold text-[var(--spectre-acc)]">شوف مخطط الخلية الآمنة ←</a></p>
+      <div class="chips">
+        <span class="chip">AES-256-GCM</span>
+        <span class="chip">PBKDF2</span>
+        <span class="chip gold">PNG / RGB / LSB</span>
+        <span class="chip">100% CLIENT-SIDE</span>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="عمليات الأرشيف">
+      <button class="tab on" type="button" role="tab" aria-selected="true" data-p="hide">🕶️ إخفاء وثيقة</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-p="extract">🔓 استخراج وثيقة</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-p="guide">📋 دليل الميدان</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-p="tools">🧰 أدوات الميدان</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-p="vault">🔒 الخلية</button>
+    </div>
+
+    <section class="panel on" id="hide" role="tabpanel">
+      <div class="step">
+        <div class="n">01</div>
+        <div class="t">صورة الغطاء (PNG)<small>الصورة هي الحاوية — كلما كبرت أبعادها زادت السعة</small></div>
+      </div>
+      <div class="drop" id="coverDrop" tabindex="0" role="button"><span class="ico">📷</span>اسحب صورة الغطاء هنا أو <b>اضغط للاختيار</b><small>لا صورة غطاء بعد</small></div>
+      <input type="file" id="coverInput" accept="image/png" hidden>
+
+      <div class="step">
+        <div class="n">02</div>
+        <div class="t">الوثيقة السرية<small>أي نوع ملف — تُفتح بالعبارة السرية نفسها</small></div>
+      </div>
+      <div class="drop" id="fileDrop" tabindex="0" role="button"><span class="ico">📦</span>اسحب الوثيقة هنا أو <b>اضغط للاختيار</b><small>لا وثيقة بعد</small></div>
+      <input type="file" id="fileInput" hidden>
+
+      <div class="step">
+        <div class="n gold">03</div>
+        <div class="t">العبارة السرية<small>تبقى في ذاكرة الصفحة ولا تُحفظ</small></div>
+      </div>
+      <div class="row">
+        <div class="f"><label class="spectre-label" for="hidePass">العبارة السرية</label><input class="spectre-input" type="password" id="hidePass" placeholder="12 حرفًا على الأقل" autocomplete="new-password"></div>
+      </div>
+      <div class="meter"><i id="strBar"></i></div>
+      <div class="mrow"><span id="strTxt">قوة العبارة</span><span id="capTxt">—</span></div>
+
+      <div class="step" style="margin-top:20px"><div class="n gold">05</div>
+        <div class="t">خيارات ميدانية<small>تدمير بعد القراءة · توزيع على عدة صور · تقسيم العبارة (شامير)</small></div>
+      </div>
+      <div class="opts">
+        <label class="opt"><input type="checkbox" id="burnChk"> 🔥 تدمير بعد أول قراءة</label>
+        <label class="opt"><input type="checkbox" id="splitChk"> 🧩 توزيع على عدة صور</label>
+        <button class="go" id="shamirBtn" type="button" style="padding:10px 16px;font-size:13px">🧩 قسّم العبارة (شامير 3/2)</button>
+      </div>
+      <div class="sharebox" id="shamirOut"></div>
+
+    <div class="secwrap">
+      <div class="sec-head">🛡️ درع الإنذار الأمني — <span id="secLevel">جاهز</span></div>
+      <div class="sec-meter"><i id="secBar"></i></div>
+      <div class="sec-sub"><span id="secScore">مؤشر الحماية: —</span><span id="secTip">عمّر المعطيات باش يبدا التقييم المباشر</span></div>
+      <div id="secAlerts"></div>
+    </div>
+      <button class="go mt-4 w-full" id="hideBtn" type="button" disabled>⚡ تشفير ودفن الوثيقة</button>
+      <div class="msg" id="hideMsg" role="status" aria-live="polite"></div>
+
+      <div class="result" id="hideResult">
+        <div class="codename" id="opCode"></div>
+        <img id="stegoPreview" alt="معاينة الصورة الناتجة">
+        <div class="meta" id="opMeta"></div>
+        <button class="go" id="downloadBtn" type="button">⬇️ تنزيل صورة SPECTRE</button>
+      </div>
+      <div class="log">
+        <h4>// MISSION LOG — سجل العمليات</h4>
+        <div class="logbox" id="missionLog">
+          <div class="t">[SYSTEM] الخزنة المحلية جاهزة — بانتظار الأوامر</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="panel" id="extract">
+      <div class="step"><div class="n">01</div>
+        <div class="t">الصورة الناقلة<small>الصورة اللي فيها الوثيقة المدفونة — PNG بلا تعديل</small></div>
+      </div>
+      <div class="drop" id="stegoDrop" tabindex="0" role="button">
+        <span class="ico">🖼️</span>
+        اسحب الصورة الناقلة هنا أو <b>اضغط للاختيار</b>
+        <small>لا صورة ناقلة بعد</small>
+      </div>
+      <input type="file" id="stegoInput" accept="image/png" multiple hidden>
+
+      <div class="step" style="margin-top:20px"><div class="n">02</div>
+        <div class="t">العبارة السرية<small>حقيقية تفتح الحقيقية · وهمية تفتح التمويه · 3 محاولات خاطئة = PANIC WIPE</small></div>
+      </div>
+      <div class="row">
+        <div class="f">
+          <input class="spectre-input" type="password" id="extPass" placeholder="العبارة السرية" autocomplete="off">
+          <div class="mrow"><span id="attemptTxt">المحاولات الفاشلة: 0/3</span><span id="slotTxt">—</span></div>
+        </div>
+        <button class="go" id="extBtn" type="button" disabled>🔓 استخراج الوثيقة</button>
+      </div>
+
+      <div class="msg" id="extMsg" role="status" aria-live="polite"></div>
+
+      <div class="result" id="extResult">
+        <div class="codename" id="extCode"></div>
+        <div class="meta" id="extMeta"></div>
+        <button class="go" id="extDownload" type="button">⬇️ تنزيل الوثيقة</button>
+      </div>
+
+      <div class="result" id="wipeResult">
+        <div class="codename">🔥 PANIC WIPE — تم التنفيذ</div>
+        <img id="wipePreview" alt="الصورة المنظفة">
+        <div class="meta">الطبقات السرية مُسحت من الصورة نهائياً ببتات عشوائية — لا شيء قابل للاسترجاع<br>نزّل الصورة المنظفة ووزّعها مكان القديمة</div>
+        <button class="go burn" id="wipeDownload" type="button">⬇️ تنزيل الصورة المنظفة (PNG)</button>
+      </div>
+    </div>
+
+    <div class="panel" id="tools">
+    <div class="tool">
+      <h3>🎵 دفن داخل الصوت (WAV 16-bit PCM)</h3>
+      <div class="row" style="margin-top:0">
+        <div class="f">
+          <label>الصوت الغطاء</label>
+          <div class="drop" id="wavCoverDrop" style="margin:0">
+            <span class="ico">🎵</span>
+            اسحب ملف WAV هنا أو <b>اضغط للاختيار</b>
+            <small>السعة = عدد العينات ÷ 8 بايت</small>
+          </div>
+          <input type="file" id="wavCoverInput" accept=".wav,audio/wav" hidden>
+        </div>
+        <div class="f">
+          <label>الوثيقة السرية</label>
+          <div class="drop" id="wavFileDrop" style="margin:0">
+            <span class="ico">📦</span>
+            اسحب الوثيقة هنا أو <b>اضغط للاختيار</b>
+            <small>أي نوع ملف</small>
+          </div>
+          <input type="file" id="wavFileInput" hidden>
+        </div>
+      </div>
+      <div class="row">
+        <div class="f">
+          <label>العبارة السرية</label>
+          <input type="password" id="wavPass" placeholder="عبارة قوية">
+        </div>
+        <button class="go" id="wavHideBtn" disabled>🎵 دفن في الصوت</button>
+      </div>
+      <div class="msg" id="wavMsg"></div>
+      <hr class="sep">
+      <div class="row">
+        <div class="f">
+          <label>الصوت الناقل</label>
+          <div class="drop" id="wavStegoDrop" style="margin:0">
+            <span class="ico">🎙️</span>
+            اسحب الصوت الناقل هنا
+            <small>WAV بلا إعادة ترميز</small>
+          </div>
+          <input type="file" id="wavStegoInput" accept=".wav,audio/wav" hidden>
+        </div>
+        <div class="f">
+          <label>العبارة السرية</label>
+          <input type="password" id="wavExtPass" placeholder="نفس عبارة الدفن">
+        </div>
+        <button class="go" id="wavExtBtn" disabled>🔓 استخراج من الصوت</button>
+      </div>
+      <div class="msg" id="wavExtMsg"></div>
+    </div>
+
+    <div class="tool">
+      <h3>📝 دفن داخل النص (Zero-Width Characters)</h3>
+      <p class="dim">الوثيقة تتحول لأحرف خفية غير مرئية تُلحق بالنص — النص يبدو عادي 100%.</p>
+      <textarea id="zwText" placeholder="النص الغطاء — اكتب أو الصق نصاً عادياً"></textarea>
+      <div class="row">
+        <div class="f">
+          <div class="drop" id="zwFileDrop" style="margin:0">
+            <span class="ico">📦</span>
+            اسحب الوثيقة السرية هنا
+            <small>أي نوع ملف</small>
+          </div>
+          <input type="file" id="zwFileInput" hidden>
+        </div>
+        <div class="f">
+          <label>العبارة السرية</label>
+          <input type="password" id="zwPass" placeholder="عبارة قوية">
+        </div>
+        <button class="go" id="zwHideBtn" disabled>📝 دفن في النص</button>
+      </div>
+      <div class="msg" id="zwMsg"></div>
+      <textarea id="zwOut" hidden placeholder="النص الناقل"></textarea>
+      <div class="row" id="zwOutRow" style="display:none">
+        <button class="go" id="zwCopyBtn">📋 نسخ النص الناقل</button>
+      </div>
+      <hr class="sep">
+      <textarea id="zwIn" placeholder="الصق النص الناقل هنا للاستخراج"></textarea>
+      <div class="row">
+        <div class="f">
+          <label>العبارة السرية</label>
+          <input type="password" id="zwExtPass" placeholder="نفس عبارة الدفن">
+        </div>
+        <button class="go" id="zwExtBtn">🔓 استخراج من النص</button>
+      </div>
+      <div class="msg" id="zwExtMsg"></div>
+    </div>
+
+    <div class="tool">
+      <h3>🧩 شامير — قسم العبارة على 3 أشخاص (حصتان كافيتان)</h3>
+      <div class="row">
+        <div class="f">
+          <label>العبارة السرية</label>
+          <input type="password" id="shamPass" placeholder="العبارة المراد تقسيمها">
+        </div>
+        <button class="go" id="shamSplitBtn">🧩 قسّم (3 حصص)</button>
+      </div>
+      <textarea id="shamOut" hidden></textarea>
+      <hr class="sep">
+      <textarea id="shamIn" placeholder="الصق حصتين أو أكثر — كل حصة في سطر"></textarea>
+      <div class="row">
+        <button class="go" id="shamCombineBtn">🔑 أعد بناء العبارة</button>
+        <div class="f">
+          <input type="text" id="shamResult" placeholder="العبارة المسترجعة" readonly>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool">
+      <h3>🧰 أدوات الميدان</h3>
+      <p class="dim">أدوات محلية للمراجعة والتنظيم. لا تُرسل الصور أو العبارات إلى أي خدمة.</p>
+      <hr class="sep">
+      <label for="toolNotes">ملاحظات العملية</label>
+      <textarea id="toolNotes" placeholder="اكتب ملاحظاتك محليًا دون مفاتيح أو أسرار..."></textarea>
+      <p class="dim">تُستخدم هذه المساحة للملاحظات فقط، ولا تُحفظ تلقائيًا.</p>
+    </div>
+      <h3>🧰 أدوات الميدان</h3>
+      <p class="dim">أدوات محلية للمراجعة والتنظيم. لا تُرسل الصور أو العبارات إلى أي خدمة.</p>
+      <hr class="sep">
+      <label for="toolNotes">ملاحظات العملية</label>
+      <textarea id="toolNotes" placeholder="اكتب ملاحظاتك محليًا دون مفاتيح أو أسرار..."></textarea>
+      <p class="dim">تُستخدم هذه المساحة للملاحظات فقط، ولا تُحفظ تلقائيًا.</p>
+    </div>
+  </div>
+
+  <div class="result" id="wipeListResult">
+    <div class="codename">🔥 تم مسح كل الأجزاء</div>
+    <div class="meta" id="wipeListMeta"></div>
+    <button class="go burn" id="wipeListDownload" type="button">⬇️ تنزيل كل الصور المنظفة (PNG)</button>
+  </div>
+
+      <div class="panel" id="vault">
+      <div class="step">
+        <div class="n">01</div>
+        <div class="t">عبارة الخلية الرئيسية<small>الخزنة كبرت — وثائق حتى 100MB · تخزين داخلي مشفر IndexedDB · رفع عدة ملفات معاً</small></div>
+      </div>
+      <div class="row" id="vaultLockView">
+        <div class="f">
+          <input class="spectre-input" type="password" id="vaultPass" placeholder="عبارة الخلية الرئيسية" autocomplete="off">
+        </div>
+        <button class="go" id="vaultOpenBtn" type="button">🔓 فتح / إنشاء الخلية</button>
+      </div>
+      <div class="msg" id="vaultMsg" role="status" aria-live="polite"></div>
+      <div id="vaultOpenView" style="display:none">
+        <span class="vault-ico">🔐</span>
+        <div class="row" style="margin-top:0">
+          <div class="f">
+            <input class="spectre-input" type="text" id="vaultLabel" placeholder="تسمية الوثائق (اختياري)" autocomplete="off">
+          </div>
+        </div>
+        <div class="drop" id="vaultDrop" tabindex="0" role="button">
+          <span class="ico">📥</span>
+          اسحب الوثائق هنا أو <b>اضغط للاختيار</b> — عدة ملفات معاً
+          <small>الحد 100MB للوثيقة · كولشي كيتشفر قبل الخزن</small>
+        </div>
+        <input type="file" id="vaultFileInput" multiple hidden>
+        <div class="mrow">
+          <span class="vcount" id="vaultCount">0 وثائق</span>
+          <span class="vcount" id="vaultSize">—</span>
+        </div>
+        <div class="vgauge">
+          <i id="vaultGauge"></i>
+        </div>
+        <div class="mrow">
+          <span class="vcount" id="vaultGaugeTxt">الخزنة: جاري حساب السعة...</span>
+        </div>
+        <div class="vgauge"><i id="vaultGauge"></i></div>
+        <div class="mrow"><span class="vcount" id="vaultGaugeTxt">الخزنة: جاري حساب السعة...</span></div>
+        <div id="vaultList" style="margin-top:12px"></div>
+        <div class="row">
+                <button class="vbtn" id="vaultLockBtn" type="button">🔒 قفل الخلية</button>
+      <button class="vbtn red" id="vaultWipeBtn" type="button">🔥 حرق الخلية نهائياً</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel guide" id="guide">
+      <h3>⚡ المبدأ: "تخزين بدون تخزين"</h3>
+      <p>لا سيرفر ولا قاعدة بيانات ولا رفع ملفات. الوثيقة تشفَّر داخل متصفحك بـ <code>AES-256-GCM</code>، ثم تُدفن بتقنية <code>LSB Steganography</code> في البت الأخير من قنوات RGB. الصورة الناتجة PNG عادية، والصورة نفسها هي "الخزنة".</p>
+
+      <h3 class="gold">🎭 الطبقات القابلة للإنكار</h3>
+      <p>يمكن للصورة أن تحتوي على حمولة حقيقية وحمولة تمويه مستقلة، لكن هذا الإصدار يعرض فقط القدرات التي ينفذها الكود فعليًا. لا تعتمد على وجود التمويه أو الحرق كضمان أمني قبل اختبار دورة التشفير والاستخراج كاملة.</p>
+      <ul>
+        <li>العبارة الحقيقية يجب حفظها بعناية؛ فقدانها يمنع الاسترجاع.</li>
+        <li>استخدم PNG فقط، ولا تعدّل الصورة الناتجة أو تعيد ضغطها.</li>
+        <li>الملفات وكلمات المرور تعالج محليًا ولا تُرفع إلى خدمة خارجية.</li>
+      </ul>
+
+      <h3 class="gold">🔥 PANIC WIPE</h3>
+      <p>أي وظيفة للحرق يجب اختبارها بعناية على نسخة منفصلة؛ الكتابة العشوائية فوق الحمولة لا تضمن محوًا آمنًا من جميع النسخ أو الذاكرة أو لقطات الشاشة.</p>
+
+      <h3>🔬 السعة والحدود</h3>
+      <ul>
+        <li>السعة تعتمد على أبعاد الصورة وعدد قنوات RGB المتاحة.</li>
+        <li>الناقل يجب أن يبقى PNG؛ إعادة الضغط أو التحويل قد يفسد الحمولة.</li>
+        <li>احتفظ بنسخة أصلية منفصلة؛ الأداة ليست نظام نسخ احتياطي.</li>
+      </ul>
+
+      <h3>🛡️ الاستخدام المسؤول</h3>
+      <ul>
+        <li>استخدم الأداة لحماية ملفاتك وبياناتك التي تملك صلاحية معالجتها.</li>
+        <li>لا تستخدمها لإخفاء بيانات الآخرين أو تجاوز سياسات الوصول.</li>
+        <li>اختبر الاسترجاع قبل حذف أي نسخة أصلية.</li>
+      </ul>
+
+      <p class="dim">— SPECTRE ARCHIVE // معالجة محلية تعليمية —</p>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <footer>SPECTRE ARCHIVE · معالجة محلية داخل المتصفح فقط · لا تُرسل الملفات إلى أي خدمة</footer>
+
+  <script>
+    /* Vault presentation layer: expandable document rows and real browser quota gauge. */
+    (() => {
+      'use strict';
+
+      const vaultElement = (id) => document.getElementById(id);
+
+      function formatGaugeBytes(value) {
+        const bytes = Number(value) || 0;
+        if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+        if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(2)} MB`;
+        if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${bytes} بايت`;
+      }
+
+      async function updateVaultGauge() {
+        const bar = vaultElement('vaultGauge');
+        const text = vaultElement('vaultGaugeTxt');
+        if (!bar || !text || !navigator.storage?.estimate) return;
+
+        try {
+          const estimate = await navigator.storage.estimate();
+          const usage = Number(estimate.usage) || 0;
+          const quota = Number(estimate.quota) || 0;
+          const percent = quota ? Math.min(100, usage / quota * 100) : 0;
+          bar.style.width = `${percent}%`;
+          text.textContent = quota
+            ? `الخزنة واقفة على ${formatGaugeBytes(usage)} من ${formatGaugeBytes(quota)} — ${percent.toFixed(1)}% من سعة المتصفح`
+            : 'الخزنة: تعذر تحديد السعة المتاحة.';
+        } catch {
+          text.textContent = 'الخزنة: تعذر حساب السعة الحالية.';
+        }
+      }
+
+      function makeExpandableRows() {
+        const list = vaultElement('vaultList');
+        if (!list) return;
+
+        list.querySelectorAll('.vcell:not(.vwrap)').forEach((row) => {
+          const original = [...row.children];
+          if (!original.length) return;
+
+          const head = document.createElement('div');
+          head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;width:100%';
+          const arrow = document.createElement('span');
+          arrow.textContent = '⬇';
+          arrow.style.cssText = 'color:var(--spectre-dim);transition:transform .3s ease;font-size:11px';
+          head.append(...original, arrow);
+
+          const body = document.createElement('div');
+          body.className = 'vbody';
+          const details = document.createElement('div');
+          details.className = 'vcount';
+          details.style.margin = '10px 0';
+          const name = original[0]?.textContent?.replace(/^⭐\s*/, '') || 'document';
+          details.textContent = `📄 ${name}`;
+          body.append(details);
+
+          original.slice(1).forEach((child) => {
+            if (child.querySelector?.('button')) body.append(child);
+          });
+
+          row.replaceChildren(head, body);
+          row.classList.add('vwrap');
+          head.addEventListener('click', (event) => {
+            if (event.target.closest('button')) return;
+            const expanded = row.classList.toggle('expanded');
+            arrow.style.transform = expanded ? 'rotate(180deg)' : '';
+          });
+        });
+      }
+
+      const list = vaultElement('vaultList');
+      if (list) {
+        new MutationObserver(() => {
+          makeExpandableRows();
+          updateVaultGauge();
+        }).observe(list, { childList: true });
+      }
+
+      document.addEventListener('click', (event) => {
+        if (event.target.closest('#vaultOpenBtn, #vaultWipeBtn, [id^="vault"]')) {
+          window.setTimeout(updateVaultGauge, 100);
+        }
+      });
+
+      updateVaultGauge();
+    })();
+  </script>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const MAGIC = new TextEncoder().encode('SPC1');
+    const VERSION = 1;
+    const PBKDF2_ITERATIONS = 180000;
+    let coverImg = null;
+    let secretFile = null;
+    let stegoImg = null;
+    let outputUrl = '';
+    let extractedUrl = '';
+
+    function showMsg(element, text, kind) {
+      element.textContent = text;
+      element.className = `msg ${kind}`;
+    }
+
+    function hideMsg(element) {
+      element.textContent = '';
+      element.className = 'msg';
+    }
+
+    function toast(text) {
+      const element = $('toast');
+      element.textContent = text;
+      element.classList.add('show');
+      window.setTimeout(() => element.classList.remove('show'), 2400);
+    }
+
+    function logLine(kind, text) {
+      const log = $('missionLog');
+      if (log.textContent.includes('[SYSTEM]')) log.replaceChildren();
+      const line = document.createElement('div');
+      line.className = kind;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      log.append(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function fmtSize(bytes) {
+      if (bytes > 1048576) return `${(bytes / 1048576).toFixed(2)} MB`;
+      if (bytes > 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${bytes} بايت`;
+    }
+
+    function capacityBytes(width, height) {
+      return Math.floor(width * height * 3 / 8);
+    }
+
+    function randomCodename() {
+      const words = ['GHOST', 'RAVEN', 'COBRA', 'WRAITH', 'ONYX', 'SABLE'];
+      return `${words[Math.floor(Math.random() * words.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
+    }
+
+    function passStrength(value) {
+      let score = 0;
+      if (value.length >= 8) score += 1;
+      if (value.length >= 14) score += 1;
+      if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score += 1;
+      if (/\d/.test(value)) score += 1;
+      if (/[^a-zA-Z0-9]/.test(value)) score += 1;
+      return score;
+    }
+
+    async function deriveKey(passphrase, salt, usage) {
+      if (passphrase.length < 12) throw new Error('العبارة السرية يجب أن تحتوي على 12 حرفًا على الأقل.');
+      const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey({
+        name: 'PBKDF2',
+        salt,
+        iterations: PBKDF2_ITERATIONS,
+        hash: 'SHA-256'
+      }, material, {
+        name: 'AES-GCM',
+        length: 256
+      }, false, [usage]);
+    }
+
+    async function buildPayload(bytes, filename, passphrase) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveKey(passphrase, salt, 'encrypt');
+      const ciphertext = new Uint8Array(await crypto.subtle.encrypt({
+        name: 'AES-GCM',
+        iv
+      }, key, bytes));
+      const nameBytes = new TextEncoder().encode(filename);
+      if (nameBytes.length > 65535) throw new Error('اسم الملف طويل جدًا.');
+      const header = new Uint8Array(7 + nameBytes.length);
+      header.set(MAGIC);
+      header[4] = VERSION;
+      header[5] = nameBytes.length >> 8;
+      header[6] = nameBytes.length & 255;
+      header.set(nameBytes, 7);
+      const payload = new Uint8Array(header.length + 28 + ciphertext.length);
+      payload.set(header);
+      payload.set(salt, header.length);
+      payload.set(iv, header.length + 16);
+      payload.set(ciphertext, header.length + 28);
+      return payload;
+    }
+
+    async function parsePayload(payload, passphrase) {
+      if (payload.length < 7 + 28 + 16) throw new Error('الحمولة قصيرة أو تالفة.');
+      if (!MAGIC.every((byte, index) => payload[index] === byte)) throw new Error('لا توجد بصمة SPECTRE في الصورة.');
+      if (payload[4] !== VERSION) throw new Error('نسخة الحمولة غير مدعومة.');
+      const nameLength = (payload[5] << 8) | payload[6];
+      const offset = 7 + nameLength;
+      if (offset + 28 > payload.length) throw new Error('بنية الحمولة غير صالحة.');
+      const name = new TextDecoder().decode(payload.subarray(7, offset));
+      const salt = payload.subarray(offset, offset + 16);
+      const iv = payload.subarray(offset + 16, offset + 28);
+      const ciphertext = payload.subarray(offset + 28);
+      const key = await deriveKey(passphrase, salt, 'decrypt');
+      try {
+        const data = new Uint8Array(await crypto.subtle.decrypt({
+          name: 'AES-GCM',
+          iv
+        }, key, ciphertext));
+        return {
+          name,
+          data
+        };
+      } catch {
+        throw new Error('العبارة السرية خاطئة أو الصورة تالفة.');
+      }
+    }
+
+    function embedLSB(imageData, payload) {
+      const capacity = capacityBytes(imageData.width, imageData.height);
+      if (payload.length + 4 > capacity) throw new Error(`الصورة صغيرة؛ السعة المتاحة ${fmtSize(Math.max(0, capacity - 4))}.`);
+      const bytes = new Uint8Array(payload.length + 4);
+      bytes.set([payload.length >>> 24, payload.length >>> 16 & 255, payload.length >>> 8 & 255, payload.length & 255]);
+      bytes.set(payload, 4);
+      for (let bit = 0; bit < bytes.length * 8; bit += 1) {
+        const pixel = Math.floor(bit / 3);
+        const channel = bit % 3;
+        const index = pixel * 4 + channel;
+        imageData.data[index] = (imageData.data[index] & 254) | ((bytes[bit >> 3] >> (7 - bit % 8)) & 1);
+      }
+    }
+
+    function extractLSB(imageData) {
+      const capacity = capacityBytes(imageData.width, imageData.height);
+      const lengthBytes = new Uint8Array(4);
+      for (let bit = 0; bit < 32; bit += 1) {
+        const pixel = Math.floor(bit / 3);
+        const channel = bit % 3;
+        lengthBytes[bit >> 3] |= (imageData.data[pixel * 4 + channel] & 1) << (7 - bit % 8);
+      }
+      const length = lengthBytes[0] * 2 ** 24 + lengthBytes[1] * 2 ** 16 + lengthBytes[2] * 256 + lengthBytes[3];
+      if (!length || length + 4 > capacity || length > 64 * 1024 * 1024) throw new Error('لا توجد حمولة صالحة في الصورة.');
+      const payload = new Uint8Array(length);
+      for (let bit = 32; bit < (length + 4) * 8; bit += 1) {
+        const pixel = Math.floor(bit / 3);
+        const channel = bit % 3;
+        payload[(bit - 32) >> 3] |= (imageData.data[pixel * 4 + channel] & 1) << (7 - bit % 8);
+      }
+      return payload;
+    }
+
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        const url = URL.createObjectURL(file);
+        image.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(image);
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('تعذر قراءة صورة PNG.'));
+        };
+        image.src = url;
+      });
+    }
+
+    function setDropDone(drop, icon, title, subtitle, imageSource = '') {
+      drop.classList.add('sel');
+      drop.replaceChildren();
+      const iconElement = document.createElement('span');
+      iconElement.className = 'ico';
+      iconElement.textContent = icon;
+      const titleElement = document.createElement('b');
+      titleElement.textContent = title;
+      const subtitleElement = document.createElement('small');
+      subtitleElement.textContent = subtitle;
+      drop.append(iconElement, titleElement, subtitleElement);
+      if (imageSource) {
+        const image = document.createElement('img');
+        image.src = imageSource;
+        image.alt = 'معاينة الصورة المختارة';
+        drop.append(image);
+      }
+    }
+
+    function wireDrop(dropId, inputId, onFile) {
+      const drop = $(dropId);
+      const input = $(inputId);
+      const choose = () => input.click();
+      drop.addEventListener('click', (event) => {
+        if (event.target !== input) choose();
+      });
+      drop.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          choose();
+        }
+      });
+      input.addEventListener('change', () => input.files[0] && onFile(input.files[0]));
+      drop.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        drop.classList.add('hover');
+      });
+      drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
+      drop.addEventListener('drop', (event) => {
+        event.preventDefault();
+        drop.classList.remove('hover');
+        if (event.dataTransfer.files[0]) onFile(event.dataTransfer.files[0]);
+      });
+    }
+
+    function updateCapacity() {
+      if (!coverImg || !secretFile) {
+        $('capTxt').textContent = '—';
+        return;
+      }
+      const capacity = Math.max(0, capacityBytes(coverImg.width, coverImg.height) - 4);
+      const percent = capacity ? Math.round(secretFile.size / capacity * 100) : 100;
+      $('capTxt').textContent = `${fmtSize(secretFile.size)} / ${fmtSize(capacity)} (${percent}%)`;
+    }
+
+    function checkReady() {
+      const pass = $('hidePass').value;
+      const capacity = coverImg ? Math.max(0, capacityBytes(coverImg.width, coverImg.height) - 4) : 0;
+      $('hideBtn').disabled = !(coverImg && secretFile && pass.length >= 12 && secretFile.size <= capacity);
+      updateCapacity();
+    }
+
+    $('hidePass').addEventListener('input', () => {
+      const value = $('hidePass').value;
+      const score = passStrength(value);
+      $('strBar').style.width = `${value ? score * 20 : 0}%`;
+      $('strBar').className = score <= 1 ? 'err' : score <= 2 ? 'warn' : '';
+      $('strTxt').textContent = value ? ['ضعيفة جدًا', 'ضعيفة', 'متوسطة', 'جيدة', 'قوية', 'ممتازة'][score] : 'قوة العبارة';
+      checkReady();
+    });
+
+    wireDrop('coverDrop', 'coverInput', async (file) => {
+      hideMsg($('hideMsg'));
+      if (file.type !== 'image/png') {
+        showMsg($('hideMsg'), 'الغطاء يجب أن يكون PNG بالضبط.', 'err');
+        return;
+      }
+      try {
+        coverImg = await loadImage(file);
+        setDropDone($('coverDrop'), '📷', `الغطاء جاهز: ${file.name}`, `${coverImg.width}×${coverImg.height} · بدّل الصورة بالسحب من جديد`, coverImg.src);
+        logLine('ok', `COVER LOADED · ${coverImg.width}x${coverImg.height}`);
+        checkReady();
+      } catch (error) {
+        showMsg($('hideMsg'), error.message, 'err');
+      }
+    });
+
+    wireDrop('fileDrop', 'fileInput', (file) => {
+      hideMsg($('hideMsg'));
+      secretFile = file;
+      setDropDone($('fileDrop'), '📦', `الوثيقة: ${file.name}`, `${fmtSize(file.size)} · بدّل الوثيقة بالسحب من جديد`);
+      logLine('ok', `PAYLOAD READY · ${file.name} · ${fmtSize(file.size)}`);
+      checkReady();
+    });
+
+    $('hideBtn').addEventListener('click', async () => {
+      const button = $('hideBtn');
+      button.disabled = true;
+      button.textContent = '⏳ جاري التنفيذ...';
+      hideMsg($('hideMsg'));
+      try {
+        const payload = await buildPayload(new Uint8Array(await secretFile.arrayBuffer()), secretFile.name, $('hidePass').value);
+        const canvas = document.createElement('canvas');
+        canvas.width = coverImg.width;
+        canvas.height = coverImg.height;
+        const context = canvas.getContext('2d', {
+          willReadFrequently: true
+        });
+        context.drawImage(coverImg, 0, 0);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        embedLSB(imageData, payload);
+        context.putImageData(imageData, 0, 0);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+        if (!blob) throw new Error('تعذر إنشاء صورة PNG الناتجة.');
+        if (outputUrl) URL.revokeObjectURL(outputUrl);
+        outputUrl = URL.createObjectURL(blob);
+        $('stegoPreview').src = outputUrl;
+        $('opCode').textContent = `⭐ ${randomCodename()}`;
+        $('opMeta').textContent = `الوثيقة: ${secretFile.name} · الحمولة: ${fmtSize(payload.length)} · الصورة: ${coverImg.width}×${coverImg.height}`;
+        $('hideResult').classList.add('show');
+        $('downloadBtn').onclick = () => {
+          const link = document.createElement('a');
+          link.href = outputUrl;
+          link.download = `spectre-${Date.now()}.png`;
+          link.click();
+          toast('تم تنزيل الصورة؛ احتفظ بها بصيغة PNG دون تعديل.');
+        };
+        logLine('ok', `ENCRYPTED AND EMBEDDED · ${fmtSize(payload.length)}`);
+        showMsg($('hideMsg'), '✅ تمت العملية محليًا. لا تعدّل صورة PNG الناتجة.', 'ok');
+      } catch (error) {
+        logLine('err', `ERROR · ${error.message}`);
+        showMsg($('hideMsg'), `❌ ${error.message}`, 'err');
+      } finally {
+        button.textContent = '⚡ تشفير ودفن الوثيقة';
+        checkReady();
+      }
+    });
+
+    wireDrop('stegoDrop', 'stegoInput', async (file) => {
+      hideMsg($('extMsg'));
+      if (file.type !== 'image/png') {
+        showMsg($('extMsg'), 'الصورة الناقلة يجب أن تكون PNG.', 'err');
+        return;
+      }
+      try {
+        stegoImg = await loadImage(file);
+        setDropDone($('stegoDrop'), '🖼️', `الصورة الناقلة جاهزة: ${file.name}`, `${stegoImg.width}×${stegoImg.height}`);
+        $('extBtn').disabled = false;
+      } catch (error) {
+        showMsg($('extMsg'), error.message, 'err');
+      }
+    });
+
+    $('extBtn').addEventListener('click', async () => {
+      const button = $('extBtn');
+      button.disabled = true;
+      hideMsg($('extMsg'));
+      try {
+        if (!stegoImg) throw new Error('اختر صورة SPECTRE أولًا.');
+        showMsg($('extMsg'), '⏳ الاستخراج وفك التشفير جارٍ داخل جهازك...', 'warn');
+        const canvas = document.createElement('canvas');
+        canvas.width = stegoImg.width;
+        canvas.height = stegoImg.height;
+        const context = canvas.getContext('2d', {
+          willReadFrequently: true
+        });
+        context.drawImage(stegoImg, 0, 0);
+        const documentData = await parsePayload(extractLSB(context.getImageData(0, 0, canvas.width, canvas.height)), $('extPass').value);
+        if (extractedUrl) URL.revokeObjectURL(extractedUrl);
+        extractedUrl = URL.createObjectURL(new Blob([documentData.data], {
+          type: 'application/octet-stream'
+        }));
+        $('extCode').textContent = `🔓 تم استخراج: ${documentData.name} · ${fmtSize(documentData.data.length)}`;
+        $('extResult').classList.add('show');
+        $('extDownload').onclick = () => {
+          const link = document.createElement('a');
+          link.href = extractedUrl;
+          link.download = documentData.name || 'spectre-extracted-file';
+          link.click();
+        };
+        showMsg($('extMsg'), '✅ خرجت الوثيقة وفُك تشفيرها محليًا بنجاح.', 'ok');
+      } catch (error) {
+        showMsg($('extMsg'), `❌ ${error.message}`, 'err');
+      } finally {
+        button.disabled = !stegoImg;
+      }
+    });
+
+    document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach((item) => {
+        item.classList.toggle('on', item === tab);
+        item.setAttribute('aria-selected', String(item === tab));
+      });
+      document.querySelectorAll('.panel').forEach((panel) => {
+        panel.classList.toggle('on', panel.id === tab.dataset.p);
+      });
+    }));
+
+    window.addEventListener('beforeunload', () => {
+      if (outputUrl) URL.revokeObjectURL(outputUrl);
+      if (extractedUrl) URL.revokeObjectURL(extractedUrl);
+    });
+
+  
+    // Optional v2/v3 dual-layer core is namespaced to avoid conflicts with the legacy single-layer core.
+    window.SpectreDualLayer = (() => {
+      const DUAL_MAGIC = new Uint8Array([0x41, 0x49, 0x50, 0x53]);
+      const DUAL_VERSION = 2;
+      const DUAL_SLOT_COUNT = 4;
+
+      function dualRandomBytes(length) {
+        const output = new Uint8Array(length);
+        for (let offset = 0; offset < length; offset += 65536) {
+          const size = Math.min(65536, length - offset);
+          output.set(crypto.getRandomValues(new Uint8Array(size)), offset);
+        }
+        return output;
+      }
+
+      async function dualDeriveKey(passphrase, salt) {
+        const material = await crypto.subtle.importKey(
+          'raw',
+          new TextEncoder().encode(passphrase),
+          'PBKDF2',
+          false,
+          ['deriveKey']
+        );
+
+        return crypto.subtle.deriveKey(
+          {
+            name: 'PBKDF2',
+            salt,
+            iterations: 150000,
+            hash: 'SHA-256'
+          },
+          material,
+          {
+            name: 'AES-GCM',
+            length: 256
+          },
+          false,
+          ['encrypt', 'decrypt']
+        );
+      }
+
+      function buildInner(name, data, innerLength) {
+        const nameBytes = new TextEncoder().encode(name);
+        const requiredLength = 2 + nameBytes.length + 4 + data.length;
+        if (requiredLength > innerLength) {
+          throw new Error('The selected file does not fit inside the dual-layer slot.');
+        }
+
+        const inner = new Uint8Array(innerLength);
+        inner[0] = (nameBytes.length >> 8) & 0xff;
+        inner[1] = nameBytes.length & 0xff;
+        inner.set(nameBytes, 2);
+
+        const dataOffset = 2 + nameBytes.length;
+        inner[dataOffset] = (data.length >>> 24) & 0xff;
+        inner[dataOffset + 1] = (data.length >>> 16) & 0xff;
+        inner[dataOffset + 2] = (data.length >>> 8) & 0xff;
+        inner[dataOffset + 3] = data.length & 0xff;
+        inner.set(data, dataOffset + 4);
+
+        const paddingStart = dataOffset + 4 + data.length;
+        if (paddingStart < inner.length) {
+          inner.set(dualRandomBytes(inner.length - paddingStart), paddingStart);
+        }
+
+        return inner;
+      }
+
+      async function encryptSlot(inner, passphrase) {
+        if (typeof passphrase !== 'string' || passphrase.length < 12) {
+          throw new Error('Each layer passphrase must contain at least 12 characters.');
+        }
+
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await dualDeriveKey(passphrase, salt);
+        const encrypted = new Uint8Array(await crypto.subtle.encrypt(
+          {
+            name: 'AES-GCM',
+            iv
+          },
+          key,
+          inner
+        ));
+
+        const slot = new Uint8Array(28 + encrypted.length);
+        slot.set(salt, 0);
+        slot.set(iv, 16);
+        slot.set(encrypted, 28);
+        return slot;
+      }
+
+      async function buildDualPayload(realBytes, realName, realPassphrase, decoyBytes, decoyName, decoyPassphrase) {
+        if (!(realBytes instanceof Uint8Array)) {
+          throw new Error('The real layer must be supplied as Uint8Array data.');
+        }
+
+        const encoder = new TextEncoder();
+        const realNameLength = encoder.encode(realName).length;
+        const decoyNameLength = decoyBytes ? encoder.encode(decoyName).length : 0;
+        const realLength = 2 + realNameLength + 4 + realBytes.length;
+        const decoyLength = decoyBytes ? 2 + decoyNameLength + 4 + decoyBytes.length : 0;
+        const innerLength = Math.ceil(Math.max(realLength, decoyLength, 1024) / 1024) * 1024;
+
+        const realSlot = await encryptSlot(
+          buildInner(realName, realBytes, innerLength),
+          realPassphrase
+        );
+        const decoySlot = decoyBytes instanceof Uint8Array
+          ? await encryptSlot(buildInner(decoyName, decoyBytes, innerLength), decoyPassphrase)
+          : null;
+
+        if (decoySlot && decoySlot.length !== realSlot.length) {
+          throw new Error('Dual-layer slots must have equal lengths.');
+        }
+
+        const slotLength = realSlot.length;
+        const realIndex = crypto.getRandomValues(new Uint8Array(1))[0] % DUAL_SLOT_COUNT;
+        let decoyIndex = -1;
+        if (decoySlot) {
+          do {
+            decoyIndex = crypto.getRandomValues(new Uint8Array(1))[0] % DUAL_SLOT_COUNT;
+          } while (decoyIndex === realIndex);
+        }
+
+        const header = new Uint8Array(10);
+        header.set(DUAL_MAGIC, 0);
+        header[4] = DUAL_VERSION;
+        header[5] = DUAL_SLOT_COUNT;
+        header[6] = (slotLength >>> 24) & 0xff;
+        header[7] = (slotLength >>> 16) & 0xff;
+        header[8] = (slotLength >>> 8) & 0xff;
+        header[9] = slotLength & 0xff;
+
+        const payload = new Uint8Array(10 + DUAL_SLOT_COUNT * slotLength);
+        payload.set(header, 0);
+
+        let offset = 10;
+        for (let index = 0; index < DUAL_SLOT_COUNT; index += 1) {
+          const slot = index === realIndex
+            ? realSlot
+            : index === decoyIndex
+              ? decoySlot
+              : dualRandomBytes(slotLength);
+          payload.set(slot, offset);
+          offset += slotLength;
+        }
+
+        return {
+          payload,
+          realIndex,
+          decoyIndex,
+          slotLength,
+          slotCount: DUAL_SLOT_COUNT
+        };
+      }
+
+      async function parseDualPayload(payload, passphrase) {
+        if (payload.length < 10) throw new Error('NOT_SPECTRE');
+        if (!DUAL_MAGIC.every((byte, index) => payload[index] === byte)) {
+          throw new Error('NOT_SPECTRE');
+        }
+        if (payload[4] !== DUAL_VERSION) throw new Error('BADVER');
+
+        const slotCount = payload[5];
+        const slotLength = (
+          (payload[6] * 2 ** 24) +
+          (payload[7] * 2 ** 16) +
+          (payload[8] * 2 ** 8) +
+          payload[9]
+        );
+
+        if (
+          slotCount < 1 ||
+          slotCount > 64 ||
+          slotLength < 1000 ||
+          payload.length !== 10 + slotCount * slotLength
+        ) {
+          throw new Error('CORRUPTED_PAYLOAD');
+        }
+
+        for (let index = 0; index < slotCount; index += 1) {
+          const offset = 10 + index * slotLength;
+          const salt = payload.subarray(offset, offset + 16);
+          const iv = payload.subarray(offset + 16, offset + 28);
+          const ciphertext = payload.subarray(offset + 28, offset + slotLength);
+
+          try {
+            const key = await dualDeriveKey(passphrase, salt);
+            const decrypted = await crypto.subtle.decrypt(
+              {
+                name: 'AES-GCM',
+                iv
+              },
+              key,
+              ciphertext
+            );
+            const inner = new Uint8Array(decrypted);
+
+            if (inner.length < 6) continue;
+            const nameLength = (inner[0] << 8) | inner[1];
+            const dataOffset = 2 + nameLength;
+            if (dataOffset + 4 > inner.length) continue;
+
+            const name = new TextDecoder().decode(
+              inner.subarray(2, dataOffset)
+            );
+            const dataLength = (
+              (inner[dataOffset] * 2 ** 24) +
+              (inner[dataOffset + 1] * 2 ** 16) +
+              (inner[dataOffset + 2] * 2 ** 8) +
+              inner[dataOffset + 3]
+            );
+            const contentStart = dataOffset + 4;
+            const contentEnd = contentStart + dataLength;
+
+            if (contentEnd > inner.length) continue;
+
+            return {
+              name,
+              data: inner.slice(contentStart, contentEnd),
+              slot: index
+            };
+          } catch {
+            // This slot is padding or belongs to another passphrase.
+          }
+        }
+
+        throw new Error('WRONG_PASS');
+      }
+
+      async function parsePayloadV1(payload, passphrase) {
+        if (payload.length < 35) throw new Error('NOT_SPECTRE');
+        if (!DUAL_MAGIC.every((byte, index) => payload[index] === byte)) {
+          throw new Error('NOT_SPECTRE');
+        }
+        if (payload[4] !== 1) throw new Error('BADVER');
+
+        const nameLength = (payload[5] << 8) | payload[6];
+        const dataOffset = 7 + nameLength;
+        if (dataOffset + 28 > payload.length) throw new Error('CORRUPTED_PAYLOAD');
+
+        const name = new TextDecoder().decode(
+          payload.subarray(7, dataOffset)
+        );
+        const salt = payload.subarray(dataOffset, dataOffset + 16);
+        const iv = payload.subarray(dataOffset + 16, dataOffset + 28);
+        const ciphertext = payload.subarray(dataOffset + 28);
+        const key = await dualDeriveKey(passphrase, salt);
+        const decrypted = await crypto.subtle.decrypt(
+          {
+            name: 'AES-GCM',
+            iv
+          },
+          key,
+          ciphertext
+        );
+
+        return {
+          name,
+          data: new Uint8Array(decrypted),
+          slot: -1
+        };
+      }
+
+      function wipeLSBPayload(imageData) {
+        const capacity = Math.floor(imageData.width * imageData.height * 3 / 8);
+        const lengthBytes = new Uint8Array(4);
+
+        for (let bit = 0; bit < 32; bit += 1) {
+          const pixel = Math.floor(bit / 3);
+          const channel = bit % 3;
+          const index = pixel * 4 + channel;
+          lengthBytes[bit >> 3] |=
+            (imageData.data[index] & 1) << (7 - (bit % 8));
+        }
+
+        const payloadLength = (
+          (lengthBytes[0] * 2 ** 24) +
+          (lengthBytes[1] * 2 ** 16) +
+          (lengthBytes[2] * 2 ** 8) +
+          lengthBytes[3]
+        );
+        const totalBytes = payloadLength >= 1 && payloadLength + 4 <= capacity
+          ? payloadLength + 4
+          : capacity;
+        const random = dualRandomBytes(totalBytes);
+
+        for (let bit = 0; bit < totalBytes * 8; bit += 1) {
+          const pixel = Math.floor(bit / 3);
+          const channel = bit % 3;
+          const index = pixel * 4 + channel;
+          const value = (random[bit >> 3] >> (7 - (bit % 8))) & 1;
+          imageData.data[index] = (imageData.data[index] & 0xfe) | value;
+        }
+
+        return imageData;
+      }
+
+      function embedLSB(imageData, payload) {
+        const capacity = Math.floor(imageData.width * imageData.height * 3 / 8);
+        const totalBytes = 4 + payload.length;
+        if (totalBytes > capacity) {
+          throw new Error(`IMAGE_TOO_SMALL:${capacity}`);
+        }
+
+        const stream = new Uint8Array(totalBytes);
+        stream[0] = (payload.length >>> 24) & 0xff;
+        stream[1] = (payload.length >>> 16) & 0xff;
+        stream[2] = (payload.length >>> 8) & 0xff;
+        stream[3] = payload.length & 0xff;
+        stream.set(payload, 4);
+
+        for (let bit = 0; bit < totalBytes * 8; bit += 1) {
+          const pixel = Math.floor(bit / 3);
+          const channel = bit % 3;
+          const index = pixel * 4 + channel;
+          const value = (stream[bit >> 3] >> (7 - (bit % 8))) & 1;
+          imageData.data[index] = (imageData.data[index] & 0xfe) | value;
+        }
+
+        return imageData;
+      }
+
+      function extractLSB(imageData) {
+        const capacity = Math.floor(imageData.width * imageData.height * 3 / 8);
+        const lengthBytes = new Uint8Array(4);
+
+        for (let bit = 0; bit < 32; bit += 1) {
+          const pixel = Math.floor(bit / 3);
+          const channel = bit % 3;
+          const index = pixel * 4 + channel;
+          lengthBytes[bit >> 3] |=
+            (imageData.data[index] & 1) << (7 - (bit % 8));
+        }
+
+        const payloadLength = (
+          (lengthBytes[0] * 2 ** 24) +
+          (lengthBytes[1] * 2 ** 16) +
+          (lengthBytes[2] * 2 ** 8) +
+          lengthBytes[3]
+        );
+        if (!payloadLength || payloadLength + 4 > capacity) {
+          throw new Error('NO_VALID_PAYLOAD');
+        }
+
+        const payload = new Uint8Array(payloadLength);
+        for (let bit = 32; bit < (payloadLength + 4) * 8; bit += 1) {
+          const pixel = Math.floor(bit / 3);
+          const channel = bit % 3;
+          const index = pixel * 4 + channel;
+          payload[(bit - 32) >> 3] |=
+            (imageData.data[index] & 1) << (7 - (bit % 8));
+        }
+
+        return payload;
+      }
+
+      return {
+        MAGIC: DUAL_MAGIC,
+        VERSION: DUAL_VERSION,
+        SLOT_COUNT: DUAL_SLOT_COUNT,
+        randomBytes: dualRandomBytes,
+        deriveKey: dualDeriveKey,
+        buildDualPayload,
+        parseDualPayload,
+        parsePayloadV1,
+        wipeLSBPayload,
+        embedLSB,
+        extractLSB
+      };
+    })();
+  </script>
+<script>
+/* ===== SPECTRE V4 CORE ===== */
+window.SpectreV4 = (() => {
+  async function buildPayloadV1(fileBytes, filename, pass) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(pass, salt);
+    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({
+      name: 'AES-GCM',
+      iv
+    }, key, fileBytes));
+    const nameBytes = new TextEncoder().encode(filename);
+    const payload = new Uint8Array(4 + 1 + 2 + nameBytes.length + 16 + 12 + ciphertext.length);
+    payload.set(MAGIC, 0);
+    payload[4] = VER;
+    payload[5] = (nameBytes.length >> 8) & 0xff;
+    payload[6] = nameBytes.length & 0xff;
+    payload.set(nameBytes, 7);
+    const offset = 7 + nameBytes.length;
+    payload.set(salt, offset);
+    payload.set(iv, offset + 16);
+    payload.set(ciphertext, offset + 28);
+    return payload;
+  }
+
+  function parseWavMeta(bytes) {
+    if (bytes.length < 44) throw new Error('ملف WAV غير صالح');
+
+    const tag = (index) => String.fromCharCode(
+      bytes[index],
+      bytes[index + 1],
+      bytes[index + 2],
+      bytes[index + 3]
+    );
+
+    if (tag(0) !== 'RIFF' || tag(8) !== 'WAVE') {
+      throw new Error('خاصو ملف WAV');
+    }
+
+    let offset = 12;
+    let dataOffset = -1;
+    let dataLength = 0;
+    let format = 0;
+    let bitsPerSample = 0;
+
+    while (offset + 8 <= bytes.length) {
+      const chunkId = tag(offset);
+      const chunkSize = bytes[offset + 4] |
+        (bytes[offset + 5] << 8) |
+        (bytes[offset + 6] << 16) |
+        (bytes[offset + 7] * 16777216);
+
+      if (offset + 8 + chunkSize > bytes.length) {
+        throw new Error('بنية WAV غير مكتملة');
+      }
+
+      if (chunkId === 'fmt ') {
+        if (chunkSize < 24) throw new Error('بيانات fmt في WAV غير صالحة');
+        format = bytes[offset + 8] | (bytes[offset + 9] << 8);
+        bitsPerSample = bytes[offset + 22] | (bytes[offset + 23] << 8);
+      } else if (chunkId === 'data') {
+        dataOffset = offset + 8;
+        dataLength = chunkSize;
+      }
+
+      offset += 8 + chunkSize + (chunkSize % 2);
+    }
+
+    if (dataOffset < 0 || format !== 1 || bitsPerSample !== 16) {
+      throw new Error('صيغة غير مدعومة — خاص WAV PCM 16-bit');
+    }
+
+    return {
+      dataOffset,
+      dataLength
+    };
+  }
+
+  function embedWav(bytes, payload) {
+    const wav = parseWavMeta(bytes);
+    const capacity = Math.floor(wav.dataLength / 2 / 8);
+    const totalLength = 4 + payload.length;
+
+    if (totalLength > capacity) {
+      throw new Error(`الصوت قصير على الوثيقة — السعة القصوى ${capacity} بايت`);
+    }
+
+    const stream = new Uint8Array(totalLength);
+    stream[0] = (payload.length >>> 24) & 0xff;
+    stream[1] = (payload.length >>> 16) & 0xff;
+    stream[2] = (payload.length >>> 8) & 0xff;
+    stream[3] = payload.length & 0xff;
+    stream.set(payload, 4);
+
+    const output = bytes.slice();
+    for (let bitIndex = 0; bitIndex < totalLength * 8; bitIndex += 1) {
+      const sampleIndex = wav.dataOffset + bitIndex * 2;
+      const bit = (stream[bitIndex >> 3] >> (7 - (bitIndex % 8))) & 1;
+      output[sampleIndex] = (output[sampleIndex] & 0xfe) | bit;
+    }
+
+    return output;
+  }
+
+  function extractWav(bytes) {
+    const wav = parseWavMeta(bytes);
+    const capacity = Math.floor(wav.dataLength / 2 / 8);
+    const lengthBytes = new Uint8Array(4);
+
+    for (let bitIndex = 0; bitIndex < 32; bitIndex += 1) {
+      const sampleIndex = wav.dataOffset + bitIndex * 2;
+      lengthBytes[bitIndex >> 3] |=
+        (bytes[sampleIndex] & 1) << (7 - (bitIndex % 8));
+    }
+
+    const payloadLength = (
+      (lengthBytes[0] << 24) |
+      (lengthBytes[1] << 16) |
+      (lengthBytes[2] << 8) |
+      lengthBytes[3]
+    ) >>> 0;
+
+    if (payloadLength < 1 || payloadLength + 4 > capacity) {
+      throw new Error('ما كاين بصمة SPECTRE في هاد الصوت');
+    }
+
+    const output = new Uint8Array(payloadLength);
+    for (let bitIndex = 32; bitIndex < (4 + payloadLength) * 8; bitIndex += 1) {
+      const sampleIndex = wav.dataOffset + bitIndex * 2;
+      output[(bitIndex >> 3) - 4] |=
+        (bytes[sampleIndex] & 1) << (7 - (bitIndex % 8));
+    }
+
+    return output;
+  }
+
+  const ZERO_WIDTH_ZERO = '\u200B';
+  const ZERO_WIDTH_ONE = '\u200C';
+
+  function zwEmbed(coverText, payload) {
+    const stream = new Uint8Array(4 + payload.length);
+    stream[0] = (payload.length >>> 24) & 0xff;
+    stream[1] = (payload.length >>> 16) & 0xff;
+    stream[2] = (payload.length >>> 8) & 0xff;
+    stream[3] = payload.length & 0xff;
+    stream.set(payload, 4);
+
+    let hidden = '';
+    for (let bitIndex = 0; bitIndex < stream.length * 8; bitIndex += 1) {
+      const bit = (stream[bitIndex >> 3] >> (7 - (bitIndex % 8))) & 1;
+      hidden += bit ? ZERO_WIDTH_ONE : ZERO_WIDTH_ZERO;
+    }
+
+    return coverText + hidden;
+  }
+
+  function zwExtract(text) {
+    const bits = [];
+    for (const character of text) {
+      if (character === ZERO_WIDTH_ZERO) bits.push(0);
+      if (character === ZERO_WIDTH_ONE) bits.push(1);
+    }
+
+    if (bits.length < 32) {
+      throw new Error('ما كاين بصمة SPECTRE في هاد النص');
+    }
+
+    const readByte = (bitIndex) => {
+      let value = 0;
+      for (let offset = 0; offset < 8; offset += 1) {
+        value = (value << 1) | bits[bitIndex + offset];
+      }
+      return value >>> 0;
+    };
+
+    const payloadLength = (
+      (readByte(0) << 24) |
+      (readByte(8) << 16) |
+      (readByte(16) << 8) |
+      readByte(24)
+    ) >>> 0;
+
+    if (payloadLength < 1 || 32 + payloadLength * 8 > bits.length) {
+      throw new Error('بصمة النص تالفة');
+    }
+
+    const output = new Uint8Array(payloadLength);
+    for (let index = 0; index < payloadLength; index += 1) {
+      output[index] = readByte(32 + index * 8);
+    }
+
+    return output;
+  }
+
+  return {
+    buildPayloadV1,
+    parseWavMeta,
+    embedWav,
+    extractWav,
+    zwEmbed,
+    zwExtract,
+    ZERO_WIDTH_ZERO,
+    ZERO_WIDTH_ONE
+  };
+})();
+</script>
+<script>
+/* ===== SPECTRE V4 EXTENSIONS ===== */
+function gfMul(a, b) {
+  let p = 0;
+  while (b) {
+    if (b & 1) p ^= a;
+    a <<= 1;
+    if (a & 0x100) a ^= 0x11b;
+    b >>= 1;
+  }
+  return p & 0xff;
+}
+
+function gfInv(a) {
+  if (!a) throw new Error('gf_inv(0)');
+  for (let i = 1; i < 256; i += 1) {
+    if (gfMul(a, i) === 1) return i;
+  }
+  throw new Error('gf_inv: no inverse');
+}
+
+function shamirSplit(secretBytes, n, t) {
+  if (!(secretBytes instanceof Uint8Array)) {
+    throw new Error('Secret must be supplied as Uint8Array.');
+  }
+  if (!Number.isInteger(n) || !Number.isInteger(t) || n < 1 || n > 255 || t < 1 || t > n) {
+    throw new Error('Invalid Shamir share or threshold count.');
+  }
+
+  const shares = Array.from({ length: n }, () => new Uint8Array(secretBytes.length));
+  for (let byteIndex = 0; byteIndex < secretBytes.length; byteIndex += 1) {
+    const coefficients = new Uint8Array(t);
+    coefficients[0] = secretBytes[byteIndex];
+    if (t > 1) coefficients.set(randomBytes(t - 1), 1);
+
+    for (let x = 1; x <= n; x += 1) {
+      let value = 0;
+      let power = 1;
+      for (let coefficientIndex = 0; coefficientIndex < t; coefficientIndex += 1) {
+        value ^= gfMul(coefficients[coefficientIndex], power);
+        power = gfMul(power, x);
+      }
+      shares[x - 1][byteIndex] = value;
+    }
+  }
+  return shares;
+}
+
+function shamirCombine(parts) {
+  if (!Array.isArray(parts) || parts.length === 0) {
+    throw new Error('Provide at least one Shamir share.');
+  }
+  const length = parts[0].data.length;
+  if (parts.some((part) => !part || !(part.data instanceof Uint8Array) || part.data.length !== length)) {
+    throw new Error('Shamir shares must have matching lengths.');
+  }
+
+  const out = new Uint8Array(length);
+  for (let byteIndex = 0; byteIndex < length; byteIndex += 1) {
+    let secret = 0;
+    for (let shareIndex = 0; shareIndex < parts.length; shareIndex += 1) {
+      let numerator = 1;
+      let denominator = 1;
+      for (let otherIndex = 0; otherIndex < parts.length; otherIndex += 1) {
+        if (otherIndex === shareIndex) continue;
+        numerator = gfMul(numerator, parts[otherIndex].x);
+        denominator = gfMul(denominator, parts[otherIndex].x ^ parts[shareIndex].x);
+      }
+      secret ^= gfMul(
+        parts[shareIndex].data[byteIndex],
+        gfMul(numerator, gfInv(denominator))
+      );
+    }
+    out[byteIndex] = secret;
+  }
+  return out;
+}
+
+function bytesToHex(bytes) {
+  let output = '';
+  for (const byte of bytes) output += byte.toString(16).padStart(2, '0');
+  return output;
+}
+
+function hexToBytes(hex) {
+  if (!/^(?:[0-9a-f]{2})*$/i.test(hex)) throw new Error('Invalid hexadecimal data.');
+  const output = new Uint8Array(hex.length / 2);
+  for (let index = 0; index < output.length; index += 1) {
+    output[index] = Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16);
+  }
+  return output;
+}
+
+function withBurnFlag(payload, burn) {
+  if (!burn) return payload;
+  const output = new Uint8Array(payload.length + 1);
+  output.set(payload);
+  output[payload.length] = 1;
+  return output;
+}
+
+async function parseFullV4(payload, pass) {
+  if (!(payload instanceof Uint8Array) || payload.length < 5) {
+    throw new Error('NOT_SPECTRE');
+  }
+
+  if (payload[4] === VER2) {
+    if (payload.length < 10) throw new Error('تالف');
+    const slotCount = payload[5];
+    const slotLength = (
+      (payload[6] * 2 ** 24) +
+      (payload[7] * 2 ** 16) +
+      (payload[8] * 2 ** 8) +
+      payload[9]
+    );
+    const expectedLength = 10 + slotCount * slotLength;
+    let core = payload;
+    let burn = 0;
+
+    if (payload.length === expectedLength + 1 && payload[expectedLength] === 1) {
+      burn = 1;
+      core = payload.subarray(0, expectedLength);
+    } else if (payload.length !== expectedLength) {
+      throw new Error('تالف');
+    }
+
+    const documentData = await parseDualPayload(core, pass);
+    return { doc: documentData, burn, ver: 2 };
+  }
+
+  if (payload[4] === VER) {
+    const documentData = await parsePayloadV1(payload, pass);
+    return { doc: documentData, burn: 0, ver: 1 };
+  }
+
+  throw new Error('NOT_SPECTRE');
+}
+
+function buildPart(index, total, data) {
+  if (!Number.isInteger(index) || !Number.isInteger(total) || index < 1 || index > total || total > 255) {
+    throw new Error('Invalid payload part index.');
+  }
+  const output = new Uint8Array(8 + data.length);
+  output.set(MAGIC, 0);
+  output[4] = 3;
+  output[5] = index;
+  output[6] = total;
+  output[7] = 0;
+  output.set(data, 8);
+  return output;
+}
+
+function parsePart(payload) {
+  if (!(payload instanceof Uint8Array) || payload.length < 8) return null;
+  for (let index = 0; index < 4; index += 1) {
+    if (payload[index] !== MAGIC[index]) return null;
+  }
+  if (payload[4] !== 3) return null;
+  return {
+    idx: payload[5],
+    total: payload[6],
+    data: payload.subarray(8)
+  };
+}
+
+window.SpectreV4Extensions = {
+  gfMul,
+  gfInv,
+  shamirSplit,
+  shamirCombine,
+  bytesToHex,
+  hexToBytes,
+  withBurnFlag,
+  parseFullV4,
+  buildPart,
+  parsePart
+};
+
+const spectreCoverImages = [];
+const spectreStegoImages = [];
+window.SpectreV4State = {
+  coverImages: spectreCoverImages,
+  stegoImages: spectreStegoImages
+};
+    (function () {
+      const drop = $('coverDrop');
+      const input = $('coverInput');
+      if (!drop || !input) return;
+
+      input.multiple = true;
+
+      async function handle(fileList) {
+        hideMsg($('hideMsg'));
+        const files = [...fileList].filter((file) => file.type === 'image/png');
+        if (!files.length) {
+          showMsg($('hideMsg'), 'خاص PNG بالضبط', 'err');
+          return;
+        }
+
+        try {
+          const splitEnabled = $('splitChk')?.checked || files.length > 1;
+          if (splitEnabled) {
+            coverImgs = await Promise.all(files.map(loadImage));
+            coverImg = coverImgs[0];
+            setDropDone(
+              drop,
+              '🧩',
+              `${coverImgs.length} صور غطاء جاهزة`,
+              'بدّلها بالسحب من جديد',
+              coverImgs[0].src
+            );
+          } else {
+            coverImg = await loadImage(files[0]);
+            coverImgs = [coverImg];
+            setDropDone(
+              drop,
+              '📷',
+              `الغطاء جاهز: ${files[0].name}`,
+              `${coverImg.width}×${coverImg.height} — السعة: ${fmtSize(Math.max(0, capacityBytes(coverImg.width, coverImg.height) - 4))} · بدّلها بالسحب من جديد`,
+              coverImg.src
+            );
+          }
+
+          updateCapacity();
+          checkReady();
+          if (typeof checkReadyV4 === 'function') checkReadyV4();
+          logLine('ok', `COVER LOADED · ${coverImgs.length} image(s)`);
+        } catch (error) {
+          showMsg($('hideMsg'), `❌ ${error.message}`, 'err');
+        }
+      }
+
+      drop.onclick = () => input.click();
+      input.onchange = () => handle(input.files);
+      drop.ondragover = (event) => {
+        event.preventDefault();
+        drop.classList.add('hover');
+      };
+      drop.ondragleave = () => drop.classList.remove('hover');
+      drop.ondrop = (event) => {
+        event.preventDefault();
+        drop.classList.remove('hover');
+        handle(event.dataTransfer.files);
+      };
+
+      const splitCheckbox = $('splitChk');
+      if (splitCheckbox) {
+        splitCheckbox.onchange = () => {
+          if (splitCheckbox.checked) toast('التوزيع مفعّل — حمّل عدة صور غطاء');
+          if (typeof checkReadyV4 === 'function') checkReadyV4();
+        };
+      }
+    })();
+
+    ['hidePass', 'decoyPass'].forEach((id) => {
+      const input = $(id);
+      if (input) input.addEventListener('input', () => {
+        if (typeof checkReadyV4 === 'function') checkReadyV4();
+      });
+    });
+
+    function checkReadyV4() {
+      const passInput = $('hidePass');
+      const decoyInput = $('decoyPass');
+      const hideButton = $('hideBtn');
+      if (!passInput || !hideButton) return;
+
+      const passphrase = passInput.value;
+      const decoyPassphrase = decoyInput?.value || '';
+      const decoyFileValue = typeof decoyFile === 'undefined' ? null : decoyFile;
+      const decoyOk = !decoyFileValue || (decoyPassphrase.length >= 4 && decoyPassphrase !== passphrase);
+      const splitEnabled = $('splitChk')?.checked === true;
+      const coversOk = splitEnabled ? coverImgs.length >= 2 : Boolean(coverImg);
+
+      hideButton.disabled = !(coversOk && secretFile && passphrase.length >= 4 && decoyOk);
+    }
+
+    async function embedToPng(img, payload) {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const context = canvas.getContext('2d', {
+        willReadFrequently: true
+      });
+      context.imageSmoothingEnabled = false;
+      context.drawImage(img, 0, 0);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      embedLSB(imageData, payload);
+      context.putImageData(imageData, 0, 0);
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('تعذر إنشاء صورة PNG الناتجة.');
+      return URL.createObjectURL(blob);
+    }
+  </script>
+<script>
+  /* ===== V4 HIDE ACTIONS ===== */
+  const spectreGet = (id) => document.getElementById(id);
+
+  function spectreOptionalValue(id) {
+    return spectreGet(id)?.value || '';
+  }
+
+  function spectreOptionalChecked(id) {
+    return Boolean(spectreGet(id)?.checked);
+  }
+
+  function spectreDownload(url, filename) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+  }
+
+  const hideButtonV4 = spectreGet('hideBtn');
+  if (hideButtonV4) {
+    hideButtonV4.addEventListener('click', async () => {
+      const hideMessage = spectreGet('hideMsg');
+      const passphrase = spectreOptionalValue('hidePass');
+      const decoyPassphrase = spectreOptionalValue('decoyPass');
+      const burn = spectreOptionalChecked('burnChk');
+      const split = spectreOptionalChecked('splitChk');
+
+      hideMessage?.classList.remove('ok', 'err', 'warn');
+      hideMessage?.classList.add('msg');
+      hideButtonV4.disabled = true;
+      hideButtonV4.textContent = '⏳ جاري التنفيذ...';
+
+      try {
+        if (!window.secretFile && typeof secretFile === 'undefined') {
+          throw new Error('حمّل الوثيقة السرية أولًا.');
+        }
+
+        const selectedSecretFile = typeof secretFile !== 'undefined' ? secretFile : window.secretFile;
+        if (!selectedSecretFile) throw new Error('حمّل الوثيقة السرية أولًا.');
+        if (passphrase.length < 4) throw new Error('أدخل العبارة السرية أولًا.');
+
+        const secretBytes = new Uint8Array(await selectedSecretFile.arrayBuffer());
+        let decoyBytes = null;
+        let decoyName = null;
+        const selectedDecoyFile = typeof decoyFile !== 'undefined' ? decoyFile : window.decoyFile;
+
+        if (selectedDecoyFile) {
+          decoyBytes = new Uint8Array(await selectedDecoyFile.arrayBuffer());
+          decoyName = selectedDecoyFile.name;
+        }
+
+        if (typeof buildDualPayload !== 'function') {
+          throw new Error('نواة الحمولة المزدوجة غير متاحة في هذه الصفحة.');
+        }
+
+        let payload = await buildDualPayload(
+          secretBytes,
+          selectedSecretFile.name,
+          passphrase,
+          decoyBytes,
+          decoyName,
+          decoyPassphrase
+        );
+
+        if (burn && typeof withBurnFlag === 'function') {
+          payload = withBurnFlag(payload, true);
+        }
+
+        const operationCode = typeof randomCodename === 'function'
+          ? randomCodename()
+          : `SPECTRE-${Date.now()}`;
+        const coverImages = Array.isArray(window.coverImgs)
+          ? window.coverImgs
+          : (typeof coverImgs !== 'undefined' ? coverImgs : []);
+        const selectedCover = typeof coverImg !== 'undefined' ? coverImg : window.coverImg;
+        const urls = [];
+
+        if (split) {
+          if (coverImages.length < 2) {
+            throw new Error('التوزيع يتطلب صورتين PNG على الأقل.');
+          }
+
+          const partSize = Math.ceil(payload.length / coverImages.length);
+          for (let index = 0; index < coverImages.length; index += 1) {
+            const start = index * partSize;
+            const partBytes = payload.subarray(start, Math.min(start + partSize, payload.length));
+            const partPayload = typeof buildPart === 'function'
+              ? buildPart(index, coverImages.length, partBytes)
+              : partBytes;
+            urls.push(await embedToPng(coverImages[index], partPayload));
+          }
+        } else {
+          if (!selectedCover) throw new Error('حمّل صورة غطاء PNG أولًا.');
+          urls.push(await embedToPng(selectedCover, payload));
+        }
+
+        const preview = spectreGet('stegoPreview');
+        const result = spectreGet('hideResult');
+        const operationCodeOutput = spectreGet('opCode');
+        const operationMeta = spectreGet('opMeta');
+        const downloadButton = spectreGet('downloadBtn');
+
+        if (preview) preview.src = urls[0];
+        if (operationCodeOutput) operationCodeOutput.textContent = split ? `🧩 ${operationCode}` : `⭐ ${operationCode}`;
+        if (operationMeta) {
+          operationMeta.textContent = split
+            ? `الحمولة موزعة على ${urls.length} صور · ${fmtSize(payload.length)}${burn ? ' · الحرق مسلّح' : ''}`
+            : `الوثيقة: ${selectedSecretFile.name} · ${fmtSize(selectedSecretFile.size)}${burn ? ' · الحرق مسلّح' : ''}`;
+        }
+        if (downloadButton) {
+          downloadButton.onclick = () => urls.forEach((url, index) => {
+            spectreDownload(url, split ? `spectre-part-${index + 1}-${operationCode}.png` : `spectre-${operationCode}.png`);
+          });
+        }
+        result?.classList.add('show');
+        if (typeof logLine === 'function') logLine('cn', `OP COMPLETE · ${operationCode}`);
+        if (typeof showMsg === 'function') {
+          showMsg(hideMessage, split ? '✅ تمت العملية. نزّل كل الصور واحتفظ بها دون تعديل.' : '✅ تمت العملية محليًا. احفظ الصورة بصيغة PNG.', 'ok');
+        }
+        if (typeof toast === 'function') toast(`نجحت العملية — ${operationCode}`);
+      } catch (error) {
+        if (typeof showMsg === 'function') showMsg(hideMessage, `❌ ${error.message}`, 'err');
+        if (typeof logLine === 'function') logLine('err', `OP FAILED · ${error.message}`);
+      } finally {
+        hideButtonV4.disabled = false;
+        hideButtonV4.textContent = '⚡ تشفير ودفن الوثيقة';
+      }
+    });
+  }
+
+  const shamirButtonV4 = spectreGet('shamirBtn');
+  if (shamirButtonV4) {
+    shamirButtonV4.addEventListener('click', () => {
+      const passphrase = spectreOptionalValue('hidePass');
+      const output = spectreGet('shamirOut');
+      if (passphrase.length < 4) {
+        if (typeof toast === 'function') toast('أدخل العبارة السرية أولًا.');
+        return;
+      }
+      if (typeof shamirSplit !== 'function' || typeof bytesToHex !== 'function') {
+        if (typeof toast === 'function') toast('أداة Shamir غير متاحة في هذه الصفحة.');
+        return;
+      }
+
+      const shares = shamirSplit(new TextEncoder().encode(passphrase), 3, 2);
+      output.textContent = shares.map((share, index) => `SHARE-${index + 1}: ${index + 1}-${bytesToHex(share)}`).join('\n');
+      output.hidden = false;
+      output.style.display = 'block';
+      if (typeof logLine === 'function') logLine('cn', 'SHAMIR SPLIT · 3 shares · threshold 2');
+      if (typeof toast === 'function') toast('تم إنشاء ثلاث حصص؛ تحتاج حصتين لإعادة البناء.');
+    });
+  }
+</script>
+  <script>
+    /* ===== V5 SECURITY CORE ===== */
+    const COMMON_PASSES = ['123456', 'password', 'qwerty', 'azerty', '123456789', '12345678', 'abc123',
+      'password1', 'iloveyou', 'admin', 'welcome', 'monkey', 'dragon', 'letmein', 'football', 'master',
+      'shadow', 'superman', 'trustno1', 'sunshine', 'princess', 'secret', 'hunter2', 'starwars',
+      'hello', 'freedom', 'whatever', 'zaq12wsx', 'morocco', 'maroc', 'allah', 'salam'
+    ];
+
+    function levSimilar(a, b) {
+      if (!a || !b) return 0;
+      const m = a.length;
+      const n = b.length;
+      const d = Array.from({ length: m + 1 }, (_, i) => [i]);
+      for (let j = 1; j <= n; j += 1) d[0][j] = j;
+      for (let i = 1; i <= m; i += 1) {
+        for (let j = 1; j <= n; j += 1) {
+          d[i][j] = Math.min(
+            d[i - 1][j] + 1,
+            d[i][j - 1] + 1,
+            d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+          );
+        }
+      }
+      return 1 - d[m][n] / Math.max(m, n);
+    }
+
+    function assessSecurity(s) {
+      const alerts = [];
+      let score = 100;
+      const add = (sev, msg) => alerts.push({
+        sev,
+        msg
+      });
+
+      if (s.pass) {
+        if (s.pass.length < 8) {
+          add('danger', 'العبارة الحقيقية قصيرة جداً (تحت 8 حروف) — كتُكسر بالقاموس في دقائق');
+          score -= 30;
+        } else if (s.passStrength <= 2) {
+          add('warn', 'العبارة ضعيفة — زيد أرقام وحروف كبيرة ورموز');
+          score -= 15;
+        }
+        if (COMMON_PASSES.includes(s.pass.toLowerCase())) {
+          add('danger', 'العبارة من القاموس الشائع — تُكسر في ثوانٍ');
+          score -= 45;
+        }
+        if (s.decoyPass && s.decoyPass !== s.pass && levSimilar(s.pass, s.decoyPass) > 0.7) {
+          add('warn', 'العبارة الوهمية قريبة بزاف من الحقيقية — تخمينها ساهل');
+          score -= 15;
+        }
+      }
+
+      if (s.coverPx) {
+        if (s.coverPx < 90000) {
+          add('warn', 'صورة الغطاء صغيرة — الدفن فيها أوضح للتحليل الإحصائي (استعمل 500×500 على الأقل)');
+          score -= 15;
+        }
+        if (s.ratio != null) {
+          if (s.ratio > 0.9) {
+            add('danger', `كثافة الدفن ${Math.round(s.ratio * 100)}% — الحمولة كتملأ الصورة والتحليل الإحصائي كيكشفها بسهولة. استعمل صورة أكبر`);
+            score -= 25;
+          } else if (s.ratio > 0.5) {
+            add('warn', `كثافة الدفن ${Math.round(s.ratio * 100)}% — فوق 50% كتزيد فرص الكشف الإحصائي`);
+            score -= 15;
+          } else if (s.ratio > 0) {
+            add('ok', `كثافة الدفن منخفضة (${Math.round(s.ratio * 100)}%) — مستوى الكشف صعب`);
+          }
+        }
+        if (s.coverDirty) {
+          add('danger', 'صورة الغطاء فيها حمولة SPECTRE قديمة — الدفن فوقها كيكسر القديمة وكيلفت النظر. استعمل صورة نظيفة');
+          score -= 25;
+        }
+        if (s.coverReused) {
+          add('warn', 'هاد الغطاء استعمل فعملية سابقة — تعدد النسخ من نفس الصورة كيسهّل الربط بين العمليات');
+          score -= 10;
+        }
+      }
+
+      if (s.burn && !s.hasDecoy) {
+        add('info', 'الحرق مسلّح بلا طبقة تمويه — أي فتح ناجح كيمسح الوثيقة نهائياً، حتا فتح بالعبارة الحقيقية');
+      }
+
+      if (s.split) {
+        if (s.splitCount && s.splitCount < 3) {
+          add('warn', 'التوزيع على صورتين فقط — 3 صور أو أكثر كتعطي نكران أقوى');
+          score -= 10;
+        }
+        if (s.splitCount) {
+          add('info', `الحمولة موزعة على ${s.splitCount} صور — كل صورة بوحدها ما كتشفّن حتى التجميع الكامل`);
+        }
+      }
+
+      if (s.pass && s.coverPx && s.ratio != null && !s.coverDirty && score >= 75) {
+        add('ok', 'الإعداد الحالي سليم — العبارة قوية والكثافة معقولة والغطاء نظيف');
+      }
+
+      return {
+        score: Math.max(0, Math.min(100, score)),
+        alerts
+      };
+    }
+
+    let coverSigs = new Set();
+    let coverDirty = false;
+    let coverReused = false;
+    let coverCheckedSig = -1;
+    let scanTimer;
+
+    function coverSignature(img) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 32;
+      const context = canvas.getContext('2d', {
+        willReadFrequently: true
+      });
+      context.drawImage(img, 0, 0, 32, 32);
+      const data = context.getImageData(0, 0, 32, 32).data;
+      let hash = 0;
+      for (let index = 0; index < data.length; index += 4) {
+        hash = (hash * 31 + data[index] + data[index + 1] * 7 + data[index + 2] * 13) % 1000000007;
+      }
+      return hash;
+    }
+
+    function refreshCoverFlags() {
+      coverReused = false;
+      coverDirty = false;
+      if (!coverImg) return;
+
+      const signature = coverSignature(coverImg);
+      coverReused = coverSigs.has(signature);
+      coverSigs.add(signature);
+
+      if (signature !== coverCheckedSig) {
+        coverCheckedSig = signature;
+        try {
+          if (typeof imgToPayload === 'function') {
+            const payload = imgToPayload(coverImg);
+            coverDirty = payload[0] === 0x41 &&
+              payload[1] === 0x49 &&
+              payload[2] === 0x50 &&
+              payload[3] === 0x53;
+          }
+        } catch {
+          coverDirty = false;
+        }
+      }
+    }
+
+    function securityElement(id) {
+      return document.getElementById(id);
+    }
+
+    function securityAlert(kind, text) {
+      const row = document.createElement('div');
+      row.className = `sec-row ${kind}`;
+      row.textContent = `${kind === 'danger' ? '⛔' : kind === 'warn' ? '⚠️' : kind === 'ok' ? '✓' : 'ℹ️'} ${text}`;
+      return row;
+    }
+
+    function updateSecurityShield() {
+      const password = securityElement('hidePass')?.value || '';
+      const decoyPassword = securityElement('decoyPass')?.value || '';
+      const alerts = securityElement('secAlerts');
+      const bar = securityElement('secBar');
+      const level = securityElement('secLevel');
+      const scoreOutput = securityElement('secScore');
+      const tip = securityElement('secTip');
+      if (!alerts || !bar || !level || !scoreOutput || !tip) return;
+
+      let score = 0;
+      const messages = [];
+      const normalized = password.toLowerCase();
+      const currentCover = typeof coverImg !== 'undefined' ? coverImg : window.coverImg;
+      const currentSecret = typeof secretFile !== 'undefined' ? secretFile : window.secretFile;
+      const coverPixels = currentCover ? currentCover.width * currentCover.height : 0;
+      const payloadCapacity = currentCover ? Math.max(0, capacityBytes(currentCover.width, currentCover.height) - 4) : 0;
+      const currentPayloadSize = Number(currentSecret?.size || 0);
+      const assessment = assessSecurity({
+        pass: password,
+        decoyPass: decoyPassword,
+        passStrength: passStrength(password),
+        coverPx: coverPixels,
+        ratio: payloadCapacity ? currentPayloadSize / payloadCapacity : null,
+        coverDirty,
+        coverReused,
+        burn: Boolean(securityElement('burnChk')?.checked),
+        hasDecoy: Boolean(typeof decoyFile !== 'undefined' ? decoyFile : window.decoyFile),
+        split: Boolean(securityElement('splitChk')?.checked),
+        splitCount: Array.isArray(window.coverImgs) ? window.coverImgs.length : 0
+      });
+
+      refreshCoverFlags();
+
+      if (!password) {
+        alerts.replaceChildren(securityAlert('info', 'أدخل عبارة سرية لبدء التقييم المحلي.'));
+        bar.style.width = '0%';
+        bar.className = '';
+        level.textContent = 'جاهز';
+        scoreOutput.textContent = 'مؤشر الحماية: —';
+        tip.textContent = 'لا يتم إرسال العبارة أو حفظها';
+        return;
+      }
+
+      if (password.length >= 16) score += 30;
+      else if (password.length >= 12) score += 22;
+      else if (password.length >= 8) score += 12;
+      else messages.push(['danger', 'العبارة قصيرة؛ استخدم 12 حرفًا على الأقل ويفضل 16 أو أكثر.']);
+
+      const variety = [/[a-z]/.test(password), /[A-Z]/.test(password), /\d/.test(password), /[^A-Za-z0-9]/.test(password)].filter(Boolean).length;
+      score += variety * 10;
+      if (variety < 3) messages.push(['warn', 'أضف مزيجًا من الحروف والأرقام والرموز بدل نمط واحد.']);
+
+      if (COMMON_PASSES.includes(normalized)) {
+        score = Math.min(score, 12);
+        messages.push(['danger', 'هذه العبارة شائعة جدًا ويمكن تخمينها بسهولة.']);
+      } else {
+        const closeMatch = COMMON_PASSES.find((item) => levSimilar(normalized, item) >= 0.78);
+        if (closeMatch) {
+          score = Math.min(score, 35);
+          messages.push(['warn', 'العبارة تشبه كلمة مرور شائعة؛ اختر عبارة مختلفة تمامًا.']);
+        }
+      }
+
+      if (/^(.)\1+$/.test(password) || /0123|1234|abcd|qwer/i.test(password)) {
+        score = Math.min(score, 30);
+        messages.push(['warn', 'توجد سلسلة أو تكرار متوقع داخل العبارة.']);
+      }
+
+      if (decoyPassword && decoyPassword === password) {
+        score = Math.min(score, 20);
+        messages.push(['danger', 'عبارة التمويه يجب ألا تكون مطابقة للعبارة الحقيقية.']);
+      }
+
+      const burnEnabled = securityElement('burnChk')?.checked;
+      const splitEnabled = securityElement('splitChk')?.checked;
+      if (!burnEnabled) messages.push(['info', 'الحرق بعد القراءة غير مفعّل؛ احتفظ بنسخة احتياطية قبل أي حذف.']);
+      if (splitEnabled && (window.coverImgs?.length || 0) < 2) messages.push(['warn', 'التوزيع مفعّل، لكنه يحتاج صورتين PNG على الأقل.']);
+
+      assessment.alerts.forEach(({ sev, msg }) => {
+        messages.push([sev, msg]);
+      });
+
+      score = Math.max(0, Math.min(100, score));
+      const hasDanger = messages.some(([kind]) => kind === 'danger');
+      const hasWarning = messages.some(([kind]) => kind === 'warn');
+      const state = score < 40 || hasDanger ? 'danger' : score < 70 || hasWarning ? 'warn' : 'ok';
+      const labels = { danger: 'خطر', warn: 'يحتاج تحسينًا', ok: 'جيد' };
+
+      bar.style.width = `${score}%`;
+      bar.className = state === 'danger' ? 'danger' : state === 'warn' ? 'warn' : '';
+      level.textContent = labels[state];
+      scoreOutput.textContent = `مؤشر الحماية: ${score}/100`;
+      tip.textContent = state === 'ok' ? 'استعمل عبارة فريدة ولا تعاود استخدامها' : 'التقييم محلي فقط ولا يثبت الأمان المطلق';
+
+      if (state === 'ok') messages.unshift(['ok', 'العبارة تبدو قوية وفق الفحوصات المحلية الأساسية.']);
+      alerts.replaceChildren(...messages.map(([kind, text]) => securityAlert(kind, text)));
+    }
+
+    ['hidePass', 'decoyPass', 'burnChk', 'splitChk'].forEach((id) => {
+      const element = securityElement(id);
+      element?.addEventListener('input', updateSecurityShield);
+      element?.addEventListener('change', updateSecurityShield);
+    });
+
+    updateSecurityShield();
+  </script>
+<script>
+  /* ===== V5 SECURITY SCAN BRIDGE ===== */
+  (() => {
+    const securityState = {
+      timer: null
+    };
+
+    function estimatePayloadSize() {
+      const realSize = typeof secretFile !== 'undefined' && secretFile ? secretFile.size : 0;
+      const decoySize = typeof decoyFile !== 'undefined' && decoyFile ? decoyFile.size : 0;
+      if (typeof estimateDualSize === 'function') {
+        return estimateDualSize(realSize, decoySize) + 1;
+      }
+      return realSize + decoySize + 64 + 1;
+    }
+
+    function runSecurityScan() {
+      if (typeof refreshCoverFlags === 'function') refreshCoverFlags();
+
+      let ratio = null;
+      let pixels = 0;
+      const currentCover = typeof coverImg !== 'undefined' ? coverImg : null;
+      const currentSecret = typeof secretFile !== 'undefined' ? secretFile : null;
+      const currentDecoy = typeof decoyFile !== 'undefined' ? decoyFile : null;
+
+      if (currentCover) {
+        pixels = currentCover.width * currentCover.height;
+        if (currentSecret && typeof capacityBytes === 'function') {
+          const capacity = capacityBytes(currentCover.width, currentCover.height) - 4;
+          ratio = capacity > 0 ? estimatePayloadSize() / capacity : 1;
+        }
+      }
+
+      const password = document.querySelector('#hidePass')?.value || '';
+      const decoyPassword = document.querySelector('#decoyPass')?.value || '';
+      const result = typeof assessSecurity === 'function' ? assessSecurity({
+        pass: password,
+        passStrength: typeof passStrength === 'function' ? passStrength(password) : 0,
+        decoyPass: decoyPassword,
+        hasDecoy: Boolean(currentDecoy),
+        coverPx: pixels,
+        ratio,
+        coverDirty: typeof coverDirty !== 'undefined' ? coverDirty : false,
+        coverReused: typeof coverReused !== 'undefined' ? coverReused : false,
+        burn: Boolean(document.querySelector('#burnChk')?.checked),
+        split: Boolean(document.querySelector('#splitChk')?.checked),
+        splitCount: document.querySelector('#splitChk')?.checked && typeof coverImgs !== 'undefined' ? coverImgs.length : 0
+      }) : {
+        score: 0,
+        alerts: []
+      };
+
+      const bar = document.querySelector('#secBar');
+      const level = document.querySelector('#secLevel');
+      const score = document.querySelector('#secScore');
+      const tip = document.querySelector('#secTip');
+      const alerts = document.querySelector('#secAlerts');
+
+      if (!bar || !level || !score || !tip || !alerts) return result;
+
+      const hasInputs = Boolean(currentCover || password);
+      const state = result.score >= 75 ? 'good' : result.score >= 45 ? 'warn' : 'danger';
+      const colors = {
+        good: 'var(--acc)',
+        warn: 'var(--warn)',
+        danger: 'var(--err)'
+      };
+      const labels = {
+        good: 'آمن',
+        warn: 'متوسط',
+        danger: 'خطر'
+      };
+      const icons = {
+        danger: '⛔',
+        warn: '⚠️',
+        info: 'ℹ️',
+        ok: '✅'
+      };
+
+      bar.style.width = `${hasInputs ? result.score : 0}%`;
+      bar.className = result.score >= 75 ? '' : result.score >= 45 ? 'warn' : 'danger';
+      level.textContent = hasInputs ? labels[state] : 'جاهز';
+      level.style.color = hasInputs ? colors[state] : '';
+      score.textContent = `مؤشر الحماية: ${hasInputs ? result.score : '—'}/100`;
+      tip.textContent = result.alerts.length ? '' : 'بلا إنذارات — عمّر المعطيات باش يبدا التقييم';
+      alerts.replaceChildren(...result.alerts.map((alert) => {
+        const row = document.createElement('div');
+        row.className = `sec-row ${alert.sev}`;
+        row.textContent = `${icons[alert.sev] || 'ℹ️'} ${alert.msg}`;
+        return row;
+      }));
+
+      return result;
+    }
+
+    function scheduleSecurityScan() {
+      window.clearTimeout(securityState.timer);
+      securityState.timer = window.setTimeout(runSecurityScan, 300);
+    }
+
+    window.runSecurityScan = runSecurityScan;
+    window.scheduleSecurityScan = scheduleSecurityScan;
+
+    ['hidePass', 'decoyPass'].forEach((id) => {
+      document.querySelector(`#${id}`)?.addEventListener('input', scheduleSecurityScan);
+    });
+    ['coverInput', 'fileInput', 'decoyInput'].forEach((id) => {
+      document.querySelector(`#${id}`)?.addEventListener('change', scheduleSecurityScan);
+    });
+    ['burnChk', 'splitChk'].forEach((id) => {
+      document.querySelector(`#${id}`)?.addEventListener('change', scheduleSecurityScan);
+    });
+
+    const hideButton = document.querySelector('#hideBtn');
+    if (hideButton) {
+      const previousClick = hideButton.onclick;
+      hideButton.onclick = function (...args) {
+        const result = runSecurityScan();
+        if (typeof logLine === 'function') {
+          logLine(result.score < 45 ? 'err' : 'ok', `SECURITY CHECK · مؤشر ${result.score}/100` + (result.score < 45 ? ' — عملية عالية الخطورة' : ''));
+        }
+        return typeof previousClick === 'function' ? previousClick.apply(this, args) : undefined;
+      };
+    }
+
+    runSecurityScan();
+  })();
+</script>
+<script>
+  /* ===== V5 SECURITY SCAN COMPATIBILITY BRIDGE ===== */
+  (() => {
+    const get = (id) => document.getElementById(id);
+    const securityTimer = { id: null };
+
+    function runSecurityScan() {
+      if (typeof refreshCoverFlags === 'function') refreshCoverFlags();
+
+      const cover = typeof coverImg !== 'undefined' ? coverImg : null;
+      const secret = typeof secretFile !== 'undefined' ? secretFile : null;
+      const decoy = typeof decoyFile !== 'undefined' ? decoyFile : null;
+      const split = Boolean(get('splitChk')?.checked);
+      const pass = get('hidePass')?.value || '';
+      const decoyPass = get('decoyPass')?.value || '';
+      const images = typeof coverImgs !== 'undefined' && Array.isArray(coverImgs)
+        ? coverImgs
+        : cover
+          ? [cover]
+          : [];
+
+      let ratio = null;
+      let pixels = 0;
+      if (cover) {
+        pixels = cover.width * cover.height;
+        if (secret && typeof capacityBytes === 'function') {
+          const capacity = Math.max(0, capacityBytes(cover.width, cover.height) - 4);
+          const estimated = typeof estimatePayloadSize === 'function'
+            ? estimatePayloadSize()
+            : secret.size + (decoy?.size || 0) + 64;
+          ratio = capacity > 0 ? estimated / capacity : 1;
+        }
+      }
+
+      const result = typeof assessSecurity === 'function'
+        ? assessSecurity({
+          pass,
+          passStrength: typeof passStrength === 'function' ? passStrength(pass) : 0,
+          decoyPass,
+          hasDecoy: Boolean(decoy),
+          coverPx: pixels,
+          ratio,
+          coverDirty: typeof coverDirty !== 'undefined' ? coverDirty : false,
+          coverReused: typeof coverReused !== 'undefined' ? coverReused : false,
+          burn: Boolean(get('burnChk')?.checked),
+          split,
+          splitCount: split ? images.length : 0
+        })
+        : { score: 0, alerts: [] };
+
+      const bar = get('secBar');
+      const level = get('secLevel');
+      const score = get('secScore');
+      const tip = get('secTip');
+      const alerts = get('secAlerts');
+      if (!bar || !level || !score || !tip || !alerts) return result;
+
+      const hasInputs = Boolean(cover || pass);
+      const state = result.score >= 75 ? 'good' : result.score >= 45 ? 'warn' : 'danger';
+      const labels = { good: 'آمن', warn: 'متوسط', danger: 'خطر' };
+      const icons = { danger: '⛔', warn: '⚠️', info: 'ℹ️', ok: '✅' };
+
+      bar.style.width = `${hasInputs ? result.score : 0}%`;
+      bar.className = hasInputs && state !== 'good' ? state : '';
+      level.textContent = hasInputs ? labels[state] : 'جاهز';
+      level.style.color = hasInputs
+        ? state === 'good'
+          ? 'var(--spectre-acc, var(--color-primary))'
+          : state === 'warn'
+            ? 'var(--spectre-warn, var(--color-primary))'
+            : 'var(--spectre-err, var(--color-primary))'
+        : '';
+      score.textContent = `مؤشر الحماية: ${hasInputs ? result.score : '—'}/100`;
+      tip.textContent = result.alerts.length
+        ? 'راجع التنبيهات قبل المتابعة'
+        : 'بلا إنذارات — عمّر المعطيات باش يبدا التقييم المباشر';
+
+      alerts.replaceChildren();
+      result.alerts.forEach((alert) => {
+        const row = document.createElement('div');
+        row.className = `sec-row ${alert.sev}`;
+        row.textContent = `${icons[alert.sev] || 'ℹ️'} ${alert.msg}`;
+        alerts.append(row);
+      });
+
+      return result;
+    }
+
+    function scheduleSecurityScan() {
+      window.clearTimeout(securityTimer.id);
+      securityTimer.id = window.setTimeout(runSecurityScan, 300);
+    }
+
+    window.runSecurityScan = runSecurityScan;
+    window.scheduleSecurityScan = scheduleSecurityScan;
+
+    ['hidePass', 'decoyPass'].forEach((id) => {
+      get(id)?.addEventListener('input', scheduleSecurityScan);
+    });
+    ['coverInput', 'fileInput', 'decoyInput'].forEach((id) => {
+      get(id)?.addEventListener('change', scheduleSecurityScan);
+    });
+    ['burnChk', 'splitChk'].forEach((id) => {
+      get(id)?.addEventListener('change', scheduleSecurityScan);
+    });
+
+    const hideButton = get('hideBtn');
+    if (hideButton) {
+      hideButton.addEventListener('click', () => {
+        const result = runSecurityScan();
+        if (typeof logLine === 'function') {
+          logLine(
+            result.score < 45 ? 'err' : 'ok',
+            `SECURITY CHECK · مؤشر ${result.score}/100${result.score < 45 ? ' — عملية عالية الخطورة' : ''}`
+          );
+        }
+      }, true);
+    }
+
+    runSecurityScan();
+  })();
+</script>
+<script>
+/* ================================================================
+   V5.2 درع الإنذار الأمني — جسر آمن ومتوافق
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const el = (id) => document.getElementById(id);
+  const val = (id) => {
+    const element = el(id);
+    return element ? String(element.value || '') : '';
+  };
+  const chk = (id) => {
+    const element = el(id);
+    return Boolean(element && element.checked);
+  };
+
+  function estimateFallback(size, decoySize) {
+    const largest = Math.max(Number(size) || 0, Number(decoySize) || 0, 978);
+    const innerLength = Math.ceil((largest + 64) / 1024) * 1024;
+    return 10 + 4 * (innerLength + 44);
+  }
+
+  const estimator = typeof estimateDualSize === 'function'
+    ? estimateDualSize
+    : typeof estimatePayloadSize === 'function'
+      ? estimatePayloadSize
+      : estimateFallback;
+
+  const strengthOf = typeof passStrength === 'function'
+    ? passStrength
+    : (passphrase) => {
+        const value = String(passphrase || '');
+        let score = 0;
+        if (value.length >= 8) score += 1;
+        if (value.length >= 14) score += 1;
+        if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score += 1;
+        if (/\d/.test(value)) score += 1;
+        if (/[^a-zA-Z0-9]/.test(value)) score += 1;
+        return score;
+      };
+
+  const commonPasses = new Set([
+    '123456', 'password', 'qwerty', 'azerty', '123456789', '12345678', 'abc123',
+    'password1', 'iloveyou', 'admin', 'welcome', 'monkey', 'dragon', 'letmein',
+    'football', 'master', 'shadow', 'superman', 'trustno1', 'sunshine', 'princess',
+    'secret', 'hunter2', 'starwars', 'hello', 'freedom', 'whatever', 'zaq12wsx',
+    'morocco', 'maroc', 'allah', 'salam'
+  ]);
+
+  function similarity(first, second) {
+    if (!first || !second) return 0;
+    const rows = Array.from({ length: first.length + 1 }, (_, index) => [index]);
+    for (let column = 1; column <= second.length; column += 1) rows[0][column] = column;
+    for (let row = 1; row <= first.length; row += 1) {
+      for (let column = 1; column <= second.length; column += 1) {
+        rows[row][column] = Math.min(
+          rows[row - 1][column] + 1,
+          rows[row][column - 1] + 1,
+          rows[row - 1][column - 1] + (first[row - 1] === second[column - 1] ? 0 : 1)
+        );
+      }
+    }
+    return 1 - rows[first.length][second.length] / Math.max(first.length, second.length);
+  }
+
+  function getCoverImages() {
+    if (typeof coverImgs !== 'undefined' && Array.isArray(coverImgs) && coverImgs.length) return coverImgs;
+    if (typeof window.coverImgs !== 'undefined' && Array.isArray(window.coverImgs) && window.coverImgs.length) return window.coverImgs;
+    if (typeof coverImg !== 'undefined' && coverImg) return [coverImg];
+    if (window.coverImg) return [window.coverImg];
+    return [];
+  }
+
+  function getSecretFile() {
+    return typeof secretFile !== 'undefined' ? secretFile : window.secretFile || null;
+  }
+
+  function getDecoyFile() {
+    return typeof decoyFile !== 'undefined' ? decoyFile : window.decoyFile || null;
+  }
+
+  function getCoverFlags() {
+    let dirty = false;
+    let reused = false;
+    try {
+      if (typeof refreshCoverFlags === 'function') refreshCoverFlags();
+      dirty = typeof coverDirty !== 'undefined' && Boolean(coverDirty);
+      reused = typeof coverReused !== 'undefined' && Boolean(coverReused);
+    } catch {
+      // The security indicator remains usable when optional cover inspection is unavailable.
+    }
+    return { dirty, reused };
+  }
+
+  function computeDensity(needed, capacities, split) {
+    if (!needed || !capacities.length || capacities.some((capacity) => capacity <= 0)) return null;
+    if (!split || capacities.length < 2) return needed / capacities[0];
+    const perImage = Math.ceil(needed / capacities.length) + 9;
+    return Math.max(...capacities.map((capacity) => perImage / capacity));
+  }
+
+  function assessSecurity(state) {
+    const alerts = [];
+    let score = 100;
+    const add = (severity, message, penalty = 0) => {
+      alerts.push({ severity, message });
+      score -= penalty;
+    };
+
+    if (state.pass) {
+      if (state.pass.length < 8) add('danger', 'العبارة الحقيقية قصيرة جدًا — استعمل عبارة أطول.', 30);
+      else if (state.passStrength <= 2) add('warn', 'العبارة ضعيفة — أضف تنوعًا وأطوالًا أكبر.', 15);
+      if (commonPasses.has(state.pass.toLowerCase())) add('danger', 'العبارة من القاموس الشائع — اختر عبارة فريدة.', 45);
+      if (state.decoyPass && state.decoyPass !== state.pass && similarity(state.pass, state.decoyPass) > 0.7) {
+        add('warn', 'العبارة الوهمية قريبة من الحقيقية — اختر عبارتين مستقلتين.', 15);
+      }
+    }
+
+    if (state.coverPixels) {
+      if (state.coverPixels < 90000) add('warn', 'صورة الغطاء صغيرة وقد ترفع قابلية الكشف الإحصائي.', 15);
+      if (state.density !== null) {
+        if (state.density > 0.9) add('danger', `كثافة الحمولة ${Math.round(state.density * 100)}% — استعمل صورة أكبر.`, 25);
+        else if (state.density > 0.5) add('warn', `كثافة الحمولة ${Math.round(state.density * 100)}% — يفضّل تخفيضها.`, 15);
+        else if (state.density > 0) alerts.push({ severity: 'ok', message: `كثافة الحمولة منخفضة (${Math.round(state.density * 100)}%).` });
+      }
+      if (state.coverDirty) add('danger', 'صورة الغطاء تحتوي على حمولة قديمة — استعمل صورة نظيفة.', 25);
+      if (state.coverReused) add('warn', 'تم استعمال هذا الغطاء سابقًا — اختر غطاءً مختلفًا.', 10);
+    }
+
+    if (state.burn && !state.hasDecoy) {
+      alerts.push({ severity: 'info', message: 'الحرق مفعّل بلا طبقة تمويه؛ اختبر الاسترجاع قبل الاعتماد عليه.' });
+    }
+
+    if (state.split) {
+      if (state.splitCount > 0 && state.splitCount < 3) add('warn', 'التوزيع على أقل من ثلاث صور؛ راجع عدد الأجزاء.', 10);
+      if (state.splitCount) alerts.push({ severity: 'info', message: `الحمولة موزعة على ${state.splitCount} صور.` });
+    }
+
+    if (state.pass && state.coverPixels && state.density !== null && !state.coverDirty && score >= 75) {
+      alerts.push({ severity: 'ok', message: 'الإعداد الحالي يبدو مناسبًا وفق الفحوصات المحلية.' });
+    }
+
+    return { score: Math.max(0, Math.min(100, score)), alerts };
+  }
+
+  function runSecurityScan() {
+    const covers = getCoverImages();
+    const secret = getSecretFile();
+    const decoy = getDecoyFile();
+    const split = chk('splitChk');
+    const capacities = covers.map((image) => Math.max(0, Math.floor(image.width * image.height * 3 / 8) - 4));
+    const needed = secret ? Number(estimator(secret.size, decoy ? decoy.size : 0)) + 1 : 0;
+    const flags = getCoverFlags();
+    const result = assessSecurity({
+      pass: val('hidePass'),
+      passStrength: strengthOf(val('hidePass')),
+      decoyPass: val('decoyPass'),
+      hasDecoy: Boolean(decoy),
+      coverPixels: covers[0] ? covers[0].width * covers[0].height : 0,
+      density: computeDensity(needed, capacities, split),
+      coverDirty: flags.dirty,
+      coverReused: flags.reused,
+      burn: chk('burnChk'),
+      split,
+      splitCount: split ? covers.length : 0
+    });
+
+    const bar = el('secBar');
+    const level = el('secLevel');
+    const score = el('secScore');
+    const tip = el('secTip');
+    const alerts = el('secAlerts');
+    const hasInput = covers.length > 0 || Boolean(val('hidePass'));
+    const state = result.score >= 75 ? 'good' : result.score >= 45 ? 'warn' : 'danger';
+
+    if (bar) {
+      bar.style.width = `${hasInput ? result.score : 0}%`;
+      bar.className = state === 'good' ? '' : state;
+    }
+    if (level) {
+      level.textContent = hasInput ? (state === 'good' ? 'آمن' : state === 'warn' ? 'متوسط' : 'خطر') : 'جاهز';
+      level.style.color = hasInput ? `var(--${state === 'good' ? 'acc' : state === 'warn' ? 'warn' : 'err'})` : '';
+    }
+    if (score) score.textContent = `مؤشر الحماية: ${hasInput ? result.score : '—'}/100`;
+    if (tip) tip.textContent = result.alerts.length ? '' : 'عمّر المعطيات باش يبدا التقييم المباشر';
+    if (alerts) {
+      alerts.replaceChildren(...result.alerts.map(({ severity, message }) => {
+        const row = document.createElement('div');
+        row.className = `sec-row ${severity}`;
+        row.textContent = `${severity === 'danger' ? '⛔' : severity === 'warn' ? '⚠️' : severity === 'ok' ? '✅' : 'ℹ️'} ${message}`;
+        return row;
+      }));
+    }
+    return result;
+  }
+
+  let scanTimer = 0;
+  function scheduleScan() {
+    window.clearTimeout(scanTimer);
+    scanTimer = window.setTimeout(runSecurityScan, 300);
+  }
+
+  ['hidePass', 'decoyPass'].forEach((id) => el(id)?.addEventListener('input', scheduleScan));
+  ['coverInput', 'fileInput', 'decoyInput'].forEach((id) => el(id)?.addEventListener('change', scheduleScan));
+  ['burnChk', 'splitChk'].forEach((id) => el(id)?.addEventListener('change', scheduleScan));
+
+  const hideButton = el('hideBtn');
+  hideButton?.addEventListener('click', () => {
+    const result = runSecurityScan();
+    const message = `SECURITY CHECK · مؤشر ${result.score}/100${result.score < 45 ? ' — عملية عالية الخطورة' : ''}`;
+    if (typeof logLine === 'function') logLine(result.score < 45 ? 'err' : 'ok', message);
+  }, true);
+
+  window.runSecurityScan = runSecurityScan;
+  window.scheduleSecurityScan = scheduleScan;
+  runSecurityScan();
+})();
+</script>
+<script>
+/* ================================================================
+   V5.2 SECURITY BRIDGE — safe data gathering and rendering
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const getElement = (id) => document.getElementById(id);
+  const readValue = (id) => {
+    const element = getElement(id);
+    return element ? String(element.value || '') : '';
+  };
+  const readChecked = (id) => {
+    const element = getElement(id);
+    return Boolean(element && element.checked);
+  };
+
+  function gatherSecurityData() {
+    const singleCover = typeof coverImg !== 'undefined' ? coverImg : null;
+    const multipleCovers = typeof coverImgs !== 'undefined' && Array.isArray(coverImgs)
+      ? coverImgs
+      : [];
+    const split = readChecked('splitChk');
+    const covers = split
+      ? (multipleCovers.length ? multipleCovers : (singleCover ? [singleCover] : []))
+      : (singleCover ? [singleCover] : []);
+    const secret = typeof secretFile !== 'undefined' ? secretFile : null;
+    const decoy = typeof decoyFile !== 'undefined' ? decoyFile : null;
+    const estimate = typeof estimateDualSize === 'function'
+      ? estimateDualSize
+      : typeof estimatePayloadSize === 'function'
+        ? estimatePayloadSize
+        : (size, decoySize) => Math.max(size || 0, decoySize || 0) + 64;
+    const requiredBytes = secret
+      ? estimate(secret.size || 0, decoy ? decoy.size || 0 : 0) + 1
+      : 0;
+    const capacities = covers.map((image) => {
+      const capacity = typeof capacityBytes === 'function'
+        ? capacityBytes(image.width, image.height)
+        : image.width * image.height * 3 / 8;
+      return Math.max(0, capacity - 4);
+    });
+    const density = !requiredBytes || !capacities.length
+      ? null
+      : split && capacities.length > 1
+        ? Math.max(...capacities.map((capacity) => (Math.ceil(requiredBytes / capacities.length) + 9) / capacity))
+        : requiredBytes / capacities[0];
+
+    return {
+      pass: readValue('hidePass'),
+      passStrength: typeof passStrength === 'function' ? passStrength(readValue('hidePass')) : 0,
+      decoyPass: readValue('decoyPass'),
+      hasDecoy: Boolean(decoy),
+      covers,
+      coverPx: covers.length ? covers[0].width * covers[0].height : 0,
+      ratio: density,
+      burn: readChecked('burnChk'),
+      split,
+      splitCount: split ? covers.length : 0
+    };
+  }
+
+  function renderSecurityResult(result, hasData) {
+    const bar = getElement('secBar');
+    if (bar) {
+      bar.style.width = `${hasData ? result.score : 0}%`;
+      bar.className = result.score >= 75 ? '' : result.score >= 45 ? 'warn' : 'danger';
+    }
+
+    const level = getElement('secLevel');
+    if (level) {
+      level.textContent = result.score >= 75 ? 'آمن' : result.score >= 45 ? 'متوسط' : 'خطر';
+      level.style.color = result.score >= 75
+        ? 'var(--acc)'
+        : result.score >= 45
+          ? 'var(--warn)'
+          : 'var(--err)';
+    }
+
+    const score = getElement('secScore');
+    if (score) score.textContent = `مؤشر الحماية: ${result.score}/100`;
+
+    const tip = getElement('secTip');
+    if (tip) {
+      tip.textContent = result.alerts.length
+        ? ''
+        : 'بلا إنذارات — عمّر المعطيات باش يبدا التقييم';
+    }
+
+    const alerts = getElement('secAlerts');
+    if (!alerts) return;
+    alerts.replaceChildren();
+
+    const icons = {
+      danger: '⛔',
+      warn: '⚠️',
+      info: 'ℹ️',
+      ok: '✅'
+    };
+
+    result.alerts.forEach((alert) => {
+      const row = document.createElement('div');
+      row.className = `sec-row ${alert.sev}`;
+      row.textContent = `${icons[alert.sev] || ''} ${alert.msg}`;
+      alerts.append(row);
+    });
+  }
+
+  function runSecurityScanBridge() {
+    const data = gatherSecurityData();
+    if (typeof refreshCoverFlags === 'function') {
+      refreshCoverFlags(data.covers[0] || null);
+    }
+
+    const result = typeof assessSecurity === 'function'
+      ? assessSecurity({
+        pass: data.pass,
+        passStrength: data.passStrength,
+        decoyPass: data.decoyPass,
+        hasDecoy: data.hasDecoy,
+        coverPx: data.coverPx,
+        ratio: data.ratio,
+        coverDirty: typeof coverDirty !== 'undefined' ? coverDirty : false,
+        coverReused: typeof coverReused !== 'undefined' ? coverReused : false,
+        burn: data.burn,
+        split: data.split,
+        splitCount: data.splitCount
+      })
+      : { score: 0, alerts: [] };
+
+    renderSecurityResult(result, Boolean(data.pass || data.covers.length));
+    return result;
+  }
+
+  let bridgeScanTimer = null;
+  function scheduleSecurityScanBridge() {
+    window.clearTimeout(bridgeScanTimer);
+    bridgeScanTimer = window.setTimeout(runSecurityScanBridge, 300);
+  }
+
+  ['hidePass', 'decoyPass'].forEach((id) => {
+    getElement(id)?.addEventListener('input', scheduleSecurityScanBridge);
+  });
+  ['coverInput', 'fileInput', 'decoyInput'].forEach((id) => {
+    getElement(id)?.addEventListener('change', scheduleSecurityScanBridge);
+  });
+  ['burnChk', 'splitChk'].forEach((id) => {
+    getElement(id)?.addEventListener('change', scheduleSecurityScanBridge);
+  });
+
+  const hideButton = getElement('hideBtn');
+  if (hideButton) {
+    hideButton.addEventListener('click', () => {
+      const result = runSecurityScanBridge();
+      if (typeof logLine === 'function') {
+        logLine(
+          result.score < 45 ? 'err' : 'ok',
+          `SECURITY CHECK · مؤشر ${result.score}/100${result.score < 45 ? ' — عملية عالية الخطورة' : ''}`
+        );
+      }
+    }, true);
+  }
+
+  window.runSecurityScan = runSecurityScanBridge;
+  window.scheduleSecurityScan = scheduleSecurityScanBridge;
+  runSecurityScanBridge();
+})();
+</script>
+<script>
+/* ================================================================
+   V5.2 درع الإنذار الأمني — جسر تجميع وعرض آمن
+   ================================================================ */
+(function () {
+  'use strict';
+
+  const bridgeEl = (id) => document.getElementById(id);
+  const bridgeVal = (id) => {
+    const element = bridgeEl(id);
+    return element ? String(element.value || '') : '';
+  };
+  const bridgeChk = (id) => {
+    const element = bridgeEl(id);
+    return Boolean(element && element.checked);
+  };
+
+  const bridgeIcons = {
+    danger: '⛔',
+    warn: '⚠️',
+    info: 'ℹ️',
+    ok: '✅'
+  };
+
+  function bridgeEstimate(size, decoySize) {
+    if (typeof estimateDualSize === 'function') {
+      return estimateDualSize(size, decoySize);
+    }
+    if (typeof estimatePayloadSize === 'function') {
+      return estimatePayloadSize(size, decoySize);
+    }
+    const largest = Math.max(Number(size) || 0, Number(decoySize) || 0, 978);
+    const innerLength = Math.ceil((largest + 64) / 1024) * 1024;
+    return 10 + 4 * (innerLength + 44);
+  }
+
+  function bridgeStrength(value) {
+    if (typeof passStrength === 'function') return passStrength(value);
+    let score = 0;
+    if (value.length >= 8) score += 1;
+    if (value.length >= 14) score += 1;
+    if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score += 1;
+    if (/\d/.test(value)) score += 1;
+    if (/[^a-zA-Z0-9]/.test(value)) score += 1;
+    return score;
+  }
+
+  function bridgeDensity(needed, capacities, split) {
+    if (!needed || !capacities.length) return null;
+    if (split && capacities.length > 1) {
+      const perImage = Math.ceil(needed / capacities.length) + 9;
+      return Math.max(...capacities.map((capacity) => capacity > 0 ? perImage / capacity : 1));
+    }
+    return capacities[0] > 0 ? needed / capacities[0] : 1;
+  }
+
+  function gatherSecurityData() {
+    const singleCover = typeof coverImg !== 'undefined' ? coverImg : null;
+    const multipleCovers = typeof coverImgs !== 'undefined' && Array.isArray(coverImgs) ? coverImgs : [];
+    const split = bridgeChk('splitChk');
+    const covers = split ? (multipleCovers.length ? multipleCovers : (singleCover ? [singleCover] : [])) : (singleCover ? [singleCover] : []);
+    const secret = typeof secretFile !== 'undefined' ? secretFile : null;
+    const decoy = typeof decoyFile !== 'undefined' ? decoyFile : null;
+    const needed = secret ? bridgeEstimate(secret.size || 0, decoy?.size || 0) + 1 : 0;
+    const capacities = covers.map((image) => {
+      if (typeof capacityBytes === 'function') return capacityBytes(image.width, image.height) - 4;
+      return image.width * image.height * 3 / 8 - 4;
+    });
+
+    return {
+      pass: bridgeVal('hidePass'),
+      passStrength: bridgeStrength(bridgeVal('hidePass')),
+      decoyPass: bridgeVal('decoyPass'),
+      hasDecoy: Boolean(decoy),
+      covers,
+      coverPx: covers[0] ? covers[0].width * covers[0].height : 0,
+      ratio: bridgeDensity(needed, capacities, split),
+      burn: bridgeChk('burnChk'),
+      split,
+      splitCount: split ? covers.length : 0
+    };
+  }
+
+  function renderSecurity(res, hasData) {
+    const bar = bridgeEl('secBar');
+    if (bar) {
+      bar.style.width = `${hasData ? res.score : 0}%`;
+      bar.className = res.score >= 75 ? '' : res.score >= 45 ? 'warn' : 'danger';
+    }
+
+    const level = bridgeEl('secLevel');
+    if (level) {
+      level.textContent = res.score >= 75 ? 'آمن' : res.score >= 45 ? 'متوسط' : 'خطر';
+      level.style.color = res.score >= 75 ? 'var(--acc)' : res.score >= 45 ? 'var(--warn)' : 'var(--err)';
+    }
+
+    const score = bridgeEl('secScore');
+    if (score) score.textContent = `مؤشر الحماية: ${res.score}/100`;
+
+    const tip = bridgeEl('secTip');
+    if (tip) tip.textContent = res.alerts.length ? '' : 'بلا إنذارات — عمّر المعطيات باش يبدا التقييم';
+
+    const alerts = bridgeEl('secAlerts');
+    if (!alerts) return;
+    alerts.replaceChildren();
+    res.alerts.forEach((alert) => {
+      const row = document.createElement('div');
+      row.className = `sec-row ${alert.sev}`;
+      row.textContent = `${bridgeIcons[alert.sev] || ''} ${alert.msg}`;
+      alerts.append(row);
+    });
+  }
+
+  function runSecurityScan() {
+    const data = gatherSecurityData();
+    if (typeof refreshCoverFlags === 'function') refreshCoverFlags(data.covers[0] || null);
+
+    const result = typeof assessSecurity === 'function'
+      ? assessSecurity({
+          pass: data.pass,
+          passStrength: data.passStrength,
+          decoyPass: data.decoyPass,
+          hasDecoy: data.hasDecoy,
+          coverPx: data.coverPx,
+          ratio: data.ratio,
+          coverDirty: typeof coverDirty !== 'undefined' ? coverDirty : false,
+          coverReused: typeof coverReused !== 'undefined' ? coverReused : false,
+          burn: data.burn,
+          split: data.split,
+          splitCount: data.splitCount
+        })
+      : { score: 0, alerts: [] };
+
+    renderSecurity(result, Boolean(data.pass || data.covers.length));
+    return result;
+  }
+
+  let bridgeScanTimer = null;
+  function scheduleSecurityScan() {
+    window.clearTimeout(bridgeScanTimer);
+    bridgeScanTimer = window.setTimeout(runSecurityScan, 300);
+  }
+
+  ['hidePass', 'decoyPass'].forEach((id) => {
+    bridgeEl(id)?.addEventListener('input', scheduleSecurityScan);
+  });
+  ['coverInput', 'fileInput', 'decoyInput'].forEach((id) => {
+    bridgeEl(id)?.addEventListener('change', scheduleSecurityScan);
+  });
+  ['burnChk', 'splitChk'].forEach((id) => {
+    bridgeEl(id)?.addEventListener('change', scheduleSecurityScan);
+  });
+
+  const hideButton = bridgeEl('hideBtn');
+  if (hideButton) {
+    hideButton.addEventListener('click', () => {
+      const result = runSecurityScan();
+      if (typeof logLine === 'function') {
+        logLine(
+          result.score < 45 ? 'err' : 'ok',
+          `SECURITY CHECK · مؤشر ${result.score}/100${result.score < 45 ? ' — عملية عالية الخطورة' : ''}`
+        );
+      }
+    }, true);
+  }
+
+  window.runSecurityScan = runSecurityScan;
+  window.scheduleSecurityScan = scheduleSecurityScan;
+  runSecurityScan();
+})();
+</script>
+<script>
+  /* ================================================================
+     SPECTRE V5.2 bridge exports
+     Exposes the active security functions without replacing the crypto core.
+     ================================================================ */
+  (() => {
+    'use strict';
+
+    if (typeof window.runSecurityScan === 'function') {
+      window.runSecurityScan = window.runSecurityScan.bind(window);
+    } else if (typeof runSecurityScan === 'function') {
+      window.runSecurityScan = runSecurityScan;
+    }
+
+    if (typeof window.scheduleSecurityScan === 'function') {
+      window.scheduleSecurityScan = window.scheduleSecurityScan.bind(window);
+    } else if (typeof scheduleSecurityScan === 'function') {
+      window.scheduleSecurityScan = scheduleSecurityScan;
+    }
+
+    if (typeof window.assessSecurity === 'function') {
+      window.assessSecurity = window.assessSecurity.bind(window);
+    } else if (typeof assessSecurity === 'function') {
+      window.assessSecurity = assessSecurity;
+    }
+
+    if (typeof window.runSecurityScan === 'function') {
+      window.runSecurityScan();
+    }
+  })();
+</script>
+  <script>
+    /* Final compatibility guard for the security shield. */
+    (() => {
+      'use strict';
+
+      const get = (id) => document.getElementById(id);
+      const read = (id) => {
+        const field = get(id);
+        return field ? String(field.value || '') : '';
+      };
+      const checked = (id) => Boolean(get(id)?.checked);
+
+      const fallbackEstimate = (fileSize = 0, decoySize = 0) => {
+        const largest = Math.max(Number(fileSize) || 0, Number(decoySize) || 0, 978);
+        const innerLength = Math.ceil((largest + 64) / 1024) * 1024;
+        return 10 + (4 * (innerLength + 44));
+      };
+
+      const estimate = (...sizes) => {
+        if (typeof window.estimateDualSize === 'function') {
+          return window.estimateDualSize(...sizes);
+        }
+        if (typeof window.estimatePayloadSize === 'function') {
+          return window.estimatePayloadSize(...sizes);
+        }
+        return fallbackEstimate(...sizes);
+      };
+
+      const capacity = (image) => {
+        if (!image) return 0;
+        if (typeof window.capacityBytes === 'function') {
+          return Math.max(0, window.capacityBytes(image.width, image.height) - 4);
+        }
+        return Math.max(0, Math.floor(image.width * image.height * 3 / 8) - 4);
+      };
+
+      const getCovers = () => {
+        const single = typeof coverImg !== 'undefined' ? coverImg : null;
+        const multiple = typeof coverImgs !== 'undefined' && Array.isArray(coverImgs)
+          ? coverImgs.filter(Boolean)
+          : [];
+        return checked('splitChk')
+          ? (multiple.length ? multiple : (single ? [single] : []))
+          : (single ? [single] : []);
+      };
+
+      const getSecurityAssessment = () => {
+        if (typeof assessSecurity === 'function') return assessSecurity;
+        return typeof window.assessSecurity === 'function' ? window.assessSecurity : null;
+      };
+
+      const render = (result, hasData) => {
+        const score = Math.max(0, Math.min(100, Number(result?.score) || 0));
+        const alerts = Array.isArray(result?.alerts) ? result.alerts : [];
+        const bar = get('secBar');
+        if (bar) {
+          bar.style.width = `${hasData ? score : 0}%`;
+          bar.className = score >= 75 ? '' : score >= 45 ? 'warn' : 'danger';
+        }
+
+        const level = get('secLevel');
+        if (level) {
+          level.textContent = score >= 75 ? 'آمن' : score >= 45 ? 'متوسط' : 'خطر';
+          level.style.color = score >= 75 ? 'var(--color-primary)' : 'var(--color-muted)';
+        }
+
+        const scoreOutput = get('secScore');
+        if (scoreOutput) scoreOutput.textContent = `مؤشر الحماية: ${score}/100`;
+
+        const tip = get('secTip');
+        if (tip) tip.textContent = alerts.length ? '' : 'بلا إنذارات — عمّر المعطيات باش يبدا التقييم';
+
+        const alertBox = get('secAlerts');
+        if (!alertBox) return;
+        alertBox.replaceChildren();
+        const icons = { danger: '⛔', warn: '⚠️', info: 'ℹ️', ok: '✅' };
+        alerts.forEach((alert) => {
+          const row = document.createElement('div');
+          row.className = `sec-row ${String(alert?.sev || 'info')}`;
+          row.textContent = `${icons[alert?.sev] || ''} ${String(alert?.msg || '')}`;
+          alertBox.append(row);
+        });
+      };
+
+      function runSecurityScan() {
+        const covers = getCovers();
+        const secret = typeof secretFile !== 'undefined' ? secretFile : null;
+        const decoy = typeof decoyFile !== 'undefined' ? decoyFile : null;
+        const capacities = covers.map(capacity);
+        const need = secret ? estimate(secret.size, decoy?.size || 0) + 1 : 0;
+        const split = checked('splitChk');
+        let ratio = null;
+
+        if (need && capacities.length && capacities.every((value) => value > 0)) {
+          if (split && capacities.length > 1) {
+            const partSize = Math.ceil(need / capacities.length) + 9;
+            ratio = Math.max(...capacities.map((value) => partSize / value));
+          } else {
+            ratio = need / capacities[0];
+          }
+        }
+
+        const assessor = getSecurityAssessment();
+        if (typeof refreshCoverFlags === 'function') {
+          try {
+            refreshCoverFlags(covers[0] || null);
+          } catch {
+            // Optional cover inspection must not stop the security scan.
+          }
+        }
+
+        const input = {
+          pass: read('hidePass'),
+          passStrength: typeof passStrength === 'function' ? passStrength(read('hidePass')) : 0,
+          decoyPass: read('decoyPass'),
+          hasDecoy: Boolean(decoy),
+          coverPx: covers[0] ? covers[0].width * covers[0].height : 0,
+          ratio,
+          coverDirty: typeof coverDirty !== 'undefined' ? Boolean(coverDirty) : false,
+          coverReused: typeof coverReused !== 'undefined' ? Boolean(coverReused) : false,
+          burn: checked('burnChk'),
+          split,
+          splitCount: split ? covers.length : 0
+        };
+
+        let result = { score: 0, alerts: [] };
+        if (assessor) {
+          try {
+            result = assessor(input) || result;
+          } catch (error) {
+            result = {
+              score: 0,
+              alerts: [{ sev: 'danger', msg: `تعذر تشغيل فحص الأمان: ${error.message || 'خطأ غير معروف'}` }]
+            };
+          }
+        }
+
+        if (ratio !== null && ratio > 1) {
+          result = {
+            ...result,
+            score: 0,
+            alerts: [...(Array.isArray(result.alerts) ? result.alerts : []), {
+              sev: 'danger',
+              msg: 'الحمولة تتجاوز سعة صور الغطاء.'
+            }]
+          };
+        }
+
+        render(result, Boolean(input.pass || covers.length));
+        return result;
+      }
+
+      let timer = null;
+      function scheduleSecurityScan() {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(runSecurityScan, 300);
+      }
+
+      window.runSecurityScan = runSecurityScan;
+      window.scheduleSecurityScan = scheduleSecurityScan;
+
+      ['hidePass', 'decoyPass'].forEach((id) => get(id)?.addEventListener('input', scheduleSecurityScan));
+      ['coverInput', 'fileInput', 'decoyInput'].forEach((id) => get(id)?.addEventListener('change', scheduleSecurityScan));
+      ['burnChk', 'splitChk'].forEach((id) => get(id)?.addEventListener('change', scheduleSecurityScan));
+
+      get('hideBtn')?.addEventListener('click', () => {
+        const result = runSecurityScan();
+        if (typeof window.logLine === 'function') {
+          window.logLine(result.score < 45 ? 'err' : 'ok', `SECURITY CHECK · مؤشر ${result.score}/100`);
+        }
+      }, true);
+
+      runSecurityScan();
+    })();
+  </script>
+  <script>
+    (() => {
+      return;
+
+      const VAULT_KEY = 'spectre_vault_v1';
+      const vaultState = {
+        cells: null,
+        passphrase: ''
+      };
+      const VAULT_MAX_FILE_BYTES = 1024 * 1024;
+
+      const vaultElement = (id) => document.getElementById(id);
+
+      function vaultMessage(text, kind = 'ok') {
+        const message = vaultElement('vaultMsg');
+        if (!message) return;
+        message.textContent = text;
+        message.className = `msg ${kind}`;
+        message.style.display = 'block';
+      }
+
+      function bytesToBase64(bytes) {
+        let output = '';
+        const chunkSize = 4096;
+        for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+          output += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+        }
+        return btoa(output);
+      }
+
+      function base64ToBytes(value) {
+        const binary = atob(value);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index);
+        }
+        return bytes;
+      }
+
+      function requireVaultPassphrase() {
+        const passphrase = vaultElement('vaultPass')?.value || '';
+        if (passphrase.length < 12) {
+          throw new Error('عبارة الخلية خاصها 12 حرفًا على الأقل.');
+        }
+        return passphrase;
+      }
+
+      async function encryptVault(cells, passphrase) {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await deriveKey(passphrase, salt, 'encrypt');
+        const plaintext = new TextEncoder().encode(JSON.stringify({
+          version: 1,
+          cells,
+          updatedAt: new Date().toISOString()
+        }));
+        const ciphertext = new Uint8Array(await crypto.subtle.encrypt({
+          name: 'AES-GCM',
+          iv
+        }, key, plaintext));
+        return {
+          version: 1,
+          salt: bytesToBase64(salt),
+          iv: bytesToBase64(iv),
+          ciphertext: bytesToBase64(ciphertext)
+        };
+      }
+
+      async function decryptVault(blob, passphrase) {
+        if (!blob || blob.version !== 1) throw new Error('صيغة الخلية غير مدعومة.');
+        const key = await deriveKey(passphrase, base64ToBytes(blob.salt), 'decrypt');
+        const plaintext = await crypto.subtle.decrypt({
+          name: 'AES-GCM',
+          iv: base64ToBytes(blob.iv)
+        }, key, base64ToBytes(blob.ciphertext));
+        const parsed = JSON.parse(new TextDecoder().decode(plaintext));
+        if (!Array.isArray(parsed.cells)) throw new Error('بيانات الخلية غير صالحة.');
+        return parsed.cells;
+      }
+
+      async function saveVault() {
+        const blob = await encryptVault(vaultState.cells, vaultState.passphrase);
+        try {
+          localStorage.setItem(VAULT_KEY, JSON.stringify(blob));
+          return true;
+        } catch {
+          vaultMessage('الخلية ممتلئة — التخزين المحلي محدود. حيد وثائق كبيرة.', 'err');
+          return false;
+        }
+      }
+
+      function formatVaultSize(bytes) {
+        if (!bytes) return '—';
+        if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+        if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${bytes} بايت`;
+      }
+
+      function renderVault() {
+        const list = vaultElement('vaultList');
+        if (!list) return;
+        list.replaceChildren();
+
+        let totalBytes = 0;
+        vaultState.cells.forEach((cell, index) => {
+          totalBytes += cell.size || 0;
+          const row = document.createElement('div');
+          row.className = 'vcell';
+
+          const name = document.createElement('span');
+          name.className = 'cn';
+          name.textContent = `${cell.name} · ${formatVaultSize(cell.size)}`;
+
+          const actions = document.createElement('div');
+          actions.className = 'row';
+          actions.style.marginTop = '0';
+
+          const download = document.createElement('button');
+          download.type = 'button';
+          download.className = 'vbtn';
+          download.textContent = 'تنزيل';
+          download.addEventListener('click', () => {
+            const fileUrl = URL.createObjectURL(new Blob([base64ToBytes(cell.data)], {
+            type: cell.type || 'application/octet-stream'
+          }));
+          const link = document.createElement('a');
+          link.href = fileUrl;
+          link.download = cell.name || 'vault-document';
+          link.click();
+          window.setTimeout(() => URL.revokeObjectURL(fileUrl), 1000);
+          });
+
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'vbtn red';
+          remove.textContent = 'حذف';
+          remove.addEventListener('click', async () => {
+            vaultState.cells.splice(index, 1);
+            if (await saveVault()) {
+              renderVault();
+              vaultMessage('تحيدات الوثيقة من الخلية.');
+            }
+          });
+
+          actions.append(download, remove);
+          row.append(name, actions);
+          list.append(row);
+        });
+
+        vaultElement('vaultCount').textContent = `${vaultState.cells.length} وثائق`;
+        vaultElement('vaultSize').textContent = formatVaultSize(totalBytes);
+      }
+
+      vaultElement('vaultOpenBtn')?.addEventListener('click', async () => {
+        try {
+          const passphrase = requireVaultPassphrase();
+          const stored = localStorage.getItem(VAULT_KEY);
+          vaultState.cells = stored ? await decryptVault(JSON.parse(stored), passphrase) : [];
+          vaultState.passphrase = passphrase;
+          vaultElement('vaultLockView').style.display = 'none';
+          vaultElement('vaultOpenView').style.display = 'block';
+          renderVault();
+          vaultMessage(stored ? 'تحلات الخلية بنجاح.' : 'تخلقات خلية جديدة محليًا.');
+        } catch {
+          vaultMessage('تعذر فتح الخلية: العبارة خاطئة أو البيانات تالفة.', 'err');
+        }
+      });
+
+      vaultElement('vaultAddBtn')?.addEventListener('click', () => {
+        vaultElement('vaultFileInput').click();
+      });
+
+      vaultElement('vaultFileInput')?.addEventListener('change', async (event) => {
+        const file = event.target.files?.[0];
+        if (!file || !vaultState.cells) return;
+        const label = vaultElement('vaultLabel').value.trim();
+        const name = label || file.name;
+        if (file.size > VAULT_MAX_FILE_BYTES) {
+          vaultMessage('الوثيقة كبيرة على الخلية — الحد 1MB للوثيقة.', 'err');
+          event.target.value = '';
+          return;
+        }
+
+        const data = new Uint8Array(await file.arrayBuffer());
+        vaultState.cells.push({
+          name,
+          type: file.type || 'application/octet-stream',
+          size: data.length,
+          data: bytesToBase64(data),
+          addedAt: new Date().toISOString()
+        });
+        if (await saveVault()) {
+          renderVault();
+          vaultElement('vaultLabel').value = '';
+          vaultMessage('تزادت الوثيقة وتخزنت مشفرة محليًا.');
+        } else {
+          vaultState.cells.pop();
+        }
+        event.target.value = '';
+      });
+
+      vaultElement('vaultLockBtn')?.addEventListener('click', () => {
+        vaultState.cells = null;
+        vaultState.passphrase = '';
+        vaultElement('vaultOpenView').style.display = 'none';
+        vaultElement('vaultLockView').style.display = 'flex';
+        vaultElement('vaultPass').value = '';
+        vaultMessage('تسدات الخلية ومسحنا العبارة من الذاكرة.');
+      });
+
+      vaultElement('vaultWipeBtn')?.addEventListener('click', () => {
+        if (!window.confirm('واش متأكد؟ غادي تتحيد الخلية المشفرة نهائيًا من هذا المتصفح.')) return;
+        localStorage.removeItem(VAULT_KEY);
+        vaultState.cells = null;
+        vaultState.passphrase = '';
+        vaultElement('vaultOpenView').style.display = 'none';
+        vaultElement('vaultLockView').style.display = 'flex';
+        vaultElement('vaultPass').value = '';
+        vaultMessage('تحرقات الخلية محليًا. لا يمكن استرجاع الوثائق منها.', 'warn');
+      });
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+
+      const DB_NAME = 'spectre-vault-v2';
+      const DB_VERSION = 1;
+      const STORE = 'vault';
+      const META_ID = 'meta';
+      const MAX_FILE_BYTES = 100 * 1024 * 1024;
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+      const get = (id) => document.getElementById(id);
+      let cells = null;
+      let passphrase = '';
+
+      const message = (text, kind = 'ok') => {
+        const target = get('vaultMsg');
+        if (!target) return;
+        target.textContent = text;
+        target.className = `msg ${kind}`;
+        target.style.display = 'block';
+      };
+
+      function openDatabase() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+          request.onupgradeneeded = () => {
+            if (!request.result.objectStoreNames.contains(STORE)) {
+              request.result.createObjectStore(STORE, { keyPath: 'id' });
+            }
+          };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error || new Error('تعذر فتح IndexedDB.'));
+        });
+      }
+
+      function readRecord(db, id) {
+        return new Promise((resolve, reject) => {
+          const request = db.transaction(STORE, 'readonly').objectStore(STORE).get(id);
+          request.onsuccess = () => resolve(request.result || null);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      function writeRecord(db, record) {
+        return new Promise((resolve, reject) => {
+          const request = db.transaction(STORE, 'readwrite').objectStore(STORE).put(record);
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      function deleteRecord(db, id) {
+        return new Promise((resolve, reject) => {
+          const request = db.transaction(STORE, 'readwrite').objectStore(STORE).delete(id);
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function deriveVaultKey(secret, salt, usage) {
+        if (secret.length < 12) throw new Error('عبارة الخلية خاصها 12 حرفًا على الأقل.');
+        const material = await crypto.subtle.importKey('raw', encoder.encode(secret), 'PBKDF2', false, ['deriveKey']);
+        return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 180000, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, [usage]);
+      }
+
+      async function encryptBytes(bytes, secret, aadText) {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await deriveVaultKey(secret, salt, 'encrypt');
+        const additionalData = encoder.encode(aadText);
+        const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData }, key, bytes));
+        return { salt, iv, encrypted };
+      }
+
+      async function decryptBytes(record, secret, aadText) {
+        const key = await deriveVaultKey(secret, record.salt, 'decrypt');
+        return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: record.iv, additionalData: encoder.encode(aadText) }, key, record.encrypted));
+      }
+
+      async function loadCells(db, secret) {
+        const meta = await readRecord(db, META_ID);
+        if (!meta) {
+          const verifier = await encryptBytes(encoder.encode('spectre-vault-v2'), secret, 'meta');
+          await writeRecord(db, { id: META_ID, kind: 'meta', ...verifier });
+          return [];
+        }
+        await decryptBytes(meta, secret, 'meta');
+        const records = await new Promise((resolve, reject) => {
+          const request = db.transaction(STORE, 'readonly').objectStore(STORE).getAll();
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = () => reject(request.error);
+        });
+        const output = [];
+        for (const record of records.filter((item) => item.kind === 'cell')) {
+          output.push({ ...record, data: await decryptBytes(record, secret, `cell:${record.id}`) });
+        }
+        return output;
+      }
+
+      async function saveCell(db, cell) {
+        const encrypted = await encryptBytes(cell.data, passphrase, `cell:${cell.id}`);
+        await writeRecord(db, { id: cell.id, kind: 'cell', name: cell.name, label: cell.label, size: cell.data.length, date: cell.date, ...encrypted });
+      }
+
+      function formatBytes(value) {
+        if (value >= 1024 * 1024) return `${(value / 1024 / 1024).toFixed(2)} MB`;
+        if (value >= 1024) return `${(value / 1024).toFixed(1)} KB`;
+        return `${value} بايت`;
+      }
+
+      function renderCells() {
+        const list = get('vaultList');
+        if (!list || !cells) return;
+        list.replaceChildren();
+        let total = 0;
+
+        cells.forEach((cell, index) => {
+          total += cell.size || 0;
+          const row = document.createElement('div');
+          row.className = 'vcell';
+          row.style.animationDelay = `${Math.min(index * 50, 800)}ms`;
+
+          const left = document.createElement('div');
+          const name = document.createElement('div');
+          name.className = 'cn';
+          name.textContent = `⭐ ${cell.label || cell.name}`;
+
+          const meta = document.createElement('div');
+          meta.className = 'vcount';
+          meta.textContent = `${cell.name} · ${cell.size ? formatBytes(cell.size) : '—'} · ${new Date(cell.date).toLocaleDateString('fr-MA')}`;
+          left.append(name, meta);
+
+          const actions = document.createElement('div');
+          const download = document.createElement('button');
+          download.type = 'button';
+          download.className = 'vbtn';
+          download.textContent = '⬇️ فتح';
+          download.addEventListener('click', async () => {
+            const originalText = download.textContent;
+            download.disabled = true;
+            download.textContent = '⏳';
+
+            try {
+              const db = await openDatabase();
+              const record = await readRecord(db, cell.id);
+              if (!record) throw new Error('البيانات مفقودة من الخزنة.');
+
+              const bytes = await decryptBytes(record, passphrase, `cell:${cell.id}`);
+              const url = URL.createObjectURL(new Blob([bytes], {
+                type: cell.type || 'application/octet-stream'
+              }));
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = cell.name || 'vault-document';
+              link.click();
+              window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+              message(`✅ ${cell.name} خرج من الخلية.`, 'ok');
+            } catch (error) {
+              message(`❌ فشل فك تشفير ${cell.name}: ${error.message || 'خطأ غير معروف'}`, 'err');
+            } finally {
+              download.disabled = false;
+              download.textContent = originalText;
+            }
+          });
+
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'vbtn red';
+          remove.textContent = '🗑️';
+          remove.style.marginInlineStart = '6px';
+          remove.addEventListener('click', async () => {
+            if (!window.confirm(`حذف ${cell.name} من الخلية؟`)) return;
+
+            try {
+              const db = await openDatabase();
+              await deleteRecord(db, cell.id);
+              cells.splice(index, 1);
+              renderCells();
+              message('تحيدات الوثيقة من الخلية نهائيًا.', 'ok');
+            } catch (error) {
+              message(`تعذر حذف الوثيقة: ${error.message || 'خطأ في IndexedDB'}`, 'err');
+            }
+          });
+
+          actions.append(download, remove);
+          row.append(left, actions);
+          list.append(row);
+        });
+
+        get('vaultCount').textContent = `${cells.length} وثائق`;
+        get('vaultSize').textContent = `${formatBytes(total)} مشفرة داخل IndexedDB`;
+      }
+
+      async function openVault() {
+        const input = get('vaultPass');
+        const candidate = input.value;
+        if (candidate.length < 12) {
+          message('عبارة الخلية خاصها 12 حرفًا على الأقل.', 'err');
+          return;
+        }
+        try {
+          const db = await openDatabase();
+          cells = await loadCells(db, candidate);
+          passphrase = candidate;
+          input.value = '';
+          get('vaultLockView').style.display = 'none';
+          const openView = get('vaultOpenView');
+          openView.style.display = 'block';
+          openView.classList.remove('doorOpen');
+          void openView.offsetWidth;
+          openView.classList.add('doorOpen');
+          get('vault').classList.add('unlocked');
+          renderCells();
+          message(`✅ الخلية انفتحت — ${cells.length} وثيقة`, 'ok');
+        } catch {
+          cells = null;
+          passphrase = '';
+          message('❌ عبارة خاطئة أو بيانات الخلية تالفة.', 'err');
+        }
+      }
+
+      async function addFiles(fileList) {
+        if (!cells) return;
+
+        const files = [...fileList];
+        if (!files.length) return;
+
+        const acceptedFiles = files.filter((file) => {
+          if (file.size > MAX_FILE_BYTES) {
+            message(`الوثيقة ${file.name} كتفوت الحد ديال 100MB.`, 'warn');
+            return false;
+          }
+          return true;
+        });
+
+        if (!acceptedFiles.length) return;
+
+        const db = await openDatabase();
+        const label = get('vaultLabel').value.trim();
+        let added = 0;
+
+        for (const file of acceptedFiles) {
+          message(`⏳ تشفير ${file.name} (${formatBytes(file.size)})...`, 'warn');
+
+          try {
+            const data = new Uint8Array(await file.arrayBuffer());
+            const cell = {
+              id: crypto.randomUUID(),
+              name: file.name,
+              label,
+              size: data.length,
+              date: Date.now(),
+              data
+            };
+
+            await saveCell(db, cell);
+            cells.push(cell);
+            added += 1;
+          } catch (error) {
+            message(`❌ فشل تخزين ${file.name}: ${error.message || 'المساحة غير كافية.'}`, 'err');
+          }
+        }
+
+        get('vaultLabel').value = '';
+        get('vaultFileInput').value = '';
+        renderCells();
+
+        if (added) {
+          message(`✅ تزادو ${added} وثيقة وتقفلو مشفرين فالخلية.`, 'ok');
+        }
+      }
+
+      const drop = get('vaultDrop');
+      const input = get('vaultFileInput');
+      drop.addEventListener('click', () => input.click());
+      drop.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          input.click();
+        }
+      });
+      drop.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        drop.classList.add('hover');
+      });
+      drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
+      drop.addEventListener('drop', (event) => {
+        event.preventDefault();
+        drop.classList.remove('hover');
+        addFiles(event.dataTransfer.files);
+      });
+      drop.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          input.click();
+        }
+      });
+      input.addEventListener('change', () => addFiles(input.files));
+      get('vaultOpenBtn').addEventListener('click', openVault);
+      get('vaultLockBtn').addEventListener('click', () => {
+        cells = null;
+        passphrase = '';
+        get('vaultOpenView').style.display = 'none';
+        get('vault').classList.remove('unlocked');
+        get('vaultLockView').style.display = 'flex';
+        message('🔒 الخلية تقفلات — العبارة تمسحات من الذاكرة.', 'ok');
+      });
+      get('vaultWipeBtn').addEventListener('click', async () => {
+        if (!window.confirm('حرق الخلية نهائياً؟ كولشي كيمسح وما كاين رجوع.')) return;
+        const db = await openDatabase();
+        await new Promise((resolve, reject) => {
+          const request = db.transaction(STORE, 'readwrite').objectStore(STORE).clear();
+          request.onsuccess = resolve;
+          request.onerror = () => reject(request.error);
+        });
+        cells = null;
+        passphrase = '';
+        get('vaultOpenView').style.display = 'none';
+        get('vault').classList.remove('unlocked');
+        get('vaultLockView').style.display = 'flex';
+        message('🔥 الخلية انحرقت نهائياً من IndexedDB.', 'err');
+      });
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+
+      const get = (id) => document.getElementById(id);
+      const list = get('vaultList');
+      const gauge = get('vaultGauge');
+      const gaugeText = get('vaultGaugeTxt');
+
+      function formatBytes(value) {
+        const bytes = Number(value) || 0;
+        if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+        if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(2)} MB`;
+        if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${bytes} بايت`;
+      }
+
+      async function updateVaultGauge() {
+        if (!gauge || !gaugeText || !navigator.storage?.estimate) return;
+
+        try {
+          const estimate = await navigator.storage.estimate();
+          const usage = Number(estimate.usage) || 0;
+          const quota = Number(estimate.quota) || 0;
+          const percent = quota ? Math.min(100, usage / quota * 100) : 0;
+          gauge.style.width = `${percent}%`;
+          gaugeText.textContent = quota
+            ? `الخزنة واقفة على ${formatBytes(usage)} من ${formatBytes(quota)} — ${percent.toFixed(1)}% من سعة المتصفح`
+            : 'الخزنة: تعذر تحديد السعة المتاحة.';
+        } catch {
+          gaugeText.textContent = 'الخزنة: تعذر حساب السعة الحالية.';
+        }
+      }
+
+      function makeRowsExpandable() {
+        if (!list) return;
+
+        [...list.children].forEach((row) => {
+          if (row.classList.contains('vwrap')) return;
+          if (!row.classList.contains('vcell') || row.children.length < 2) return;
+
+          const originalChildren = [...row.children];
+          const head = document.createElement('div');
+          head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;width:100%';
+
+          const title = originalChildren[0];
+          const actions = originalChildren[1];
+          const arrow = document.createElement('span');
+          arrow.textContent = '⬇';
+          arrow.setAttribute('aria-hidden', 'true');
+          arrow.style.cssText = 'color:var(--spectre-dim);transition:transform .3s ease;font-size:11px';
+          head.append(title, arrow);
+
+          const body = document.createElement('div');
+          body.className = 'vbody';
+          body.append(actions);
+
+          row.replaceChildren(head, body);
+          row.classList.add('vwrap');
+          head.setAttribute('role', 'button');
+          head.setAttribute('tabindex', '0');
+          head.setAttribute('aria-expanded', 'false');
+
+          const toggle = () => {
+            const expanded = row.classList.toggle('expanded');
+            head.setAttribute('aria-expanded', String(expanded));
+            arrow.style.transform = expanded ? 'rotate(180deg)' : '';
+          };
+
+          head.addEventListener('click', toggle);
+          head.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              toggle();
+            }
+          });
+        });
+      }
+
+      if (list) {
+        new MutationObserver(() => {
+          makeRowsExpandable();
+          updateVaultGauge();
+        }).observe(list, { childList: true });
+      }
+
+      document.addEventListener('click', (event) => {
+        if (event.target.closest('#vaultOpenBtn, #vaultLockBtn, #vaultWipeBtn, #vaultFileInput')) {
+          window.setTimeout(updateVaultGauge, 150);
+        }
+      });
+
+      makeRowsExpandable();
+      updateVaultGauge();
+    })();
+  </script>
+</body>
+
+</html>

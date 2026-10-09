@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="مختبر HTML محلي لمعاينة الشيفرة وفحص العناصر والروابط والنماذج وملاحظات الإتاحة.">
+  <title>مختبر HTML | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .html-control:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .code-area {
+      direction: ltr;
+      text-align: left;
+      tab-size: 2;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .preview-frame {
+      width: 100%;
+      min-height: 25rem;
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.6);
+      background: var(--color-surface);
+    }
+
+    .audit-item:last-child {
+      border-bottom: 0;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">الأدوات</a>
+        <a href="/clipboard-reference">مختبر الحافظة</a>
+        <a href="/uri-reference">أداة URI</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">مختبر HTML محلي</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">اكتب HTML، عاينه، وافحص أساسياته.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">المعاينة والفحوصات تعمل محليًا. تُزال السكربتات والمحتويات النشطة والروابط الخارجية قبل المعاينة، وتعمل داخل إطار معزول.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.9fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="editor-heading">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">محرر ومعاينة</p>
+              <h2 id="editor-heading" class="mb-2 text-2xl font-black">مستند HTML</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">ألصق مقتطفًا أو مستندًا. لن تُنفذ JavaScript في المعاينة.</p>
+            </div>
+            <button id="reset-html" type="button" class="html-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold">إعادة المثال</button>
+          </div>
+          <label for="html-input" class="mb-2 block text-sm font-bold">الشيفرة</label>
+          <textarea id="html-input" rows="18" spellcheck="false" class="html-control code-area w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]"></textarea>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button id="preview-button" type="button" class="btn-primary px-5 py-3">تحديث المعاينة</button>
+            <button id="audit-button" type="button" class="html-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">فحص المستند</button>
+            <button id="copy-html" type="button" class="html-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">نسخ الشيفرة</button>
+          </div>
+          <p id="editor-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">المعاينة لا تنفّذ السكربتات ولا تتصل بمصادر خارجية.</p>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="preview-heading">
+            <div class="bg-[var(--color-dark)] p-5 text-[var(--color-primary-contrast)]">
+              <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">معاينة معزولة</p>
+              <h2 id="preview-heading" class="mb-0 text-xl font-black">المخرجات</h2>
+            </div>
+            <div class="p-4">
+              <iframe id="preview-frame" class="preview-frame" sandbox="" title="معاينة HTML معزولة"></iframe>
+            </div>
+          </section>
+
+          <section class="feature-card p-6" aria-labelledby="audit-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">فحص ثابت</p>
+            <h2 id="audit-heading" class="mb-2 text-xl font-black">ملاحظات المستند</h2>
+            <p id="audit-summary" class="mb-4 text-sm text-[var(--color-muted)]" aria-live="polite">شغّل فحص المستند لعرض الملاحظات.</p>
+            <ul id="audit-results" class="space-y-2 text-sm leading-6"></ul>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5">
+            <h2 class="mb-2 text-lg font-extrabold">ماذا يفحص؟</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">يفحص وجود عنوان المستند، وتدرج العناوين، ونصوص بديلة للصور، وتسميات عناصر النماذج، وأسماء الروابط. هذه مراجعة آلية بسيطة وليست تدقيقًا كاملًا للإتاحة أو صحة HTML.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">مختبر HTML محلي للمعاينة والفحص الأساسي.</p>
+      <a href="/tools" class="footer-link font-semibold">لوحة الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const defaultHtml = `<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>صفحة تجريبية</title>
+</head>
+<body>
+  <main>
+    <h1>مرحبًا بك</h1>
+    <p>هذه معاينة محلية لمستند HTML.</p>
+    <img src="" alt="وصف موجز للصورة">
+    <a href="#details">انتقل إلى التفاصيل</a>
+    <form>
+      <label for="email">البريد الإلكتروني</label>
+      <input id="email" type="email">
+      <button type="submit">إرسال</button>
+    </form>
+  </main>
+</body>
+</html>`;
+
+    const htmlInput = document.querySelector('#html-input');
+    const previewFrame = document.querySelector('#preview-frame');
+    const editorStatus = document.querySelector('#editor-status');
+    const auditResults = document.querySelector('#audit-results');
+    const auditSummary = document.querySelector('#audit-summary');
+
+    function createSafePreview(source) {
+      const parsed = new DOMParser().parseFromString(source, 'text/html');
+      parsed.querySelectorAll('script, iframe, object, embed, applet, base, meta[http-equiv], link[rel="import"]').forEach((node) => node.remove());
+      parsed.querySelectorAll('*').forEach((element) => {
+        [...element.attributes].forEach((attribute) => {
+          const name = attribute.name.toLowerCase();
+          const value = attribute.value.trim();
+          if (name.startsWith('on') || name === 'srcdoc' || name === 'style' && /url\s*\(/i.test(value)) {
+            element.removeAttribute(attribute.name);
+          }
+          if (['href', 'src', 'action', 'formaction', 'poster', 'xlink:href'].includes(name) && value && !value.startsWith('#')) {
+            element.removeAttribute(attribute.name);
+          }
+        });
+      });
+      parsed.querySelectorAll('form').forEach((form) => {
+        form.removeAttribute('action');
+        form.addEventListener('submit', (event) => event.preventDefault());
+      });
+      return `<!doctype html>${parsed.documentElement.outerHTML}`;
+    }
+
+    function updatePreview() {
+      previewFrame.srcdoc = createSafePreview(htmlInput.value);
+      editorStatus.textContent = 'تم تحديث المعاينة بعد إزالة السكربتات والموارد الخارجية والروابط النشطة.';
+    }
+
+    function addAuditItem(message, kind = 'info') {
+      const item = document.createElement('li');
+      item.className = 'audit-item rounded-[calc(var(--radius)*0.5)] bg-[var(--color-bg)] px-3 py-2';
+      item.textContent = `${kind === 'pass' ? '✓' : kind === 'warning' ? '!' : '•'} ${message}`;
+      auditResults.append(item);
+    }
+
+    function auditDocument() {
+      const parsed = new DOMParser().parseFromString(htmlInput.value, 'text/html');
+      const checks = [];
+      const title = parsed.querySelector('title');
+      checks.push([Boolean(title?.textContent.trim()), 'يتضمن المستند عنوانًا غير فارغ داخل <title>.', 'أضف عنصر <title> واضحًا داخل <head>.']);
+
+      const headings = [...parsed.querySelectorAll('h1, h2, h3, h4, h5, h6')];
+      checks.push([headings.length > 0, 'توجد عناوين دلالية للمحتوى.', 'أضف عناوين HTML حيثما يناسب بنية المحتوى.']);
+      let skippedLevel = false;
+      let previousLevel = 0;
+      headings.forEach((heading) => {
+        const level = Number(heading.tagName.slice(1));
+        if (previousLevel && level > previousLevel + 1) skippedLevel = true;
+        previousLevel = level;
+      });
+      checks.push([!skippedLevel, 'تسلسل مستويات العناوين لا يتخطى مستوى.', 'راجع ترتيب h1–h6؛ تجنب القفز غير المقصود بين المستويات.']);
+
+      const imagesWithoutAlt = [...parsed.querySelectorAll('img:not([alt])')];
+      checks.push([imagesWithoutAlt.length === 0, 'كل الصور تتضمن alt (يمكن أن تكون القيمة فارغة للصورة الزخرفية).', `${imagesWithoutAlt.length} صورة بلا alt.`]);
+
+      const unlabeledControls = [...parsed.querySelectorAll('input:not([type="hidden"]), select, textarea')].filter((control) => {
+        const hasLabel = control.id && parsed.querySelector(`label[for="${CSS.escape(control.id)}"]`);
+        const wrappedLabel = control.closest('label');
+        const ariaName = control.getAttribute('aria-label') || control.getAttribute('aria-labelledby');
+        return !hasLabel && !wrappedLabel && !ariaName;
+      });
+      checks.push([unlabeledControls.length === 0, 'عناصر النماذج لها تسمية أو اسم وصول ظاهر.', `${unlabeledControls.length} عنصر نموذج قد يفتقر إلى تسمية.`]);
+
+      const unnamedLinks = [...parsed.querySelectorAll('a[href]')].filter((link) => !link.textContent.trim() && !link.querySelector('img[alt], svg[aria-label]') && !link.getAttribute('aria-label'));
+      checks.push([unnamedLinks.length === 0, 'روابط التنقل لها نص أو اسم وصول.', `${unnamedLinks.length} رابطًا بلا اسم واضح.`]);
+
+      auditResults.replaceChildren();
+      checks.forEach(([passed, success, issue]) => addAuditItem(passed ? success : issue, passed ? 'pass' : 'warning'));
+      const warnings = checks.filter(([passed]) => !passed).length;
+      auditSummary.textContent = warnings ? `اكتمل الفحص: ${warnings} ملاحظة للمراجعة من ${checks.length} فحوصات.` : `اكتمل الفحص: لم تظهر ملاحظات في ${checks.length} فحوصات بسيطة.`;
+    }
+
+    document.querySelector('#preview-button').addEventListener('click', updatePreview);
+    document.querySelector('#audit-button').addEventListener('click', auditDocument);
+    document.querySelector('#reset-html').addEventListener('click', () => {
+      htmlInput.value = defaultHtml;
+      updatePreview();
+      auditDocument();
+    });
+    document.querySelector('#copy-html').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(htmlInput.value);
+        editorStatus.textContent = 'نُسخت الشيفرة إلى الحافظة.';
+      } catch {
+        editorStatus.textContent = 'تعذّر النسخ تلقائيًا. حدّد الشيفرة وانسخها يدويًا.';
+      }
+    });
+
+    htmlInput.value = defaultHtml;
+    updatePreview();
+    auditDocument();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

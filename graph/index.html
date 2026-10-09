@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="مستكشف مستقل وغير رسمي لبيانات VirusTotal Graph. غير تابع لـ VirusTotal ولا يحظى بتأييده.">
+  <title>مستكشف رسم VirusTotal | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .mono,
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .graph-node[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+    }
+
+    .graph-node[hidden],
+    .relationship-card[hidden] {
+      display: none;
+    }
+
+    .status-message:empty {
+      display: none;
+    }
+
+    .tool-input:focus,
+    .tool-select:focus,
+    .tool-textarea:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .details-row+.details-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">الأدوات</a>
+        <a href="/api-tool">أدوات API</a>
+        <a href="/api-tool">أدوات VTAI</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">مستكشف الرسم · مساحة عمل للمبرمجين</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">استكشف مؤشرات الرسم وعلاقاته.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">استورد تصدير MISP/JSON، افحص المؤشرات والروابط والعلاقات، ثم انسخها أو نزّل ملخصًا منظمًا أو اطلب التقرير الحالي عبر VTAI.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="import-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">استيراد بياناتك</p>
+              <h2 id="import-heading" class="mb-2 text-2xl font-black">حمّل تصدير الرسم أو الصق JSON</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">تتم معالجة الملف محليًا في هذا التبويب. ندعم كائن Event بصيغة MISP، بما في ذلك Attribute وObject وObjectReference. لا يُرفع الملف إلى خدمة خارجية.</p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+              <div>
+                <label for="json-file" class="mb-2 block text-sm font-bold">ملف JSON</label>
+                <input id="json-file" type="file" accept=".json,application/json" class="tool-input block w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm">
+              </div>
+              <button id="download-json" type="button" class="rounded-[calc(var(--radius)*0.65)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تنزيل ملخص JSON</button>
+            </div>
+            <label for="json-input" class="mb-2 mt-4 block text-sm font-bold">أو الصق البيانات هنا</label>
+            <textarea id="json-input" rows="5" spellcheck="false" placeholder='{"Event":{"Attribute":[],"Object":[]}}' class="tool-textarea mono w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-xs leading-6 text-[var(--color-text)] placeholder:text-[var(--color-muted)]"></textarea>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+              <button id="import-json" type="button" class="btn-primary px-5 py-3 text-sm">استيراد JSON</button>
+              <button id="restore-sample" type="button" class="rounded-[calc(var(--radius)*0.65)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 text-sm font-bold">استعادة الرسم المرفق</button>
+              <p id="import-status" class="status-message mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite"></p>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="graph-heading">
+            <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p id="event-info" class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Untitled graph</p>
+                <h2 id="graph-heading" class="mb-2 text-2xl font-black">المؤشرات في الرسم</h2>
+                <p id="graph-summary" class="mb-0 text-sm leading-6 text-[var(--color-muted)]">اختر مؤشرًا لعرض خصائصه وتقاريره وعلاقاته.</p>
+              </div>
+              <label class="sr-only" for="node-search">البحث في المؤشرات</label>
+              <input id="node-search" type="search" placeholder="ابحث في المؤشرات..." class="tool-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm sm:max-w-xs">
+            </div>
+            <div id="node-list" class="grid gap-3 sm:grid-cols-2" role="group" aria-label="اختيار مؤشر من الرسم"></div>
+            <p id="node-empty" class="hidden mt-4 mb-0 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm text-[var(--color-muted)]">لا توجد مؤشرات مطابقة. جرّب عبارة بحث أخرى.</p>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="details-heading">
+            <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div class="min-w-0">
+                <p id="selected-kind" class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">المؤشر المحدد</p>
+                <h2 id="details-heading" class="mb-2 text-2xl font-black">تفاصيل المؤشر</h2>
+                <p id="selected-value" class="mono mb-0 break-all text-sm leading-6 text-[var(--color-muted)]"></p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button id="copy-indicator" type="button" class="rounded-[calc(var(--radius)*0.65)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">نسخ القيمة</button>
+                <button id="lookup-selected" type="button" class="btn-primary px-4 py-3 text-sm">طلب تقرير VTAI</button>
+              </div>
+            </div>
+            <div class="mb-5 grid gap-3 sm:grid-cols-2">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">نسبة الكشف في التصدير</p>
+                <p id="selected-detection" class="mb-0 text-xl font-black">غير متاحة</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">نوع المؤشر</p>
+                <p id="selected-type" class="mono mb-0 break-all text-sm font-bold"></p>
+              </div>
+            </div>
+            <div class="mb-5">
+              <h3 class="mb-3 text-lg font-extrabold">علاقات المؤشر</h3>
+              <div id="selected-relations" class="space-y-2"></div>
+              <p id="relations-empty" class="mb-0 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm text-[var(--color-muted)]">لا توجد علاقات مرتبطة بهذا المؤشر في البيانات المستوردة.</p>
+            </div>
+            <div>
+              <h3 class="mb-3 text-lg font-extrabold">الخصائص والتقارير المرتبطة</h3>
+              <div id="selected-attributes" class="overflow-hidden rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)]"></div>
+            </div>
+            <p class="mt-5 mb-0 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6">نسب الكشف وروابط التقارير المعروضة من التصدير المرفق وقد لا تكون حديثة. لا تعني نتيجة 0 اكتشافات أن المؤشر آمن؛ تحقق من التقرير الحالي والسياق قبل اتخاذ قرار.</p>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="api-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">استعلام مباشر اختياري</p>
+              <h2 id="api-heading" class="mb-2 text-2xl font-black">استرجاع تقرير عبر VTAI</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">أدخل رمز VTAI Agent Token. يُستخدم في الذاكرة فقط لهذا التبويب ولا يُحفظ في تخزين المتصفح. قد تمنع CORS الاتصال المباشر.</p>
+            </div>
+            <label for="vtai-token" class="mb-2 block text-sm font-bold">VTAI Agent Token</label>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <input id="vtai-token" type="password" autocomplete="off" spellcheck="false" placeholder="أدخل الرمز لإجراء الاستعلام" class="tool-input min-w-0 flex-1 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+              <button id="lookup-button" type="button" class="btn-primary px-5 py-3">فحص المؤشر المحدد</button>
+            </div>
+            <p id="lookup-status" class="status-message mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite"></p>
+            <pre id="lookup-result" class="mono mt-4 hidden max-h-[32rem] overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></pre>
+          </section>
+        </div>
+
+        <aside class="feature-card p-6 sm:p-8 xl:sticky xl:top-6">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">مخرجات للمبرمج</p>
+          <h2 class="mb-4 text-2xl font-black">استخدم البيانات في أدواتك</h2>
+          <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">يعرض المستكشف الروابط والخصائص الموجودة في بياناتك فقط، ويتيح تنزيل ملخص منظم للمؤشرات والعلاقات. لا تُنشأ روابط تقارير غير واردة في المصدر.</p>
+          <div class="space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 font-bold text-[var(--color-text)]">التصدير</p>
+              <code class="mono">nodes[] · relationships[] · attributes[]</code>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 font-bold text-[var(--color-text)]">تقارير الملفات</p>
+              <code class="mono">GET /api/v3/files/{sha256}</code>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 font-bold text-[var(--color-text)]">تقارير النطاقات</p>
+              <code class="mono">GET /api/v3/domains/{domain}</code>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 font-bold text-[var(--color-text)]">حدود الاستخدام</p>
+              <p class="mb-0">الاستعلامات تستهلك الحصة. لا يُعاد الطلب تلقائيًا، والتزم بترويسة Retry-After عند HTTP 429.</p>
+            </div>
+          </div>
+          <a href="/api-tool" class="mt-6 inline-flex font-bold text-[var(--color-primary)]">فتح أدوات VTAI الكاملة <span class="mr-2" aria-hidden="true">→</span></a>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-[var(--color-muted)] sm:flex-row">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">مستكشف تفاعلي لبيانات VirusTotal Graph.</p>
+      <a href="/api-tool" class="footer-link font-semibold">أدوات VTAI</a>
+    </div>
+  </footer>
+
+  <script>
+    const sampleGraph = {
+      "Event": {
+        "uuid": "040c6e7a-373c-4a1f-9aaf-043400929a30",
+        "info": "Untitled graph",
+        "Attribute": [{
+            "uuid": "61e245ac-ad29-4eb2-9d24-5c558bbd1260",
+            "type": "sha256",
+            "value": "e5ef82730b3c5d0d752f6ef7d986e050d26bac80e4dba061ce0d5286f9bc0f0b"
+          },
+          {
+            "uuid": "509d44b4-6a39-4e16-bcac-db9e345e6a2c",
+            "type": "sha256",
+            "value": "a4ffe68f97da361a6cccdceb402bb4d0a884a68b7196ce706e91d0328069f3e3"
+          },
+          {
+            "uuid": "5f5df8d6-f337-4d0e-b562-00a2f6106ebc",
+            "type": "domain",
+            "value": "teams-fs.office.com"
+          }
+        ],
+        "Object": [{
+            "uuid": "dcd1ab13-3aac-4ee7-a74b-2a2e6823b01f",
+            "name": "virustotal-report",
+            "Attribute": [{
+                "type": "link",
+                "object_relation": "permalink",
+                "value": "https://www.virustotal.com/gui/file/e5ef82730b3c5d0d752f6ef7d986e050d26bac80e4dba061ce0d5286f9bc0f0b"
+              },
+              {
+                "type": "text",
+                "object_relation": "detection-ratio",
+                "value": "0/70"
+              }
+            ]
+          },
+          {
+            "uuid": "d81c8e28-a37b-49a5-a7b8-5289c3ad918d",
+            "name": "file",
+            "Attribute": [{
+                "type": "md5",
+                "value": "ab23f79155e9de71bcc87d48dea19023",
+                "object_relation": "md5"
+              },
+              {
+                "type": "sha1",
+                "value": "fb14709d95c0aedc955242826e749e9dd7443b23",
+                "object_relation": "sha1"
+              },
+              {
+                "type": "sha256",
+                "value": "e5ef82730b3c5d0d752f6ef7d986e050d26bac80e4dba061ce0d5286f9bc0f0b",
+                "object_relation": "sha256"
+              }
+            ],
+            "ObjectReference": [{
+                "object_uuid": "d81c8e28-a37b-49a5-a7b8-5289c3ad918d",
+                "referenced_uuid": "dcd1ab13-3aac-4ee7-a74b-2a2e6823b01f",
+                "relationship_type": "analysed-with"
+              },
+              {
+                "object_uuid": "d81c8e28-a37b-49a5-a7b8-5289c3ad918d",
+                "referenced_uuid": "327379b3-d778-47ca-9090-ee7fe76752d4",
+                "relationship_type": "executed-by"
+              },
+              {
+                "object_uuid": "d81c8e28-a37b-49a5-a7b8-5289c3ad918d",
+                "referenced_uuid": "8aff0370-e787-4ac4-9f0f-ed9a7374de90",
+                "relationship_type": "communicates-with"
+              }
+            ]
+          },
+          {
+            "uuid": "feb983f0-236a-46cc-ae40-71758d57ea46",
+            "name": "virustotal-report",
+            "Attribute": [{
+                "type": "link",
+                "object_relation": "permalink",
+                "value": "https://www.virustotal.com/gui/file/a4ffe68f97da361a6cccdceb402bb4d0a884a68b7196ce706e91d0328069f3e3"
+              },
+              {
+                "type": "text",
+                "object_relation": "detection-ratio",
+                "value": "0/66"
+              }
+            ]
+          },
+          {
+            "uuid": "327379b3-d778-47ca-9090-ee7fe76752d4",
+            "name": "file",
+            "Attribute": [{
+                "type": "md5",
+                "value": "a6e118f6099ce6543febdede6dba998a",
+                "object_relation": "md5"
+              },
+              {
+                "type": "sha1",
+                "value": "86b403c34ea29f095a1c14c97ec8ab1a885cc8e5",
+                "object_relation": "sha1"
+              },
+              {
+                "type": "sha256",
+                "value": "a4ffe68f97da361a6cccdceb402bb4d0a884a68b7196ce706e91d0328069f3e3",
+                "object_relation": "sha256"
+              }
+            ],
+            "ObjectReference": [{
+              "object_uuid": "327379b3-d778-47ca-9090-ee7fe76752d4",
+              "referenced_uuid": "feb983f0-236a-46cc-ae40-71758d57ea46",
+              "relationship_type": "analysed-with"
+            }]
+          },
+          {
+            "uuid": "787c5c9c-88ef-4fe6-a9f6-b54e9a1c2f26",
+            "name": "virustotal-report",
+            "Attribute": [{
+                "type": "link",
+                "object_relation": "permalink",
+                "value": "https://www.virustotal.com/gui/domain/teams-fs.office.com"
+              },
+              {
+                "type": "text",
+                "object_relation": "detection-ratio",
+                "value": "0/91"
+              }
+            ]
+          },
+          {
+            "uuid": "8aff0370-e787-4ac4-9f0f-ed9a7374de90",
+            "name": "domain-ip",
+            "Attribute": [{
+              "type": "domain",
+              "value": "teams-fs.office.com",
+              "object_relation": "domain"
+            }],
+            "ObjectReference": [{
+              "object_uuid": "8aff0370-e787-4ac4-9f0f-ed9a7374de90",
+              "referenced_uuid": "787c5c9c-88ef-4fe6-a9f6-b54e9a1c2f26",
+              "relationship_type": "analysed-with"
+            }]
+          }
+        ]
+      }
+    };
+
+    const API_BASE = 'https://ai.virustotal.com';
+    const nodeList = document.querySelector('#node-list');
+    const nodeSearch = document.querySelector('#node-search');
+    const nodeEmpty = document.querySelector('#node-empty');
+    const tokenInput = document.querySelector('#vtai-token');
+    const lookupButton = document.querySelector('#lookup-button');
+    const lookupStatus = document.querySelector('#lookup-status');
+    const lookupResult = document.querySelector('#lookup-result');
+    const importStatus = document.querySelector('#import-status');
+    let sourceGraph = sampleGraph;
+    let graphData = {
+      event: {},
+      nodes: [],
+      relationships: []
+    };
+    let selectedNodeId = '';
+
+    function getAttributes(object) {
+      const attributes = object && (object.Attribute || object.attribute || object.attributes);
+      return Array.isArray(attributes) ? attributes : [];
+    }
+
+    function normalizedType(attribute) {
+      return String(attribute.type || attribute.object_relation || 'indicator').toLowerCase();
+    }
+
+    function indicatorAttributes(attributes) {
+      const nonIndicators = new Set(['link', 'text', 'comment', 'filename', 'size-in-bytes', 'timestamp']);
+      return attributes.filter((attribute) => attribute && attribute.value && !nonIndicators.has(normalizedType(attribute)));
+    }
+
+    function primaryAttribute(attributes) {
+      const priority = ['sha256', 'sha1', 'md5', 'url', 'domain', 'ip-dst', 'ip-src', 'ip', 'hostname'];
+      return [...attributes].sort((a, b) => {
+        const aRank = priority.indexOf(normalizedType(a));
+        const bRank = priority.indexOf(normalizedType(b));
+        return (aRank < 0 ? 999 : aRank) - (bRank < 0 ? 999 : bRank);
+      })[0] || attributes[0];
+    }
+
+    function parseGraph(payload) {
+      const event = payload && (payload.Event || payload.event || payload);
+      if (!event || typeof event !== 'object') throw new Error('لم يتم العثور على كائن Event صالح في JSON.');
+      const objects = event.Object || event.object || event.objects || [];
+      const eventAttributes = event.Attribute || event.attribute || event.attributes || [];
+      if (!Array.isArray(objects) || !Array.isArray(eventAttributes)) {
+        throw new Error('يجب أن تكون حقول Event.Object وEvent.Attribute من نوع قائمة.');
+      }
+
+      const objectByUuid = new Map(objects.filter((object) => object.uuid).map((object) => [object.uuid, object]));
+      const reportByUuid = new Map();
+      objects.forEach((object) => {
+        const attrs = getAttributes(object);
+        const reportLike = String(object.name || '').toLowerCase().includes('report') || attrs.some((attribute) => normalizedType(attribute) === 'link' && /permalink/i.test(attribute.object_relation || ''));
+        if (!reportLike) return;
+        const report = {
+          permalink: attrs.find((attribute) => /permalink/i.test(attribute.object_relation || '') && /^https?:\/\//i.test(attribute.value || ''))?.value || '',
+          detection: attrs.find((attribute) => /detection-ratio/i.test(attribute.object_relation || ''))?.value || ''
+        };
+        reportByUuid.set(object.uuid, report);
+      });
+
+      const nodes = [];
+      const nodeByValue = new Map();
+      const nodeByObjectUuid = new Map();
+
+      function addNode(attribute, object = null) {
+        const value = String(attribute.value || '').trim();
+        if (!value) return null;
+        const key = value.toLowerCase();
+        let node = nodeByValue.get(key);
+        if (!node) {
+          node = {
+            id: `indicator-${nodes.length + 1}`,
+            value,
+            type: normalizedType(attribute),
+            objectName: object?.name || '',
+            objectUuid: object?.uuid || '',
+            attributes: [],
+            permalink: '',
+            detection: ''
+          };
+          nodes.push(node);
+          nodeByValue.set(key, node);
+        }
+        if (object?.uuid) nodeByObjectUuid.set(object.uuid, node);
+        const attrKey = `${normalizedType(attribute)}:${value}`;
+        if (!node.attributes.some((existing) => `${normalizedType(existing)}:${existing.value}` === attrKey)) node.attributes.push(attribute);
+        return node;
+      }
+
+      objects.forEach((object) => {
+        const attrs = indicatorAttributes(getAttributes(object));
+        if (!attrs.length) return;
+        const primary = primaryAttribute(attrs);
+        const node = addNode(primary, object);
+        attrs.forEach((attribute) => {
+          if (node) {
+            const key = `${normalizedType(attribute)}:${attribute.value}`;
+            if (!node.attributes.some((existing) => `${normalizedType(existing)}:${existing.value}` === key)) node.attributes.push(attribute);
+          }
+        });
+      });
+
+      eventAttributes.forEach((attribute) => {
+        if (attribute && attribute.value) addNode(attribute);
+      });
+
+      const reportLinks = [];
+      objects.forEach((object) => {
+        const sourceNode = nodeByObjectUuid.get(object.uuid);
+        if (!sourceNode) return;
+        const references = object.ObjectReference || object.object_reference || object.objectReferences || [];
+        if (!Array.isArray(references)) return;
+        references.forEach((reference) => {
+          const targetUuid = reference.referenced_uuid || reference.referencedUuid;
+          const relation = reference.relationship_type || reference.relationship || reference.relation || 'related-to';
+          const report = reportByUuid.get(targetUuid);
+          if (report) {
+            if (report.permalink) sourceNode.permalink = report.permalink;
+            if (report.detection) sourceNode.detection = report.detection;
+            if (report.permalink || report.detection) reportLinks.push({
+              nodeId: sourceNode.id,
+              relation,
+              ...report
+            });
+            return;
+          }
+          const targetNode = nodeByObjectUuid.get(targetUuid);
+          if (targetNode) graphData.relationships.push({
+            source: sourceNode.id,
+            target: targetNode.id,
+            relation
+          });
+        });
+      });
+
+      nodes.forEach((node) => {
+        const fallbackReport = reportLinks.find((report) => report.nodeId === node.id);
+        if (fallbackReport) {
+          node.permalink = node.permalink || fallbackReport.permalink;
+          node.detection = node.detection || fallbackReport.detection;
+        }
+      });
+      const title = event.info || event.name || 'VirusTotal Graph';
+      return {
+        event: {
+          uuid: event.uuid || '',
+          info: title
+        },
+        nodes,
+        relationships: graphData.relationships,
+        reportLinks
+      };
+    }
+
+    function safeText(value) {
+      return String(value ?? '');
+    }
+
+    function escapeHtml(value) {
+      return safeText(value).replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
+    function getSelectedNode() {
+      return graphData.nodes.find((node) => node.id === selectedNodeId) || graphData.nodes[0] || null;
+    }
+
+    function renderNodes() {
+      const query = nodeSearch.value.trim().toLowerCase();
+      const filtered = graphData.nodes.filter((node) => `${node.value} ${node.type} ${node.objectName}`.toLowerCase().includes(query));
+      nodeList.innerHTML = filtered.map((node) => `
+        <button type="button" class="graph-node feature-card min-w-0 p-4 text-right" data-node-id="${escapeHtml(node.id)}" aria-pressed="${node.id === selectedNodeId}">
+          <span class="mb-2 block text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-primary)]">${escapeHtml(node.type)}${node.objectName ? ` · ${escapeHtml(node.objectName)}` : ''}</span>
+          <span class="mono block break-all text-sm font-bold">${escapeHtml(node.value)}</span>
+          <span class="mt-2 block text-xs text-[var(--color-muted)]">${node.detection ? `نسبة المصدر ${escapeHtml(node.detection)}` : 'لا توجد نسبة كشف في المصدر'}</span>
+        </button>
+      `).join('');
+      nodeEmpty.classList.toggle('hidden', filtered.length > 0);
+      nodeList.querySelectorAll('[data-node-id]').forEach((button) => {
+        button.addEventListener('click', () => selectNode(button.dataset.nodeId));
+      });
+      document.querySelector('#graph-summary').textContent = `${graphData.nodes.length} مؤشرات · ${graphData.relationships.length} علاقات مستخرجة من البيانات.`;
+    }
+
+    function renderDetails() {
+      const node = getSelectedNode();
+      const selectedValue = document.querySelector('#selected-value');
+      const attributesContainer = document.querySelector('#selected-attributes');
+      const relationsContainer = document.querySelector('#selected-relations');
+      const relationsEmpty = document.querySelector('#relations-empty');
+      if (!node) {
+        document.querySelector('#selected-kind').textContent = 'لا توجد مؤشرات';
+        selectedValue.textContent = 'استورد بيانات JSON تحتوي على مؤشرات لعرض تفاصيلها.';
+        document.querySelector('#selected-type').textContent = '—';
+        document.querySelector('#selected-detection').textContent = 'غير متاحة';
+        attributesContainer.innerHTML = '';
+        relationsContainer.innerHTML = '';
+        relationsEmpty.classList.remove('hidden');
+        return;
+      }
+
+      document.querySelector('#selected-kind').textContent = node.objectName || 'مؤشر';
+      selectedValue.textContent = node.value;
+      document.querySelector('#selected-type').textContent = node.type;
+      document.querySelector('#selected-detection').textContent = node.detection || 'غير متاحة';
+      const nodeRelations = graphData.relationships.filter((relationship) => relationship.source === node.id || relationship.target === node.id);
+      relationsContainer.innerHTML = nodeRelations.map((relationship) => {
+        const isSource = relationship.source === node.id;
+        const other = graphData.nodes.find((item) => item.id === (isSource ? relationship.target : relationship.source));
+        const direction = isSource ? 'إلى' : 'من';
+        return `<div class="relationship-card rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><span class="mb-1 block text-xs font-bold text-[var(--color-primary)]">${direction} · ${escapeHtml(relationship.relation)}</span><span class="mono block break-all text-sm font-semibold">${escapeHtml(other?.value || 'عنصر غير موجود في البيانات')}</span></div>`;
+      }).join('');
+      relationsEmpty.classList.toggle('hidden', nodeRelations.length > 0);
+
+      const rows = node.attributes.map((attribute) => `
+        <div class="details-row grid gap-1 px-4 py-3 sm:grid-cols-[130px_minmax(0,1fr)] sm:gap-4">
+          <span class="text-xs font-bold text-[var(--color-muted)]">${escapeHtml(attribute.object_relation || attribute.type || 'attribute')}</span>
+          <span class="mono break-all text-xs leading-6 text-[var(--color-text)]">${escapeHtml(attribute.value)}</span>
+        </div>
+      `);
+      if (node.permalink) {
+        rows.push(`<div class="details-row grid gap-1 px-4 py-3 sm:grid-cols-[130px_minmax(0,1fr)] sm:gap-4"><span class="text-xs font-bold text-[var(--color-muted)]">رابط التقرير</span><a class="mono break-all text-xs leading-6 font-semibold text-[var(--color-primary)] underline" href="${escapeHtml(node.permalink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(node.permalink)} <span aria-hidden="true">↗</span></a></div>`);
+      }
+      if (node.detection) {
+        rows.push(`<div class="details-row grid gap-1 px-4 py-3 sm:grid-cols-[130px_minmax(0,1fr)] sm:gap-4"><span class="text-xs font-bold text-[var(--color-muted)]">نسبة المصدر</span><span class="text-sm font-semibold">${escapeHtml(node.detection)}</span></div>`);
+      }
+      attributesContainer.innerHTML = rows.length ? rows.join('') : '<p class="mb-0 p-4 text-sm text-[var(--color-muted)]">لا توجد خصائص إضافية لهذا المؤشر.</p>';
+      renderNodes();
+    }
+
+    function selectNode(id) {
+      selectedNodeId = id;
+      lookupStatus.textContent = '';
+      lookupResult.classList.add('hidden');
+      renderDetails();
+    }
+
+    function loadGraph(payload, message = 'تم استيراد البيانات بنجاح.') {
+      sourceGraph = payload;
+      graphData = {
+        event: {},
+        nodes: [],
+        relationships: []
+      };
+      graphData = parseGraph(payload);
+      selectedNodeId = graphData.nodes[0]?.id || '';
+      document.querySelector('#event-info').textContent = graphData.event.info;
+      importStatus.textContent = `${message} ${graphData.nodes.length} مؤشرات و${graphData.relationships.length} علاقات.`;
+      renderDetails();
+    }
+
+    function downloadJson() {
+      const output = {
+        event: graphData.event,
+        nodes: graphData.nodes,
+        relationships: graphData.relationships
+      };
+      const blob = new Blob([JSON.stringify(output, null, 2)], {
+        type: 'application/json'
+      });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = 'virustotal-graph-summary.json';
+      link.click();
+      URL.revokeObjectURL(downloadUrl);
+    }
+
+    async function lookupSelected() {
+      const node = getSelectedNode();
+      const token = tokenInput.value.trim();
+      if (!node) {
+        lookupStatus.textContent = 'استورد رسمًا يحتوي على مؤشر أولًا.';
+        return;
+      }
+      if (!token) {
+        lookupStatus.textContent = 'أدخل رمز VTAI Agent Token لإجراء الاستعلام.';
+        tokenInput.focus();
+        return;
+      }
+
+      const type = node.type.toLowerCase();
+      let endpoint;
+      let options = {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      };
+      if (['sha256', 'sha1', 'md5', 'file'].includes(type)) {
+        endpoint = `/api/v3/files/${encodeURIComponent(node.value)}`;
+      } else if (['domain', 'hostname'].includes(type)) {
+        endpoint = `/api/v3/domains/${encodeURIComponent(node.value)}`;
+      } else if (['ip', 'ip-src', 'ip-dst', 'ip-address'].includes(type)) {
+        endpoint = `/api/v3/ip_addresses/${encodeURIComponent(node.value)}`;
+      } else if (type === 'url') {
+        endpoint = '/api/v3/urls/lookup';
+        options = {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            url: node.value
+          })
+        };
+      } else {
+        lookupStatus.textContent = `نوع المؤشر ${node.type} غير مدعوم في الاستعلام المباشر. انسخ القيمة وافحصها من أدوات VTAI.`;
+        return;
+      }
+
+      lookupButton.disabled = true;
+      document.querySelector('#lookup-selected').disabled = true;
+      lookupStatus.textContent = 'جارٍ طلب التقرير الحالي…';
+      lookupResult.classList.remove('hidden');
+      lookupResult.textContent = 'بانتظار استجابة VTAI…';
+      try {
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        const raw = await response.text();
+        let parsed;
+        try {
+          parsed = raw ? JSON.parse(raw) : null;
+        } catch {
+          parsed = null;
+        }
+        lookupStatus.textContent = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}.`;
+        const retryAfter = response.headers.get('Retry-After');
+        if (response.status === 429 && retryAfter) lookupStatus.textContent += ` التزم بمدة Retry-After: ${retryAfter}.`;
+        lookupResult.textContent = parsed ? JSON.stringify(parsed, null, 2) : (raw || '(استجابة فارغة)');
+      } catch (error) {
+        lookupStatus.textContent = 'تعذر الاتصال؛ قد تمنع CORS طلبات المتصفح. لم يُرسل طلب بديل تلقائيًا.';
+        lookupResult.textContent = error.message || 'خطأ اتصال غير معروف.';
+      } finally {
+        lookupButton.disabled = false;
+        document.querySelector('#lookup-selected').disabled = false;
+      }
+    }
+
+    document.querySelector('#json-file').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const content = await file.text();
+        document.querySelector('#json-input').value = content;
+        loadGraph(JSON.parse(content), `تم تحميل ${file.name}.`);
+      } catch (error) {
+        importStatus.textContent = `تعذر قراءة ملف JSON: ${error.message}`;
+      }
+    });
+
+    document.querySelector('#import-json').addEventListener('click', () => {
+      try {
+        const payload = JSON.parse(document.querySelector('#json-input').value);
+        loadGraph(payload);
+      } catch (error) {
+        importStatus.textContent = `تعذر استيراد JSON: ${error.message}`;
+      }
+    });
+
+    document.querySelector('#restore-sample').addEventListener('click', () => {
+      document.querySelector('#json-input').value = JSON.stringify(sampleGraph, null, 2);
+      loadGraph(sampleGraph, 'تمت استعادة الرسم المرفق.');
+    });
+
+    document.querySelector('#download-json').addEventListener('click', downloadJson);
+    document.querySelector('#copy-indicator').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      const node = getSelectedNode();
+      if (!node) return;
+      try {
+        await navigator.clipboard.writeText(node.value);
+        button.textContent = 'تم النسخ';
+      } catch {
+        lookupStatus.textContent = 'تعذر النسخ تلقائيًا؛ حدّد قيمة المؤشر وانسخها يدويًا.';
+      }
+      window.setTimeout(() => {
+        button.textContent = 'نسخ القيمة';
+      }, 1800);
+    });
+    document.querySelector('#lookup-selected').addEventListener('click', lookupSelected);
+    lookupButton.addEventListener('click', lookupSelected);
+    nodeSearch.addEventListener('input', renderNodes);
+
+    document.querySelector('#json-input').value = JSON.stringify(sampleGraph, null, 2);
+    loadGraph(sampleGraph, 'تم تحميل الرسم الذي أرسلته.');
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

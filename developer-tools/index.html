@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A local browser toolkit for JSON, encoding, hashing, Regex, Markdown, colors, time, UUIDs, and text comparison.">
+  <title>Developer Toolkit</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tool-panel[hidden] {
+      display: none;
+    }
+
+    .tool-tab[aria-selected="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+
+    .mono,
+    .code-editor,
+    .tool-output {
+      direction: ltr;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .tool-output {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .markdown-preview h1,
+    .markdown-preview h2,
+    .markdown-preview h3 {
+      margin-bottom: 0.75rem;
+      font-weight: 800;
+    }
+
+    .markdown-preview p,
+    .markdown-preview ul {
+      margin-bottom: 1rem;
+    }
+
+    .markdown-preview ul {
+      padding-left: 1.25rem;
+      list-style: disc;
+    }
+
+    .diff-line {
+      border-radius: calc(var(--radius) * 0.25);
+      padding: 0.25rem 0.5rem;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold tracking-tight">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="flex flex-wrap gap-4 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tool directory</a>
+        <a href="/community">Community</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Local developer toolkit</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Useful developer tools, working in your browser.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Run transformations locally. Your code, text, files, and values stay in this browser tab unless you explicitly download or copy them.</p>
+        <div class="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <button type="button" class="feature-card p-4 text-left" data-feature="json"><strong class="block text-[var(--color-primary)]">{ } JSON tools</strong><span class="mt-1 block text-xs text-[var(--color-muted)]">Format and minify</span></button>
+          <button type="button" class="feature-card p-4 text-left" data-feature="encode"><strong class="block text-[var(--color-primary)]">↔ Encoding</strong><span class="mt-1 block text-xs text-[var(--color-muted)]">Base64 and URL</span></button>
+          <button type="button" class="feature-card p-4 text-left" data-feature="regex"><strong class="block text-[var(--color-primary)]">.* Regex tester</strong><span class="mt-1 block text-xs text-[var(--color-muted)]">Find matches safely</span></button>
+          <button type="button" class="feature-card p-4 text-left" data-feature="uuid"><strong class="block text-[var(--color-primary)]">✦ UUID generator</strong><span class="mt-1 block text-xs text-[var(--color-muted)]">Create and copy IDs</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <aside class="feature-card h-fit p-4 lg:sticky lg:top-6">
+          <p class="mb-3 px-3 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-muted)]">Choose a tool</p>
+          <nav id="tool-tabs" class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-1" role="tablist" aria-label="Developer tools">
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="json">JSON formatter</button>
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="encode">Encode text</button>
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="hash">SHA-256</button>
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="regex">Regex tester</button>
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="diff">Text compare</button>
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="markdown">Markdown</button>
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="color">Color contrast</button>
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="time">Time converter</button>
+            <button class="tool-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-left text-sm font-bold" role="tab" aria-selected="false" data-tool="uuid">UUID v4</button>
+          </nav>
+        </aside>
+
+        <div class="min-w-0">
+          <section id="panel-json" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">Format and minify JSON</h2>
+            <textarea id="json-input" rows="12" class="code-editor w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4" placeholder='{"name":"example"}'></textarea>
+            <div class="mt-4 flex flex-wrap gap-3"><button id="json-format" type="button" class="btn-primary px-5 py-3">Format</button><button id="json-minify" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-5 py-3 font-bold">Minify</button><button id="json-clear" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-5 py-3 font-bold">Clear</button></div>
+            <p id="json-status" class="mt-4 text-sm text-[var(--color-muted)]" aria-live="polite"></p>
+          </section>
+
+          <section id="panel-encode" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">Encode and decode text</h2>
+            <div class="mb-4 flex flex-wrap gap-3"><select id="encode-mode" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+                <option value="base64">Base64</option>
+                <option value="url">URL component</option>
+              </select><select id="encode-action" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+                <option value="encode">Encode</option>
+                <option value="decode">Decode</option>
+              </select></div>
+            <textarea id="encode-input" rows="6" class="w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4" placeholder="Input text"></textarea><button id="encode-run" type="button" class="btn-primary mt-4 px-5 py-3">Convert</button><textarea id="encode-output" rows="6" readonly class="mt-4 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4" aria-label="Encoded output"></textarea>
+            <p id="encode-status" class="mt-3 text-sm text-[var(--color-muted)]"></p>
+          </section>
+
+          <section id="panel-hash" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">SHA-256 fingerprint</h2><textarea id="hash-input" rows="6" class="w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4" placeholder="Text to hash"></textarea>
+            <div class="mt-4 flex flex-wrap gap-3"><button id="hash-text" type="button" class="btn-primary px-5 py-3">Hash text</button><label class="cursor-pointer rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-5 py-3 font-bold">Hash a file<input id="hash-file" type="file" class="sr-only"></label></div><output id="hash-output" class="tool-output mt-5 block rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm">The fingerprint will appear here.</output>
+            <p id="hash-status" class="mt-3 text-sm text-[var(--color-muted)]"></p>
+          </section>
+
+          <section id="panel-regex" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">Regex tester</h2>
+            <div class="grid gap-4 sm:grid-cols-2"><input id="regex-pattern" class="mono rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-4 py-3" placeholder="\\b[a-z]+\\b"><input id="regex-flags" class="mono rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-4 py-3" value="gi"></div><textarea id="regex-text" rows="8" class="mt-4 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4" placeholder="Text to test"></textarea><button id="regex-run" type="button" class="btn-primary mt-4 px-5 py-3">Test pattern</button>
+            <div id="regex-result" class="tool-output mt-4 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" aria-live="polite">Matches will appear here.</div>
+          </section>
+
+          <section id="panel-diff" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">Compare text</h2>
+            <div class="grid gap-4 sm:grid-cols-2"><textarea id="diff-left" rows="10" class="code-editor rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4" placeholder="Original text"></textarea><textarea id="diff-right" rows="10" class="code-editor rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4" placeholder="Changed text"></textarea></div><button id="diff-run" type="button" class="btn-primary mt-4 px-5 py-3">Compare</button>
+            <div id="diff-output" class="tool-output mt-4 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"></div>
+          </section>
+
+          <section id="panel-markdown" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">Markdown preview</h2><textarea id="markdown-input" rows="12" class="code-editor w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4" placeholder="# Heading\n\nWrite **Markdown** here."></textarea>
+            <div id="markdown-preview" class="markdown-preview feature-card mt-4 min-h-40 p-5 leading-7">The preview will appear here.</div>
+          </section>
+
+          <section id="panel-color" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">Color contrast checker</h2>
+            <div class="grid gap-4 sm:grid-cols-2"><label class="text-sm font-bold">Foreground<input id="foreground-hex" value="#152338" class="mono mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-4 py-3"></label><label class="text-sm font-bold">Background<input id="background-hex" value="#ffffff" class="mono mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-4 py-3"></label></div>
+            <div id="contrast-preview" class="mt-5 rounded-[var(--radius)] p-8 text-center">
+              <p class="text-2xl font-black">Sample heading</p>
+              <p>Sample body text</p>
+            </div>
+            <p id="contrast-result" class="mt-4 font-bold" aria-live="polite"></p>
+          </section>
+
+          <section id="panel-time" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">Time converter</h2><input id="time-input" class="mono w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-4 py-3" placeholder="Unix timestamp or ISO date">
+            <div class="mt-4 flex gap-3"><button id="time-convert" type="button" class="btn-primary px-5 py-3">Convert</button><button id="time-now" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-5 py-3 font-bold">Now</button></div><output id="time-local" class="tool-output mt-4 block bg-[var(--color-bg)] p-4"></output><output id="time-utc" class="tool-output mt-2 block bg-[var(--color-bg)] p-4"></output>
+            <p id="time-status" class="mt-3 text-sm text-[var(--color-muted)]"></p>
+          </section>
+
+          <section id="panel-uuid" class="tool-panel feature-card p-5 sm:p-8" role="tabpanel" hidden>
+            <h2 class="mb-2 text-2xl font-black">UUID v4 generator</h2>
+            <div class="flex flex-wrap gap-3"><button id="uuid-generate" type="button" class="btn-primary px-5 py-3">Generate UUID</button><button id="uuid-copy" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] px-5 py-3 font-bold">Copy</button></div><output id="uuid-output" class="tool-output mt-5 block rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5">Generate a UUID to begin.</output>
+            <p id="uuid-status" class="mt-3 text-sm text-[var(--color-muted)]"></p>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 text-sm text-[var(--color-muted)]"><a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a><span>Browser-only developer utilities.</span><a href="/tools" class="font-semibold text-[var(--color-primary)]">Tool directory</a></div>
+  </footer>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const tabs = [...document.querySelectorAll('.tool-tab')];
+    const panels = [...document.querySelectorAll('.tool-panel')];
+
+    function activateTool(name) {
+      const selected = tabs.some((tab) => tab.dataset.tool === name) ? name : 'json';
+      tabs.forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.tool === selected)));
+      panels.forEach((panel) => {
+        panel.hidden = panel.id !== `panel-${selected}`;
+      });
+      history.replaceState(null, '', `#${selected}`);
+    }
+
+    tabs.forEach((tab) => tab.addEventListener('click', () => activateTool(tab.dataset.tool)));
+    document.querySelectorAll('[data-feature]').forEach((button) => button.addEventListener('click', () => {
+      activateTool(button.dataset.feature);
+      $('#tool-tabs').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }));
+
+    function transformJson(compact) {
+      try {
+        $('#json-input').value = JSON.stringify(JSON.parse($('#json-input').value), null, compact ? 0 : 2);
+        $('#json-status').textContent = compact ? 'Valid JSON. It was minified.' : 'Valid JSON. It was formatted.';
+      } catch (error) {
+        $('#json-status').textContent = `Invalid JSON: ${error.message}`;
+      }
+    }
+
+    $('#json-format').addEventListener('click', () => transformJson(false));
+    $('#json-minify').addEventListener('click', () => transformJson(true));
+    $('#json-clear').addEventListener('click', () => {
+      $('#json-input').value = '';
+      $('#json-status').textContent = '';
+    });
+
+    function base64Encode(value) {
+      const bytes = new TextEncoder().encode(value);
+      let binary = '';
+      bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+      });
+      return btoa(binary);
+    }
+
+    function base64Decode(value) {
+      const binary = atob(value.trim());
+      return new TextDecoder().decode(Uint8Array.from(binary, (character) => character.charCodeAt(0)));
+    }
+
+    $('#encode-run').addEventListener('click', () => {
+      try {
+        const mode = $('#encode-mode').value;
+        const decode = $('#encode-action').value === 'decode';
+        const input = $('#encode-input').value;
+        $('#encode-output').value = mode === 'base64' ? (decode ? base64Decode(input) : base64Encode(input)) : (decode ? decodeURIComponent(input) : encodeURIComponent(input));
+        $('#encode-status').textContent = 'Conversion completed locally.';
+      } catch (error) {
+        $('#encode-output').value = '';
+        $('#encode-status').textContent = `Conversion failed: ${error.message}`;
+      }
+    });
+
+    async function sha256(blob) {
+      if (!crypto.subtle) throw new Error('Web Crypto is unavailable in this browser.');
+      const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+      return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    $('#hash-text').addEventListener('click', async () => {
+      try {
+        $('#hash-output').textContent = await sha256(new Blob([$('#hash-input').value]));
+        $('#hash-status').textContent = 'Text fingerprint calculated locally.';
+      } catch (error) {
+        $('#hash-status').textContent = error.message;
+      }
+    });
+
+    $('#hash-file').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        $('#hash-output').textContent = await sha256(file);
+        $('#hash-status').textContent = `File fingerprint for ${file.name} calculated locally.`;
+      } catch (error) {
+        $('#hash-status').textContent = error.message;
+      }
+    });
+
+    $('#regex-run').addEventListener('click', () => {
+      const result = $('#regex-result');
+      if ($('#regex-text').value.length > 20000) {
+        result.textContent = 'Text is longer than the 20,000-character limit.';
+        return;
+      }
+      try {
+        let flags = $('#regex-flags').value;
+        if (!flags.includes('g')) flags += 'g';
+        const matches = [...$('#regex-text').value.matchAll(new RegExp($('#regex-pattern').value, flags))].slice(0, 200);
+        result.textContent = matches.length ? `Matches: ${matches.length}\n${matches.map((match) => `${match.index}: ${JSON.stringify(match[0])}`).join('\n')}` : 'No matches found.';
+      } catch (error) {
+        result.textContent = `Regex error: ${error.message}`;
+      }
+    });
+
+    $('#diff-run').addEventListener('click', () => {
+      const left = $('#diff-left').value.split('\n');
+      const right = $('#diff-right').value.split('\n');
+      const output = $('#diff-output');
+      output.replaceChildren();
+      if (left.length > 250 || right.length > 250) {
+        output.textContent = 'Maximum 250 lines per side.';
+        return;
+      }
+      const matrix = Array.from({
+        length: left.length + 1
+      }, () => new Uint16Array(right.length + 1));
+      for (let i = left.length - 1; i >= 0; i -= 1)
+        for (let j = right.length - 1; j >= 0; j -= 1) matrix[i][j] = left[i] === right[j] ? matrix[i + 1][j + 1] + 1 : Math.max(matrix[i + 1][j], matrix[i][j + 1]);
+      let i = 0;
+      let j = 0;
+      const changes = [];
+      while (i < left.length || j < right.length) {
+        if (i < left.length && j < right.length && left[i] === right[j]) {
+          changes.push([' ', left[i]]);
+          i += 1;
+          j += 1;
+        } else if (j < right.length && (i === left.length || matrix[i][j + 1] >= matrix[i + 1][j])) {
+          changes.push(['+', right[j]]);
+          j += 1;
+        } else {
+          changes.push(['−', left[i]]);
+          i += 1;
+        }
+      }
+      changes.forEach(([kind, line]) => {
+        const row = document.createElement('div');
+        row.className = 'diff-line';
+        row.style.color = kind === '−' ? 'var(--color-muted)' : 'var(--color-text)';
+        row.style.background = kind === '+' ? 'var(--color-soft)' : 'transparent';
+        row.textContent = `${kind} ${line}`;
+        output.append(row);
+      });
+    });
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
+    function markdownToHtml(source) {
+      return source.split(/\n\s*\n/).map((block) => {
+        const text = escapeHtml(block.trim());
+        if (!text) return '';
+        if (text.startsWith('### ')) return `<h3>${text.slice(4)}</h3>`;
+        if (text.startsWith('## ')) return `<h2>${text.slice(3)}</h2>`;
+        if (text.startsWith('# ')) return `<h1>${text.slice(2)}</h1>`;
+        return `<p>${text.replace(/\n/g, '<br>')}</p>`;
+      }).join('');
+    }
+
+    $('#markdown-input').addEventListener('input', (event) => {
+      $('#markdown-preview').innerHTML = event.target.value ? markdownToHtml(event.target.value) : 'The preview will appear here.';
+    });
+
+    function hexRgb(value) {
+      const match = value.trim().match(/^#?([0-9a-f]{6})$/i);
+      return match ? [0, 2, 4].map((index) => parseInt(match[1].slice(index, index + 2), 16)) : null;
+    }
+
+    function luminance(rgb) {
+      return rgb.map((value) => value / 255).map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+    }
+
+    function updateContrast() {
+      const foreground = hexRgb($('#foreground-hex').value);
+      const background = hexRgb($('#background-hex').value);
+      if (!foreground || !background) {
+        $('#contrast-result').textContent = 'Enter two valid six-digit HEX colors.';
+        return;
+      }
+      $('#contrast-preview').style.color = $('#foreground-hex').value;
+      $('#contrast-preview').style.backgroundColor = $('#background-hex').value;
+      const ratio = (Math.max(luminance(foreground), luminance(background)) + 0.05) / (Math.min(luminance(foreground), luminance(background)) + 0.05);
+      $('#contrast-result').textContent = `Contrast ratio: ${ratio.toFixed(2)}:1 · ${ratio >= 4.5 ? 'Passes normal text' : ratio >= 3 ? 'Passes large text only' : 'Needs stronger contrast'}`;
+    }
+
+    $('#foreground-hex').addEventListener('input', updateContrast);
+    $('#background-hex').addEventListener('input', updateContrast);
+
+    $('#time-convert').addEventListener('click', () => {
+      const value = $('#time-input').value.trim();
+      const numeric = /^-?\d+(\.\d+)?$/.test(value) ? Number(value) : null;
+      const date = numeric === null ? new Date(value) : new Date(Math.abs(numeric) >= 1e12 ? numeric : numeric * 1000);
+      if (!value || Number.isNaN(date.getTime())) {
+        $('#time-status').textContent = 'Enter a valid timestamp or date.';
+        return;
+      }
+      $('#time-local').textContent = date.toLocaleString();
+      $('#time-utc').textContent = `${date.toISOString()}\n${Math.floor(date.getTime() / 1000)} seconds · ${date.getTime()} milliseconds`;
+      $('#time-status').textContent = 'Converted locally.';
+    });
+
+    $('#time-now').addEventListener('click', () => {
+      $('#time-input').value = String(Math.floor(Date.now() / 1000));
+      $('#time-convert').click();
+    });
+
+    function makeUuid() {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      const bytes = crypto.getRandomValues(new Uint8Array(16));
+      bytes[6] = (bytes[6] & 15) | 64;
+      bytes[8] = (bytes[8] & 63) | 128;
+      const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    }
+
+    $('#uuid-generate').addEventListener('click', () => {
+      $('#uuid-output').textContent = makeUuid();
+      $('#uuid-status').textContent = 'UUID v4 generated locally.';
+    });
+    $('#uuid-copy').addEventListener('click', async () => {
+      const value = $('#uuid-output').textContent;
+      if (!value || value.startsWith('Generate')) {
+        $('#uuid-status').textContent = 'Generate a UUID first.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(value);
+        $('#uuid-status').textContent = 'UUID copied.';
+      } catch {
+        $('#uuid-status').textContent = 'Clipboard unavailable. Select and copy the UUID manually.';
+      }
+    });
+
+    activateTool(location.hash.slice(1) || 'json');
+    updateContrast();
+
+  </script>
+</body>
+
+</html>

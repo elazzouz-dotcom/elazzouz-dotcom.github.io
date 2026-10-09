@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="دليل تفاعلي لبدء استخدام Browserbase واختيار طريقة دمج مناسبة بأمان.">
+  <title>البدء مع Browserbase | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .choice-panel[hidden] {
+      display: none;
+    }
+
+    .onboarding-control:focus-visible,
+    .choice-button:focus-visible,
+    .checklist-item:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .choice-button[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+    }
+
+    .checklist-item[aria-checked="true"] .checkmark {
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الصفحة الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/browser-session">مخطط الجلسة</a>
+        <a href="/browserbase-studio">Browserbase Studio</a>
+        <a href="/tools">لوحة الأدوات</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">دليل البدء · Browserbase</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">ابدأ بخطوات واضحة وآمنة.</h1>
+        <p class="mb-6 max-w-3xl text-base leading-7 text-[var(--color-muted)]">يشغّل Browserbase متصفح Chrome سحابيًا يمكن لبرامجك التحكم به. ابدأ بتجربة Playground من المتصفح دون إعداد محلي، ثم اختر طريقة الدمج المناسبة لمشروعك.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="https://www.browserbase.com/playground" target="_blank" rel="noopener noreferrer" class="btn-primary px-5 py-3">افتح Playground <span aria-hidden="true">↗</span></a>
+          <a href="https://www.browserbase.com/sessions" target="_blank" rel="noopener noreferrer" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">عرض الجلسات <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div class="space-y-6">
+          <section class="feature-card border-[var(--color-primary)] bg-[var(--color-soft)] p-5 sm:p-6" aria-labelledby="security-heading">
+            <div class="flex items-start gap-4">
+              <span class="icon-box shrink-0 text-xl" aria-hidden="true">!</span>
+              <div>
+                <h2 id="security-heading" class="mb-2 text-lg font-extrabold">تنبيه أمان: احمِ مفتاح API</h2>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">لا تشارك مفتاح API في المحادثات أو صفحات الويب العامة. خزّنه في إعدادات بيئة محلية آمنة، ولا تضعه في كود الواجهة أو مستودع عام. لا تحتاج إلى Project ID للبدء وفق هذا الدليل.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="playground-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">ابدأ دون إعداد محلي</p>
+            <h2 id="playground-heading" class="mb-2 text-2xl font-black">جرّب أول جلسة في Playground</h2>
+            <p class="mb-5 text-sm leading-6 text-[var(--color-muted)]">الجلسة تشغيل واحد لمتصفح سحابي. يتيح Playground تجربة أمثلة جاهزة ومشاهدة المتصفح أثناء عمله دون تثبيت أدوات على جهازك.</p>
+            <ol class="mb-5 list-decimal space-y-3 pr-5 text-sm leading-6 text-[var(--color-muted)]">
+              <li>افتح Playground وسجّل الدخول إلى حسابك.</li>
+              <li>شغّل أحد الأمثلة الجاهزة من محرر الشيفرة.</li>
+              <li>راقب المتصفح عبر Live View، ثم أوقف الجلسة عند الانتهاء.</li>
+              <li>افتح تفاصيل الجلسة لمراجعة التسجيل والسجلات.</li>
+            </ol>
+            <a href="https://www.browserbase.com/playground" target="_blank" rel="noopener noreferrer" class="btn-primary px-5 py-3">فتح Playground <span aria-hidden="true">↗</span></a>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="path-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">اختر مسار البداية</p>
+              <h2 id="path-heading" class="mb-2 text-2xl font-black">كيف تريد أن تبدأ؟</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">اختر المسار الأقرب لاحتياجك لعرض توجيه مختصر.</p>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-3" role="group" aria-label="اختيار مسار البداية">
+              <button type="button" class="choice-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-right transition" data-path="template" aria-pressed="true">
+                <span class="mb-2 block font-extrabold">تجربة قالب جاهز</span>
+                <span class="block text-sm leading-6 text-[var(--color-muted)]">ابدأ بمثال جاهز مناسب للتجربة.</span>
+              </button>
+              <button type="button" class="choice-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-right transition" data-path="existing" aria-pressed="false">
+                <span class="mb-2 block font-extrabold">مشروع موجود</span>
+                <span class="block text-sm leading-6 text-[var(--color-muted)]">أضف Browserbase إلى مشروعك الحالي.</span>
+              </button>
+              <button type="button" class="choice-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-right transition" data-path="build" aria-pressed="false">
+                <span class="mb-2 block font-extrabold">بناء شيء جديد</span>
+                <span class="block text-sm leading-6 text-[var(--color-muted)]">حدّد المهمة والأداة المناسبة أولًا.</span>
+              </button>
+            </div>
+
+            <div id="template-panel" class="choice-panel mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5" aria-live="polite">
+              <h3 class="mb-2 text-lg font-extrabold">جرّب مثالًا جاهزًا</h3>
+              <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">القالب مشروع نموذجي يوضح طريقة تنفيذ مهمة متكررة. يمكنك تصفح القوالب المتاحة واختيار المثال الذي يناسبك.</p>
+              <a href="https://www.browserbase.com/playground" target="_blank" rel="noopener noreferrer" class="font-bold text-[var(--color-primary)]">استكشف الأمثلة في Playground <span aria-hidden="true">↗</span></a>
+            </div>
+            <div id="existing-panel" class="choice-panel mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5" hidden aria-live="polite">
+              <h3 class="mb-2 text-lg font-extrabold">ابدأ من مشروعك الحالي</h3>
+              <p class="mb-3 text-sm leading-6 text-[var(--color-muted)]">تحقق من لغة المشروع وأدواته الحالية قبل اختيار طريقة الدمج. احتفظ بالمفتاح في إعدادات سرية، ولا تضفه إلى ملفات الصفحة العامة.</p>
+              <a href="/browserbase-studio" class="font-bold text-[var(--color-primary)]">افتح Browserbase Studio <span aria-hidden="true">←</span></a>
+            </div>
+            <div id="build-panel" class="choice-panel mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5" hidden aria-live="polite">
+              <h3 class="mb-2 text-lg font-extrabold">اختر نوع المهمة</h3>
+              <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">للمهام التي تحتاج تفاعلًا مع الصفحة، استخدم جلسة متصفح. أما قراءة محتوى متاح أو البحث عن مصادر فقد لا يتطلبان تشغيل متصفح كامل.</p>
+              <a href="/browser-session" class="font-bold text-[var(--color-primary)]">استخدم مخطط جلسة المتصفح <span aria-hidden="true">←</span></a>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="capabilities-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">اختر الأداة المناسبة</p>
+            <h2 id="capabilities-heading" class="mb-4 text-2xl font-black">هل تحتاج إلى متصفح كامل؟</h2>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <article class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <h3 class="mb-1 text-base font-extrabold">Search</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">للعثور على صفحات ومصادر ونتائج ويب منظمة.</p>
+              </article>
+              <article class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <h3 class="mb-1 text-base font-extrabold">Fetch</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">لقراءة محتوى صفحات لا تتطلب تفاعلًا أو تشغيل JavaScript.</p>
+              </article>
+              <article class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <h3 class="mb-1 text-base font-extrabold">جلسات المتصفح</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">للتفاعل مع الصفحات المعقدة أو تسجيل الدخول المصرح به.</p>
+              </article>
+              <article class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <h3 class="mb-1 text-base font-extrabold">Functions</h3>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">لنشر أتمتة تعمل في السحابة عبر API أو جدول أو webhook.</p>
+              </article>
+            </div>
+            <p class="mt-5 mb-0 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-text)]"><strong>معلومات الخطة المجانية وفق التوثيق المرسل:</strong> جلسة متصفح واحدة قيد التشغيل في الوقت نفسه و60 دقيقة من وقت المتصفح شهريًا. قد تختلف حدود الاستخدام والميزات؛ راجع تفاصيل حسابك والتوثيق الحالي.</p>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="checklist-heading">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">قائمة التحقق</p>
+                <h2 id="checklist-heading" class="mb-0 text-2xl font-black">جهّز أول تجربة</h2>
+              </div>
+              <p id="checklist-count" class="mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">0 من 4 مكتملة</p>
+            </div>
+            <div class="space-y-2">
+              <button type="button" class="checklist-item flex w-full items-start gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-right" aria-checked="false" role="checkbox">
+                <span class="checkmark flex h-6 w-6 shrink-0 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-black" aria-hidden="true">✓</span>
+                <span class="text-sm leading-6"><strong>جرّبت Playground</strong><br><span class="text-[var(--color-muted)]">شاهدت المتصفح السحابي أثناء العمل.</span></span>
+              </button>
+              <button type="button" class="checklist-item flex w-full items-start gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-right" aria-checked="false" role="checkbox">
+                <span class="checkmark flex h-6 w-6 shrink-0 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-black" aria-hidden="true">✓</span>
+                <span class="text-sm leading-6"><strong>حميت مفتاح API</strong><br><span class="text-[var(--color-muted)]">لم أضعه في صفحة عامة أو مستودع عام.</span></span>
+              </button>
+              <button type="button" class="checklist-item flex w-full items-start gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-right" aria-checked="false" role="checkbox">
+                <span class="checkmark flex h-6 w-6 shrink-0 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-black" aria-hidden="true">✓</span>
+                <span class="text-sm leading-6"><strong>اخترت الأداة المناسبة</strong><br><span class="text-[var(--color-muted)]">بحث، جلب محتوى، أو جلسة متصفح بحسب المهمة.</span></span>
+              </button>
+              <button type="button" class="checklist-item flex w-full items-start gap-3 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-right" aria-checked="false" role="checkbox">
+                <span class="checkmark flex h-6 w-6 shrink-0 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-black" aria-hidden="true">✓</span>
+                <span class="text-sm leading-6"><strong>راجعت حدود الاستخدام</strong><br><span class="text-[var(--color-muted)]">استخدم الأتمتة فقط على مواقع تملك إذنًا للوصول إليها.</span></span>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <aside class="space-y-5 lg:sticky lg:top-6">
+          <section class="feature-card overflow-hidden">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">روابط مفيدة</p>
+              <h2 class="mb-2 text-xl font-black">تابع من هنا</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">دليل مختصر للتخطيط، أما التشغيل فيتم عبر Playground أو في مشروعك.</p>
+            </div>
+            <div class="space-y-3 p-5">
+              <a href="https://www.browserbase.com/playground" target="_blank" rel="noopener noreferrer" class="block rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm font-bold">Playground <span class="text-[var(--color-primary)]" aria-hidden="true">↗</span></a>
+              <a href="https://www.browserbase.com/sessions" target="_blank" rel="noopener noreferrer" class="block rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm font-bold">الجلسات وSession Inspector <span class="text-[var(--color-primary)]" aria-hidden="true">↗</span></a>
+              <a href="https://docs.browserbase.com/llms.txt" target="_blank" rel="noopener noreferrer" class="block rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm font-bold">فهرس التوثيق <span class="text-[var(--color-primary)]" aria-hidden="true">↗</span></a>
+              <a href="/browser-session" class="block rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm font-bold">مخطط جلسة المتصفح <span class="text-[var(--color-primary)]" aria-hidden="true">←</span></a>
+              <a href="/browserbase-studio" class="block rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm font-bold">Browserbase Studio <span class="text-[var(--color-primary)]" aria-hidden="true">←</span></a>
+            </div>
+          </section>
+          <section class="feature-card p-5">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">للمزيد من المساعدة</p>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">استخدم التوثيق الرسمي للتأكد من أحدث تفاصيل الحساب والميزات المدفوعة وطريقة الدمج.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">دليل بدء Browserbase تفاعلي داخل المتصفح.</p>
+      <a href="/tools" class="footer-link font-semibold">العودة إلى لوحة الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const pathButtons = [...document.querySelectorAll('.choice-button')];
+    const pathPanels = {
+      template: document.querySelector('#template-panel'),
+      existing: document.querySelector('#existing-panel'),
+      build: document.querySelector('#build-panel')
+    };
+
+    pathButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        pathButtons.forEach((choice) => {
+          choice.setAttribute('aria-pressed', String(choice === button));
+        });
+        Object.entries(pathPanels).forEach(([name, panel]) => {
+          panel.hidden = name !== button.dataset.path;
+        });
+      });
+    });
+
+    const checklistItems = [...document.querySelectorAll('.checklist-item')];
+    const checklistCount = document.querySelector('#checklist-count');
+
+    function updateChecklistCount() {
+      const completed = checklistItems.filter((item) => item.getAttribute('aria-checked') === 'true').length;
+      checklistCount.textContent = `${completed} من ${checklistItems.length} مكتملة`;
+    }
+
+    checklistItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        const isChecked = item.getAttribute('aria-checked') === 'true';
+        item.setAttribute('aria-checked', String(!isChecked));
+        updateChecklistCount();
+      });
+    });
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

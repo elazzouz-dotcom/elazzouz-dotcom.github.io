@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="أداة محلية لاستكشاف بيانات JSON من Internet Archive والبحث فيها وإخفاء عناوين البريد عند العرض والتصدير.">
+  <title>مستكشف JSON للأرشيف | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .archive-control:focus-visible,
+    .archive-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .archive-code {
+      direction: ltr;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .archive-tree[hidden],
+    .archive-empty[hidden] {
+      display: none;
+    }
+
+    .archive-row+.archive-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .archive-result:empty {
+      display: none;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]" aria-hidden="true">J</span>
+        <span class="text-xl font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/fox">مساحة الثعلب</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">معالجة محلية · Internet Archive</p>
+        <h1 class="mb-4 max-w-5xl text-4xl font-black leading-tight sm:text-5xl">استكشف استجابة JSON دون رفعها.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">ألصق استجابة API أو افتح ملف JSON، ثم استعرض الحقول والمصفوفات وابحث بينها. تُعالج البيانات في هذا التبويب فقط؛ لا يوجد اتصال بـ Internet Archive من هذه الأداة.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(21rem,0.78fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-5 sm:p-7" aria-labelledby="input-heading">
+            <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">١ · البيانات</p>
+                <h2 id="input-heading" class="mb-2 text-2xl font-black">أدخل استجابة JSON</h2>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">يدعم الكائن الجذري أو استجابة مغلّفة داخل <code dir="ltr">result</code>.</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <label class="archive-button cursor-pointer rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold">فتح ملف<input id="json-file" type="file" accept=".json,application/json" class="sr-only"></label>
+                <button id="load-sample" type="button" class="archive-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold">مثال آمن</button>
+              </div>
+            </div>
+            <label for="json-input" class="mb-2 block text-sm font-bold">محتوى JSON</label>
+            <textarea id="json-input" rows="12" spellcheck="false" class="archive-control archive-code w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" placeholder='{"result":{"identifier":"example","title":"Example"}}'></textarea>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="inspect-json" type="button" class="archive-button btn-primary px-5 py-3">استكشف JSON</button>
+              <button id="format-json" type="button" class="archive-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-bold">تنسيق</button>
+              <button id="clear-json" type="button" class="archive-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-bold">مسح</button>
+            </div>
+            <p id="input-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">لا تُرسل البيانات إلى أي خدمة.</p>
+          </section>
+
+          <section class="feature-card p-5 sm:p-7" aria-labelledby="cdx-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">سجلات CDX · معالجة محلية</p>
+              <h2 id="cdx-heading" class="mb-2 text-2xl font-black">افحص أسطر فهرس الأرشيف</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">ألصق سجلًا واحدًا في كل سطر. يعرض القارئ الحقول الموضعية ويحتفظ بكل الأعمدة الإضافية كما هي؛ تنسيقات CDX قد تختلف، لذلك لا يفترض تفسيرًا نهائيًا للحقول غير المعروفة.</p>
+            </div>
+            <label for="cdx-input" class="mb-2 block text-sm font-bold">أسطر CDX</label>
+            <textarea id="cdx-input" rows="7" spellcheck="false" class="archive-control archive-code w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" placeholder="urlkey timestamp original mimetype status digest ..."></textarea>
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+              <button id="load-cdx-sample" type="button" class="archive-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تحميل الأسطر المرسلة</button>
+              <button id="parse-cdx" type="button" class="btn-primary px-5 py-3 text-sm">تحليل أسطر CDX</button>
+              <button id="clear-cdx" type="button" class="archive-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">مسح</button>
+            </div>
+            <p id="cdx-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">لم يبدأ تحليل CDX بعد.</p>
+            <div class="mt-4 overflow-x-auto rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)]">
+              <table class="w-full min-w-[760px] text-left text-xs">
+                <thead class="bg-[var(--color-dark)] text-[var(--color-muted)]">
+                  <tr>
+                    <th class="p-3">السطر</th>
+                    <th class="p-3">URL key</th>
+                    <th class="p-3">الوقت</th>
+                    <th class="p-3">الرابط الأصلي</th>
+                    <th class="p-3">MIME</th>
+                    <th class="p-3">الحقل 5</th>
+                    <th class="p-3">الحقل 6</th>
+                    <th class="p-3">حقول إضافية</th>
+                  </tr>
+                </thead>
+                <tbody id="cdx-results"></tbody>
+              </table>
+            </div>
+            <p class="mt-3 mb-0 text-xs leading-5 text-[var(--color-muted)]">تُعرض القيم كنص خام غير قابل للتنفيذ. إذا كان السطر يتضمن أعمدة مخصصة، قارنها بمصدره أو ملف CDXJ/ملف المخرجات الأصلي قبل تفسيرها.</p>
+          </section>
+
+          <section class="feature-card p-5 sm:p-7" aria-labelledby="records-heading">
+            <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٢ · الحقول</p>
+                <h2 id="records-heading" class="mb-1 text-2xl font-black">استعراض البيانات</h2>
+                <p id="field-count" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">أدخل JSON صالحًا للبدء.</p>
+              </div>
+              <label class="flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)]">
+                <input id="redact-toggle" type="checkbox" checked class="accent-[var(--color-primary)]">
+                إخفاء عناوين البريد
+              </label>
+            </div>
+            <label for="field-search" class="mb-3 block text-sm font-bold">البحث في أسماء الحقول والقيم</label>
+            <input id="field-search" type="search" class="archive-control mb-4 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-text)]" placeholder="مثال: title أو nasa..." autocomplete="off">
+            <div id="field-list" class="overflow-hidden rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)]"></div>
+            <p id="field-empty" class="archive-empty mt-4 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm text-[var(--color-muted)]" hidden>لا توجد حقول مطابقة للبحث.</p>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="summary-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">ملخص المجموعة</p>
+              <h2 id="summary-heading" class="mb-2 text-2xl font-black">بيانات الأرشيف</h2>
+              <p id="summary-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">سيظهر الملخص بعد فحص JSON.</p>
+            </div>
+            <div class="space-y-3 p-5 sm:p-6">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                  <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">الحقول</p>
+                  <p id="summary-fields" class="mb-0 text-2xl font-black">—</p>
+                </div>
+                <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                  <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">المصفوفات</p>
+                  <p id="summary-arrays" class="mb-0 text-2xl font-black">—</p>
+                </div>
+              </div>
+              <dl id="metadata" class="divide-y divide-[var(--color-border)] rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)]"></dl>
+              <div class="flex flex-wrap gap-3">
+                <button id="copy-summary" type="button" class="archive-button btn-primary px-4 py-3 text-sm">نسخ الملخص</button>
+                <button id="download-json" type="button" class="archive-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تنزيل JSON منقّح</button>
+              </div>
+              <p id="export-status" class="mb-0 text-xs leading-5 text-[var(--color-muted)]" aria-live="polite">عند تفعيل إخفاء البريد، يُنقّح أيضًا الملف المُنزّل.</p>
+            </div>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5">
+            <h2 class="mb-2 text-lg font-extrabold">ملاحظة خصوصية</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">قد تتضمن بيانات JSON أسماء مستخدمين أو عناوين بريد. الإخفاء مفعّل افتراضيًا للعرض والنسخ والتنزيل. تبقى النصوص الخام في مربع الإدخال حتى تمسحها، لذا لا تشارك لقطة شاشة أو ملفًا قبل مراجعته.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">مستكشف JSON يعمل محليًا في المتصفح.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const input = document.querySelector('#json-input');
+      const inputStatus = document.querySelector('#input-status');
+      const fieldList = document.querySelector('#field-list');
+      const searchInput = document.querySelector('#field-search');
+      const redactToggle = document.querySelector('#redact-toggle');
+      const fieldCount = document.querySelector('#field-count');
+      const emptyState = document.querySelector('#field-empty');
+      const emailPattern = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+      let parsedRoot = null;
+      let currentSummary = '';
+      const MAX_BYTES = 5 * 1024 * 1024;
+      const cdxInput = document.querySelector('#cdx-input');
+      const cdxResults = document.querySelector('#cdx-results');
+      const cdxStatus = document.querySelector('#cdx-status');
+      const cdxSample = `org,eserver,tc)/ 20180515033912 http://tc.eserver.org:80/ text/html 302 RK36SX4X6VJ44FMUWDK4QYFPYGBYUJUH 404
+org,eserver,tc)/ 20180716082607 http://tc.eserver.org:80/ text/html 302 RK36SX4X6VJ44FMUWDK4QYFPYGBYUJUH 405
+org,eserver,tc)/ 20180915160723 http://tc.eserver.org:80/ text/html 302 RK36SX4X6VJ44FMUWDK4QYFPYGBYUJUH 404
+org,eserver,tc)/ 20181014163006 http://tc.eserver.org/ warc/revisit - RK36SX4X6VJ44FMUWDK4QYFPYGBYUJUH 502
+org,eserver,tc)/ 20181115172501 http://tc.eserver.org:80/ text/html 302 RK36SX4X6VJ44FMUWDK4QYFPYGBYUJUH 404
+org,eserver,tc)/ 20181228210547 http://tc.eserver.org/ warc/revisit - RK36SX4X6VJ44FMUWDK4QYFPYGBYUJUH 500`;
+
+      function redactText(value) {
+        return String(value ?? '').replace(emailPattern, '[email hidden]');
+      }
+
+      function displayValue(value) {
+        const raw = typeof value === 'string' ? value : JSON.stringify(value);
+        return redactToggle.checked ? redactText(raw) : raw;
+      }
+
+      function createCell(tag, className, text) {
+        const element = document.createElement(tag);
+        element.className = className;
+        element.textContent = text;
+        return element;
+      }
+
+      function unwrapResult(payload) {
+        if (payload && typeof payload === 'object' && !Array.isArray(payload) && payload.result && typeof payload.result === 'object') {
+          return payload.result;
+        }
+        return payload;
+      }
+
+      function flatten(value, path = '$', depth = 0, rows = []) {
+        if (rows.length >= 500) return rows;
+        if (value === null || typeof value !== 'object') {
+          rows.push({
+            path,
+            value
+          });
+          return rows;
+        }
+        if (depth >= 8) {
+          rows.push({
+            path,
+            value: Array.isArray(value) ? `[Array(${value.length})]` : '[Object]'
+          });
+          return rows;
+        }
+        const entries = Array.isArray(value) ? value.map((item, index) => [String(index), item]) : Object.entries(value);
+        if (!entries.length) {
+          rows.push({
+            path,
+            value: Array.isArray(value) ? '[]' : '{}'
+          });
+          return rows;
+        }
+        entries.forEach(([key, child]) => {
+          if (rows.length < 500) flatten(child, Array.isArray(value) ? `${path}[${key}]` : `${path}.${key}`, depth + 1, rows);
+        });
+        return rows;
+      }
+
+      function countArrays(value) {
+        if (!value || typeof value !== 'object') return 0;
+        let count = Array.isArray(value) ? 1 : 0;
+        Object.values(value).forEach((child) => {
+          count += countArrays(child);
+        });
+        return count;
+      }
+
+      function renderMetadata(record) {
+        const container = document.querySelector('#metadata');
+        container.replaceChildren();
+        const keys = [
+          ['identifier', 'المعرّف'],
+          ['title', 'العنوان'],
+          ['mediatype', 'نوع الوسيط'],
+          ['collection', 'المجموعة'],
+          ['publicdate', 'تاريخ الإتاحة'],
+          ['addeddate', 'تاريخ الإضافة'],
+          ['num_subcollections', 'المجموعات الفرعية'],
+          ['spotlight_identifier', 'عنصر بارز']
+        ];
+        let shown = 0;
+        keys.forEach(([key, label]) => {
+          if (record?.[key] === undefined || record[key] === null) return;
+          const row = document.createElement('div');
+          row.className = 'grid gap-1 p-3 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-3';
+          row.append(
+            createCell('dt', 'text-xs font-bold text-[var(--color-muted)]', label),
+            createCell('dd', 'mb-0 break-all text-sm font-semibold text-[var(--color-text)]', displayValue(record[key]))
+          );
+          container.append(row);
+          shown += 1;
+        });
+        const description = record?.description;
+        if (description) {
+          const row = document.createElement('div');
+          row.className = 'grid gap-1 p-3';
+          row.append(
+            createCell('dt', 'text-xs font-bold text-[var(--color-muted)]', 'الوصف'),
+            createCell('dd', 'mb-0 whitespace-pre-wrap break-words text-sm leading-6 text-[var(--color-text)]', displayValue(description))
+          );
+          container.append(row);
+          shown += 1;
+        }
+        if (!shown) container.append(createCell('p', 'mb-0 p-3 text-sm text-[var(--color-muted)]', 'لم تُعثر على حقول ملخص معروفة؛ استعرض الحقول أدناه.'));
+      }
+
+      function renderFields() {
+        const rows = parsedRoot ? flatten(parsedRoot) : [];
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        const matches = rows.filter(({
+          path,
+          value
+        }) => `${path} ${displayValue(value)}`.toLocaleLowerCase().includes(query));
+        fieldList.replaceChildren();
+        matches.slice(0, 200).forEach(({
+          path,
+          value
+        }) => {
+          const row = document.createElement('div');
+          row.className = 'archive-row grid gap-1 p-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] sm:gap-4';
+          row.append(
+            createCell('code', 'archive-code break-all text-xs font-bold text-[var(--color-primary)]', path),
+            createCell('span', 'break-all whitespace-pre-wrap text-sm leading-6 text-[var(--color-text)]', displayValue(value))
+          );
+          fieldList.append(row);
+        });
+        fieldCount.textContent = `${matches.length} حقل مطابق من ${rows.length}${rows.length >= 500 ? ' · عُرض أول 500 حقل كحد أقصى' : ''}.`;
+        emptyState.hidden = matches.length > 0;
+      }
+
+      function makeSummary() {
+        const record = parsedRoot;
+        const summary = {
+          identifier: record?.identifier ?? null,
+          title: record?.title ?? null,
+          mediatype: record?.mediatype ?? null,
+          collection: record?.collection ?? null,
+          description: record?.description ?? null,
+          updatedateCount: Array.isArray(record?.updatedate) ? record.updatedate.length : 0,
+          updaterCount: Array.isArray(record?.updater) ? record.updater.length : 0
+        };
+        currentSummary = JSON.stringify(summary, null, 2);
+        return summary;
+      }
+
+      function inspect() {
+        const raw = input.value;
+        if (!raw.trim()) {
+          parsedRoot = null;
+          inputStatus.textContent = 'ألصق JSON أو اختر ملفًا أولًا.';
+          inputStatus.dataset.kind = 'warning';
+          document.querySelector('#summary-status').textContent = 'لا توجد بيانات للفحص.';
+          document.querySelector('#summary-fields').textContent = '—';
+          document.querySelector('#summary-arrays').textContent = '—';
+          currentSummary = '';
+          fieldList.replaceChildren();
+          metadataClear();
+          renderFields();
+          return;
+        }
+        if (new Blob([raw]).size > MAX_BYTES) {
+          inputStatus.textContent = 'البيانات تتجاوز الحد المحلي البالغ 5 MB.';
+          inputStatus.dataset.kind = 'error';
+          return;
+        }
+        try {
+          const payload = JSON.parse(raw);
+          parsedRoot = unwrapResult(payload);
+          if (!parsedRoot || typeof parsedRoot !== 'object') throw new Error('يجب أن يحتوي JSON على كائن أو قائمة.');
+          const flatRows = flatten(parsedRoot);
+          document.querySelector('#summary-fields').textContent = String(flatRows.length);
+          document.querySelector('#summary-arrays').textContent = String(countArrays(parsedRoot));
+          const record = parsedRoot;
+          const title = record.title || record.identifier || 'استجابة JSON';
+          document.querySelector('#summary-status').textContent = `تم تحليل ${displayValue(title)} محليًا.`;
+          renderMetadata(record);
+          makeSummary();
+          renderFields();
+          inputStatus.textContent = `JSON صالح · ${new Blob([raw]).size.toLocaleString('ar')} بايت · لم تُرسل البيانات.`;
+          inputStatus.dataset.kind = 'success';
+        } catch (error) {
+          parsedRoot = null;
+          currentSummary = '';
+          inputStatus.textContent = `تعذر تحليل JSON: ${error.message}`;
+          inputStatus.dataset.kind = 'error';
+          document.querySelector('#summary-status').textContent = 'أصلح صيغة JSON ثم أعد الاستكشاف.';
+          document.querySelector('#summary-fields').textContent = '—';
+          document.querySelector('#summary-arrays').textContent = '—';
+          metadataClear();
+          fieldList.replaceChildren();
+          fieldCount.textContent = 'لا توجد حقول قابلة للعرض.';
+        }
+      }
+
+      function metadataClear() {
+        document.querySelector('#metadata').replaceChildren();
+      }
+
+      function redactObject(value) {
+        if (typeof value === 'string') return redactToggle.checked ? redactText(value) : value;
+        if (Array.isArray(value)) return value.map(redactObject);
+        if (value && typeof value === 'object') {
+          return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, redactObject(child)]));
+        }
+        return value;
+      }
+
+      function parseCdxLines() {
+        const lines = cdxInput.value.split(/\r?\n/);
+        const records = lines
+          .map((line, index) => ({
+            line: line.trim(),
+            number: index + 1
+          }))
+          .filter((entry) => entry.line && !entry.line.startsWith('#'))
+          .map((entry) => ({
+            number: entry.number,
+            columns: entry.line.split(/\s+/)
+          }));
+
+        cdxResults.replaceChildren();
+        records.forEach(({ number, columns }) => {
+          const row = document.createElement('tr');
+          row.className = 'border-t border-[var(--color-border)] align-top';
+          const cells = [
+            String(number),
+            columns[0] || '',
+            columns[1] || '',
+            columns[2] || '',
+            columns[3] || '',
+            columns[4] || '',
+            columns[5] || '',
+            columns.slice(6).join('  ') || '—'
+          ];
+          cells.forEach((value) => {
+            const cell = document.createElement('td');
+            cell.className = 'archive-code break-all p-3 text-[var(--color-text)]';
+            cell.textContent = value;
+            row.append(cell);
+          });
+          cdxResults.append(row);
+        });
+
+        cdxStatus.textContent = records.length
+          ? `عُثر على ${records.length} سجلًا. عُرضت الأعمدة 1–6 موضعيًا، وحُفظت بقية الأعمدة في خانة إضافية.`
+          : 'لم يُعثر على أسطر سجلات. ألصق سطرًا مفهرسًا واحدًا على الأقل.';
+      }
+
+      document.querySelector('#load-cdx-sample').addEventListener('click', () => {
+        cdxInput.value = cdxSample;
+        parseCdxLines();
+      });
+      document.querySelector('#parse-cdx').addEventListener('click', parseCdxLines);
+      document.querySelector('#clear-cdx').addEventListener('click', () => {
+        cdxInput.value = '';
+        cdxResults.replaceChildren();
+        cdxStatus.textContent = 'تم مسح أسطر CDX والنتائج.';
+        cdxInput.focus();
+      });
+
+      document.querySelector('#inspect-json').addEventListener('click', inspect);
+      searchInput.addEventListener('input', renderFields);
+      redactToggle.addEventListener('change', () => {
+        if (parsedRoot) {
+          renderMetadata(parsedRoot);
+          makeSummary();
+          renderFields();
+          document.querySelector('#summary-status').textContent = `تم تحليل ${displayValue(parsedRoot.title || parsedRoot.identifier || 'استجابة JSON')} محليًا.`;
+        }
+      });
+      document.querySelector('#format-json').addEventListener('click', () => {
+        try {
+          input.value = JSON.stringify(JSON.parse(input.value), null, 2);
+          inspect();
+          inputStatus.textContent = 'تم تنسيق JSON محليًا.';
+        } catch (error) {
+          inputStatus.textContent = `تعذر التنسيق: ${error.message}`;
+          inputStatus.dataset.kind = 'error';
+        }
+      });
+      document.querySelector('#clear-json').addEventListener('click', () => {
+        input.value = '';
+        searchInput.value = '';
+        inspect();
+        input.focus();
+      });
+      document.querySelector('#json-file').addEventListener('change', async (event) => {
+        const file = event.currentTarget.files?.[0];
+        if (!file) return;
+        if (file.size > MAX_BYTES) {
+          inputStatus.textContent = 'الملف يتجاوز الحد المحلي البالغ 5 MB.';
+          inputStatus.dataset.kind = 'error';
+          event.currentTarget.value = '';
+          return;
+        }
+        try {
+          input.value = await file.text();
+          searchInput.value = '';
+          inspect();
+          inputStatus.textContent = `تم فتح ${file.name} محليًا. لم يُرفع الملف.`;
+        } catch (error) {
+          inputStatus.textContent = `تعذرت قراءة الملف: ${error.message}`;
+          inputStatus.dataset.kind = 'error';
+        }
+        event.currentTarget.value = '';
+      });
+      document.querySelector('#load-sample').addEventListener('click', () => {
+        input.value = JSON.stringify({
+          result: {
+            identifier: 'sample-collection',
+            title: 'Example Collection',
+            mediatype: 'collection',
+            collection: ['movies', 'education'],
+            description: 'مثال توضيحي بلا بيانات حسابات أو عناوين بريد.',
+            publicdate: '2024-01-01 12:00:00',
+            updatedate: ['2024-01-02 09:30:00', '2024-02-05 14:15:00'],
+            updater: ['editor-one', 'editor-two'],
+            num_subcollections: '2'
+          }
+        }, null, 2);
+        searchInput.value = '';
+        inspect();
+      });
+      document.querySelector('#copy-summary').addEventListener('click', async () => {
+        if (!currentSummary) {
+          document.querySelector('#export-status').textContent = 'استكشف JSON صالحًا أولًا.';
+          return;
+        }
+        try {
+          const summary = JSON.parse(currentSummary);
+          await navigator.clipboard.writeText(JSON.stringify(redactObject(summary), null, 2));
+          document.querySelector('#export-status').textContent = 'نُسخ الملخص المحلي.';
+        } catch {
+          document.querySelector('#export-status').textContent = 'تعذر النسخ تلقائيًا؛ راجع الملخص وانسخه يدويًا.';
+        }
+      });
+      document.querySelector('#download-json').addEventListener('click', () => {
+        if (!parsedRoot) {
+          document.querySelector('#export-status').textContent = 'استكشف JSON صالحًا قبل التنزيل.';
+          return;
+        }
+        const exported = redactObject(parsedRoot);
+        const url = URL.createObjectURL(new Blob([JSON.stringify(exported, null, 2)], {
+          type: 'application/json;charset=utf-8'
+        }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'archive-json-reviewed.json';
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        document.querySelector('#export-status').textContent = redactToggle.checked ? 'تم تنزيل JSON بعد إخفاء عناوين البريد.' : 'تم تنزيل JSON دون تنقيح؛ راجع الملف قبل مشاركته.';
+      });
+    })();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

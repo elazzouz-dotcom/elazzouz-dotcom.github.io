@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="مختبر CSS محلي لتنسيق الشيفرة وتصغيرها وفحص الأقواس واستخراج ملخص للقواعد والخصائص.">
+  <title>مختبر CSS المحلي | Fox Wiki Workspace</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .css-editor,
+    .css-output,
+    .css-mono {
+      direction: ltr;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      tab-size: 2;
+    }
+
+    .css-editor {
+      min-height: 22rem;
+      resize: vertical;
+      white-space: pre;
+    }
+
+    .css-output {
+      min-height: 15rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .css-control:focus-visible,
+    .css-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .metric-card {
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.6);
+      background: var(--color-bg);
+      padding: 1rem;
+    }
+
+    .rule-row+.rule-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/fox" class="flex items-center gap-3" aria-label="العودة إلى مساحة الثعلب">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]" aria-hidden="true">🦊</span>
+        <span class="text-xl font-extrabold">Fox <span class="text-[var(--color-primary)]">Wiki Workspace</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/fox">مساحة الثعلب</a>
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Fox Workspace · CSS lab</p>
+        <h1 class="mb-4 max-w-5xl text-4xl font-black leading-tight sm:text-5xl">نظّم CSS الملتصق، وافحص بنيته محليًا.</h1>
+        <p class="mb-6 max-w-3xl text-base leading-7 text-[var(--color-muted)]">ألصق المقطع الذي أرسلته أو أي CSS تملكه. نسّقه أو صغّره، وافحص توازن الأقواس واحصل على إحصاءات سريعة. لا يُحمّل CSS إلى صفحة، ولا يتصل بموقع أو خدمة خارجية.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="#workspace" class="btn-primary px-5 py-3">افتح المختبر <span aria-hidden="true">↓</span></a>
+          <a href="/fox" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">العودة إلى مساحة الثعلب</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="workspace" class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <section class="feature-card p-5 sm:p-8" aria-labelledby="editor-heading">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">١ · شيفرة المصدر</p>
+              <h2 id="editor-heading" class="mb-2 text-2xl font-black">محرر CSS</h2>
+              <p class="mb-0 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">الفحص تركيبي مبسّط وليس مدققًا كاملًا لمعيار CSS. لا تُنفّذ الشيفرة ولا تُطبّق على الصفحة.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="load-sample" type="button" class="css-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold">تحميل مثال</button>
+              <button id="clear-source" type="button" class="css-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold">مسح</button>
+            </div>
+          </div>
+          <label for="css-input" class="mb-2 block text-sm font-bold">CSS</label>
+          <textarea id="css-input" class="css-control css-editor w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="ألصق CSS هنا..."></textarea>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button id="format-css" type="button" class="css-button btn-primary px-5 py-3">تنسيق CSS</button>
+            <button id="minify-css" type="button" class="css-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">تصغير CSS</button>
+            <button id="analyze-css" type="button" class="css-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">فحص البنية</button>
+          </div>
+          <p id="css-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">المعالجة محلية بالكامل. لم يبدأ الفحص.</p>
+        </section>
+
+        <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.78fr)]">
+          <section class="feature-card overflow-hidden" aria-labelledby="output-heading">
+            <div class="bg-[var(--color-dark)] p-5 text-[var(--color-primary-contrast)] sm:p-6">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٢ · نتيجة محلية</p>
+              <h2 id="output-heading" class="mb-0 text-2xl font-black">CSS الناتج</h2>
+            </div>
+            <div class="p-5 sm:p-6">
+              <label for="css-output" class="sr-only">الشيفرة الناتجة</label>
+              <textarea id="css-output" class="css-control css-output w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" spellcheck="false" placeholder="ستظهر النتيجة هنا؛ يمكنك تعديلها أو نسخها."></textarea>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-output" type="button" class="css-button btn-primary px-4 py-3 text-sm">نسخ الناتج</button>
+                <button id="use-output" type="button" class="css-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">استخدامه كمصدر</button>
+                <button id="download-output" type="button" class="css-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تنزيل CSS</button>
+              </div>
+              <p id="output-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">لا يوجد ناتج بعد.</p>
+            </div>
+          </section>
+
+          <aside class="space-y-6">
+            <section class="feature-card p-5 sm:p-6" aria-labelledby="stats-heading">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">إحصاءات النص</p>
+              <h2 id="stats-heading" class="mb-4 text-xl font-black">ملخص CSS</h2>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="metric-card">
+                  <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">القواعد</p>
+                  <p id="rule-count" class="mb-0 text-2xl font-black">0</p>
+                </div>
+                <div class="metric-card">
+                  <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">الخصائص</p>
+                  <p id="declaration-count" class="mb-0 text-2xl font-black">0</p>
+                </div>
+                <div class="metric-card">
+                  <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">الأقواس المفتوحة</p>
+                  <p id="brace-count" class="mb-0 text-2xl font-black">0</p>
+                </div>
+                <div class="metric-card">
+                  <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">الحجم</p>
+                  <p id="size-count" class="mb-0 text-2xl font-black">0 B</p>
+                </div>
+              </div>
+              <p id="archive-note" class="mt-4 mb-0 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3 text-xs leading-5 text-[var(--color-muted)]">سيظهر هنا تنبيه إذا احتوى المصدر على تعليقات أرشفة واضحة.</p>
+            </section>
+
+            <section class="feature-card p-5" aria-labelledby="safety-heading">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-icon)]">ملاحظة سلامة</p>
+              <h2 id="safety-heading" class="mb-2 text-lg font-extrabold">الفحص لا يثبت صحة CSS</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">الأداة تحافظ على التعليقات والنصوص ولا تحمّل الملفات المشار إليها. راجع الناتج يدويًا، خصوصًا قواعد @media والروابط والصور والخطوط قبل استخدامه.</p>
+            </section>
+          </aside>
+        </div>
+
+        <section class="feature-card p-5 sm:p-7" aria-labelledby="rules-heading">
+          <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">مستكشف القواعد</p>
+              <h2 id="rules-heading" class="mb-0 text-2xl font-black">أول قواعد المصدر</h2>
+            </div>
+            <span id="rule-status" class="text-sm text-[var(--color-muted)]" aria-live="polite">أدخل CSS لعرض ملخص القواعد.</span>
+          </div>
+          <div class="overflow-x-auto rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)]">
+            <table class="w-full min-w-[34rem] text-left text-sm">
+              <thead class="bg-[var(--color-bg)] text-xs uppercase tracking-[0.08em] text-[var(--color-muted)]">
+                <tr>
+                  <th class="p-3">المحدد / at-rule</th>
+                  <th class="p-3">عدد الخصائص</th>
+                  <th class="p-3">بداية القاعدة</th>
+                </tr>
+              </thead>
+              <tbody id="rule-list"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/fox" class="font-extrabold text-[var(--color-text)]">Fox Wiki Workspace</a>
+      <p class="mb-0">مختبر CSS محلي للتنسيق والفحص التقريبي.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const source = document.querySelector('#css-input');
+      const output = document.querySelector('#css-output');
+      const status = document.querySelector('#css-status');
+      const ruleList = document.querySelector('#rule-list');
+      const MAX_CHARS = 250000;
+
+      const sample = `/* Archived stylesheet excerpt — illustrative source */\n\ncite, dfn { font-style: inherit; }\nq { quotes: '"' '"' "'" "'"; }\nblockquote { overflow: hidden; margin: 1em 0; padding: 0 40px; }\n\n.infobox {\n  border: 1px solid #a2a9b1;\n  background-color: #f8f9fa;\n  color: black;\n  float: right;\n  width: 22em;\n}\n\n@media print {\n  .infobox {\n    background-color: #fff;\n    width: 180pt !important;\n  }\n}`;
+
+      function checkSize(text) {
+        if (text.length > MAX_CHARS) throw new Error('حجم النص يتجاوز الحد المحلي البالغ 250,000 حرف.');
+      }
+
+      function stripComments(text) {
+        let result = '';
+        let quote = '';
+        let escaped = false;
+        for (let index = 0; index < text.length; index += 1) {
+          const character = text[index];
+          const next = text[index + 1];
+          if (escaped) {
+            result += character;
+            escaped = false;
+            continue;
+          }
+          if (quote) {
+            result += character;
+            if (character === '\\') escaped = true;
+            else if (character === quote) quote = '';
+            continue;
+          }
+          if (character === '"' || character === "'") {
+            quote = character;
+            result += character;
+            continue;
+          }
+          if (character === '/' && next === '*') {
+            index += 2;
+            while (index < text.length && !(text[index] === '*' && text[index + 1] === '/')) index += 1;
+            if (index < text.length) index += 1;
+            result += ' ';
+            continue;
+          }
+          result += character;
+        }
+        return result;
+      }
+
+      function scanStructure(text) {
+        let quote = '';
+        let escaped = false;
+        let comment = false;
+        let depth = 0;
+        let unmatchedClose = 0;
+        let rules = 0;
+        let declarations = 0;
+        let segment = '';
+        const ruleRows = [];
+        let currentSelector = '';
+        let ruleStart = 1;
+        let line = 1;
+        let blockDepth = 0;
+        let declarationText = '';
+        let colonSeen = false;
+
+        function flushDeclaration() {
+          const trimmed = declarationText.trim();
+          if (blockDepth > 0 && colonSeen && trimmed) declarations += 1;
+          declarationText = '';
+          colonSeen = false;
+        }
+
+        function addRule(selector, startLine, count) {
+          const value = selector.trim();
+          if (!value) return;
+          rules += 1;
+          ruleRows.push({
+            selector: value.slice(0, 180),
+            line: startLine,
+            declarations: count
+          });
+        }
+
+        for (let index = 0; index < text.length; index += 1) {
+          const character = text[index];
+          const next = text[index + 1];
+          if (comment) {
+            if (character === '*' && next === '/') {
+              comment = false;
+              index += 1;
+            }
+            if (character === '\n') line += 1;
+            continue;
+          }
+          if (escaped) {
+            if (blockDepth > 0) declarationText += character;
+            else segment += character;
+            escaped = false;
+            continue;
+          }
+          if (quote) {
+            if (blockDepth > 0) declarationText += character;
+            else segment += character;
+            if (character === '\\') escaped = true;
+            else if (character === quote) quote = '';
+            if (character === '\n') line += 1;
+            continue;
+          }
+          if (character === '/' && next === '*') {
+            comment = true;
+            index += 1;
+            continue;
+          }
+          if (character === '"' || character === "'") {
+            quote = character;
+            if (blockDepth > 0) declarationText += character;
+            else segment += character;
+            continue;
+          }
+          if (character === '{') {
+            if (blockDepth === 0) {
+              currentSelector = segment.trim();
+              segment = '';
+              ruleStart = line;
+              blockDepth = 1;
+              depth += 1;
+              declarations = declarations;
+              declarationText = '';
+            } else {
+              blockDepth += 1;
+              depth += 1;
+              declarationText += character;
+            }
+            continue;
+          }
+          if (character === '}') {
+            if (blockDepth === 0) {
+              unmatchedClose += 1;
+            } else {
+              flushDeclaration();
+              addRule(currentSelector || '@ nested block', ruleStart, 0);
+              blockDepth -= 1;
+              depth -= 1;
+              if (blockDepth === 0) {
+                currentSelector = '';
+                segment = '';
+              } else declarationText += character;
+            }
+            continue;
+          }
+          if (character === ';') {
+            if (blockDepth > 0) {
+              flushDeclaration();
+              declarationText = '';
+            } else {
+              const prelude = segment.trim();
+              if (prelude.startsWith('@')) addRule(prelude, ruleStart, 0);
+              segment = '';
+              ruleStart = line;
+            }
+            continue;
+          }
+          if (character === ':' && blockDepth > 0) colonSeen = true;
+          if (blockDepth > 0) declarationText += character;
+          else segment += character;
+          if (character === '\n') line += 1;
+        }
+        if (blockDepth > 0) flushDeclaration();
+        return {
+          depth,
+          unmatchedClose,
+          quoteOpen: Boolean(quote),
+          commentOpen: comment,
+          rules,
+          declarations,
+          ruleRows
+        };
+      }
+
+      function formatCss(text) {
+        checkSize(text);
+        const cleaned = stripComments(text);
+        let result = '';
+        let quote = '';
+        let escaped = false;
+        let comment = false;
+        let depth = 0;
+        let lineStart = true;
+        let pendingSpace = false;
+
+        const indent = () => '  '.repeat(Math.max(0, depth));
+        const write = (value) => {
+          if (lineStart && value.trim()) {
+            result += indent();
+            lineStart = false;
+          }
+          result += value;
+        };
+        const newline = () => {
+          result = result.replace(/[ \t]+$/g, '');
+          if (!result.endsWith('\n')) result += '\n';
+          lineStart = true;
+          pendingSpace = false;
+        };
+
+        for (let index = 0; index < cleaned.length; index += 1) {
+          const character = cleaned[index];
+          if (escaped) {
+            write(character);
+            escaped = false;
+            continue;
+          }
+          if (quote) {
+            write(character);
+            if (character === '\\') escaped = true;
+            else if (character === quote) quote = '';
+            continue;
+          }
+          if (character === '"' || character === "'") {
+            if (pendingSpace && !lineStart) write(' ');
+            pendingSpace = false;
+            quote = character;
+            write(character);
+            continue;
+          }
+          if (/\s/.test(character)) {
+            pendingSpace = true;
+            continue;
+          }
+          if (character === '{') {
+            if (pendingSpace && !lineStart) write(' ');
+            pendingSpace = false;
+            write(' {');
+            newline();
+            depth += 1;
+            continue;
+          }
+          if (character === '}') {
+            pendingSpace = false;
+            newline();
+            depth = Math.max(0, depth - 1);
+            write('}');
+            newline();
+            continue;
+          }
+          if (character === ';') {
+            pendingSpace = false;
+            write(';');
+            newline();
+            continue;
+          }
+          if (character === ':') {
+            pendingSpace = false;
+            write(': ');
+            continue;
+          }
+          if (character === ',') {
+            pendingSpace = false;
+            write(', ');
+            continue;
+          }
+          if (pendingSpace && !lineStart && !result.endsWith(' ') && !result.endsWith('\n')) write(' ');
+          pendingSpace = false;
+          write(character);
+        }
+        return result.trim();
+      }
+
+      function minifyCss(text) {
+        checkSize(text);
+        const withoutComments = stripComments(text);
+        let result = '';
+        let quote = '';
+        let escaped = false;
+        let pendingSpace = false;
+        for (let index = 0; index < withoutComments.length; index += 1) {
+          const character = withoutComments[index];
+          if (escaped) {
+            result += character;
+            escaped = false;
+            continue;
+          }
+          if (quote) {
+            result += character;
+            if (character === '\\') escaped = true;
+            else if (character === quote) quote = '';
+            continue;
+          }
+          if (character === '"' || character === "'") {
+            if (pendingSpace && /[\w#.)%]/.test(result.at(-1) || '') && /[\w#.(%-]/.test(character)) result += ' ';
+            pendingSpace = false;
+            quote = character;
+            result += character;
+            continue;
+          }
+          if (/\s/.test(character)) {
+            pendingSpace = true;
+            continue;
+          }
+          if (pendingSpace && /[\w#.)%]/.test(result.at(-1) || '') && /[\w#.(%-]/.test(character)) result += ' ';
+          pendingSpace = false;
+          result += character;
+        }
+        return result.replace(/\s*([{}:;,])\s*/g, '$1').replace(/;}/g, '}').trim();
+      }
+
+      function updateStats() {
+        const text = source.value;
+        const result = scanStructure(text);
+        document.querySelector('#rule-count').textContent = String(result.rules);
+        document.querySelector('#declaration-count').textContent = String(result.declarations);
+        document.querySelector('#brace-count').textContent = String(result.depth);
+        const bytes = new Blob([text]).size;
+        document.querySelector('#size-count').textContent = bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
+        const archive = /FILE ARCHIVED ON|WAYBACK MACHINE|playback timings/i.test(text);
+        document.querySelector('#archive-note').textContent = archive ?
+          'يبدو أن المصدر يتضمن تعليقات أرشفة أو Wayback. يبقى المصدر الأصلي في المحرر، لكن التنسيق والتصغير قد يزيلان التعليقات؛ لم تُحمّل موارد خارجية.' :
+          'لم تُكتشف تعليقات أرشفة واضحة.';
+        ruleList.replaceChildren(...result.ruleRows.slice(0, 50).map((rule) => {
+          const row = document.createElement('tr');
+          row.className = 'rule-row';
+          const selector = document.createElement('td');
+          selector.className = 'css-mono break-all p-3 font-semibold text-[var(--color-primary)]';
+          selector.textContent = rule.selector;
+          const count = document.createElement('td');
+          count.className = 'p-3 text-[var(--color-text)]';
+          count.textContent = String(rule.declarations);
+          const line = document.createElement('td');
+          line.className = 'p-3 text-[var(--color-muted)]';
+          line.textContent = String(rule.line);
+          row.append(selector, count, line);
+          return row;
+        }));
+        document.querySelector('#rule-status').textContent = result.ruleRows.length > 50 ?
+          `يعرض أول 50 من ${result.ruleRows.length} قواعد.` :
+          `${result.ruleRows.length} قواعد مكتشفة.`;
+        return result;
+      }
+
+      function analyze() {
+        try {
+          checkSize(source.value);
+          const result = updateStats();
+          const problems = [];
+          if (result.depth !== 0) problems.push(`يوجد ${result.depth} قوس/أقواس فتح بلا إغلاق.`);
+          if (result.unmatchedClose) problems.push(`يوجد ${result.unmatchedClose} قوس إغلاق بلا افتتاح.`);
+          if (result.quoteOpen) problems.push('يوجد اقتباس نصي غير مغلق بحسب الفحص التقريبي.');
+          if (result.commentOpen) problems.push('يوجد تعليق /* غير مغلق.');
+          status.textContent = problems.length ? `مراجعة مطلوبة: ${problems.join(' ')}` : `اكتمل الفحص التقريبي: ${result.rules} قواعد و${result.declarations} خصائص؛ لم يُطبّق CSS على الصفحة.`;
+          document.querySelector('#output-status').textContent = 'يمكنك تعديل الناتج أو نسخه أو تنزيله محليًا.';
+        } catch (error) {
+          status.textContent = error.message;
+        }
+      }
+
+      document.querySelector('#format-css').addEventListener('click', () => {
+        try {
+          checkSize(source.value);
+          output.value = formatCss(source.value);
+          analyze();
+          document.querySelector('#output-status').textContent = 'تم تنسيق CSS محليًا. راجع الناتج قبل استخدامه.';
+        } catch (error) {
+          status.textContent = error.message;
+        }
+      });
+      document.querySelector('#minify-css').addEventListener('click', () => {
+        try {
+          checkSize(source.value);
+          output.value = minifyCss(source.value);
+          analyze();
+          document.querySelector('#output-status').textContent = 'تم تصغير CSS محليًا. راجع الناتج قبل استخدامه.';
+        } catch (error) {
+          status.textContent = error.message;
+        }
+      });
+      document.querySelector('#analyze-css').addEventListener('click', analyze);
+      source.addEventListener('input', () => {
+        updateStats();
+        status.textContent = 'تحدّث الملخص محليًا. اضغط «فحص البنية» لعرض نتيجة التوازن.';
+      });
+      document.querySelector('#load-sample').addEventListener('click', () => {
+        source.value = sample;
+        output.value = '';
+        analyze();
+      });
+      document.querySelector('#clear-source').addEventListener('click', () => {
+        source.value = '';
+        output.value = '';
+        updateStats();
+        status.textContent = 'تم مسح الحقول.';
+        source.focus();
+      });
+      document.querySelector('#use-output').addEventListener('click', () => {
+        source.value = output.value;
+        updateStats();
+        status.textContent = 'نُقل الناتج إلى المصدر. افحصه قبل متابعة التعديل.';
+        source.focus();
+      });
+      document.querySelector('#copy-output').addEventListener('click', async () => {
+        if (!output.value) {
+          document.querySelector('#output-status').textContent = 'لا يوجد ناتج لنسخه.';
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(output.value);
+          document.querySelector('#output-status').textContent = 'نُسخ CSS إلى الحافظة.';
+        } catch {
+          document.querySelector('#output-status').textContent = 'تعذّر النسخ تلقائيًا؛ حدّد النص وانسخه يدويًا.';
+        }
+      });
+      document.querySelector('#download-output').addEventListener('click', () => {
+        if (!output.value) {
+          document.querySelector('#output-status').textContent = 'أنشئ ناتجًا أولًا.';
+          return;
+        }
+        const url = URL.createObjectURL(new Blob([output.value], {
+          type: 'text/css;charset=utf-8'
+        }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'stylesheet.css';
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        document.querySelector('#output-status').textContent = 'تم تنزيل الملف محليًا.';
+      });
+
+      source.value = sample;
+      updateStats();
+      analyze();
+    })();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

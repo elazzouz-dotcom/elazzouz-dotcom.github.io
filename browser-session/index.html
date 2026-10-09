@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Plan a Browserbase cloud browser session and generate a safe Node.js or Python starter snippet without sharing your API key.">
+  <title>Browser Session Planner | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .planner-control:focus-visible,
+    .planner-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .code-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .choice-card[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Interactive planning tool</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Plan a cloud browser session.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">A session is one isolated browser instance running in the cloud. Choose what your task needs, then generate a starter snippet to create a session locally. This page never asks for your API key and never starts a session.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="planner-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Step 1 · Choose the lightest option</p>
+          <h2 id="planner-heading" class="mb-5 text-2xl font-black">What does the page need?</h2>
+          <div class="space-y-3" role="group" aria-label="Choose a browsing approach">
+            <button type="button" class="choice-card w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left transition" data-approach="search" aria-pressed="false">
+              <span class="mb-1 block font-extrabold">Find pages or sources</span>
+              <span class="block text-sm leading-6 text-[var(--color-muted)]">Try Search first when you need web results, not browser interaction.</span>
+            </button>
+            <button type="button" class="choice-card w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left transition" data-approach="fetch" aria-pressed="false">
+              <span class="mb-1 block font-extrabold">Read page content</span>
+              <span class="block text-sm leading-6 text-[var(--color-muted)]">Try Fetch when the page content is accessible without JavaScript or interaction.</span>
+            </button>
+            <button type="button" class="choice-card w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left transition" data-approach="browser" aria-pressed="true">
+              <span class="mb-1 block font-extrabold">Interact with a real browser</span>
+              <span class="block text-sm leading-6 text-[var(--color-muted)]">Use a browser session for JavaScript-heavy pages, forms, or authorized login workflows.</span>
+            </button>
+          </div>
+
+          <div id="browser-options" class="mt-6 space-y-5">
+            <div>
+              <label for="runtime" class="mb-2 block text-sm font-bold">Starter language</label>
+              <select id="runtime" class="planner-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                <option value="node">Node.js · TypeScript</option>
+                <option value="python">Python</option>
+              </select>
+            </div>
+            <fieldset>
+              <legend class="mb-3 text-sm font-bold">Session considerations</legend>
+              <div class="space-y-3">
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input class="session-need mt-1 accent-[var(--color-primary)]" type="checkbox" value="region">
+                  <span><strong>Choose a browser region</strong><br><span class="text-[var(--color-muted)]">A nearby region can reduce round-trip latency. Pick an available region in the current API documentation.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input class="session-need mt-1 accent-[var(--color-primary)]" type="checkbox" value="viewport">
+                  <span><strong>Set a custom viewport</strong><br><span class="text-[var(--color-muted)]">Useful when the page layout must match a particular screen size.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input class="session-need mt-1 accent-[var(--color-primary)]" type="checkbox" value="keepalive">
+                  <span><strong>Keep a session alive after disconnect</strong><br><span class="text-[var(--color-muted)]">Review the plan's concurrency and session-duration limits first.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input class="session-need mt-1 accent-[var(--color-primary)]" type="checkbox" value="recording">
+                  <span><strong>Review replay and logging settings</strong><br><span class="text-[var(--color-muted)]">Recording and logging are enabled by default according to the supplied documentation.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input class="session-need mt-1 accent-[var(--color-primary)]" type="checkbox" value="identity">
+                  <span><strong>Check identity, proxy, or CAPTCHA needs</strong><br><span class="text-[var(--color-muted)]">These features may require paid plan access. Confirm eligibility before depending on them.</span></span>
+                </label>
+                <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input class="session-need mt-1 accent-[var(--color-primary)]" type="checkbox" value="context">
+                  <span><strong>Reuse an authenticated context</strong><br><span class="text-[var(--color-muted)]">Contexts can persist browser state such as cookies across sessions.</span></span>
+                </label>
+              </div>
+            </fieldset>
+          </div>
+
+          <p id="approach-advice" class="mt-5 mb-0 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6" aria-live="polite">Browser selected: prepare a session only when the task needs interaction, JavaScript rendering, or an authorized login.</p>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="code-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Step 2 · Local starter</p>
+              <h2 id="code-heading" class="mb-2 text-2xl font-black">Your local starter</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">The API key stays in your local environment. No project ID is needed: the key resolves the project.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <p id="code-intro" class="mb-4 text-sm leading-6 text-[var(--color-muted)]">This starter creates a session and connects Playwright over CDP. Install the required packages locally only after reviewing your project setup.</p>
+              <pre id="session-code" class="code-output rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></pre>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-code" type="button" class="planner-button btn-primary px-4 py-3 text-sm">Copy starter</button>
+                <button id="download-code" type="button" class="planner-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">Download code</button>
+              </div>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">The sample does not create a session until you run it locally.</p>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="plan-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Step 3 · Review</p>
+            <h2 id="plan-heading" class="mb-3 text-2xl font-black">Your session checklist</h2>
+            <ul id="checklist" class="space-y-3 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite"></ul>
+            <div class="mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+              <p class="mb-2 font-bold text-[var(--color-text)]">Before a real run</p>
+              <ul class="mb-0 list-disc space-y-2 pl-5">
+                <li>Keep <code>BROWSERBASE_API_KEY</code> in a local secret configuration; never paste it into chat or commit it.</li>
+                <li>Check your plan's concurrent session limits; session creation is rate limited.</li>
+                <li>Use a specific readiness selector and prefer <code>domcontentloaded</code> over fixed sleeps.</li>
+                <li>Use browser automation only on sites and accounts you are authorized to access.</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 sm:p-6">
+            <h2 class="mb-2 text-lg font-extrabold">A session is not always necessary</h2>
+            <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">Choose Search to find sources, Fetch to read accessible page content, and a browser session when interaction or JavaScript rendering is required. Fetch and Search do not create browser sessions.</p>
+            <a href="/browserbase-onboarding" class="font-bold text-[var(--color-primary)]">Open Browserbase onboarding <span aria-hidden="true">→</span></a>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-[var(--color-muted)] sm:flex-row">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Local Browserbase session planning tool.</p>
+    </div>
+  </footer>
+
+  <script>
+    const runtimeSelect = document.querySelector('#runtime');
+    const sessionCode = document.querySelector('#session-code');
+    const codeIntro = document.querySelector('#code-intro');
+    const approachAdvice = document.querySelector('#approach-advice');
+    const browserOptions = document.querySelector('#browser-options');
+    const checklist = document.querySelector('#checklist');
+
+    const advice = {
+      search: 'Search selected: use structured web results when you only need to discover pages. Search does not create a browser session.',
+      fetch: 'Fetch selected: retrieve readable page content without spinning up a browser. Use a session only if the page needs interaction or JavaScript rendering.',
+      browser: 'Browser selected: prepare a session only when the task needs interaction, JavaScript rendering, or an authorized login.'
+    };
+
+    const sessionNeeds = {
+      region: 'Choose an available browser region close to your code or target to reduce network round trips.',
+      viewport: 'Set viewport dimensions only when your workflow depends on a particular page layout.',
+      keepalive: 'Check long-session duration and plan concurrency limits before enabling keep alive.',
+      recording: 'Replay and logging are enabled by default in the supplied documentation; disable them only if your workflow requires it.',
+      identity: 'Confirm whether identity, proxy, or CAPTCHA features are available on your plan before relying on them.',
+      context: 'Use a browser context when an authorized login state must persist across sessions.'
+    };
+
+    function nodeExample() {
+      return `import { Browserbase } from "@browserbasehq/sdk";
+import { chromium } from "playwright-core";
+
+const apiKey = process.env.BROWSERBASE_API_KEY;
+if (!apiKey) throw new Error("Set BROWSERBASE_API_KEY in your local environment.");
+
+const browserbase = new Browserbase({ apiKey });
+const session = await browserbase.sessions.create({
+  // Add only documented settings needed for your task.
+});
+
+console.log("Created session:", session.id);
+
+const browser = await chromium.connectOverCDP(session.connectUrl);
+const context = browser.contexts()[0];
+const page = context.pages()[0] ?? await context.newPage();
+
+try {
+  await page.goto(process.env.TARGET_URL, { waitUntil: "domcontentloaded" });
+  // Wait for the specific element your automation needs before interacting.
+} finally {
+  await browser.close();
+}`;
+    }
+
+    function pythonExample() {
+      return `import os
+from browserbase import Browserbase
+from playwright.sync_api import sync_playwright
+
+api_key = os.environ.get("BROWSERBASE_API_KEY")
+if not api_key:
+    raise RuntimeError("Set BROWSERBASE_API_KEY in your local environment.")
+
+target_url = os.environ.get("TARGET_URL")
+if not target_url:
+    raise RuntimeError("Set TARGET_URL to a site you are authorized to access.")
+
+browserbase = Browserbase(api_key=api_key)
+session = browserbase.sessions.create(
+    # Add only documented settings needed for your task.
+)
+print("Created session:", session.id)
+
+with sync_playwright() as playwright:
+    browser = playwright.chromium.connect_over_cdp(session.connect_url)
+    context = browser.contexts[0]
+    page = context.pages[0] if context.pages else context.new_page()
+    try:
+        page.goto(target_url, wait_until="domcontentloaded")
+        # Wait for the specific element your automation needs before interacting.
+    finally:
+        browser.close()`;
+    }
+
+    function updateChecklist() {
+      const checked = [...document.querySelectorAll('.session-need:checked')];
+      const items = checked.map((input) => sessionNeeds[input.value]);
+      if (!items.length) items.push('No optional session configuration selected. Start with defaults, then add only what your workflow needs.');
+      checklist.replaceChildren();
+      items.forEach((text) => {
+        const item = document.createElement('li');
+        item.className = 'rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3';
+        item.textContent = text;
+        checklist.append(item);
+      });
+    }
+
+    function updateCode() {
+      const approach = document.querySelector('.choice-card[aria-pressed="true"]').dataset.approach;
+      const useBrowser = approach === 'browser';
+      const isPython = runtimeSelect.value === 'python';
+      const actionButtons = [document.querySelector('#copy-code'), document.querySelector('#download-code')];
+      browserOptions.hidden = !useBrowser;
+      actionButtons.forEach((button) => {
+        button.disabled = !useBrowser;
+      });
+
+      if (!useBrowser) {
+        sessionCode.textContent = approach === 'search' ?
+          'No browser session needed. Use Browserbase Search for structured results, or a search engine/search provider appropriate to your project. Search returns results and does not start a browser.' :
+          'No browser session needed. Use Browserbase Fetch for accessible page content when JavaScript execution or interaction is not required. Fetch returns content and does not start a browser.';
+        codeIntro.textContent = 'Your selection does not require a browser session. The starter buttons are disabled until you choose browser interaction.';
+        approachAdvice.textContent = advice[approach];
+        return;
+      }
+
+      sessionCode.textContent = isPython ? pythonExample() : nodeExample();
+      codeIntro.textContent = isPython ?
+        'This starter uses the Browserbase Python SDK and Playwright. Confirm current package installation instructions for your environment before adding dependencies.' :
+        'This starter uses the Browserbase Node.js SDK and Playwright over CDP. Confirm current package installation instructions for your project before adding dependencies.';
+    }
+
+    document.querySelectorAll('.choice-card').forEach((button) => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.choice-card').forEach((choice) => choice.setAttribute('aria-pressed', String(choice === button)));
+        approachAdvice.textContent = advice[button.dataset.approach];
+        updateCode();
+      });
+    });
+
+    runtimeSelect.addEventListener('change', updateCode);
+    document.querySelectorAll('.session-need').forEach((input) => input.addEventListener('change', updateChecklist));
+
+    document.querySelector('#copy-code').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(sessionCode.textContent);
+        document.querySelector('#copy-status').textContent = 'Starter copied. Review settings and keep your API key in local environment configuration.';
+      } catch {
+        document.querySelector('#copy-status').textContent = 'Copy is unavailable here. Select the code and copy it manually.';
+      }
+    });
+
+    document.querySelector('#download-code').addEventListener('click', () => {
+      const python = runtimeSelect.value === 'python';
+      const file = new Blob([sessionCode.textContent], {
+        type: 'text/plain;charset=utf-8'
+      });
+      const downloadUrl = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = python ? 'browserbase-session.py' : 'browserbase-session.ts';
+      link.click();
+      URL.revokeObjectURL(downloadUrl);
+      document.querySelector('#copy-status').textContent = 'Starter downloaded. No session was created by this page.';
+    });
+
+    updateChecklist();
+    updateCode();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

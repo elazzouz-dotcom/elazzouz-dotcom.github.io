@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AIP — algorithmic trading company profile focused on quantitative research, data science, and trading infrastructure.">
+  <meta name="theme-color" content="#070b12">
+  <title>AIP — Algorithmic Trading Company</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --aip-grid: color-mix(in srgb, var(--color-primary) 12%, transparent);
+      --aip-glow: color-mix(in srgb, var(--color-primary) 24%, transparent);
+    }
+
+    body {
+      overflow-x: hidden;
+      background: var(--color-dark);
+    }
+
+    .aip-shell {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 78% 4%, var(--aip-glow), transparent 30rem),
+        radial-gradient(circle at 5% 48%, color-mix(in srgb, var(--color-icon) 8%, transparent), transparent 28rem),
+        var(--color-dark);
+    }
+
+    .aip-nav {
+      position: fixed;
+      z-index: 90;
+      inset: 0 0 auto;
+      display: flex;
+      min-height: 4.2rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--color-border);
+      background: color-mix(in srgb, var(--color-bg) 86%, transparent);
+      padding: 0.75rem clamp(1rem, 4vw, 2rem);
+      backdrop-filter: blur(14px);
+    }
+
+    .aip-logo {
+      color: var(--color-text);
+      font: 800 1.25rem var(--font-heading);
+      letter-spacing: 0.24em;
+    }
+
+    .aip-logo em,
+    .aip-nav-links a:hover {
+      color: var(--color-primary);
+      font-style: normal;
+    }
+
+    .aip-nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: clamp(0.7rem, 2vw, 1.5rem);
+      color: var(--color-muted);
+      font: 700 0.68rem var(--font-body);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .aip-tape {
+      position: fixed;
+      z-index: 88;
+      top: 4.2rem;
+      inset-inline: 0;
+      overflow: hidden;
+      border-bottom: 1px solid var(--color-border);
+      background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    }
+
+    .aip-tape-track {
+      display: flex;
+      width: max-content;
+      gap: 2rem;
+      padding: 0.48rem 0;
+      white-space: nowrap;
+      animation: aip-ticker 38s linear infinite;
+    }
+
+    .aip-tape:hover .aip-tape-track {
+      animation-play-state: paused;
+    }
+
+    .ticker-item {
+      color: var(--color-muted);
+      font: 0.7rem var(--font-body);
+    }
+
+    .ticker-item strong {
+      color: var(--color-text);
+    }
+
+    .ticker-item .up {
+      color: var(--color-primary);
+    }
+
+    .ticker-item .down {
+      color: var(--color-icon);
+    }
+
+    @keyframes aip-ticker {
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    .aip-hero {
+      position: relative;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 10rem 1.25rem 5rem;
+      text-align: center;
+    }
+
+    .aip-hero canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #aip-grid-canvas {
+      opacity: 0.42;
+    }
+
+    #aip-chart-canvas {
+      z-index: 1;
+      opacity: 0.42;
+    }
+
+    .aip-orb {
+      position: absolute;
+      z-index: 0;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.13;
+      pointer-events: none;
+    }
+
+    .aip-orb-green {
+      top: 12%;
+      left: -9rem;
+      width: 26rem;
+      height: 26rem;
+      background: var(--color-primary);
+    }
+
+    .aip-orb-gold {
+      right: -7rem;
+      bottom: -6rem;
+      width: 23rem;
+      height: 23rem;
+      background: var(--color-icon);
+    }
+
+    .aip-hero::after {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 100%, transparent 4%, var(--color-dark) 92%);
+      content: "";
+      pointer-events: none;
+    }
+
+    .aip-hero-content {
+      position: relative;
+      z-index: 2;
+      width: min(100%, 76rem);
+    }
+
+    .aip-kicker {
+      display: inline-flex;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 34%, var(--color-border));
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+      padding: 0.6rem 1.1rem;
+      color: var(--color-primary);
+      font: 700 0.7rem var(--font-body);
+      letter-spacing: 0.2em;
+    }
+
+    .aip-hero-title {
+      margin: 1.7rem auto;
+      font-size: clamp(2.6rem, 8vw, 7rem);
+      font-weight: 900;
+      letter-spacing: -0.065em;
+      line-height: 0.98;
+      text-transform: uppercase;
+    }
+
+    .aip-hero-title em,
+    .aip-section-title em {
+      color: var(--color-primary);
+      font-style: normal;
+      text-shadow: 0 0 30px var(--aip-glow);
+    }
+
+    .aip-hero-copy {
+      color: var(--color-muted);
+      font-size: clamp(0.85rem, 1.7vw, 1.05rem);
+      letter-spacing: 0.12em;
+      line-height: 2;
+      text-transform: uppercase;
+    }
+
+    .aip-cta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.9rem;
+      margin-top: 2.2rem;
+    }
+
+    .aip-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.65);
+      background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+      padding: 0.9rem 1.5rem;
+      color: var(--color-text);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .aip-secondary:hover {
+      transform: translateY(-3px);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    .aip-live-note {
+      margin-top: 2rem;
+      color: var(--color-muted);
+      font: 0.7rem var(--font-body);
+      letter-spacing: 0.08em;
+    }
+
+    .aip-live-note span {
+      display: inline-block;
+      width: 0.48rem;
+      height: 0.48rem;
+      margin-inline-end: 0.45rem;
+      border-radius: 50%;
+      background: var(--color-primary);
+    }
+
+    .aip-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-block: 1px solid var(--color-border);
+      background: linear-gradient(180deg, var(--color-surface), var(--color-dark));
+    }
+
+    .aip-stat {
+      padding: 2.1rem 1rem;
+      border-inline-end: 1px solid var(--color-border);
+      text-align: center;
+    }
+
+    .aip-stat:last-child {
+      border-inline-end: 0;
+    }
+
+    .aip-stat strong {
+      display: block;
+      color: var(--color-primary);
+      font: 800 clamp(1.8rem, 4vw, 2.4rem) var(--font-heading);
+    }
+
+    .aip-stat span {
+      display: block;
+      margin-top: 0.5rem;
+      color: var(--color-muted);
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .aip-section {
+      width: min(100%, 74rem);
+      margin: 0 auto;
+      padding: clamp(4.5rem, 10vw, 7rem) 1.4rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+      scroll-margin-top: 7rem;
+    }
+
+    .aip-section-kicker {
+      color: var(--color-primary);
+      font: 800 0.72rem var(--font-body);
+      letter-spacing: 0.2em;
+    }
+
+    .aip-section-title {
+      margin: 1.1rem 0 1.2rem;
+      font-size: clamp(1.8rem, 4.5vw, 3rem);
+      font-weight: 850;
+      letter-spacing: -0.045em;
+      line-height: 1.16;
+    }
+
+    .aip-lead {
+      max-width: 48rem;
+      color: var(--color-muted);
+      font-size: 1rem;
+      line-height: 1.95;
+    }
+
+    .aip-lead strong {
+      color: var(--color-text);
+    }
+
+    .aip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+      gap: 1rem;
+      margin-top: 2.25rem;
+    }
+
+    .aip-card,
+    .aip-role {
+      position: relative;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--color-surface), var(--color-bg));
+      padding: 1.6rem;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .aip-card:hover,
+    .aip-role:hover {
+      transform: translateY(-4px);
+      border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+      box-shadow: 0 16px 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
+    }
+
+    .aip-card-number {
+      color: var(--color-icon);
+      font: 700 0.8rem var(--font-body);
+      letter-spacing: 0.2em;
+    }
+
+    .aip-card h3 {
+      margin: 0.9rem 0 0.6rem;
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .aip-card p,
+    .aip-role p {
+      color: var(--color-muted);
+      font-size: 0.86rem;
+      line-height: 1.8;
+    }
+
+    .aip-tech-group {
+      margin-top: 1.65rem;
+    }
+
+    .aip-tech-group h3 {
+      margin-bottom: 0.7rem;
+      color: var(--color-muted);
+      font: 700 0.7rem var(--font-body);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .aip-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .aip-chip {
+      border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface));
+      padding: 0.4rem 0.85rem;
+      color: var(--color-primary);
+      font: 0.72rem var(--font-body);
+    }
+
+    .aip-role {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    .aip-role h3 {
+      margin-bottom: 0.35rem;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+    }
+
+    .aip-role-meta {
+      margin: 0.35rem 0;
+      color: var(--color-icon) !important;
+      font: 700 0.68rem var(--font-body) !important;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .aip-role-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      border-radius: calc(var(--radius) * 0.6);
+      background: var(--color-primary);
+      padding: 0.8rem 1.2rem;
+      color: var(--color-primary-contrast);
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .aip-form {
+      width: min(100%, 42rem);
+      margin-top: 2rem;
+    }
+
+    .aip-form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .aip-form-col {
+      min-width: min(100%, 14rem);
+      flex: 1;
+    }
+
+    .aip-form label {
+      display: block;
+      margin-bottom: 0.45rem;
+      color: var(--color-muted);
+      font: 700 0.68rem var(--font-body);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .aip-form input:not([type="checkbox"]),
+    .aip-form textarea {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.6);
+      background: var(--color-surface);
+      padding: 0.85rem 1rem;
+      color: var(--color-text);
+      font: 0.9rem var(--font-body);
+    }
+
+    .aip-form textarea {
+      min-height: 8rem;
+      resize: vertical;
+    }
+
+    .aip-form input:focus,
+    .aip-form textarea:focus {
+      border-color: var(--color-primary);
+      outline: none;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+    }
+
+    .aip-consent {
+      display: flex !important;
+      align-items: flex-start;
+      gap: 0.65rem;
+      margin: 1rem 0;
+      font-size: 0.78rem !important;
+      letter-spacing: 0 !important;
+      text-transform: none !important;
+    }
+
+    .aip-consent input {
+      width: 1rem;
+      height: 1rem;
+      margin-top: 0.15rem;
+      accent-color: var(--color-primary);
+    }
+
+    .aip-form-status {
+      min-height: 1.5rem;
+      margin-top: 0.8rem;
+      color: var(--color-muted);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .aip-form-status.ok {
+      color: var(--color-primary);
+    }
+
+    .aip-form-status.err {
+      color: var(--color-muted);
+    }
+
+    .aip-footer {
+      border-top: 1px solid var(--color-border);
+      padding: 2rem 1rem;
+      color: var(--color-muted);
+      font: 0.7rem var(--font-body);
+      letter-spacing: 0.09em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    #top-btn {
+      position: fixed;
+      z-index: 80;
+      inset-inline-end: 1.25rem;
+      bottom: 1.25rem;
+      display: grid;
+      width: 3rem;
+      height: 3rem;
+      place-items: center;
+      transform: translateY(0.5rem);
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.65);
+      background: var(--color-surface);
+      color: var(--color-primary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    #top-btn.show {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(1.25rem);
+      transition: opacity 650ms ease, transform 650ms ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    #pre {
+      position: fixed;
+      z-index: 200;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      background: var(--color-dark);
+      transition: opacity 400ms ease, visibility 400ms ease;
+    }
+
+    #pre.off {
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pre-logo {
+      color: var(--color-primary);
+      font: 800 2.5rem var(--font-heading);
+      letter-spacing: 0.3em;
+    }
+
+    .pre-bar {
+      width: 13rem;
+      height: 3px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--color-border);
+    }
+
+    .pre-bar span {
+      display: block;
+      width: 40%;
+      height: 100%;
+      background: var(--color-primary);
+      animation: loading 1s ease-in-out infinite;
+    }
+
+    @keyframes loading {
+      to {
+        transform: translateX(350%);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .aip-nav-links a:not(.aip-contact-link) {
+        display: none;
+      }
+
+      .aip-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .aip-stat:nth-child(2) {
+        border-inline-end: 0;
+      }
+
+      .aip-stat:nth-child(-n+2) {
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .aip-hero {
+        min-height: 88vh;
+        padding-top: 9rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <div class="aip-shell">
+    <div id="pre" aria-hidden="true">
+      <div class="pre-logo">AIP</div>
+      <div class="pre-bar"><span></span></div>
+    </div>
+
+    <nav class="aip-nav" aria-label="Main navigation">
+      <a class="aip-logo" href="#top" aria-label="AIP home">A<em>I</em>P</a>
+      <div class="aip-nav-links">
+        <a href="#about">About</a>
+        <a href="#expertise">Expertise</a>
+        <a href="#edge">Our edge</a>
+        <a href="#collaborate">Collaborate</a>
+        <a href="#careers">Careers</a>
+        <a href="#contact" class="aip-contact-link btn-primary px-4 py-2 text-xs">Contacts</a>
+      </div>
+    </nav>
+
+    <div class="aip-tape" aria-label="Illustrative market data, not live prices">
+      <div class="aip-tape-track" id="tapeTrack"></div>
+    </div>
+
+    <main>
+      <header class="aip-hero" id="top">
+        <canvas id="aip-grid-canvas" aria-hidden="true"></canvas>
+        <canvas id="aip-chart-canvas" aria-hidden="true"></canvas>
+        <div class="aip-orb aip-orb-green" aria-hidden="true"></div>
+        <div class="aip-orb aip-orb-gold" aria-hidden="true"></div>
+        <div class="aip-hero-content">
+          <p class="aip-kicker">Algorithmic trading company</p>
+          <h1 class="aip-hero-title"><span class="decode" data-text="WE SEE SIGNALS">WE SEE SIGNALS</span><br><em class="decode" data-text="WHERE OTHERS SEE NOISE" data-em="NOISE">WHERE OTHERS SEE NOISE</em></h1>
+          <p class="aip-hero-copy">Harnessing advanced algorithms and deep market insights<br class="hidden sm:block"> to uncover hidden opportunities.</p>
+          <div class="aip-cta">
+            <a class="btn-primary px-6 py-4 text-xs uppercase tracking-[0.12em]" href="#edge">Discover our edge</a>
+            <a class="aip-secondary" href="#careers">Join the team</a>
+          </div>
+          <p class="aip-live-note"><span aria-hidden="true"></span>Illustrative signal-engine animation · no live market feed</p>
+        </div>
+      </header>
+
+      <section class="aip-stats" aria-label="Company figures supplied for this profile">
+        <div class="aip-stat reveal"><strong data-count="100" data-suffix="K">0K</strong><span>Trading decisions every day</span></div>
+        <div class="aip-stat reveal"><strong data-count="8" data-suffix="+">0+</strong><span>Years on the go</span></div>
+        <div class="aip-stat reveal"><strong data-count="2" data-suffix="">0</strong><span>Offices</span></div>
+        <div class="aip-stat reveal"><strong data-count="2018" data-suffix="" data-plain="1">2018</strong><span>Founded</span></div>
+      </section>
+      <p class="mx-auto max-w-5xl px-5 pt-4 text-center text-xs leading-5 text-[var(--color-muted)]">Company figures and claims displayed on this page are supplied profile content and have not been independently verified.</p>
+
+      <section id="about" class="aip-section reveal">
+        <p class="aip-section-kicker">[ ABOUT ]</p>
+        <h2 class="aip-section-title">AIP — <em>Algorithmic Trading Company</em></h2>
+        <p class="aip-lead">AIP brings together talented people across <strong>quantitative research, data science, and software engineering</strong>. The company began as a startup and grew into an independent firm.</p>
+      </section>
+
+      <section id="expertise" class="aip-section reveal">
+        <p class="aip-section-kicker">[ EXPERTISE ]</p>
+        <h2 class="aip-section-title">Our specialization is <em>high-frequency trading</em><br>and cutting-edge technology.</h2>
+        <p class="aip-lead">We use data to develop efficient algorithms and support market liquidity. Our research spans financial products including <strong>futures, options, and equities</strong>, with a focus on diversification and risk management.</p>
+      </section>
+
+      <section id="edge" class="aip-section reveal">
+        <p class="aip-section-kicker">[ OUR EDGE ]</p>
+        <h2 class="aip-section-title">What makes us <em>unique.</em></h2>
+        <p class="aip-lead">We work at the intersection of <strong>data science, quantitative research, and high-performance computing</strong>, developing HFT strategies on in-house trading infrastructure.</p>
+        <div class="aip-grid">
+          <article class="aip-card reveal"><span class="aip-card-number">/01/</span>
+            <h3>Ultra-low latency trading</h3>
+            <p>More than 100,000 trades executed daily across global markets, according to company-provided figures.</p>
+          </article>
+          <article class="aip-card reveal"><span class="aip-card-number">/02/</span>
+            <h3>Multi-layer HFT architecture</h3>
+            <p>Infrastructure designed to support demanding, low-latency trading workloads.</p>
+          </article>
+          <article class="aip-card reveal"><span class="aip-card-number">/03/</span>
+            <h3>Proprietary ML infrastructure</h3>
+            <p>In-house systems support the development and operation of adaptive trading models.</p>
+          </article>
+          <article class="aip-card reveal"><span class="aip-card-number">/04/</span>
+            <h3>Cross-market strategies</h3>
+            <p>Research spanning instruments and markets across global exchanges.</p>
+          </article>
+          <article class="aip-card reveal"><span class="aip-card-number">/05/</span>
+            <h3>Real-time risk management</h3>
+            <p>Risk monitoring designed to respond as market conditions change.</p>
+          </article>
+          <article class="aip-card reveal"><span class="aip-card-number">[+]</span>
+            <h3>In-house infrastructure</h3>
+            <p>Ownership and refinement of the trading technology stack.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="collaborate" class="aip-section reveal">
+        <p class="aip-section-kicker">[ COLLABORATE ]</p>
+        <h2 class="aip-section-title">The future of trading is <em>interdisciplinary, collaborative, and global.</em></h2>
+        <p class="aip-lead">Alongside our work with qualified investors, we welcome partnerships with <strong>innovators, exchanges, academics, and infrastructure providers</strong> who share our values of speed, transparency, and scientific thinking.</p>
+        <p class="aip-lead mt-4"><strong>We actively collaborate with:</strong></p>
+        <div class="aip-tech-group reveal">
+          <h3>Time-series &amp; data engines</h3>
+          <div class="aip-chips"><span class="aip-chip">kdb+/q</span><span class="aip-chip">ClickHouse</span><span class="aip-chip">PostgreSQL</span></div>
+        </div>
+        <div class="aip-tech-group reveal">
+          <h3>Hardware acceleration &amp; silicon</h3>
+          <div class="aip-chips"><span class="aip-chip">NVIDIA</span><span class="aip-chip">Intel</span><span class="aip-chip">AMD EPYC</span><span class="aip-chip">Arista/Cisco</span><span class="aip-chip">FPGA</span></div>
+        </div>
+        <div class="aip-tech-group reveal">
+          <h3>Distributed systems &amp; quant ML</h3>
+          <div class="aip-chips"><span class="aip-chip">PyTorch</span><span class="aip-chip">TensorFlow</span><span class="aip-chip">Apache Kafka</span><span class="aip-chip">Apache Flink</span></div>
+        </div>
+        <div class="aip-tech-group reveal">
+          <h3>Low-latency engineering</h3>
+          <div class="aip-chips"><span class="aip-chip">C++</span><span class="aip-chip">Rust</span><span class="aip-chip">Kernel bypass · OpenOnload</span><span class="aip-chip">Python</span></div>
+        </div>
+        <div class="aip-tech-group reveal">
+          <h3>Orchestration &amp; telemetry</h3>
+          <div class="aip-chips"><span class="aip-chip">Docker</span><span class="aip-chip">Kubernetes</span><span class="aip-chip">Prometheus/Grafana</span><span class="aip-chip">Terraform</span></div>
+        </div>
+        <div class="aip-tech-group reveal">
+          <h3>Market connectivity &amp; protocols</h3>
+          <div class="aip-chips"><span class="aip-chip">FIX Protocol</span><span class="aip-chip">ITCH/OUCH</span><span class="aip-chip">Hardware timestamping · PTP/TSN</span></div>
+        </div>
+      </section>
+
+      <section id="careers" class="aip-section reveal">
+        <p class="aip-section-kicker">[ CAREERS ]</p>
+        <h2 class="aip-section-title">Our team is the core of the <em>company's growth and ambition.</em></h2>
+        <p class="aip-lead">We bring together highly qualified <strong>scientists, analysts, and developers</strong> who collaborate closely every day. We support junior talent through <strong>mentorship and clear development paths</strong>.</p>
+        <div class="aip-grid">
+          <article class="aip-card reveal"><span class="aip-card-number">/01/</span>
+            <h3>Cutting-edge tech</h3>
+            <p>Work with advanced technology every day.</p>
+          </article>
+          <article class="aip-card reveal"><span class="aip-card-number">/02/</span>
+            <h3>Office or remote</h3>
+            <p>Choose a setting that works for you.</p>
+          </article>
+          <article class="aip-card reveal"><span class="aip-card-number">/03/</span>
+            <h3>Collaborative culture</h3>
+            <p>Work across disciplines and contribute directly.</p>
+          </article>
+          <article class="aip-card reveal"><span class="aip-card-number">/04/</span>
+            <h3>Flexible hours</h3>
+            <p>Focus on meaningful work and measurable impact.</p>
+          </article>
+        </div>
+        <h2 class="aip-section-title mt-14">We're always looking for <em>exceptional minds.</em></h2>
+        <article class="aip-role reveal">
+          <div>
+            <h3>Quantitative researcher</h3>
+            <p class="aip-role-meta">Full-time · Limassol or remote</p>
+            <p>Design and test trading strategies using statistical models and market data.</p>
+          </div><a class="aip-role-link" href="#contact">Apply now <span aria-hidden="true">→</span></a>
+        </article>
+        <article class="aip-role reveal">
+          <div>
+            <h3>ML engineer</h3>
+            <p class="aip-role-meta">Full-time · Remote</p>
+            <p>Contribute hands-on to machine-learning development and live trading implementation.</p>
+          </div><a class="aip-role-link" href="#contact">Apply now <span aria-hidden="true">→</span></a>
+        </article>
+        <p class="aip-lead mt-6">For career inquiries, use the contact form below. No recruiting contact address was provided.</p>
+      </section>
+
+      <section id="contact" class="aip-section reveal">
+        <p class="aip-section-kicker">[ CONTACTS ]</p>
+        <h2 class="aip-section-title">Questions or inquiries? <em>Start a conversation.</em></h2>
+        <p class="aip-lead">This demonstration checks the fields in your browser only. It does not send your details to AIP or any other service, and it does not store them.</p>
+        <form id="qForm" class="aip-form" novalidate>
+          <div style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+            <label for="qWeb">Leave this field empty</label>
+            <input type="text" id="qWeb" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div class="aip-form-row">
+            <div class="aip-form-col">
+              <label for="qName">الاسم</label>
+              <input type="text" id="qName" name="name" autocomplete="name" placeholder="سميتك">
+            </div>
+            <div class="aip-form-col">
+              <label for="qPhone">الهاتف / واتساب</label>
+              <input type="tel" id="qPhone" name="phone" autocomplete="tel" placeholder="06xxxxxxxx">
+            </div>
+          </div>
+          <div class="aip-form-row">
+            <div class="aip-form-col">
+              <label for="qEmail">البريد الإلكتروني</label>
+              <input type="email" id="qEmail" name="email" autocomplete="email" placeholder="name@example.com">
+            </div>
+            <div class="aip-form-col">
+              <label for="qType">نوع المشروع</label>
+              <select id="qType" name="projectType" class="w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                <option value="">اختار...</option>
+                <option>موقع تعريفي</option>
+                <option>موقع أعمال</option>
+                <option>متجر إلكتروني</option>
+                <option>تطبيق ويب</option>
+                <option>شي حاجة أخرى</option>
+              </select>
+            </div>
+          </div>
+          <div class="aip-form-row">
+            <div class="aip-form-col" style="width:100%">
+              <label for="qMsg">تفاصيل المشروع</label>
+              <textarea id="qMsg" name="message" placeholder="شرح لينا شنو بغيتي..."></textarea>
+            </div>
+          </div>
+          <label class="aip-consent" for="qAgree">
+            <input type="checkbox" id="qAgree">
+            <span>أفهم أن هذا نموذج تجريبي للتحقق المحلي فقط، ولن تُرسل معلوماتي أو تُحفظ.</span>
+          </label>
+          <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">ما تضيفش معلومات حساسة. الاسم والهاتف والبريد والرسالة كيبقاو في هاد الصفحة فقط؛ ما كاين حتى اتصال بخدمة خارجية.</p>
+          <button class="send btn-primary px-6 py-3 text-sm" type="submit">تحقق محليًا</button>
+          <p class="aip-form-status" id="qMsgBox" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="aip-footer">AIP — Algorithmic trading company<br>We see signals where others see noise · © <span id="yr"></span></footer>
+    <button id="top-btn" type="button" aria-label="Back to top" title="Back to top">↑</button>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const get = (id) => document.getElementById(id);
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const marketItems = [{
+          symbol: 'ES',
+          price: 5312.25
+        },
+        {
+          symbol: 'NQ',
+          price: 18642.50
+        },
+        {
+          symbol: 'EURUSD',
+          price: 1.0842
+        },
+        {
+          symbol: 'CL',
+          price: 78.35
+        },
+        {
+          symbol: 'GC',
+          price: 2384.80
+        },
+        {
+          symbol: 'BTC',
+          price: 67240
+        },
+        {
+          symbol: 'VIX',
+          price: 13.42
+        },
+        {
+          symbol: 'SPX',
+          price: 5304.10
+        },
+        {
+          symbol: 'DAX',
+          price: 18456.20
+        },
+        {
+          symbol: 'US10Y',
+          price: 4.215
+        }
+      ];
+
+      function renderTape() {
+        const track = get('tapeTrack');
+        if (!track) return;
+        const items = marketItems.map((item) => {
+          const positive = item.change >= 0;
+          const digits = item.price < 10 ? 4 : 2;
+          const entry = document.createElement('span');
+          entry.className = 'ticker-item';
+          const symbol = document.createElement('strong');
+          symbol.textContent = item.symbol;
+          const change = document.createElement('span');
+          change.className = positive ? 'up' : 'down';
+          change.textContent = `${positive ? '▲' : '▼'} ${Math.abs(item.change).toFixed(2)}%`;
+          entry.append(symbol, document.createTextNode(` ${item.price.toFixed(digits)} `), change);
+          return entry;
+        });
+        track.replaceChildren(...items, ...items.map((item) => item.cloneNode(true)));
+      }
+
+      marketItems.forEach((item) => {
+        item.change = (Math.random() - 0.45) * 1.8;
+      });
+      renderTape();
+
+      if (!reducedMotion.matches) {
+        window.setInterval(() => {
+          marketItems.forEach((item) => {
+            const delta = (Math.random() - 0.5) * item.price * 0.0012;
+            item.price = Math.max(0.01, item.price + delta);
+            item.change = item.change * 0.92 + (Math.random() - 0.45) * 0.35;
+          });
+          renderTape();
+        }, 2400);
+      }
+
+      const gridCanvas = get('aip-grid-canvas');
+      const gridContext = gridCanvas?.getContext('2d');
+      const chartCanvas = get('aip-chart-canvas');
+      const chartContext = chartCanvas?.getContext('2d');
+      let width = 0;
+      let height = 0;
+      let candles = [];
+      let pulses = [];
+      let frameId = 0;
+
+      function resizeCanvas(canvas, context) {
+        if (!canvas || !context) return;
+        const rect = canvas.getBoundingClientRect();
+        const scale = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.max(1, Math.round(rect.width * scale));
+        canvas.height = Math.max(1, Math.round(rect.height * scale));
+        context.setTransform(scale, 0, 0, scale, 0, 0);
+      }
+
+      function drawGrid() {
+        if (!gridCanvas || !gridContext) return;
+        resizeCanvas(gridCanvas, gridContext);
+        const rect = gridCanvas.getBoundingClientRect();
+        gridContext.clearRect(0, 0, rect.width, rect.height);
+        gridContext.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-border').trim();
+        gridContext.globalAlpha = 0.52;
+        gridContext.lineWidth = 1;
+        for (let x = 0; x < rect.width; x += 64) {
+          gridContext.beginPath();
+          gridContext.moveTo(x, 0);
+          gridContext.lineTo(x, rect.height);
+          gridContext.stroke();
+        }
+        for (let y = 0; y < rect.height; y += 64) {
+          gridContext.beginPath();
+          gridContext.moveTo(0, y);
+          gridContext.lineTo(rect.width, y);
+          gridContext.stroke();
+        }
+        gridContext.globalAlpha = 1;
+      }
+
+      function reseedCandles() {
+        candles = [];
+        let price = 0.5;
+        for (let index = 0; index < 90; index += 1) {
+          const open = price;
+          price = Math.min(0.94, Math.max(0.06, price + (Math.random() - 0.5) * 0.055));
+          candles.push({
+            open,
+            close: price,
+            high: Math.max(open, price) + Math.random() * 0.02,
+            low: Math.min(open, price) - Math.random() * 0.02
+          });
+        }
+      }
+
+      function drawChart() {
+        if (!chartCanvas || !chartContext) return;
+        const rect = chartCanvas.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height;
+        chartContext.clearRect(0, 0, width, height);
+        if (!candles.length || !width || !height) return;
+
+        const candleWidth = width / candles.length;
+        const yOf = (value) => (1 - value) * (height * 0.8) + height * 0.1;
+        candles.forEach((candle, index) => {
+          const rising = candle.close >= candle.open;
+          const color = rising ? 'var(--color-primary)' : 'var(--color-icon)';
+          const x = index * candleWidth + 2;
+          const bodyWidth = Math.max(1, candleWidth - 4);
+          chartContext.strokeStyle = color;
+          chartContext.globalAlpha = 0.48;
+          chartContext.lineWidth = 1;
+          chartContext.beginPath();
+          chartContext.moveTo(x + bodyWidth / 2, yOf(candle.high));
+          chartContext.lineTo(x + bodyWidth / 2, yOf(candle.low));
+          chartContext.stroke();
+          chartContext.globalAlpha = 0.28;
+          chartContext.fillStyle = color;
+          chartContext.fillRect(x, Math.min(yOf(candle.open), yOf(candle.close)), bodyWidth, Math.max(2, Math.abs(yOf(candle.close) - yOf(candle.open))));
+        });
+        chartContext.globalAlpha = 1;
+
+        pulses = pulses.filter((pulse) => pulse.alpha > 0);
+        pulses.forEach((pulse) => {
+          pulse.radius += 1.8;
+          pulse.alpha -= 0.025;
+          chartContext.strokeStyle = `color-mix(in srgb, var(--color-primary) ${Math.round(pulse.alpha * 100)}%, transparent)`;
+          chartContext.lineWidth = 1.5;
+          chartContext.beginPath();
+          chartContext.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+          chartContext.stroke();
+        });
+
+        const last = candles[candles.length - 1];
+        const next = Math.min(0.94, Math.max(0.06, last.close + (Math.random() - 0.5) * 0.055));
+        candles.shift();
+        candles.push({
+          open: last.close,
+          close: next,
+          high: Math.max(last.close, next) + Math.random() * 0.02,
+          low: Math.min(last.close, next) - Math.random() * 0.02
+        });
+        if (!reducedMotion.matches) frameId = window.requestAnimationFrame(drawChart);
+      }
+
+      function resizeAll() {
+        drawGrid();
+        if (!chartCanvas || !chartContext) return;
+        resizeCanvas(chartCanvas, chartContext);
+        const rect = chartCanvas.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height;
+        window.cancelAnimationFrame(frameId);
+        drawChart();
+      }
+
+      reseedCandles();
+      resizeAll();
+      window.addEventListener('resize', resizeAll, {
+        passive: true
+      });
+      window.setInterval(() => {
+        if (reducedMotion.matches || !width || !height) return;
+        const index = Math.floor(Math.random() * candles.length);
+        const candle = candles[index];
+        pulses.push({
+          x: index * (width / candles.length) + width / candles.length / 2,
+          y: (1 - candle.close) * (height * 0.8) + height * 0.1,
+          radius: 2,
+          alpha: 0.8
+        });
+      }, 2600);
+
+      const observer = 'IntersectionObserver' in window ?
+        new IntersectionObserver((entries, currentObserver) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('visible');
+            currentObserver.unobserve(entry.target);
+          });
+        }, {
+          threshold: 0.12
+        }) :
+        null;
+      document.querySelectorAll('.reveal').forEach((element) => {
+        if (observer) observer.observe(element);
+        else element.classList.add('visible');
+      });
+
+      const countersObserver = 'IntersectionObserver' in window ?
+        new IntersectionObserver((entries, currentObserver) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const counter = entry.target;
+            currentObserver.unobserve(counter);
+            if (counter.dataset.plain) return;
+            const target = Number(counter.dataset.count || 0);
+            const suffix = counter.dataset.suffix || '';
+            const start = performance.now();
+            const update = (now) => {
+              const progress = Math.min(1, (now - start) / 1100);
+              const eased = 1 - Math.pow(1 - progress, 3);
+              counter.textContent = `${Math.round(target * eased)}${suffix}`;
+              if (progress < 1 && !reducedMotion.matches) window.requestAnimationFrame(update);
+              else counter.textContent = `${target}${suffix}`;
+            };
+            if (reducedMotion.matches) counter.textContent = `${target}${suffix}`;
+            else window.requestAnimationFrame(update);
+          });
+        }, {
+          threshold: 0.55
+        }) :
+        null;
+      document.querySelectorAll('[data-count]').forEach((counter) => {
+        if (countersObserver) countersObserver.observe(counter);
+        else if (!counter.dataset.plain) counter.textContent = `${counter.dataset.count}${counter.dataset.suffix || ''}`;
+      });
+
+      const topButton = get('top-btn');
+      window.addEventListener('scroll', () => {
+        topButton?.classList.toggle('show', window.scrollY > 480);
+      }, {
+        passive: true
+      });
+      topButton?.addEventListener('click', () => window.scrollTo({
+        top: 0,
+        behavior: reducedMotion.matches ? 'instant' : 'smooth'
+      }));
+
+      document.querySelectorAll('.decode').forEach((element) => {
+        const target = element.dataset.text || element.textContent;
+        const emphasized = element.dataset.em || '';
+        const symbols = '01#$%&*ABCDEF0123456789<>/\\|';
+        let frame = 0;
+        const total = 28;
+        const reveal = () => {
+          frame += 1;
+          let text = '';
+          for (let index = 0; index < target.length; index += 1) {
+            const revealAt = index * (total / Math.max(1, target.length)) + 4;
+            text += frame >= revealAt || target[index] === ' ' ?
+              target[index] :
+              symbols[Math.floor(Math.random() * symbols.length)];
+          }
+          element.textContent = text;
+          if (frame < total && !reducedMotion.matches) window.setTimeout(reveal, 45);
+          else element.textContent = target;
+        };
+        if (reducedMotion.matches) element.textContent = target;
+        else reveal();
+        if (emphasized && target.includes(emphasized)) {
+          element.dataset.emphasis = emphasized;
+        }
+      });
+
+      const form = get('qForm');
+      const box = get('qMsgBox');
+      const showMsg = (text, kind) => {
+        box.textContent = text;
+        box.className = `aip-form-status formmsg ${kind}`;
+      };
+
+      form?.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const name = get('qName').value.trim();
+        const phone = get('qPhone').value.trim();
+        const email = get('qEmail').value.trim();
+        const message = get('qMsg').value.trim();
+        const consent = get('qAgree').checked;
+
+        if (!name || !message) {
+          showMsg('عمّر الاسم وتفاصيل المشروع على الأقل.', 'err');
+          return;
+        }
+        if (phone && !/^[+0-9\s-]{8,}$/.test(phone)) {
+          showMsg('رقم الهاتف ماشي صحيح.', 'err');
+          return;
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showMsg('الإيميل ماشي صحيح.', 'err');
+          return;
+        }
+        if (!consent) {
+          showMsg('أكد أنك فاهم أن هاد النموذج تجريبي وما كيرسلش البيانات.', 'err');
+          return;
+        }
+
+        showMsg('✅ تم التحقق من البيانات محليًا فقط. ما ترسلات وما تخزّناتش.', 'ok');
+      });
+
+      const preloader = get('pre');
+      const dismissPreloader = () => preloader?.classList.add('off');
+      window.addEventListener('load', dismissPreloader, {
+        once: true
+      });
+      window.setTimeout(dismissPreloader, 1800);
+    })();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

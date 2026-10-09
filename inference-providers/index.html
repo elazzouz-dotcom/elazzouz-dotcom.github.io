@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A local Hugging Face Inference Providers planner with provider selection, code generation, partner capabilities, and setup checks.">
+  <title>Inference Providers Planner | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .provider-control:focus-visible,
+    .provider-button:focus-visible,
+    .provider-tab:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .provider-tab[aria-selected="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+
+    .provider-card[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent);
+    }
+
+    .code-output {
+      direction: ltr;
+      overflow: auto;
+      overflow-wrap: anywhere;
+      text-align: left;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .capability-yes {
+      color: var(--color-primary);
+      font-weight: 900;
+    }
+
+    .capability-no {
+      color: var(--color-muted);
+    }
+
+    .partner-row[hidden] {
+      display: none;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold tracking-tight">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/inference-guide">Inference guide</a>
+        <a href="#getting-started-heading">Getting started</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-14 lg:px-8 lg:py-20">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          <span class="h-2 w-2 rounded-full bg-[var(--color-primary)]"></span>
+          Hugging Face · local planner
+        </p>
+        <h1 class="mb-5 max-w-5xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">Plan an Inference Providers integration.</h1>
+        <p class="mb-7 max-w-3xl text-lg leading-8 text-[var(--color-muted)]">Choose a task, model, provider policy, and code style. Generate a reviewable starter for Hugging Face clients or the OpenAI-compatible chat endpoint without entering a token into this page.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="#planner" class="btn-primary px-5 py-3">Open planner <span aria-hidden="true">↓</span></a>
+          <a href="#partners" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Compare partners</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="planner" class="px-5 py-10 lg:px-8 lg:py-14">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="planner-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Local setup</p>
+          <h2 id="planner-heading" class="mb-5 text-2xl font-black">Choose your inference path</h2>
+
+          <div class="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4" role="tablist" aria-label="Inference task types">
+            <button class="provider-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-sm font-bold" type="button" role="tab" aria-selected="true" data-task="chat">Chat</button>
+            <button class="provider-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-sm font-bold" type="button" role="tab" aria-selected="false" data-task="image">Text to image</button>
+            <button class="provider-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-sm font-bold" type="button" role="tab" aria-selected="false" data-task="embedding">Embeddings</button>
+            <button class="provider-tab rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-3 py-3 text-sm font-bold" type="button" role="tab" aria-selected="false" data-task="speech">Speech to text</button>
+          </div>
+
+          <div class="space-y-5">
+            <label for="model" class="block text-sm font-bold">Model ID
+              <input id="model" class="provider-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal text-[var(--color-text)]" value="openai/gpt-oss-120b" autocomplete="off">
+            </label>
+
+            <div>
+              <label for="provider-policy" class="mb-2 block text-sm font-bold">Provider selection</label>
+              <select id="provider-policy" class="provider-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                <option value="fastest">Fastest available</option>
+                <option value="cheapest">Cheapest available</option>
+                <option value="preferred">Preferred provider order</option>
+                <option value="specific">Specific provider</option>
+              </select>
+            </div>
+
+            <div id="specific-provider-field" hidden>
+              <label for="specific-provider" class="mb-2 block text-sm font-bold">Provider name</label>
+              <input id="specific-provider" class="provider-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]" value="groq" autocomplete="off">
+            </div>
+
+            <div id="chat-options" class="space-y-4">
+              <label for="prompt" class="block text-sm font-bold">Prompt
+                <textarea id="prompt" rows="5" class="provider-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-[var(--color-text)]" placeholder="Ask a question for the model">How many 'G's are in 'huggingface'?</textarea>
+              </label>
+              <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6">
+                <input id="openai-compatible" type="checkbox" class="mt-1 accent-[var(--color-primary)]">
+                <span><strong>Use OpenAI-compatible chat format</strong><br><span class="text-[var(--color-muted)]">Best for chat completions and existing OpenAI client integrations.</span></span>
+              </label>
+            </div>
+
+            <div id="generic-options" class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6 text-[var(--color-muted)]" hidden>
+              Use the Hugging Face InferenceClient for this task. The generated example reads <code>HF_TOKEN</code> from the environment and does not run here.
+            </div>
+
+            <button id="generate-code" type="button" class="provider-button btn-primary px-5 py-3">Generate starter <span aria-hidden="true">→</span></button>
+            <p id="planner-status" class="mb-0 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite">Starter updates locally. No request has been sent.</p>
+          </div>
+        </section>
+
+        <section class="feature-card overflow-hidden" aria-labelledby="output-heading">
+          <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Generated locally</p>
+            <h2 id="output-heading" class="mb-2 text-2xl font-black">Integration starter</h2>
+            <p class="mb-0 text-sm leading-6 opacity-80">Review the endpoint, model policy, and environment variable before running code on your own machine.</p>
+          </div>
+          <div class="p-5 sm:p-6">
+            <div class="mb-4 flex flex-wrap gap-2" role="group" aria-label="Code format">
+              <button class="format-button provider-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold" type="button" data-format="python">Python</button>
+              <button class="format-button provider-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold" type="button" data-format="javascript">JavaScript</button>
+              <button class="format-button provider-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold" type="button" data-format="curl">cURL</button>
+            </div>
+            <pre id="code-output" class="code-output min-h-96 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></pre>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="copy-code" type="button" class="provider-button btn-primary px-4 py-3 text-sm">Copy starter</button>
+              <button id="download-code" type="button" class="provider-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">Download</button>
+            </div>
+            <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">No token was requested or stored.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="px-5 pb-10 lg:px-8 lg:pb-14" aria-labelledby="review-heading">
+      <div class="mx-auto max-w-7xl">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="review-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Local readiness check</p>
+          <h2 id="review-heading" class="mb-4 text-2xl font-black">Review the integration before running it.</h2>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Model</p>
+              <p id="review-model" class="mb-0 break-all text-sm font-extrabold">Waiting for a model ID.</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Policy</p>
+              <p id="review-policy" class="mb-0 text-sm font-extrabold">Fastest available</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Interface</p>
+              <p id="review-interface" class="mb-0 text-sm font-extrabold">Inference client</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Status</p>
+              <p id="review-status" class="mb-0 text-sm font-extrabold text-[var(--color-primary)]">Ready to review</p>
+            </div>
+          </div>
+          <p id="review-note" class="mt-4 mb-0 rounded-[calc(var(--radius)*0.55)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite">The generated code reads HF_TOKEN from your environment. This page never requests or stores the token.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="px-5 pb-10 lg:px-8 lg:pb-14" aria-labelledby="agents-heading">
+      <div class="mx-auto max-w-7xl">
+        <section class="feature-card p-6 sm:p-8">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Quick setup for agents</p>
+          <h2 id="agents-heading" class="mb-3 text-2xl font-black">Pick an agent workflow to review.</h2>
+          <p class="mb-5 max-w-3xl text-sm leading-7 text-[var(--color-muted)]">These cards are planning prompts only. Use the current setup instructions for your chosen agent and keep your Hugging Face token in local secret configuration.</p>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <button type="button" class="provider-card rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left font-extrabold" aria-pressed="false" data-agent="OpenCode">OpenCode<span class="mt-1 block text-xs font-normal text-[var(--color-muted)]">Terminal coding agent</span></button>
+            <button type="button" class="provider-card rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left font-extrabold" aria-pressed="false" data-agent="Pi">Pi<span class="mt-1 block text-xs font-normal text-[var(--color-muted)]">Minimal agent setup</span></button>
+            <button type="button" class="provider-card rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left font-extrabold" aria-pressed="false" data-agent="Codex">Codex<span class="mt-1 block text-xs font-normal text-[var(--color-muted)]">Code assistant workflow</span></button>
+            <button type="button" class="provider-card rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left font-extrabold" aria-pressed="false" data-agent="Claude Code">Claude Code<span class="mt-1 block text-xs font-normal text-[var(--color-muted)]">MCP-friendly workflow</span></button>
+            <button type="button" class="provider-card rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left font-extrabold" aria-pressed="false" data-agent="Hermes Agent">Hermes Agent<span class="mt-1 block text-xs font-normal text-[var(--color-muted)]">Local agent setup</span></button>
+          </div>
+          <p id="agent-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">Select an agent to mark your planning path.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="hidden px-5 py-10 lg:px-8 lg:py-14" aria-labelledby="getting-started-heading">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.72fr)]">
+        <section class="feature-card p-6 sm:p-8">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Getting started</p>
+          <h2 id="getting-started-heading" class="mb-4 text-3xl font-black">From experiment to integration.</h2>
+          <ol class="space-y-4 text-sm leading-7 text-[var(--color-muted)]">
+            <li class="flex gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">1</span>
+              <span><strong class="text-[var(--color-text)]">Explore a model.</strong> Start with a chat or generation model and compare representative prompts before choosing a production configuration.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">2</span>
+              <span><strong class="text-[var(--color-text)]">Create a fine-grained token.</strong> Keep <code>HF_TOKEN</code> in a trusted local or server environment, never in public browser code.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">3</span>
+              <span><strong class="text-[var(--color-text)]">Choose the interface.</strong> Use an InferenceClient for multiple task types, or the OpenAI-compatible path for chat-only integrations.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">4</span>
+              <span><strong class="text-[var(--color-text)]">Measure before launch.</strong> Track quality, latency, throughput, errors, provider availability, and total cost with realistic inputs.</span>
+            </li>
+          </ol>
+        </section>
+
+        <aside class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-6">
+          <h2 class="mb-3 text-xl font-black">Pick the right path</h2>
+          <div class="space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <strong class="text-[var(--color-text)]">Inference Clients</strong>
+              <p class="mb-0 mt-1">Best for chat, image, embeddings, speech, and explicit provider selection.</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <strong class="text-[var(--color-text)]">OpenAI-compatible</strong>
+              <p class="mb-0 mt-1">Chat completions only, useful when migrating an existing OpenAI client.</p>
+            </div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+              <strong class="text-[var(--color-text)]">Direct HTTP</strong>
+              <p class="mb-0 mt-1">Use when you need custom request handling or an environment without an SDK.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="px-5 py-10 lg:px-8 lg:py-14" aria-labelledby="why-heading">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-6 max-w-3xl">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Why choose Inference Providers?</p>
+          <h2 id="why-heading" class="mb-3 text-3xl font-black">One consistent path across many AI providers.</h2>
+          <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">Use one Hugging Face token and a consistent client experience while comparing models, task types, provider policies, latency, and cost in your own application.</p>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <article class="feature-card p-5">
+            <span class="icon-box mb-4 text-xl" aria-hidden="true">🎯</span>
+            <h3 class="mb-2 text-lg font-extrabold">All-in-one API</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Work with chat, image, embeddings, speech, classification, summarization, and other inference tasks.</p>
+          </article>
+          <article class="feature-card p-5">
+            <span class="icon-box mb-4 text-xl" aria-hidden="true">🔀</span>
+            <h3 class="mb-2 text-lg font-extrabold">Multi-provider support</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Compare specialized infrastructure from multiple partners without rewriting every integration.</p>
+          </article>
+          <article class="feature-card p-5">
+            <span class="icon-box mb-4 text-xl" aria-hidden="true">🚀</span>
+            <h3 class="mb-2 text-lg font-extrabold">Production planning</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Review throughput, availability, limits, retries, pricing, and provider-specific behavior before shipping.</p>
+          </article>
+          <article class="feature-card p-5">
+            <span class="icon-box mb-4 text-xl" aria-hidden="true">💰</span>
+            <h3 class="mb-2 text-lg font-extrabold">Cost awareness</h3>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Use fastest, cheapest, preferred, or specific-provider policies according to your workload.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 pb-10 lg:px-8 lg:pb-14" aria-labelledby="getting-started-heading">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.7fr)]">
+        <section class="feature-card p-6 sm:p-8">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Getting started</p>
+          <h2 id="getting-started-heading" class="mb-4 text-3xl font-black">A simple path from experiment to integration.</h2>
+          <ol class="space-y-4 text-sm leading-7 text-[var(--color-muted)]">
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">1</span><span><strong class="text-[var(--color-text)]">Explore a model.</strong> Test a chat or generation model in an interactive playground before choosing a production configuration.</span></li>
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">2</span><span><strong class="text-[var(--color-text)]">Create a fine-grained token.</strong> Keep <code>HF_TOKEN</code> in a trusted server or local environment, never in public browser code.</span></li>
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">3</span><span><strong class="text-[var(--color-text)]">Choose the interface.</strong> Use the InferenceClient for multiple task types, or the OpenAI-compatible endpoint for chat completions.</span></li>
+            <li class="flex gap-3"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] font-black text-[var(--color-primary)]">4</span><span><strong class="text-[var(--color-text)]">Measure before launch.</strong> Compare quality, latency, throughput, error rates, provider availability, and total cost with representative inputs.</span></li>
+          </ol>
+        </section>
+        <aside class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-6">
+          <h2 class="mb-3 text-xl font-black">Interface choice</h2>
+          <div class="space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><strong class="text-[var(--color-text)]">Inference clients</strong><p class="mb-0 mt-1">Best when you need chat, image, embeddings, speech, or explicit provider selection.</p></div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><strong class="text-[var(--color-text)]">OpenAI-compatible</strong><p class="mb-0 mt-1">Chat completions only; useful when migrating an existing OpenAI client.</p></div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><strong class="text-[var(--color-text)]">Direct HTTP</strong><p class="mb-0 mt-1">Useful for custom request logic and environments without an SDK.</p></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="px-5 pb-10 lg:px-8 lg:pb-14" aria-labelledby="recipes-heading">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-6 max-w-3xl">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Practical recipes</p>
+          <h2 id="recipes-heading" class="mb-3 text-3xl font-black">Choose the lightest integration that fits.</h2>
+          <p class="mb-0 text-sm leading-7 text-[var(--color-muted)]">Start with the official inference clients when you need more than chat. Use the OpenAI-compatible endpoint for chat-only migrations, and direct HTTP when you need complete control over request handling.</p>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+          <article class="feature-card p-5">
+            <span class="icon-box mb-4 text-xl" aria-hidden="true">◎</span>
+            <h3 class="mb-2 text-lg font-extrabold">Chat completion</h3>
+            <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">Use an InferenceClient or the OpenAI-compatible route. Add a policy suffix such as <code>:fastest</code>, <code>:cheapest</code>, or <code>:preferred</code> to the model ID when supported by your workflow.</p>
+            <button type="button" class="provider-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold" data-recipe="chat">Load chat setup</button>
+          </article>
+          <article class="feature-card p-5">
+            <span class="icon-box mb-4 text-xl" aria-hidden="true">▧</span>
+            <h3 class="mb-2 text-lg font-extrabold">Image generation</h3>
+            <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">Use the task-specific inference client for text-to-image work. Review image dimensions, output format, provider availability, and expected cost before running it.</p>
+            <button type="button" class="provider-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold" data-recipe="image">Load image setup</button>
+          </article>
+          <article class="feature-card p-5">
+            <span class="icon-box mb-4 text-xl" aria-hidden="true">◌</span>
+            <h3 class="mb-2 text-lg font-extrabold">Embeddings and speech</h3>
+            <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">For embeddings or speech recognition, use the dedicated client methods rather than the chat-only compatibility endpoint.</p>
+            <button type="button" class="provider-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold" data-recipe="embedding">Load embeddings setup</button>
+          </article>
+        </div>
+        <div class="mt-5 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 text-sm leading-6">
+          <strong class="text-[var(--color-text)]">Production reminder:</strong>
+          <span class="text-[var(--color-muted)]"> measure latency, throughput, quality, error rate, provider availability, and total cost with representative inputs. Keep <code>HF_TOKEN</code> in a trusted local or server environment; never place it in browser code.</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="partners" class="px-5 pb-16 lg:px-8 lg:pb-20">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Partner capabilities</p>
+            <h2 class="mb-1 text-3xl font-black">Compare supported tasks.</h2>
+            <p id="partner-status" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite"></p>
+          </div>
+          <label for="partner-search" class="sr-only">Search providers</label>
+          <input id="partner-search" type="search" class="provider-control rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm" placeholder="Search providers..." autocomplete="off">
+        </div>
+        <div class="overflow-x-auto rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+          <table class="w-full min-w-[720px] text-left text-sm">
+            <thead class="bg-[var(--color-bg)] text-xs uppercase tracking-[0.08em] text-[var(--color-muted)]">
+              <tr>
+                <th class="p-4">Provider</th>
+                <th class="p-4">Chat LLM</th>
+                <th class="p-4">Chat VLM</th>
+                <th class="p-4">Embeddings</th>
+                <th class="p-4">Image</th>
+                <th class="p-4">Video</th>
+                <th class="p-4">Speech</th>
+              </tr>
+            </thead>
+            <tbody id="partner-list"></tbody>
+          </table>
+        </div>
+        <p class="mt-4 mb-0 text-xs leading-5 text-[var(--color-muted)]">Capability information shown here comes from the supplied reference material. Confirm current availability, pricing, limits, and terms before production use.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">Local Hugging Face Inference Providers planner.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const modelInput = document.querySelector('#model');
+    const promptInput = document.querySelector('#prompt');
+    const policyInput = document.querySelector('#provider-policy');
+    const providerInput = document.querySelector('#specific-provider');
+    const compatibleInput = document.querySelector('#openai-compatible');
+    const formatButtons = [...document.querySelectorAll('.format-button')];
+    const codeOutput = document.querySelector('#code-output');
+    const plannerStatus = document.querySelector('#planner-status');
+    const copyStatus = document.querySelector('#copy-status');
+    const taskTabs = [...document.querySelectorAll('.provider-tab')];
+    let activeTask = 'chat';
+    let activeFormat = 'python';
+
+    const partners = [
+      ['Baseten', 1, 1, 0, 0, 0, 0],
+      ['Cerebras', 1, 0, 0, 0, 0, 0],
+      ['Cohere', 1, 1, 0, 0, 0, 0],
+      ['DeepInfra', 1, 1, 0, 0, 0, 0],
+      ['Fal AI', 0, 0, 0, 1, 1, 1],
+      ['Featherless AI', 1, 1, 0, 0, 0, 0],
+      ['Fireworks', 1, 1, 0, 0, 0, 0],
+      ['Groq', 1, 1, 0, 0, 0, 0],
+      ['HF Inference', 1, 1, 1, 1, 0, 1],
+      ['Novita', 1, 1, 0, 0, 1, 0],
+      ['Nscale', 1, 1, 0, 1, 0, 0],
+      ['OVHcloud AI Endpoints', 1, 1, 0, 0, 0, 0],
+      ['Public AI', 1, 0, 0, 0, 0, 0],
+      ['Replicate', 0, 0, 0, 1, 1, 1],
+      ['Scaleway', 1, 0, 1, 0, 0, 0],
+      ['Together', 1, 1, 1, 1, 1, 1],
+      ['WaveSpeedAI', 0, 0, 0, 1, 1, 0],
+      ['Z.ai', 1, 1, 0, 0, 0, 0]
+    ];
+
+    function selectedModel() {
+      const suffix = policyInput.value === 'specific' ? `:${providerInput.value.trim() || 'provider'}` : `:${policyInput.value}`;
+      return `${modelInput.value.trim() || 'your-org/your-model'}${suffix}`;
+    }
+
+    function pythonCode() {
+      const model = selectedModel();
+      const prompt = JSON.stringify(promptInput.value.trim() || 'Hello from Inference Providers.');
+      if (activeTask === 'chat' && compatibleInput.checked) {
+        return `import os\nfrom openai import OpenAI\n\nclient = OpenAI(\n    base_url="https://router.huggingface.co/v1",\n    api_key=os.environ["HF_TOKEN"],\n)\n\ncompletion = client.chat.completions.create(\n    model=${JSON.stringify(model)},\n    messages=[{"role": "user", "content": ${prompt}}],\n)\n\nprint(completion.choices[0].message.content)`;
+      }
+      if (activeTask === 'chat') {
+        return `import os\nfrom huggingface_hub import InferenceClient\n\nclient = InferenceClient(token=os.environ["HF_TOKEN"])\n\ncompletion = client.chat.completions.create(\n    model=${JSON.stringify(model)},\n    messages=[{"role": "user", "content": ${prompt}}],\n)\n\nprint(completion.choices[0].message)`;
+      }
+      const methods = {
+        image: 'text_to_image',
+        embedding: 'feature_extraction',
+        speech: 'automatic_speech_recognition'
+      };
+      const method = methods[activeTask];
+      const input = activeTask === 'image' ? prompt : JSON.stringify(promptInput.value.trim() || 'text input');
+      return `import os\nfrom huggingface_hub import InferenceClient\n\nclient = InferenceClient(token=os.environ["HF_TOKEN"])\n\nresult = client.${method}(\n    model=${JSON.stringify(model.split(':')[0])},\n    ${activeTask === 'image' ? 'prompt' : 'text'}=${input},\n)\n\nprint(result)`;
+    }
+
+    function javascriptCode() {
+      const model = selectedModel();
+      const prompt = JSON.stringify(promptInput.value.trim() || 'Hello from Inference Providers.');
+      if (activeTask === 'chat' && compatibleInput.checked) {
+        return `import OpenAI from "openai";\n\nconst client = new OpenAI({\n  baseURL: "https://router.huggingface.co/v1",\n  apiKey: process.env.HF_TOKEN,\n});\n\nconst completion = await client.chat.completions.create({\n  model: ${JSON.stringify(model)},\n  messages: [{ role: "user", content: ${prompt} }],\n});\n\nconsole.log(completion.choices[0].message.content);`;
+      }
+      if (activeTask === 'chat') {
+        return `import { InferenceClient } from "@huggingface/inference";\n\nconst client = new InferenceClient(process.env.HF_TOKEN);\n\nconst completion = await client.chatCompletion({\n  model: ${JSON.stringify(model)},\n  messages: [{ role: "user", content: ${prompt} }],\n});\n\nconsole.log(completion.choices[0].message);`;
+      }
+      const methods = {
+        image: 'textToImage',
+        embedding: 'featureExtraction',
+        speech: 'automaticSpeechRecognition'
+      };
+      const method = methods[activeTask];
+      return `import { InferenceClient } from "@huggingface/inference";\n\nconst client = new InferenceClient(process.env.HF_TOKEN);\n\nconst result = await client.${method}({\n  model: ${JSON.stringify(model.split(':')[0])},\n  ${activeTask === 'image' ? 'inputs' : 'inputs'}: ${JSON.stringify(promptInput.value.trim() || 'text input')},\n});\n\nconsole.log(result);`;
+    }
+
+    function shellQuote(value) {
+      return `'${value.replace(/'/g, `'\\''`)}'`;
+    }
+
+    function curlCode() {
+      const model = selectedModel();
+      if (activeTask !== 'chat') {
+        return `# Review the current task endpoint and payload in the official documentation.\n# The OpenAI-compatible router shown here is for chat completions only.\nexport HF_TOKEN="${'$'}HF_TOKEN"\n\n# Task: ${activeTask}\n# Model: ${model}`;
+      }
+      const payload = JSON.stringify({
+        model,
+        messages: [{
+          role: 'user',
+          content: promptInput.value.trim() || 'Hello from Inference Providers.'
+        }],
+        stream: false
+      }, null, 2);
+      return `curl https://router.huggingface.co/v1/chat/completions \\\n  -H "Authorization: Bearer ${'$'}HF_TOKEN" \\\n  -H "Content-Type: application/json" \\\n  -d ${shellQuote(payload)}`;
+    }
+
+    function updateCode() {
+      document.querySelector('#specific-provider-field').hidden = policyInput.value !== 'specific';
+      const generic = activeTask !== 'chat' || !compatibleInput.checked;
+      document.querySelector('#chat-options').hidden = false;
+      document.querySelector('#generic-options').hidden = !generic || activeTask === 'chat';
+      codeOutput.textContent = activeFormat === 'python' ? pythonCode() : activeFormat === 'javascript' ? javascriptCode() : curlCode();
+      plannerStatus.textContent = `${activeTask === 'chat' ? 'Chat completion' : activeTask} starter generated locally with ${activeFormat}. No request was sent.`;
+      copyStatus.textContent = 'The token is read from HF_TOKEN only when your generated code runs locally.';
+      updateReadinessReview();
+    }
+
+    function updateReadinessReview() {
+      const reviewModel = document.querySelector('#review-model');
+      const reviewPolicy = document.querySelector('#review-policy');
+      const reviewInterface = document.querySelector('#review-interface');
+      const reviewStatus = document.querySelector('#review-status');
+      const reviewNote = document.querySelector('#review-note');
+      if (!reviewModel || !reviewPolicy || !reviewInterface || !reviewStatus || !reviewNote) return;
+
+      const model = modelInput.value.trim();
+      const policyLabels = {
+        fastest: 'Fastest available',
+        cheapest: 'Cheapest available',
+        preferred: 'Preferred provider order',
+        specific: `Specific: ${providerInput.value.trim() || 'provider'}`
+      };
+      const interfaceName = activeTask === 'chat' && compatibleInput.checked
+        ? 'OpenAI-compatible chat'
+        : 'Inference client';
+
+      reviewModel.textContent = model || 'Add a model ID.';
+      reviewPolicy.textContent = policyLabels[policyInput.value];
+      reviewInterface.textContent = interfaceName;
+
+      const issues = [];
+      if (!model || !model.includes('/')) issues.push('Use a model ID in namespace/model format.');
+      if (policyInput.value === 'specific' && !providerInput.value.trim()) issues.push('Enter a provider name for specific selection.');
+      if (interfaceName === 'OpenAI-compatible chat' && activeTask !== 'chat') issues.push('The OpenAI-compatible endpoint supports chat completions only.');
+
+      if (issues.length) {
+        reviewStatus.textContent = 'Needs review';
+        reviewStatus.classList.remove('text-[var(--color-primary)]');
+        reviewNote.textContent = `${issues.join(' ')} The generated example remains local and was not executed.`;
+      } else {
+        reviewStatus.textContent = 'Ready to review';
+        reviewStatus.classList.add('text-[var(--color-primary)]');
+        reviewNote.textContent = `Policy: ${policyLabels[policyInput.value]}. Review provider availability, pricing, limits, and output quality before production. The page never requests or stores HF_TOKEN.`;
+      }
+    }
+
+    taskTabs.forEach((tab) => tab.addEventListener('click', () => {
+      activeTask = tab.dataset.task;
+      taskTabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+      compatibleInput.disabled = activeTask !== 'chat';
+      if (activeTask !== 'chat') compatibleInput.checked = false;
+      updateCode();
+    }));
+
+    formatButtons.forEach((button) => button.addEventListener('click', () => {
+      activeFormat = button.dataset.format;
+      formatButtons.forEach((item) => item.classList.toggle('border-[var(--color-primary)]', item === button));
+      updateCode();
+    }));
+
+    [modelInput, promptInput, policyInput, providerInput, compatibleInput].forEach((control) => {
+      control.addEventListener('input', updateCode);
+      control.addEventListener('change', updateCode);
+    });
+
+    document.querySelectorAll('[data-recipe]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const recipe = button.dataset.recipe;
+        const tab = document.querySelector(`.provider-tab[data-task="${recipe}"]`) || document.querySelector('.provider-tab[data-task="chat"]');
+        activeTask = tab.dataset.task;
+        taskTabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+        compatibleInput.disabled = activeTask !== 'chat';
+        if (activeTask !== 'chat') compatibleInput.checked = false;
+        document.querySelector('#planner').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateCode();
+      });
+    });
+
+    document.querySelectorAll('.provider-card').forEach((card) => card.addEventListener('click', () => {
+      document.querySelectorAll('.provider-card').forEach((item) => item.setAttribute('aria-pressed', String(item === card)));
+      document.querySelector('#agent-status').textContent = `${card.dataset.agent} selected for local setup planning. Confirm its current instructions before running anything.`;
+    }));
+
+    document.querySelector('#copy-code').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      try {
+        await navigator.clipboard.writeText(codeOutput.textContent);
+        copyStatus.textContent = 'Starter copied. Keep HF_TOKEN in local secret configuration.';
+        button.textContent = 'Copied';
+      } catch {
+        copyStatus.textContent = 'Clipboard unavailable. Select the code and copy it manually.';
+      }
+      window.setTimeout(() => {
+        button.textContent = 'Copy starter';
+      }, 1600);
+    });
+
+    document.querySelector('#download-code').addEventListener('click', () => {
+      const extension = activeFormat === 'python' ? 'py' : activeFormat === 'javascript' ? 'mjs' : 'sh';
+      const url = URL.createObjectURL(new Blob([codeOutput.textContent], {
+        type: 'text/plain;charset=utf-8'
+      }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inference-providers.${extension}`;
+      link.click();
+      URL.revokeObjectURL(url);
+      copyStatus.textContent = 'Starter downloaded locally. No token was included.';
+    });
+
+    const partnerList = document.querySelector('#partner-list');
+    const partnerSearch = document.querySelector('#partner-search');
+
+    function renderPartners() {
+      const query = partnerSearch.value.trim().toLowerCase();
+      const visible = partners.filter(([name]) => name.toLowerCase().includes(query));
+      partnerList.replaceChildren();
+      visible.forEach(([name, ...capabilities]) => {
+        const row = document.createElement('tr');
+        row.className = 'partner-row border-t border-[var(--color-border)]';
+        const nameCell = document.createElement('th');
+        nameCell.className = 'p-4 font-extrabold text-[var(--color-text)]';
+        nameCell.scope = 'row';
+        nameCell.textContent = name;
+        row.append(nameCell);
+        capabilities.forEach((supported) => {
+          const cell = document.createElement('td');
+          cell.className = `p-4 ${supported ? 'capability-yes' : 'capability-no'}`;
+          cell.textContent = supported ? '✓' : '—';
+          row.append(cell);
+        });
+        partnerList.append(row);
+      });
+      document.querySelector('#partner-status').textContent = `${visible.length} of ${partners.length} partners shown.`;
+    }
+
+    partnerSearch.addEventListener('input', renderPartners);
+    updateCode();
+    renderPartners();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

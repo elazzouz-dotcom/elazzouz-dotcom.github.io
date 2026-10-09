@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="محلل محلي لسجلات LaTeX وLaTeXML يلتقط التحذيرات والمراجع وحالة التحويل دون رفع البيانات.">
+  <title>محلل سجلات LaTeX | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .log-input,
+    .log-output {
+      direction: ltr;
+      text-align: left;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .log-output {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .log-control:focus-visible,
+    .log-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .finding[data-kind="warning"] {
+      border-color: color-mix(in srgb, var(--color-icon) 45%, var(--color-border));
+      background: color-mix(in srgb, var(--color-icon) 8%, var(--color-bg));
+    }
+
+    .finding[data-kind="error"] {
+      border-color: color-mix(in srgb, var(--color-icon) 65%, var(--color-border));
+      background: color-mix(in srgb, var(--color-icon) 13%, var(--color-bg));
+    }
+
+    .finding[data-kind="info"] {
+      border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+      background: var(--color-bg);
+    }
+
+    .log-row+.log-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">L</span>
+        <span class="text-xl font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/archive-json">مستكشف JSON</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">فحص محلي · LaTeX وLaTeXML</p>
+        <h1 class="mb-4 max-w-5xl text-4xl font-black leading-tight sm:text-5xl">اعرف ما يقوله سجل التحويل فعلًا.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">الصق سجل التحويل أو افتح ملفًا، ثم افحص مراحل المعالجة والتحذيرات والمراجع وحالة الخروج. التحليل يعمل في هذا المتصفح فقط ولا يرفع محتوى الورقة.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(21rem,0.8fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-5 sm:p-7" aria-labelledby="input-heading">
+            <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">١ · السجل</p>
+                <h2 id="input-heading" class="mb-2 text-2xl font-black">أدخل سجل التحويل</h2>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">يدعم النص المنسوخ وملفات السجل النصية. لا يشغّل LaTeX ولا يحاول إعادة التحويل.</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <label class="log-button cursor-pointer rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold">فتح ملف<input id="log-file" type="file" accept=".log,.txt,text/plain" class="sr-only"></label>
+                <button id="load-sample" type="button" class="log-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold">تحميل مثال</button>
+              </div>
+            </div>
+            <label for="log-input" class="mb-2 block text-sm font-bold">نص السجل</label>
+            <textarea id="log-input" rows="18" spellcheck="false" class="log-control log-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" placeholder="الصق مخرجات التحويل هنا..."></textarea>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="analyze-log" type="button" class="log-button btn-primary px-5 py-3">حلّل السجل</button>
+              <button id="clear-log" type="button" class="log-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">مسح</button>
+              <button id="copy-report" type="button" class="log-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">نسخ الملخص</button>
+            </div>
+            <p id="input-status" class="mt-4 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">لم يبدأ التحليل بعد. لا تلصق أسرارًا أو بيانات خاصة.</p>
+          </section>
+
+          <section class="feature-card p-5 sm:p-7" aria-labelledby="findings-heading">
+            <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٢ · الملاحظات</p>
+                <h2 id="findings-heading" class="mb-0 text-2xl font-black">ما الذي يحتاج انتباهًا؟</h2>
+              </div>
+              <label class="flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)]">
+                <input id="warnings-only" type="checkbox" class="accent-[var(--color-primary)]">
+                التحذيرات والأخطاء فقط
+              </label>
+            </div>
+            <p id="findings-summary" class="mb-4 text-sm leading-6 text-[var(--color-muted)]" aria-live="polite">حلّل سجلًا لعرض النتائج.</p>
+            <ul id="findings-list" class="space-y-3"></ul>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="status-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">ملخص التشغيل</p>
+              <h2 id="status-heading" class="mb-2 text-2xl font-black">حالة التحويل</h2>
+              <p id="conversion-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">بانتظار سجل للتحليل.</p>
+            </div>
+            <div class="space-y-3 p-5 sm:p-6">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                  <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">مرحلة وصلت إليها</p>
+                  <p id="phase-count" class="mb-0 text-xl font-black">—</p>
+                </div>
+                <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                  <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">تحذيرات / أخطاء</p>
+                  <p id="issue-count" class="mb-0 text-xl font-black">—</p>
+                </div>
+              </div>
+              <dl id="run-details" class="divide-y divide-[var(--color-border)] rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)]"></dl>
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-muted)]">
+                <strong class="text-[var(--color-text)]">قراءة حذرة:</strong>
+                <span> وصول السجل إلى Finalizing لا يثبت وحده صلاحية الناتج. ورمز التحويل 1 يستحق الفحص، لكنه لا يكشف السبب بمفرده.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-card p-5">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">إرشاد سريع</p>
+            <h2 class="mb-3 text-lg font-extrabold">Missing Entry for citation: *</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">تحقق من أمر الاستشهاد في ملف المصدر ومن مفاتيح المراجع في ملف BibLaTeX/المراجع. النجمة هنا نص مفتاح كما أبلغ عنه المحوّل؛ لا تفترض أنها تعني كل المراجع.</p>
+          </section>
+
+          <section class="feature-card p-5">
+            <h2 class="mb-2 text-lg font-extrabold">ماذا يفعل المحلل؟</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">يستخرج أسطر الحالة والرسائل المعروفة من النص فقط. لا يتحقق من ملفات الورقة أو ملف المراجع ولا يحدد موضع citation داخل المشروع ما لم يظهر السياق في السجل.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="px-5 pb-16 lg:px-8 lg:pb-20">
+      <div class="mx-auto max-w-7xl">
+        <section class="feature-card overflow-hidden" aria-labelledby="phases-heading">
+          <div class="border-b border-[var(--color-border)] p-5 sm:p-7">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٣ · تسلسل المعالجة</p>
+            <h2 id="phases-heading" class="mb-0 text-2xl font-black">المراحل التي ظهرت في السجل</h2>
+          </div>
+          <ol id="phase-list" class="divide-y divide-[var(--color-border)]"></ol>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">محلل محلي لسجلات تحويل LaTeX وLaTeXML.</p>
+      <a href="/tools" class="font-semibold text-[var(--color-primary)]">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const input = document.querySelector('#log-input');
+      const inputStatus = document.querySelector('#input-status');
+      const findingsList = document.querySelector('#findings-list');
+      const phasesList = document.querySelector('#phase-list');
+      const warningsOnly = document.querySelector('#warnings-only');
+      const MAX_BYTES = 5 * 1024 * 1024;
+      let reportText = '';
+      let parsedFindings = [];
+      let parsedPhases = [];
+
+      const sample = `(Digesting paper...\n(Processing content paper.tex...\nInfo:dump_reader:loaded Loaded 23572 entries from latex.2025.dump.txt (460 skipped, 0 errors)\n(Processing definitions csquotes.sty...\nInfo:ignore:\\csdef Ignoring redefinition ([newcommand]) of '{cs}'\n(Loading biblatex_sty.rs... )\n(Processing content abstract.tex... )\n(Processing content overview.tex... )\n(Processing content paper.bbl... ) ) )\n(Building... )\n(Rewriting... )\n(Finalizing... )\nInfo:scan:db_status Scan: DBStatus: 507 objects\nWarning:expected:ids Missing Entry for citation: *\nInfo:xslt:stylesheet Applying XSLT stylesheet: embed:///LaTeXML-html5.xsl\nInfo:runtime_ms:543\nStatus:conversion:1`;
+
+      const knownPhases = [
+        ['Digesting paper', 'قراءة المستند وتجهيز التحويل'],
+        ['Processing content', 'معالجة ملف أو قسم من المحتوى'],
+        ['Processing definitions', 'قراءة تعريفات الحزم والملفات المساعدة'],
+        ['Loading', 'تحميل ربط أو تعريف داخلي'],
+        ['Building', 'بناء بنية المستند الناتج'],
+        ['Rewriting', 'إعادة كتابة البنية أو الروابط'],
+        ['Finalizing', 'إنهاء إخراج التحويل'],
+        ['Applying XSLT stylesheet', 'تطبيق ورقة أنماط XSLT']
+      ];
+
+      function addFinding(kind, title, detail, line = '') {
+        parsedFindings.push({
+          kind,
+          title,
+          detail,
+          line
+        });
+      }
+
+      function setDetail(label, value) {
+        const row = document.createElement('div');
+        row.className = 'grid gap-1 p-3 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-3';
+        const term = document.createElement('dt');
+        term.className = 'text-xs font-bold text-[var(--color-muted)]';
+        term.textContent = label;
+        const description = document.createElement('dd');
+        description.className = 'mb-0 break-all text-sm font-semibold text-[var(--color-text)]';
+        description.textContent = value;
+        row.append(term, description);
+        document.querySelector('#run-details').append(row);
+      }
+
+      function renderFindings() {
+        const visible = parsedFindings.filter((finding) => !warningsOnly.checked || ['warning', 'error'].includes(finding.kind));
+        findingsList.replaceChildren();
+        if (!visible.length) {
+          const empty = document.createElement('li');
+          empty.className = 'rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4 text-sm text-[var(--color-muted)]';
+          empty.textContent = parsedFindings.length ? 'لا توجد تحذيرات أو أخطاء مطابقة للتصفية.' : 'لم تُكتشف رسائل قابلة للتصنيف.';
+          findingsList.append(empty);
+          return;
+        }
+
+        visible.forEach((finding) => {
+          const item = document.createElement('li');
+          item.className = 'finding rounded-[calc(var(--radius)*0.55)] border p-4';
+          item.dataset.kind = finding.kind;
+          const heading = document.createElement('strong');
+          heading.className = 'mb-1 block';
+          heading.textContent = `${finding.kind === 'error' ? 'خطأ' : finding.kind === 'warning' ? 'تحذير' : 'معلومة'} · ${finding.title}`;
+          const body = document.createElement('p');
+          body.className = 'mb-0 text-sm leading-6 text-[var(--color-muted)]';
+          body.textContent = finding.detail;
+          item.append(heading, body);
+          if (finding.line) {
+            const sourceLine = document.createElement('code');
+            sourceLine.className = 'log-output mt-3 block rounded-[calc(var(--radius)*0.45)] bg-[var(--color-bg)] p-3 text-xs';
+            sourceLine.textContent = finding.line;
+            item.append(sourceLine);
+          }
+          findingsList.append(item);
+        });
+      }
+
+      function parseLog() {
+        const raw = input.value;
+        if (!raw.trim()) {
+          inputStatus.textContent = 'ألصق سجلًا أو اختر ملفًا أولًا.';
+          document.querySelector('#conversion-status').textContent = 'لا توجد بيانات للتحليل.';
+          return;
+        }
+        if (new Blob([raw]).size > MAX_BYTES) {
+          inputStatus.textContent = 'السجل يتجاوز الحد المحلي البالغ 5 MB.';
+          return;
+        }
+
+        const lines = raw.split(/\r?\n/);
+        const infoLines = lines.filter((line) => /\bInfo:/i.test(line));
+        const warningLines = lines.filter((line) => /\bWarning:/i.test(line));
+        const errorLines = lines.filter((line) => /\b(?:Error|Fatal):/i.test(line));
+        const statusMatches = [...raw.matchAll(/Status:conversion:\s*(-?\d+)/gi)];
+        const statusCode = statusMatches.length ? statusMatches.at(-1)[1] : '';
+        const runtimeMatches = [...raw.matchAll(/Info:runtime_ms:\s*(\d+)/gi)];
+        const runtime = runtimeMatches.length ? runtimeMatches.at(-1)[1] : '';
+        const dbMatches = [...raw.matchAll(/DBStatus:\s*(\d+)\s+objects?/gi)];
+        const objectCount = dbMatches.length ? dbMatches.at(-1)[1] : '';
+        const loadedMatches = [...raw.matchAll(/Loaded\s+([\d,]+)\s+entries[^\n]*/gi)];
+        const loadedSummary = loadedMatches.length ? loadedMatches.at(-1)[0] : '';
+
+        parsedFindings = [];
+        parsedPhases = [];
+
+        errorLines.forEach((line) => addFinding('error', 'رسالة خطأ صريحة', 'ظهر سطر Error أو Fatal. راجع السياق في السجل الأصلي؛ هذا المحلل لا يحدد أثر الخطأ على الناتج.', line.trim()));
+        warningLines.forEach((line) => {
+          if (/Missing Entry for citation/i.test(line)) {
+            const match = line.match(/Missing Entry for citation:\s*(.*)$/i);
+            const key = match?.[1]?.trim() || '(غير محدد)';
+            addFinding('warning', `مرجع BibLaTeX غير موجود: ${key}`, 'راجع أمر الاستشهاد في ملفات .tex ومفتاح المرجع في ملف .bib أو .bbl. إذا كانت النجمة هي المفتاح الظاهر فعلًا، ابحث عن \cite{*} أو عن ماكرو يولّد هذا المفتاح. لا يفترض هذا التنبيه أن النجمة تعني جميع المراجع.', line.trim());
+          } else {
+            addFinding('warning', 'تحذير من المحوّل', 'اقرأ الرسالة وسياق الملف المشار إليه؛ التحذير قد يشير إلى محتوى لم يُترجم كما توقعت.', line.trim());
+          }
+        });
+
+        if (statusCode) {
+          if (Number(statusCode) === 0) {
+            addFinding('info', 'رمز التحويل 0', 'السجل يعرض قيمة صفر. تحقّق أيضًا من ملفات الناتج ومن عدم وجود تحذيرات مهمة.');
+          } else {
+            addFinding('warning', `رمز التحويل غير صفري: ${statusCode}`, 'السجل يعرض قيمة غير صفرية. المراحل الختامية قد تكون ظهرت، لكن لا يمكن استنتاج نجاح كامل أو سبب الرمز من هذا السطر وحده؛ راجع توثيق الأداة وملفات الناتج والتشغيل الأصلي.');
+          }
+        } else {
+          addFinding('info', 'لم يظهر رمز التحويل', 'لم يُعثر على Status:conversion في النص. لا يمكن تحديد حالة الخروج من السجل الملصق وحده.');
+        }
+
+        if (!errorLines.length && !warningLines.length) {
+          addFinding('info', 'لا توجد Error أو Warning مصنفة', 'لم يعثر الفحص النصي على علامات خطأ أو تحذير صريحة؛ هذا لا يثبت اكتمال التحويل أو صحة الناتج.');
+        }
+
+        const phaseLabels = new Map(knownPhases);
+        knownPhases.forEach(([needle, label]) => {
+          if (raw.includes(needle)) parsedPhases.push({
+            name: needle,
+            label
+          });
+        });
+        lines.forEach((line) => {
+          const processing = line.match(/^\s*\((Processing content|Processing definitions|Loading)\s+(.+?)(?:\.\.\.|\.\.\.\s*\)|\s*\))/i);
+          if (processing) {
+            const key = `${processing[1]}: ${processing[2]}`;
+            if (!parsedPhases.some((phase) => phase.name === key)) {
+              parsedPhases.push({
+                name: key,
+                label: `${processing[1]} · ${processing[2]}`
+              });
+            }
+          }
+        });
+
+        const phaseList = document.querySelector('#phase-list');
+        phaseList.replaceChildren();
+        if (parsedPhases.length) {
+          parsedPhases.forEach((phase, index) => {
+            const item = document.createElement('li');
+            item.className = 'log-row flex items-start gap-3 px-5 py-4';
+            const number = document.createElement('span');
+            number.className = 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] text-xs font-black text-[var(--color-primary)]';
+            number.textContent = String(index + 1).padStart(2, '0');
+            const text = document.createElement('div');
+            const title = document.createElement('p');
+            title.className = 'mb-1 text-sm font-extrabold';
+            title.textContent = phase.name;
+            const note = document.createElement('p');
+            note.className = 'mb-0 text-xs leading-5 text-[var(--color-muted)]';
+            note.textContent = phase.label;
+            text.append(title, note);
+            item.append(number, text);
+            phaseList.append(item);
+          });
+        } else {
+          const item = document.createElement('li');
+          item.className = 'p-5 text-sm text-[var(--color-muted)]';
+          item.textContent = 'لم تُكتشف أسماء مراحل معروفة في السجل.';
+          phaseList.append(item);
+        }
+
+        document.querySelector('#conversion-status').textContent = statusCode ?
+          `Status:conversion:${statusCode}${runtime ? ` · ${runtime} ms كما ورد في السجل` : ''}` :
+          'لا يوجد رمز تحويل صريح في السجل.';
+        document.querySelector('#phase-count').textContent = String(parsedPhases.length);
+        document.querySelector('#issue-count').textContent = `${warningLines.length} / ${errorLines.length}`;
+        document.querySelector('#findings-summary').textContent = `${lines.length} سطرًا · ${infoLines.length} معلومات · ${warningLines.length} تحذيرات · ${errorLines.length} أخطاء صريحة.`;
+        const details = document.querySelector('#run-details');
+        details.replaceChildren();
+        if (statusCode) setDetail('رمز التحويل', statusCode);
+        if (runtime) setDetail('المدة المسجلة', `${runtime} ms`);
+        if (objectCount) setDetail('كائنات المسح', objectCount);
+        if (loadedSummary) setDetail('تعريفات محمّلة', loadedSummary);
+        setDetail('ملفات المصدر', String(new Set(lines.flatMap((line) => [...line.matchAll(/(?:Processing content|Processing definitions)\s+([^...)]+?)(?:\.\.\.|\))/gi)].map((match) => match[1].trim()))).size));
+        renderFindings();
+
+        reportText = [
+          'ملخص تحليل سجل LaTeXML',
+          `Status:conversion: ${statusCode || 'غير موجود'}`,
+          `الأسطر: ${lines.length} · معلومات: ${infoLines.length} · تحذيرات: ${warningLines.length} · أخطاء صريحة: ${errorLines.length}`,
+          ...parsedFindings.map((finding) => `- ${finding.kind}: ${finding.title} — ${finding.detail}`),
+          `المراحل: ${parsedPhases.map((phase) => phase.name).join(' → ') || 'غير محددة'}`
+        ].join('\n');
+        inputStatus.textContent = 'اكتمل التحليل محليًا. لم تُرفع البيانات ولم يُعاد تشغيل التحويل.';
+      }
+
+      document.querySelector('#analyze-log').addEventListener('click', parseLog);
+      warningsOnly.addEventListener('change', renderFindings);
+      document.querySelector('#clear-log').addEventListener('click', () => {
+        input.value = '';
+        parsedFindings = [];
+        parsedPhases = [];
+        reportText = '';
+        inputStatus.textContent = 'تم مسح السجل والنتائج.';
+        findingsList.replaceChildren();
+        phasesList.replaceChildren();
+        input.focus();
+      });
+      document.querySelector('#load-sample').addEventListener('click', () => {
+        input.value = sample;
+        parseLog();
+      });
+      document.querySelector('#log-file').addEventListener('change', async (event) => {
+        const file = event.currentTarget.files?.[0];
+        if (!file) return;
+        if (file.size > MAX_BYTES) {
+          inputStatus.textContent = 'الملف يتجاوز الحد المحلي البالغ 5 MB.';
+          event.currentTarget.value = '';
+          return;
+        }
+        try {
+          input.value = await file.text();
+          parseLog();
+          inputStatus.textContent = `تم فتح ${file.name} وتحليله محليًا.`;
+        } catch (error) {
+          inputStatus.textContent = `تعذرت قراءة الملف: ${error.message}`;
+        }
+        event.currentTarget.value = '';
+      });
+      document.querySelector('#copy-report').addEventListener('click', async () => {
+        if (!reportText) {
+          inputStatus.textContent = 'حلّل سجلًا أولًا لنسخ الملخص.';
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(reportText);
+          inputStatus.textContent = 'نُسخ ملخص التحليل إلى الحافظة.';
+        } catch {
+          inputStatus.textContent = 'تعذّر النسخ تلقائيًا؛ حدّد النتائج وانسخها يدويًا.';
+        }
+      });
+
+      input.value = sample;
+      parseLog();
+    })();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

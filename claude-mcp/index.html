@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Prepare Claude Code MCP add and login commands locally. Commands are displayed for review and are never run by this page.">
+  <title>Claude Code MCP Setup | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .setup-control:focus-visible,
+    .setup-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .command-output {
+      direction: ltr;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/browserbase-studio">Browserbase Studio</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Local command builder · Claude Code</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Prepare your MCP server setup.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Enter a server name and MCP endpoint to create Claude Code add and login commands. Review and run them yourself in your terminal; this page never launches a process or signs you in.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="settings-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Connection settings</p>
+          <h2 id="settings-heading" class="mb-5 text-2xl font-black">Configure the command</h2>
+
+          <div class="space-y-5">
+            <div>
+              <label for="server-name" class="mb-2 block text-sm font-bold">MCP server name</label>
+              <input id="server-name" type="text" value="firecrawl" maxlength="64" autocomplete="off" spellcheck="false" class="setup-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+              <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">Use letters, numbers, hyphens, or underscores. The same name is used for the add and login commands.</p>
+            </div>
+            <div>
+              <label for="transport" class="mb-2 block text-sm font-bold">Transport</label>
+              <select id="transport" class="setup-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]" disabled>
+                <option value="http">HTTP</option>
+              </select>
+            </div>
+            <div id="url-field">
+              <label for="server-url" class="mb-2 block text-sm font-bold">MCP server URL</label>
+              <input id="server-url" type="url" value="https://mcp.firecrawl.dev/v2/mcp-oauth" autocomplete="url" spellcheck="false" class="setup-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+              <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">The endpoint is prefilled with the URL you provided. Verify it against the service's current setup instructions before use.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="commands-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Generated locally · not executed</p>
+              <h2 id="commands-heading" class="mb-2 text-2xl font-black">Claude Code commands</h2>
+              <p id="command-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">Commands are ready for review.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <pre id="command-output" class="command-output min-h-36 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-7 text-[var(--color-text)]" aria-live="polite"></pre>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-commands" type="button" class="setup-button btn-primary px-5 py-3">Copy commands</button>
+                <button id="download-commands" type="button" class="setup-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Download .sh</button>
+              </div>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Nothing has been run. Review each command before using it in your terminal.</p>
+            </div>
+          </section>
+
+          <aside class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 sm:p-6">
+            <h2 class="mb-2 text-lg font-extrabold">Authentication and safety</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">The login command may start an OAuth authorization flow in your terminal or browser. Confirm the server identity and requested permissions before approving. Never enter credentials into this page or share authorization codes.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Local Claude Code MCP command builder.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const nameInput = document.querySelector('#server-name');
+    const transportInput = document.querySelector('#transport');
+    const urlInput = document.querySelector('#server-url');
+    const output = document.querySelector('#command-output');
+    const status = document.querySelector('#command-status');
+    const copyStatus = document.querySelector('#copy-status');
+
+    function shellQuote(value) {
+      return `'${value.replace(/'/g, `'\\''`)}'`;
+    }
+
+    function makeCommands() {
+      const name = nameInput.value.trim();
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(name)) {
+        return {
+          error: 'Server name must use 1–64 letters, numbers, hyphens, or underscores.'
+        };
+      }
+
+      let endpoint;
+      try {
+        endpoint = new URL(urlInput.value.trim());
+      } catch {
+        return { error: 'Enter a valid absolute server URL.' };
+      }
+      if (!['https:', 'http:'].includes(endpoint.protocol)) {
+        return { error: 'The MCP URL must use HTTP or HTTPS.' };
+      }
+
+      const addCommand = `claude mcp add --transport http ${shellQuote(name)} ${shellQuote(endpoint.href)}`;
+      return {
+        commands: `${addCommand}\nclaude mcp login ${shellQuote(name)}`
+      };
+    }
+
+    function updateCommands() {
+      const result = makeCommands();
+      if (result.error) {
+        output.textContent = '# ' + result.error;
+        status.textContent = 'Complete the settings to generate commands.';
+        return false;
+      }
+      output.textContent = result.commands;
+      status.textContent = `Generated for server “${nameInput.value.trim()}”. Commands have not been run.`;
+      return true;
+    }
+
+    [nameInput, urlInput].forEach((control) => {
+      control.addEventListener('input', updateCommands);
+      control.addEventListener('change', updateCommands);
+    });
+
+    document.querySelector('#copy-commands').addEventListener('click', async () => {
+      if (!updateCommands()) {
+        copyStatus.textContent = 'Fix the settings before copying commands.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(output.textContent);
+        copyStatus.textContent = 'Commands copied. Review the URL and server name before running them.';
+      } catch {
+        copyStatus.textContent = 'Clipboard unavailable. Select the command text and copy it manually.';
+      }
+    });
+
+    document.querySelector('#download-commands').addEventListener('click', () => {
+      if (!updateCommands()) {
+        copyStatus.textContent = 'Fix the settings before downloading commands.';
+        return;
+      }
+      const content = `#!/bin/sh\nset -eu\n\n${output.textContent}\n`;
+      const fileUrl = URL.createObjectURL(new Blob([content], {
+        type: 'text/x-shellscript;charset=utf-8'
+      }));
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = 'claude-mcp-setup.sh';
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+      copyStatus.textContent = 'Script downloaded locally. This page has not executed it.';
+    });
+
+    updateCommands();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

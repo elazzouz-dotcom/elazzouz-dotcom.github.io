@@ -1,20 +1,303 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
+
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>نموذج التواصل المحلي</title>
-<meta name="description" content="نموذج تواصل محلي يحفظ الطلبات داخل المتصفح.">
-<style>
-:root{--ink:#172033;--muted:#667085;--primary:#6d5dfc;--teal:#00b8a9;--accent:#ff7a59;--line:#e5e7eb;--ok:#087f5b;--err:#c62828}*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:22px 14px;color:var(--ink);font-family:Tahoma,Arial,sans-serif;background:radial-gradient(circle at 8% 10%,#ffd7ca,transparent 27%),radial-gradient(circle at 92% 85%,#baf4eb,transparent 30%),linear-gradient(135deg,#f6f7ff,#edfffb)}a{text-decoration:none;color:inherit}.wrap{width:min(920px,100%);margin:auto}.nav{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:22px}.nav a{padding:9px 12px;border:1px solid #ffffffaa;border-radius:11px;background:#ffffff8c;font-size:.88rem}.nav .brand{margin-left:auto;font-weight:bold}.hero{padding:34px clamp(22px,5vw,56px);color:#fff;border-radius:26px 26px 0 0;background:linear-gradient(120deg,#4938d5,#6d5dfc 52%,#00b8a9);box-shadow:0 18px 50px #3440542b}.eyebrow{margin:0 0 8px;color:#d9fff8;font-weight:bold;font-size:.82rem}.hero h1{margin:0 0 10px;font-size:clamp(1.7rem,4vw,2.7rem)}.hero p{max-width:650px;margin:0;color:#edf3ff;line-height:1.8}.card{padding:clamp(22px,5vw,48px);background:#fffffff0;border-radius:0 0 26px 26px;box-shadow:0 20px 55px #3440542b}.row{display:flex;gap:18px;margin-bottom:18px}.col{flex:1}label{display:block;margin-bottom:8px;font-weight:bold;font-size:.9rem}.req{color:var(--accent)}input,select,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font:inherit;outline:0;transition:.2s}textarea{min-height:135px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px #6d5dfc1f}.actions{display:flex;align-items:center;gap:14px;margin-top:22px}.btn{border:0;border-radius:14px;padding:14px 22px;color:#fff;background:linear-gradient(100deg,var(--primary),#8b5cf6);font:inherit;font-weight:bold;cursor:pointer}.btn.secondary{color:var(--ink);background:#eef2ff}.btn:disabled{opacity:.6;cursor:wait}.hint{color:var(--muted);font-size:.82rem}#status{min-height:24px;margin-top:15px;font-weight:bold}.ok{color:var(--ok)}.err{color:var(--err)}.panel{margin-top:24px;padding:22px;border-radius:20px;background:#ffffffed;box-shadow:0 10px 30px #3440541b}.panel h2{margin:0 0 12px;font-size:1.15rem}.lead{border-top:1px solid var(--line);padding:13px 0;line-height:1.8}.lead:first-of-type{border-top:0}.badge{display:inline-block;padding:3px 8px;border-radius:99px;color:#164e63;background:#cffafe;font-size:.74rem}.empty{color:var(--muted)}.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}@media(max-width:620px){.row{display:block;margin-bottom:0}.col{margin-bottom:18px}.actions{align-items:stretch;flex-direction:column}.btn{width:100%}.nav .brand{margin-left:0;margin-right:auto}}
-</style></head>
-<body><main class="wrap"><nav class="nav"><a class="brand" href="/">Local-first workspace</a><a href="/tools">الأدوات</a><a href="/chat-studio">استوديو المحادثة</a><a href="/contact/">التواصل</a></nav><header class="hero"><p class="eyebrow">تطبيق محلي — بدون خدمة خارجية</p><h1>خلّينا نسمعو لفكرتك</h1><p>أرسل طلب المشروع، وسيُحفظ مباشرة داخل هذا المتصفح. لا يتم إرسال بياناتك إلى أي خدمة خارجية.</p></header><section class="card"><form id="form" novalidate><div class="hp"><label for="website">اترك هذا الحقل فارغاً</label><input id="website" autocomplete="off"></div><div class="row"><div class="col"><label for="name">الاسم <span class="req">*</span></label><input id="name" required placeholder="مثال: أحمد العلوي" autocomplete="name"></div><div class="col"><label for="phone">الهاتف / واتساب</label><input id="phone" placeholder="06xxxxxxxx" autocomplete="tel" inputmode="tel"></div></div><div class="row"><div class="col"><label for="email">البريد الإلكتروني</label><input id="email" type="email" placeholder="name@example.com" autocomplete="email"></div><div class="col"><label for="type">نوع المشروع</label><select id="type"><option value="">اختار...</option><option>موقع تعريفي</option><option>موقع أعمال</option><option>متجر إلكتروني</option><option>تطبيق ويب</option><option>شي حاجة أخرى</option></select></div></div><label for="message">تفاصيل المشروع <span class="req">*</span></label><textarea id="message" required placeholder="شرح لينا شنو بغيتي..."></textarea><div class="actions"><button class="btn" type="submit">حفظ الطلب محلياً</button><button class="btn secondary" id="export" type="button">تصدير JSON</button><span class="hint">* حقول إلزامية</span></div><div id="status" role="status" aria-live="polite"></div></form></section><section class="panel"><h2>آخر الطلبات المحفوظة <button id="clear" class="btn secondary" type="button" style="float:left;padding:7px 11px;font-size:.78rem">مسح الكل</button></h2><div id="list"></div></section></main><script>
-const key='local-project-leads-v1', $=id=>document.getElementById(id), form=$('form'), status=$('status');
-const get=()=>JSON.parse(localStorage.getItem(key)||'[]');
-const save=items=>localStorage.setItem(key,JSON.stringify(items));
-const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function message(text,type=''){status.textContent=text;status.className=type}
-function render(){const items=get();$('list').innerHTML=items.length?items.slice(0,20).map(x=>`<article class="lead"><b>${esc(x.name)}</b> <span class="badge">محفوظ محلياً</span><br><small>${esc(x.projectType||'مشروع غير محدد')} — ${new Date(x.createdAt).toLocaleString('ar-MA')}</small><br>${esc(x.message)}${x.phone?`<br>الهاتف: ${esc(x.phone)}`:''}${x.email?`<br>البريد: ${esc(x.email)}`:''}</article>`).join(''):'<p class="empty">لا توجد طلبات محفوظة بعد.</p>'}
-form.addEventListener('submit',e=>{e.preventDefault();const item={id:crypto.randomUUID(),createdAt:new Date().toISOString(),name:$('name').value.trim(),phone:$('phone').value.trim(),email:$('email').value.trim(),projectType:$('type').value,message:$('message').value.trim()};if($('website').value)return;if(!item.name||!item.message)return message('عمّر الاسم وتفاصيل المشروع.','err');if(item.phone&&!/^[+0-9\s()\-]{8,}$/.test(item.phone))return message('رقم الهاتف ماشي صحيح.','err');if(item.email&&!/^\S+@\S+\.\S+$/.test(item.email))return message('الإيميل ماشي صحيح.','err');save([item,...get()]);form.reset();message('✅ تخزّن الطلب بنجاح داخل المتصفح.','ok');render()});
-$('export').onclick=()=>{const blob=new Blob([JSON.stringify(get(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='project-leads.json';a.click();URL.revokeObjectURL(a.href)};
-$('clear').onclick=()=>{if(get().length&&confirm('واش متأكد بغيتي تمسح جميع الطلبات المحلية؟')){save([]);render();message('تم مسح الطلبات المحلية.','ok')}};render();
-</script></body></html>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="تواصل معنا وشارك تفاصيل مشروعك لنساعدك على اختيار الخطوة المناسبة.">
+  <title>تواصل معنا | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .contact-card {
+      width: min(52rem, 100%);
+      overflow: hidden;
+    }
+
+    .contact-hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(120deg, var(--color-dark), var(--color-primary), var(--color-soft));
+      padding: clamp(1.5rem, 5vw, 3.5rem);
+    }
+
+    .contact-hero::after {
+      position: absolute;
+      inset-block-end: -5rem;
+      inset-inline-end: -3rem;
+      width: 13rem;
+      height: 13rem;
+      border: 1.5rem solid color-mix(in srgb, var(--color-text) 10%, transparent);
+      border-radius: 50%;
+      content: "";
+      pointer-events: none;
+    }
+
+    .contact-form {
+      padding: clamp(1.5rem, 5vw, 3rem);
+    }
+
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.6);
+      background: var(--color-bg);
+      padding: 0.85rem 1rem;
+      color: var(--color-text);
+      font: inherit;
+    }
+
+    .contact-form textarea {
+      min-height: 9rem;
+      resize: vertical;
+    }
+
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder {
+      color: var(--color-muted);
+      opacity: 0.8;
+    }
+
+    .contact-form input:focus,
+    .contact-form select:focus,
+    .contact-form textarea:focus {
+      border-color: var(--color-primary);
+      outline: 0;
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 15%, transparent);
+    }
+
+    .contact-form [aria-invalid="true"] {
+      border-color: var(--color-icon);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-icon) 13%, transparent);
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.1rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .contact-field {
+      min-width: 0;
+    }
+
+    .contact-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 750;
+    }
+
+    .required-mark {
+      color: var(--color-icon);
+    }
+
+    .contact-honeypot {
+      position: absolute;
+      inset-inline-start: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .contact-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.4rem;
+    }
+
+    .contact-submit {
+      min-height: 3rem;
+      padding-inline: 1.5rem;
+    }
+
+    .contact-message {
+      min-height: 1.5rem;
+      margin-top: 1rem;
+      font-weight: 700;
+      line-height: 1.7;
+    }
+
+    .contact-message.success {
+      color: var(--color-primary);
+    }
+
+    .contact-message.error {
+      color: var(--color-icon);
+    }
+
+    @media (max-width: 620px) {
+      .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .contact-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .contact-submit {
+        width: 100%;
+      }
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <main class="contact-card feature-card">
+    <header class="contact-hero text-[var(--color-primary-contrast)]">
+      <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">لنبدأ مشروعك</p>
+      <h1 class="mb-3 text-3xl font-black leading-tight sm:text-4xl">خلّينا نسمعو لفكرتك</h1>
+      <p class="mb-0 max-w-2xl text-sm leading-7 opacity-90">عمّر المعلومات التالية، وغادي نتواصلو معاك باش نفهمو احتياجاتك ونقترحو عليك الحل المناسب.</p>
+    </header>
+
+    <form id="contact-form" class="contact-form" novalidate>
+      <div class="contact-honeypot" aria-hidden="true">
+        <label for="contact-website">اترك هذا الحقل فارغاً</label>
+        <input type="text" id="contact-website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="contact-grid">
+        <div class="contact-field">
+          <label class="contact-label" for="contact-name">الاسم <span class="required-mark" aria-hidden="true">*</span></label>
+          <input id="contact-name" name="name" type="text" autocomplete="name" placeholder="مثال: أحمد العلوي" required>
+        </div>
+        <div class="contact-field">
+          <label class="contact-label" for="contact-phone">الهاتف / واتساب</label>
+          <input id="contact-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06xxxxxxxx">
+        </div>
+      </div>
+
+      <div class="contact-grid">
+        <div class="contact-field">
+          <label class="contact-label" for="contact-email">البريد الإلكتروني</label>
+          <input id="contact-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com">
+        </div>
+        <div class="contact-field">
+          <label class="contact-label" for="contact-type">نوع المشروع</label>
+          <select id="contact-type" name="projectType">
+            <option value="">اختار نوع المشروع...</option>
+            <option>موقع تعريفي</option>
+            <option>موقع أعمال</option>
+            <option>متجر إلكتروني</option>
+            <option>تطبيق ويب</option>
+            <option>شي حاجة أخرى</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="contact-field">
+        <label class="contact-label" for="contact-details">تفاصيل المشروع <span class="required-mark" aria-hidden="true">*</span></label>
+        <textarea id="contact-details" name="message" placeholder="شرح لينا شنو بغيتي، والهدف من المشروع..." required></textarea>
+      </div>
+
+      <div class="contact-actions">
+        <button class="contact-submit btn-primary" type="submit">أرسل الطلب</button>
+        <span class="text-xs text-[var(--color-muted)]">الحقول التي تحمل علامة * إلزامية</span>
+      </div>
+      <p class="contact-message" id="contact-status" role="status" aria-live="polite"></p>
+      <p class="mb-0 mt-4 border-t border-[var(--color-border)] pt-4 text-xs leading-6 text-[var(--color-muted)]">لا تدرج كلمات مرور أو مفاتيح API أو معلومات حساسة ضمن تفاصيل المشروع.</p>
+    </form>
+  </main>
+
+  <script>
+    const contactForm = document.querySelector('#contact-form');
+    const contactStatus = document.querySelector('#contact-status');
+    const STORAGE_KEY = 'practical-tools-leads-v1';
+
+    function showContactStatus(message, type = '') {
+      contactStatus.textContent = message;
+      contactStatus.className = `contact-message ${type}`.trim();
+    }
+
+    function getLeads() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch { return []; }
+    }
+
+    function saveLead(lead) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([lead, ...getLeads()]));
+    }
+
+    function markInvalid(field, invalid) {
+      field.setAttribute('aria-invalid', String(invalid));
+    }
+
+    function isValidPhone(value) {
+      return !value || /^[+0-9\s()-]{8,}$/.test(value);
+    }
+
+    function isValidEmail(value) {
+      return !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    contactForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      showContactStatus();
+      const fields = {
+        name: document.querySelector('#contact-name'),
+        phone: document.querySelector('#contact-phone'),
+        email: document.querySelector('#contact-email'),
+        projectType: document.querySelector('#contact-type'),
+        message: document.querySelector('#contact-details'),
+        website: document.querySelector('#contact-website')
+      };
+      const values = Object.fromEntries(
+        Object.entries(fields).map(([key, field]) => [key, field.value.trim()])
+      );
+      if (values.website) return;
+      const invalid = {
+        name: !values.name,
+        message: !values.message,
+        phone: !isValidPhone(values.phone),
+        email: !isValidEmail(values.email)
+      };
+      Object.entries(invalid).forEach(([key, state]) => markInvalid(fields[key], state));
+      if (invalid.name || invalid.message) {
+        showContactStatus('عمّر الاسم وتفاصيل المشروع على الأقل.', 'error');
+        (invalid.name ? fields.name : fields.message).focus();
+        return;
+      }
+      if (invalid.phone) {
+        showContactStatus('رقم الهاتف ماشي صحيح.', 'error');
+        fields.phone.focus();
+        return;
+      }
+      if (invalid.email) {
+        showContactStatus('الإيميل ماشي صحيح.', 'error');
+        fields.email.focus();
+        return;
+      }
+      saveLead({
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        name: values.name,
+        phone: values.phone,
+        email: values.email,
+        projectType: values.projectType,
+        message: values.message
+      });
+      showContactStatus('✅ تخزّن الطلب بنجاح داخل هذا المتصفح.', 'success');
+      contactForm.reset();
+      Object.values(fields).forEach((field) => field.removeAttribute('aria-invalid'));
+    });
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

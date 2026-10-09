@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Prepare Git user.name and user.email configuration commands locally. Review and copy commands without running them in the browser.">
+  <title>Git Identity Setup | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .git-control:focus-visible,
+    .git-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .command-output {
+      direction: ltr;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Local command builder · Git</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Set your Git commit identity.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Prepare the commands for your name and email, choose whether they apply globally or only to the current repository, then review and copy them into your terminal.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="settings-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Configuration</p>
+          <h2 id="settings-heading" class="mb-5 text-2xl font-black">Enter your commit identity</h2>
+          <div class="space-y-5">
+            <div>
+              <label for="git-name" class="mb-2 block text-sm font-bold">Name</label>
+              <input id="git-name" type="text" maxlength="200" autocomplete="name" class="git-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]" placeholder="Your name">
+              <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">This name appears as the author identity on commits you create.</p>
+            </div>
+            <div>
+              <label for="git-email" class="mb-2 block text-sm font-bold">Email</label>
+              <input id="git-email" type="email" maxlength="254" autocomplete="email" class="git-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]" placeholder="you@example.com">
+              <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">Choose an email address you are comfortable associating with commits. Public repositories may expose commit metadata.</p>
+            </div>
+            <fieldset>
+              <legend class="mb-3 text-sm font-bold">Where should this apply?</legend>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <label class="flex cursor-pointer items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input type="radio" name="scope" value="global" checked class="mt-1 accent-[var(--color-primary)]">
+                  <span><strong>All repositories</strong><br><span class="text-[var(--color-muted)]">Set in your global Git configuration.</span></span>
+                </label>
+                <label class="flex cursor-pointer items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                  <input type="radio" name="scope" value="local" class="mt-1 accent-[var(--color-primary)]">
+                  <span><strong>Current repository only</strong><br><span class="text-[var(--color-muted)]">Run inside the repository you want to configure.</span></span>
+                </label>
+              </div>
+            </fieldset>
+            <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6">
+              <input id="include-check" type="checkbox" checked class="mt-1 accent-[var(--color-primary)]">
+              <span>Include commands to check the configured name and email after setting them.</span>
+            </label>
+          </div>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="output-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Generated locally</p>
+              <h2 id="output-heading" class="mb-2 text-2xl font-black">Terminal commands</h2>
+              <p id="command-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">Enter a name and email to build commands.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <pre id="command-output" class="command-output min-h-48 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-7 text-[var(--color-text)]" aria-live="polite"># Commands will appear here.</pre>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-commands" type="button" class="git-button btn-primary px-5 py-3">Copy commands</button>
+                <button id="download-commands" type="button" class="git-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Download .sh</button>
+              </div>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">This page does not run commands or modify Git configuration.</p>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="guidance-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Before you run it</p>
+            <h2 id="guidance-heading" class="mb-4 text-xl font-black">Review the scope</h2>
+            <ul class="space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><strong class="text-[var(--color-text)]">Global</strong> affects commits across repositories unless a repository-specific setting overrides it.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><strong class="text-[var(--color-text)]">Local</strong> writes to the current repository configuration, so run the commands from that repository.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">These settings label commits; they do not authenticate you to a Git hosting service or configure signing credentials.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Local Git identity command builder.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const nameInput = document.querySelector('#git-name');
+    const emailInput = document.querySelector('#git-email');
+    const includeCheck = document.querySelector('#include-check');
+    const commandOutput = document.querySelector('#command-output');
+    const commandStatus = document.querySelector('#command-status');
+    const copyStatus = document.querySelector('#copy-status');
+
+    function shellQuote(value) {
+      return `'${value.replace(/'/g, `'\\''`)}'`;
+    }
+
+    function updateCommands() {
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const scope = document.querySelector('input[name="scope"]:checked').value;
+      const scopeFlag = scope === 'global' ? ' --global' : '';
+      const scopeLabel = scope === 'global' ? 'global Git configuration' : 'local repository configuration';
+
+      if (!name || !email) {
+        commandOutput.textContent = '# Enter both your name and email to generate commands.';
+        commandStatus.textContent = 'Enter a name and email to build commands.';
+        copyStatus.textContent = 'This page does not run commands or modify Git configuration.';
+        return;
+      }
+
+      const commands = [
+        `git config${scopeFlag} user.name ${shellQuote(name)}`,
+        `git config${scopeFlag} user.email ${shellQuote(email)}`
+      ];
+
+      if (includeCheck.checked) {
+        commands.push('', `git config${scopeFlag} --get user.name`, `git config${scopeFlag} --get user.email`);
+      }
+
+      commandOutput.textContent = commands.join('\n');
+      commandStatus.textContent = `Commands target the ${scopeLabel}. Review them before pasting into your terminal.`;
+      copyStatus.textContent = 'Generated locally. Nothing has been executed.';
+    }
+
+    [nameInput, emailInput, includeCheck].forEach((control) => {
+      control.addEventListener('input', updateCommands);
+      control.addEventListener('change', updateCommands);
+    });
+
+    document.querySelectorAll('input[name="scope"]').forEach((control) => {
+      control.addEventListener('change', updateCommands);
+    });
+
+    document.querySelector('#copy-commands').addEventListener('click', async () => {
+      if (!nameInput.value.trim() || !emailInput.value.trim()) {
+        copyStatus.textContent = 'Enter both your name and email before copying.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(commandOutput.textContent);
+        copyStatus.textContent = 'Commands copied. Review the selected scope before running them.';
+      } catch {
+        copyStatus.textContent = 'Clipboard unavailable. Select the command text and copy it manually.';
+      }
+    });
+
+    document.querySelector('#download-commands').addEventListener('click', () => {
+      if (!nameInput.value.trim() || !emailInput.value.trim()) {
+        copyStatus.textContent = 'Enter both your name and email before downloading.';
+        return;
+      }
+      const file = new Blob([`#!/bin/sh\nset -eu\n\n${commandOutput.textContent}\n`], {
+        type: 'text/x-shellscript;charset=utf-8'
+      });
+      const downloadUrl = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = 'git-identity-setup.sh';
+      link.click();
+      URL.revokeObjectURL(downloadUrl);
+      copyStatus.textContent = 'Script downloaded. Review it before running; this page has not executed it.';
+    });
+
+    updateCommands();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="استوديو محلي لتخطيط استمرارية مشاريع Browserbase: Hibernate وGit branches وsandbox branches.">
+  <title>استوديو استمرارية Browserbase | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .studio-control:focus-visible,
+    .mode-button:focus-visible,
+    .studio-action:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .mode-button[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+      color: var(--color-primary);
+    }
+
+    .code-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .mode-panel[hidden] {
+      display: none;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/browserbase-studio">Browserbase Studio</a>
+        <a href="/browser-session">مخطط الجلسة</a>
+        <a href="/tools">لوحة الأدوات</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Browserbase · استوديو تخطيط محلي</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">خطّط لاستمرارية مشروعك.</h1>
+        <p class="mb-6 max-w-3xl text-base leading-7 text-[var(--color-muted)]">اختر طريقة حفظ حالة العمل، استعرض دورة المشروع، ثم أنشئ نموذج Express وNode.js قابلًا للمراجعة. هذه الصفحة لا تنشئ sandboxes أو جلسات، ولا تتصل بقاعدة بيانات أو Git.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="#planner" class="btn-primary px-5 py-3">ابدأ التخطيط <span aria-hidden="true">↓</span></a>
+          <a href="/browserbase-studio" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">افتح Browserbase Studio</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="planner" class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(360px,1.05fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="mode-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">١ · اختر نموذج الاستمرارية</p>
+            <h2 id="mode-heading" class="mb-5 text-2xl font-black">كيف تريد حفظ المشروع؟</h2>
+            <div class="grid gap-3 sm:grid-cols-3" role="group" aria-label="اختيار نموذج استمرارية">
+              <button type="button" class="mode-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-right transition" data-mode="hibernate" aria-pressed="true">
+                <span class="mb-2 block font-extrabold">Hibernate / Resume</span>
+                <span class="block text-sm leading-6 text-[var(--color-muted)]">احتفظ بالـ sandbox وأوقفه عند انقطاع المستهلكين.</span>
+              </button>
+              <button type="button" class="mode-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-right transition" data-mode="git" aria-pressed="false">
+                <span class="mb-2 block font-extrabold">استمرارية Git</span>
+                <span class="block text-sm leading-6 text-[var(--color-muted)]">استخدم remote كمصدر حفظ خارجي للعمل.</span>
+              </button>
+              <button type="button" class="mode-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-right transition" data-mode="branches" aria-pressed="false">
+                <span class="mb-2 block font-extrabold">فروع sandbox</span>
+                <span class="block text-sm leading-6 text-[var(--color-muted)]">احتفظ بأصل خامد وأنشئ sandboxes مؤقتة للتجارب.</span>
+              </button>
+            </div>
+
+            <div id="hibernate-panel" class="mode-panel mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5">
+              <h3 class="mb-2 text-lg font-extrabold">دورة Hibernate / Resume عبر SSE</h3>
+              <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">أنشئ مشروعًا واحفظ معرّف sandbox في قاعدة بياناتك. عند الاتصال، استأنف sandbox وأنشئ جلسة؛ عند إغلاق آخر اتصال SSE، أوقفه مؤقتًا بعد التأكد من ملكية المشروع.</p>
+              <ol class="list-decimal space-y-2 pr-5 text-sm leading-6 text-[var(--color-muted)]">
+                <li>تحقق من هوية المستخدم وملكيته للمشروع قبل إنشاء الاتصال.</li>
+                <li>تعامل مع إغلاق الاتصال مرة واحدة فقط، وراقب أخطاء التنظيف.</li>
+                <li>استخدم مخزنًا مشتركًا أو leases عند تشغيل أكثر من نسخة من الخادم.</li>
+              </ol>
+            </div>
+
+            <div id="git-panel" class="mode-panel mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5" hidden>
+              <h3 class="mb-2 text-lg font-extrabold">Git كمصدر استمرارية</h3>
+              <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">استخدم مستودعًا تملكه أو لديك إذن بالوصول إليه. خزّن بيانات الاعتماد كأسرار خادمية، ولا تركّب repository URL مباشرة داخل أمر shell من إدخال المستخدم.</p>
+              <ol class="list-decimal space-y-2 pr-5 text-sm leading-6 text-[var(--color-muted)]">
+                <li>تحقق من المضيف والمستودع والفرع عبر allowlist وسياسة واضحة.</li>
+                <li>استخدم واجهة أوامر ذات معاملات آمنة بدل تركيب shell command نصيًا.</li>
+                <li>اجعل الحفظ صريحًا وقابلًا للاسترجاع، ولا تعتمد على commit تلقائي عند كل disconnect.</li>
+              </ol>
+            </div>
+
+            <div id="branches-panel" class="mode-panel mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5" hidden>
+              <h3 class="mb-2 text-lg font-extrabold">Sandbox branches للتجارب</h3>
+              <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">احتفظ بـ sandbox رئيسي خامد، وأنشئ نسخة عمل مؤقتة لكل معاينة أو اقتراح. الترقية تغيّر الأصل الذي يعتمد عليه المشروع وقد تستلزم حذف موارد أخرى.</p>
+              <ol class="list-decimal space-y-2 pr-5 text-sm leading-6 text-[var(--color-muted)]">
+                <li>تحقق من المشروع والفرع وصلاحية المستخدم قبل كل عملية.</li>
+                <li>حدّث قاعدة البيانات بمعاملة عند ترقية فرع إلى الأصل.</li>
+                <li>لا تحذف الفروع الأخرى تلقائيًا قبل التأكد من النسخ الاحتياطي وسياسة الاحتفاظ.</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="inputs-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٢ · خصّص المثال</p>
+            <h2 id="inputs-heading" class="mb-5 text-2xl font-black">مدخلات لتوليد النموذج</h2>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label for="template-id" class="text-sm font-bold">معرّف القالب
+                <input id="template-id" class="studio-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="YOUR_TEMPLATE_ID" maxlength="120" autocomplete="off">
+              </label>
+              <label for="project-name" class="text-sm font-bold">اسم المشروع النموذجي
+                <input id="project-name" class="studio-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" value="My project" maxlength="100" autocomplete="off">
+              </label>
+            </div>
+            <label for="repository-url" class="mt-4 block text-sm font-bold">Git remote اختياري
+              <input id="repository-url" type="url" class="studio-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="يُستخدم في نموذج Git فقط" autocomplete="url">
+            </label>
+            <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">المعلومات المدخلة تبقى في الصفحة. لا تضع مفاتيح وصول أو روابط تتضمن أسرارًا؛ عالجها كأسرار على الخادم في التطبيق الفعلي.</p>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="code-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٣ · نموذج شيفرة محلي</p>
+              <h2 id="code-heading" class="mb-2 text-2xl font-black">Express + Node.js</h2>
+              <p id="code-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">النموذج للتوضيح فقط؛ لا توجد خدمة أو قاعدة بيانات متصلة.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <pre id="code-output" class="code-output max-h-[42rem] min-h-80 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></pre>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-code" type="button" class="studio-action btn-primary px-4 py-3 text-sm">نسخ النموذج</button>
+                <button id="download-code" type="button" class="studio-action rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تنزيل JavaScript</button>
+              </div>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">راجع الشيفرة وتحقق من واجهات SDK قبل استخدامها.</p>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="safety-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">مراجعة قبل الإنتاج</p>
+            <h2 id="safety-heading" class="mb-4 text-xl font-black">نقاط مهمة</h2>
+            <ul class="space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">عدّادات الاتصالات داخل الذاكرة لا تعمل عبر أكثر من عملية أو خادم؛ استخدم leases أو مخزنًا مشتركًا وإغلاقًا آمنًا.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">استمع إلى إغلاق SSE، واجعل التنظيف idempotent، ولا تعتمد على <code>res.error</code> وحده.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">لا تنفّذ commit أو push أو delete تلقائيًا دون موافقة وسياسة نسخ احتياطي واضحة.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">تحقق من ملكية المستخدم، وصحة المدخلات، وتوافق تفاصيل SDK مع إصدارك قبل كل عملية.</li>
+            </ul>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5">
+            <h2 class="mb-2 text-lg font-extrabold">مهم</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">هذا استوديو يولّد مخططًا تعليميًا من مدخلاتك. لا يشغّل Express أو Browserbase، ولا ينشئ مشروعًا أو جلسة أو فرع Git، ولا يثبت الحزم.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">استوديو تخطيط محلي لاستمرارية Browserbase.</p>
+      <a href="/tools" class="footer-link font-semibold">لوحة الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const modeButtons = [...document.querySelectorAll('.mode-button')];
+    const panels = {
+      hibernate: document.querySelector('#hibernate-panel'),
+      git: document.querySelector('#git-panel'),
+      branches: document.querySelector('#branches-panel')
+    };
+    const templateInput = document.querySelector('#template-id');
+    const projectNameInput = document.querySelector('#project-name');
+    const repositoryInput = document.querySelector('#repository-url');
+    const codeOutput = document.querySelector('#code-output');
+    const codeStatus = document.querySelector('#code-status');
+    const copyStatus = document.querySelector('#copy-status');
+
+    function selectedMode() {
+      return document.querySelector('.mode-button[aria-pressed="true"]').dataset.mode;
+    }
+
+    function quoteForTemplate(value) {
+      return JSON.stringify(value.trim());
+    }
+
+    function templateId() {
+      const value = templateInput.value.trim();
+      return value || 'YOUR_TEMPLATE_ID';
+    }
+
+    function generateHibernate() {
+      return `import express from "express";
+import { sdk, db, requireUser } from "./services.js";
+
+const app = express();
+app.use(express.json());
+
+// Use shared storage/leases in production when the server has multiple instances.
+const activeConnections = new Map();
+
+app.post("/api/projects", requireUser, async (req, res, next) => {
+  try {
+    const { projectName } = req.body;
+    if (typeof projectName !== "string" || !projectName.trim()) {
+      return res.status(400).json({ error: "projectName is required" });
+    }
+
+    const sandbox = await sdk.sandboxes.create({ id: ${quoteForTemplate(templateId())} });
+    const project = await db.projects.create({
+      id: generateId(),
+      userId: req.user.id,
+      name: projectName.trim(),
+      sandboxId: sandbox.id,
+      status: "active",
+      createdAt: new Date(),
+    });
+    const session = await sandbox.createSession();
+
+    res.status(201).json({ project, session });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/projects/:id/resume", requireUser, async (req, res, next) => {
+  let project;
+  let closed = false;
+  try {
+    project = await db.projects.findOwnedById(req.params.id, req.user.id);
+    if (!project) return res.status(404).json({ error: "Project not found" });
+
+    res.set({
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "Connection": "keep-alive",
+    });
+    res.flushHeaders?.();
+
+    activeConnections.set(project.id, (activeConnections.get(project.id) || 0) + 1);
+    const sandbox = await sdk.sandboxes.resume(project.sandboxId);
+    const session = await sandbox.createSession();
+    await db.projects.update(project.id, {
+      status: "active",
+      lastAccessedAt: new Date(),
+    });
+    res.write(\`event: ready\\ndata: \${JSON.stringify({ session })}\n\n\`);
+
+    const cleanup = async () => {
+      if (closed) return;
+      closed = true;
+      const remaining = Math.max(0, (activeConnections.get(project.id) || 1) - 1);
+      if (remaining > 0) {
+        activeConnections.set(project.id, remaining);
+        return;
+      }
+      activeConnections.delete(project.id);
+      try {
+        await sdk.sandboxes.hibernate(project.sandboxId);
+        await db.projects.update(project.id, {
+          status: "hibernated",
+          hibernatedAt: new Date(),
+        });
+      } catch (error) {
+        console.error("Sandbox cleanup failed", error);
+      }
+    };
+
+    req.once("close", cleanup);
+    res.once("close", cleanup);
+  } catch (error) {
+    if (res.headersSent) {
+      res.end();
+      console.error("SSE resume failed", error);
+      return;
+    }
+    next(error);
+  }
+});`;
+    }
+
+    function generateGit() {
+      const repositoryValue = repositoryInput.value.trim();
+      let repository = 'process.env.REPOSITORY_URL';
+      if (repositoryValue) repository = quoteForTemplate(repositoryValue);
+      return `import express from "express";
+import { sdk, db, requireUser, runGit } from "./services.js";
+
+const app = express();
+app.use(express.json());
+
+app.post("/api/projects", requireUser, async (req, res, next) => {
+  let client;
+  try {
+    const { projectName } = req.body;
+    const repositoryUrl = ${repository};
+
+    // Validate allowed Git hosts/organizations before using a remote.
+    assertAllowedRepository(repositoryUrl);
+
+    const sandbox = await sdk.sandboxes.create({ id: ${quoteForTemplate(templateId())} });
+    client = await sandbox.connect();
+
+    // Use an argument-safe command API; do not interpolate untrusted strings into shell.
+    await runGit(client, ["remote", "add", "origin", repositoryUrl]);
+    await runGit(client, ["fetch", "origin", "main"]);
+
+    const project = await db.projects.create({
+      id: generateId(),
+      userId: req.user.id,
+      name: projectName,
+      sandboxId: sandbox.id,
+      repositoryUrl,
+      status: "active",
+      createdAt: new Date(),
+    });
+    const session = await sandbox.createSession();
+    res.status(201).json({ project, session });
+  } catch (error) {
+    next(error);
+  } finally {
+    client?.dispose();
+  }
+});
+
+// Saving changes should be an explicit, authenticated operation.
+app.post("/api/projects/:id/save", requireUser, async (req, res, next) => {
+  let client;
+  try {
+    const project = await db.projects.findOwnedById(req.params.id, req.user.id);
+    if (!project) return res.status(404).json({ error: "Project not found" });
+    const sandbox = await sdk.sandboxes.resume(project.sandboxId);
+    client = await sandbox.connect();
+    await runGit(client, ["add", "-A"]);
+    await runGit(client, ["commit", "-m", "Save project changes"]);
+    await runGit(client, ["push", "origin", "main"]);
+    res.json({ success: true, savedAt: new Date() });
+  } catch (error) {
+    next(error);
+  } finally {
+    client?.dispose();
+  }
+});`;
+    }
+
+    function generateBranches() {
+      return `import express from "express";
+import { sdk, db, requireUser } from "./services.js";
+
+const app = express();
+app.use(express.json());
+
+app.post("/api/projects", requireUser, async (req, res, next) => {
+  try {
+    const projectSandbox = await sdk.sandboxes.create({ id: ${quoteForTemplate(templateId())} });
+    await sdk.sandboxes.hibernate(projectSandbox.id);
+    const project = await db.projects.create({
+      id: generateId(),
+      userId: req.user.id,
+      name: ${quoteForTemplate(projectNameInput.value) || '"My project"'},
+      mainSandboxId: projectSandbox.id,
+      status: "hibernated",
+      createdAt: new Date(),
+    });
+    res.status(201).json({ project });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/projects/:id/branches", requireUser, async (req, res, next) => {
+  try {
+    const project = await db.projects.findOwnedById(req.params.id, req.user.id);
+    if (!project) return res.status(404).json({ error: "Project not found" });
+
+    const branchName = String(req.body.branchName || "").trim();
+    if (!branchName) return res.status(400).json({ error: "branchName is required" });
+
+    const branchSandbox = await sdk.sandboxes.create({ id: project.mainSandboxId });
+    const branch = await db.branches.create({
+      id: generateId(),
+      projectId: project.id,
+      name: branchName,
+      sandboxId: branchSandbox.id,
+      status: "active",
+      createdAt: new Date(),
+    });
+    const session = await branchSandbox.createSession();
+    res.status(201).json({ branch, session });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/projects/:id/branches/:branchId/promote", requireUser, async (req, res, next) => {
+  try {
+    const project = await db.projects.findOwnedById(req.params.id, req.user.id);
+    const branch = await db.branches.findById(req.params.branchId);
+    if (!project || !branch || branch.projectId !== project.id) {
+      return res.status(404).json({ error: "Project or branch not found" });
+    }
+
+    // Make promotion atomic in your database; clean up only after success.
+    await sdk.sandboxes.hibernate(branch.sandboxId);
+    await db.transaction(async (tx) => {
+      await tx.projects.update(project.id, { mainSandboxId: branch.sandboxId });
+      await tx.branches.update(branch.id, { status: "promoted" });
+    });
+
+    res.json({ success: true, promotedBranchId: branch.id });
+  } catch (error) {
+    next(error);
+  }
+});`;
+    }
+
+    function updateStudio() {
+      const mode = selectedMode();
+      modeButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+      Object.entries(panels).forEach(([name, panel]) => {
+        panel.hidden = name !== mode;
+      });
+
+      const generators = {
+        hibernate: generateHibernate,
+        git: generateGit,
+        branches: generateBranches
+      };
+      codeOutput.textContent = generators[mode]();
+      codeStatus.textContent = `${mode === 'hibernate' ? 'نموذج Hibernate / Resume' : mode === 'git' ? 'نموذج Git' : 'نموذج sandbox branches'} · لا توجد خدمة متصلة.`;
+      copyStatus.textContent = 'نموذج تعليمي فقط. راجع توافق SDK وأضف مصادقة التطبيق وسياسة أخطاء قبل التشغيل.';
+    }
+
+    modeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        modeButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        updateStudio();
+      });
+    });
+
+    [templateInput, projectNameInput, repositoryInput].forEach((input) => {
+      input.addEventListener('input', updateStudio);
+      input.addEventListener('change', updateStudio);
+    });
+
+    document.querySelector('#copy-code').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(codeOutput.textContent);
+        copyStatus.textContent = 'تم نسخ النموذج. لم يُشغّل أي كود.';
+      } catch {
+        copyStatus.textContent = 'تعذر النسخ تلقائيًا؛ حدّد الشيفرة وانسخها يدويًا.';
+      }
+    });
+
+    document.querySelector('#download-code').addEventListener('click', () => {
+      const fileUrl = URL.createObjectURL(new Blob([codeOutput.textContent], {
+        type: 'text/javascript;charset=utf-8'
+      }));
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = 'browserbase-persistence-starter.js';
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+      copyStatus.textContent = 'تم تنزيل النموذج محليًا. لم يتم الاتصال بـ Browserbase.';
+    });
+
+    updateStudio();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive OpenAI API overview covering Responses, Realtime, Administration, authentication, request IDs, headers, errors, and rate limits.">
+  <title>OpenAI API Overview | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .reference-link:focus-visible,
+    .reference-search:focus-visible,
+    .copy-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .reference-section[hidden] {
+      display: none;
+    }
+
+    .code-output {
+      direction: ltr;
+      overflow: auto;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold tracking-tight">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <button id="menu-toggle" type="button" class="inline-flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] md:hidden" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-navigation">
+        <span class="h-0.5 w-5 rounded-full bg-current" aria-hidden="true"></span>
+        <span class="h-0.5 w-5 rounded-full bg-current" aria-hidden="true"></span>
+        <span class="h-0.5 w-5 rounded-full bg-current" aria-hidden="true"></span>
+      </button>
+      <nav id="main-navigation" class="site-nav hidden w-full flex-col gap-3 text-sm font-semibold text-[var(--color-muted)] md:flex md:w-auto md:flex-row md:gap-5" aria-label="Main navigation">
+        <a href="/tools">Tool directory</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">API reference · OpenAI</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Understand the API before you ship.</h1>
+        <p class="mb-7 max-w-3xl text-base leading-7 text-[var(--color-muted)]">A focused overview of API surfaces, authentication, request headers, debugging identifiers, compatibility, and production-readiness checks.</p>
+        <label class="flex max-w-2xl items-center gap-3 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+          <span class="text-xl text-[var(--color-muted)]" aria-hidden="true">⌕</span>
+          <span class="sr-only">Search reference topics</span>
+          <input id="reference-search" class="reference-search w-full border-0 bg-transparent text-sm outline-none placeholder:text-[var(--color-muted)]" type="search" placeholder="Search topics, headers, or concepts..." autocomplete="off">
+        </label>
+        <p id="search-status" class="mt-3 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <aside class="feature-card h-fit p-4 lg:sticky lg:top-6">
+          <p class="mb-3 px-3 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-muted)]">On this page</p>
+          <nav class="grid gap-1 text-sm font-bold" aria-label="Reference sections">
+            <a class="reference-link rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#start">Start here</a>
+            <a class="reference-link rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#auth">Authentication</a>
+            <a class="reference-link rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#headers">Request headers</a>
+            <a class="reference-link rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#debugging">Debugging requests</a>
+            <a class="reference-link rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#compatibility">Compatibility</a>
+          </nav>
+        </aside>
+
+        <div id="reference-list" class="min-w-0 space-y-6">
+          <section id="start" class="reference-section feature-card p-6 sm:p-8" data-topic="start here responses realtime administration libraries quickstart">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Start here</p>
+            <h2 class="mb-3 text-2xl font-black">Choose the API surface for your application.</h2>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <a class="reference-link rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" href="https://developers.openai.com/api/reference/responses/overview" target="_blank" rel="noopener noreferrer">
+                <strong class="mb-1 block">Responses</strong>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">Model requests, tools, audio, image and text inputs, and stateful interactions.</span>
+              </a>
+              <a class="reference-link rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" href="https://developers.openai.com/api/docs/guides/realtime" target="_blank" rel="noopener noreferrer">
+                <strong class="mb-1 block">Realtime API</strong>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">Low-latency voice or audio sessions over WebRTC, WebSocket, or SIP.</span>
+              </a>
+              <a class="reference-link rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4" href="https://developers.openai.com/api/reference/administration/overview" target="_blank" rel="noopener noreferrer">
+                <strong class="mb-1 block">Administration</strong>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">Organization workflows such as users, projects, keys, and audit logs.</span>
+              </a>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-4 text-sm font-bold text-[var(--color-primary)]">
+              <a class="reference-link" href="https://developers.openai.com/api/docs/libraries" target="_blank" rel="noopener noreferrer">Official libraries ↗</a>
+              <a class="reference-link" href="https://developers.openai.com/api/docs/quickstart" target="_blank" rel="noopener noreferrer">Developer quickstart ↗</a>
+              <a class="reference-link" href="https://developers.openai.com/api/reference/resources/responses/methods/create" target="_blank" rel="noopener noreferrer">Responses create ↗</a>
+            </div>
+          </section>
+
+          <section id="auth" class="reference-section feature-card p-6 sm:p-8" data-topic="authentication api key bearer access token secret organization project">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Authentication</p>
+            <h2 class="mb-3 text-2xl font-black">Keep credentials on the server.</h2>
+            <p class="mb-5 max-w-3xl text-sm leading-7 text-[var(--color-muted)]">Use a standard API key for application requests, an Admin API key for administration endpoints, or a short-lived access token created through workload identity federation. Never expose a key in browser code or a public application bundle.</p>
+            <pre id="auth-code" class="code-output rounded-[calc(var(--radius)*0.6)] bg-[var(--color-dark)] p-4 text-sm leading-7 text-[var(--color-primary-contrast)]">Authorization: Bearer OPENAI_API_KEY_OR_ACCESS_TOKEN</pre>
+            <button type="button" class="copy-button mt-4 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold" data-copy="auth-code">Copy authentication header</button>
+            <div class="mt-5 grid gap-3 sm:grid-cols-2">
+              <a class="reference-link rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm font-bold" href="https://platform.openai.com/settings/organization/api-keys" target="_blank" rel="noopener noreferrer">Standard API keys ↗</a>
+              <a class="reference-link rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm font-bold" href="https://platform.openai.com/settings/organization/admin-keys" target="_blank" rel="noopener noreferrer">Admin API keys ↗</a>
+            </div>
+          </section>
+
+          <section id="headers" class="reference-section feature-card p-6 sm:p-8" data-topic="request headers organization project content type 64 kib custom header">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Request headers</p>
+            <h2 class="mb-3 text-2xl font-black">Leave room for required metadata.</h2>
+            <p class="mb-5 text-sm leading-7 text-[var(--color-muted)]">Keep the total request-header size under 64 KiB. To leave room for required headers and intermediaries, keep custom header values and the combined custom-header budget at 60 KiB or less.</p>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong class="mb-2 block">Common headers</strong>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Authorization, Content-Type, User-Agent, and any organization or project selectors.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong class="mb-2 block">Organization context</strong>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Use OpenAI-Organization and OpenAI-Project when your request needs explicit context.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="debugging" class="reference-section feature-card p-6 sm:p-8" data-topic="debugging request id rate limit errors x request id client request id response headers">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Debugging requests</p>
+            <h2 class="mb-3 text-2xl font-black">Log request IDs and rate-limit signals.</h2>
+            <p class="mb-5 text-sm leading-7 text-[var(--color-muted)]">Inspect response headers for the server-generated <code>x-request-id</code>, processing time, API version, and rate-limit details. Official client libraries expose the request ID on top-level response objects.</p>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong class="block">x-request-id</strong><span class="text-sm text-[var(--color-muted)]">Unique server request identifier.</span></div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong class="block">openai-processing-ms</strong><span class="text-sm text-[var(--color-muted)]">Processing time for the request.</span></div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong class="block">x-ratelimit-*</strong><span class="text-sm text-[var(--color-muted)]">Limits, remaining capacity, and reset times.</span></div>
+            </div>
+            <div class="mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-soft)] p-4 text-sm leading-6">
+              <p class="mb-1 font-extrabold">Client request IDs</p>
+              <p class="mb-0 text-[var(--color-muted)]">You may send <code>X-Client-Request-Id</code> with a unique ASCII identifier up to 512 characters. This is useful when a timeout prevents you from receiving the server-generated request ID.</p>
+            </div>
+            <pre id="request-id-code" class="code-output mt-5 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-dark)] p-4 text-sm leading-7 text-[var(--color-primary-contrast)]">curl https://api.openai.com/v1/chat/completions \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "X-Client-Request-Id: 123e4567-e89b-12d3-a456-426614174000"</pre>
+            <button type="button" class="copy-button mt-4 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold" data-copy="request-id-code">Copy request ID example</button>
+          </section>
+
+          <section id="compatibility" class="reference-section feature-card p-6 sm:p-8" data-topic="backwards compatibility breaking changes models versions snapshots evals production">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Backwards compatibility</p>
+            <h2 class="mb-3 text-2xl font-black">Expect additive API changes, not fixed model behavior.</h2>
+            <p class="mb-5 text-sm leading-7 text-[var(--color-muted)]">The REST API remains on the v1 major version and official libraries follow semantic versioning. Additive resources, optional parameters, properties, event types, and opaque identifier changes are considered backwards-compatible. Model prompting behavior between snapshots can still change.</p>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong class="block">Pin models</strong><span class="text-sm leading-6 text-[var(--color-muted)]">Use pinned versions when consistent behavior matters.</span></div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong class="block">Run evals</strong><span class="text-sm leading-6 text-[var(--color-muted)]">Measure changes before promoting updates.</span></div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4"><strong class="block">Review limits</strong><span class="text-sm leading-6 text-[var(--color-muted)]">Plan for errors, rate limits, and request logging.</span></div>
+            </div>
+            <a class="reference-link mt-5 inline-flex font-bold text-[var(--color-primary)]" href="https://developers.openai.com/api/docs/changelog" target="_blank" rel="noopener noreferrer">Open the changelog ↗</a>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">OpenAI API overview and production checklist.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const menuToggle = document.querySelector('#menu-toggle');
+    const mainNavigation = document.querySelector('#main-navigation');
+
+    menuToggle.addEventListener('click', () => {
+      const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isExpanded));
+      menuToggle.setAttribute('aria-label', isExpanded ? 'Open navigation menu' : 'Close navigation menu');
+      mainNavigation.classList.toggle('hidden', isExpanded);
+      mainNavigation.classList.toggle('flex', !isExpanded);
+    });
+
+    mainNavigation.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        if (window.matchMedia('(max-width: 767px)').matches) {
+          mainNavigation.classList.add('hidden');
+          mainNavigation.classList.remove('flex');
+          menuToggle.setAttribute('aria-expanded', 'false');
+          menuToggle.setAttribute('aria-label', 'Open navigation menu');
+        }
+      });
+    });
+
+    const searchInput = document.querySelector('#reference-search');
+    const sections = [...document.querySelectorAll('.reference-section')];
+    const searchStatus = document.querySelector('#search-status');
+
+    function filterReference() {
+      const query = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+      sections.forEach((section) => {
+        const matches = !query || `${section.dataset.topic} ${section.textContent}`.toLowerCase().includes(query);
+        section.hidden = !matches;
+        if (matches) visible += 1;
+      });
+      searchStatus.textContent = query ? `${visible} matching reference sections.` : `${sections.length} reference sections available.`;
+    }
+
+    searchInput.addEventListener('input', filterReference);
+
+    document.querySelectorAll('.copy-button').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const target = document.querySelector(`#${button.dataset.copy}`);
+        try {
+          await navigator.clipboard.writeText(target.textContent);
+          button.textContent = 'Copied';
+        } catch {
+          button.textContent = 'Select and copy manually';
+        }
+        window.setTimeout(() => {
+          button.textContent = button.dataset.copy === 'auth-code' ? 'Copy authentication header' : 'Copy request ID example';
+        }, 1600);
+      });
+    });
+
+    filterReference();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

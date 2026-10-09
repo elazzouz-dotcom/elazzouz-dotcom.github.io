@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="أداة محلية لتحليل مكونات URI وتركيبها وحل المراجع النسبية وفق محلل المتصفح.">
+  <title>أداة URI | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tool-control:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .mono-output {
+      direction: ltr;
+      text-align: left;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .component-card[hidden] {
+      display: none;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">الأدوات</a>
+        <a href="/html-reference">مختبر HTML</a>
+        <a href="/clipboard-reference">مختبر الحافظة</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">أداة URI محلية</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">حلّل URI، ركّبه، أو حلّ مرجعًا نسبيًا.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">تُعالج القيم في متصفحك. تستخدم الأداة محلل URL المدمج في المتصفح؛ قد تختلف تفاصيله عن التحقق المعياري الدقيق من RFC 3986.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="analyze-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">تحليل</p>
+            <h2 id="analyze-heading" class="mb-4 text-2xl font-black">افحص URI مطلقًا</h2>
+            <label for="uri-input" class="mb-2 block text-sm font-bold">URI</label>
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <input id="uri-input" class="tool-control mono min-w-0 flex-1 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="text" autocomplete="off" spellcheck="false" placeholder="ألصق URI يحتوي على scheme ثم اضغط تحليل">
+              <button id="analyze-button" class="btn-primary px-5 py-3" type="button">تحليل</button>
+            </div>
+            <p id="analyze-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">أدخل القيمة التي تريد تحليلها.</p>
+            <dl id="components" class="mt-5 grid gap-3 sm:grid-cols-2"></dl>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="resolve-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">حل مرجع نسبي</p>
+            <h2 id="resolve-heading" class="mb-2 text-2xl font-black">استخدم عنوانًا أساسيًا ومرجعًا</h2>
+            <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">أدخل العنوان الأساسي والمرجع بنفسك. العنوان الأساسي يجب أن يكون مطلقًا؛ اترك المرجع فارغًا إذا أردت استخدامه كما هو.</p>
+            <div class="space-y-4">
+              <div>
+                <label for="base-uri" class="mb-2 block text-sm font-bold">العنوان الأساسي</label>
+                <input id="base-uri" class="tool-control mono w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="text" autocomplete="off" spellcheck="false" placeholder="أدخل base URI المطلق">
+              </div>
+              <div>
+                <label for="relative-reference" class="mb-2 block text-sm font-bold">المرجع النسبي أو URI</label>
+                <input id="relative-reference" class="tool-control mono w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="text" autocomplete="off" spellcheck="false" placeholder="مثال: مسار أو ?query أو #fragment">
+              </div>
+              <button id="resolve-button" class="btn-primary px-5 py-3" type="button">حل المرجع</button>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">النتيجة</p>
+                <output id="resolved-uri" class="mono-output block text-sm text-[var(--color-text)]" aria-live="polite">ستظهر النتيجة هنا.</output>
+              </div>
+              <p id="resolve-status" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite"></p>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="encode-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">ترميز جزء</p>
+            <h2 id="encode-heading" class="mb-4 text-2xl font-black">شفّر قيمة مكوّن URI</h2>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="encode-value" class="mb-2 block text-sm font-bold">القيمة</label>
+                <input id="encode-value" class="tool-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="text" placeholder="اكتب قيمة مكوّن، لا URI كاملًا">
+              </div>
+              <div>
+                <label for="encode-kind" class="mb-2 block text-sm font-bold">نوع المكوّن</label>
+                <select id="encode-kind" class="tool-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+                  <option value="component">قيمة عامة · encodeURIComponent</option>
+                  <option value="query">قيمة query · URLSearchParams</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="encode-button" class="btn-primary px-5 py-3" type="button">ترميز</button>
+              <button id="decode-button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold" type="button">فك ترميز</button>
+            </div>
+            <output id="encoded-output" class="mono-output mt-4 block min-h-12 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm" aria-live="polite">ستظهر النتيجة هنا.</output>
+            <p id="encode-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card p-6">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">تمييز المكونات</p>
+            <h2 class="mb-4 text-xl font-black">تركيب URI يدويًا</h2>
+            <div class="space-y-3">
+              <label class="block text-sm font-bold" for="build-scheme">Scheme<input id="build-scheme" class="tool-control mono mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="https"></label>
+              <label class="block text-sm font-bold" for="build-authority">Authority · اختياري<input id="build-authority" class="tool-control mono mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="أدخل authority إذا كانت مطلوبة"></label>
+              <label class="block text-sm font-bold" for="build-path">Path<input id="build-path" class="tool-control mono mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="/مسار أو مسار"></label>
+              <label class="block text-sm font-bold" for="build-query">Query · دون ?<input id="build-query" class="tool-control mono mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="اسم=قيمة"></label>
+              <label class="block text-sm font-bold" for="build-fragment">Fragment · دون #<input id="build-fragment" class="tool-control mono mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-normal" placeholder="قسم"></label>
+              <button id="build-button" type="button" class="btn-primary w-full px-5 py-3">ركّب URI</button>
+              <output id="built-uri" class="mono-output block min-h-16 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm" aria-live="polite">أدخل المكونات ثم اضغط تركيب.</output>
+              <p id="build-status" class="mb-0 text-sm text-[var(--color-muted)]" aria-live="polite"></p>
+            </div>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5">
+            <h2 class="mb-2 text-lg font-extrabold">ملاحظة عن الأساس</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">عند حل مرجع نسبي، تستخدم الأداة العنوان الأساسي الذي تدخله. لا تبحث تلقائيًا عن عنوان داخل المحتوى. في RFC 3986، العنوان الأساسي المضمّن في المحتوى له أولوية على عنوان الكيان الحاوي، ثم عنوان الاسترجاع، ثم الافتراضي الخاص بالتطبيق.</p>
+          </section>
+          <section class="feature-card p-5">
+            <h2 class="mb-2 text-lg font-extrabold">حدود الأداة</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">يعرض التحليل نتائج واجهة URL في المتصفح. قد تختلف عن قواعد RFC 3986 في بعض الحالات، ولا تنفّذ الأداة أي طلب شبكة عند التحليل أو الحل.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">أداة URI تعمل محليًا في المتصفح.</p>
+      <a href="/tools" class="footer-link font-semibold">لوحة الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const componentDefinitions = [
+      ['Scheme', (url) => url.protocol.replace(/:$/, '')],
+      ['Authority', (url) => url.host],
+      ['Username', (url) => url.username],
+      ['Password', (url) => url.password ? '[موجودة · مخفية]' : ''],
+      ['Host', (url) => url.hostname],
+      ['Port', (url) => url.port],
+      ['Path', (url) => url.pathname],
+      ['Query', (url) => url.search ? url.search.slice(1) : ''],
+      ['Fragment', (url) => url.hash ? url.hash.slice(1) : '']
+    ];
+
+    function renderComponent(label, value) {
+      const card = document.createElement('div');
+      card.className = 'component-card rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3';
+      const term = document.createElement('dt');
+      term.className = 'mb-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--color-muted)]';
+      term.textContent = label;
+      const description = document.createElement('dd');
+      description.className = 'mono-output mb-0 text-sm font-semibold text-[var(--color-text)]';
+      description.textContent = value || '(فارغ)';
+      card.append(term, description);
+      return card;
+    }
+
+    function analyzeUri() {
+      const input = document.querySelector('#uri-input').value.trim();
+      const status = document.querySelector('#analyze-status');
+      const components = document.querySelector('#components');
+      components.replaceChildren();
+      if (!input) {
+        status.textContent = 'أدخل URI مطلقًا أولًا.';
+        return;
+      }
+      try {
+        const parsed = new URL(input);
+        componentDefinitions.forEach(([label, getValue]) => {
+          components.append(renderComponent(label, getValue(parsed)));
+        });
+        status.textContent = 'اكتمل التحليل محليًا باستخدام محلل URL في المتصفح.';
+      } catch {
+        status.textContent = 'تعذّر تحليل القيمة كعنوان مطلق. تحقق من وجود scheme صالح.';
+      }
+    }
+
+    document.querySelector('#analyze-button').addEventListener('click', analyzeUri);
+    document.querySelector('#uri-input').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') analyzeUri();
+    });
+
+    document.querySelector('#resolve-button').addEventListener('click', () => {
+      const base = document.querySelector('#base-uri').value.trim();
+      const reference = document.querySelector('#relative-reference').value.trim();
+      const result = document.querySelector('#resolved-uri');
+      const status = document.querySelector('#resolve-status');
+      result.textContent = '';
+      try {
+        const resolved = new URL(reference, base);
+        result.textContent = resolved.href;
+        status.textContent = 'حُلّ المرجع محليًا باستخدام محلل URL في المتصفح؛ لم يُرسل طلب.';
+      } catch {
+        result.textContent = 'تعذّر الحل.';
+        status.textContent = 'تحقق من إدخال عنوان أساسي مطلق صالح، ثم أعد المحاولة.';
+      }
+    });
+
+    document.querySelector('#encode-button').addEventListener('click', () => {
+      const value = document.querySelector('#encode-value').value;
+      const kind = document.querySelector('#encode-kind').value;
+      const output = kind === 'query' ? new URLSearchParams([
+        ['value', value]
+      ]).toString().slice('value='.length) : encodeURIComponent(value);
+      document.querySelector('#encoded-output').textContent = output;
+      document.querySelector('#encode-status').textContent = 'تم ترميز قيمة المكوّن محليًا. لا تستخدم ذلك على URI كامل دون تحليل مكوناته.';
+    });
+
+    document.querySelector('#decode-button').addEventListener('click', () => {
+      const value = document.querySelector('#encode-value').value;
+      try {
+        document.querySelector('#encoded-output').textContent = decodeURIComponent(value);
+        document.querySelector('#encode-status').textContent = 'تم فك الترميز مرة واحدة. لا تفك ترميز السلسلة نفسها مرارًا.';
+      } catch {
+        document.querySelector('#encoded-output').textContent = '';
+        document.querySelector('#encode-status').textContent = 'تعذّر فك الترميز: تحقق من صيغ %HH وصحة UTF-8.';
+      }
+    });
+
+    document.querySelector('#build-button').addEventListener('click', () => {
+      const scheme = document.querySelector('#build-scheme').value.trim();
+      const authority = document.querySelector('#build-authority').value.trim();
+      const path = document.querySelector('#build-path').value;
+      const query = document.querySelector('#build-query').value;
+      const fragment = document.querySelector('#build-fragment').value;
+      const output = document.querySelector('#built-uri');
+      const status = document.querySelector('#build-status');
+      if (!/^[A-Za-z][A-Za-z0-9+.-]*$/.test(scheme)) {
+        output.textContent = '';
+        status.textContent = 'أدخل scheme يبدأ بحرف ويتبعه أحرف أو أرقام أو + أو - أو .';
+        return;
+      }
+      if (authority && path && !path.startsWith('/')) {
+        output.textContent = '';
+        status.textContent = 'إذا وُجدت authority، يجب أن يكون path فارغًا أو يبدأ بشرطة مائلة /. ';
+        return;
+      }
+      const assembled = `${scheme}:${authority ? `//${authority}` : ''}${path}${query !== '' ? `?${query}` : ''}${fragment !== '' ? `#${fragment}` : ''}`;
+      output.textContent = assembled;
+      status.textContent = 'تم تركيب السلسلة كما أدخلتها. تحقّق من الترميز وقواعد الـ scheme قبل استخدامها.';
+    });
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

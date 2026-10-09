@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="أرسل طلب مشروع واحفظه عبر خادمك المحلي، ثم راجع أحدث الطلبات المحفوظة.">
+  <title>طلبات المشاريع | Practical Tools</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .requests-control:focus-visible,
+    .requests-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .request-message:empty {
+      display: none;
+    }
+
+    .request-message.success {
+      color: var(--color-primary);
+    }
+
+    .request-message.error {
+      color: var(--color-icon);
+    }
+
+    .request-row+.request-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .honeypot {
+      position: absolute;
+      inset-inline-start: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/contact">نموذج التواصل</a>
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">طلبات محفوظة عبر الخادم المحلي</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">خلّينا نسمعو لفكرتك.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">أرسل تفاصيل مشروعك إلى مسار الخادم المحلي، ثم راجع أحدث الطلبات المحفوظة. لا تدخل كلمات مرور أو مفاتيح API أو معلومات حساسة.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.82fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="form-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">طلب مشروع</p>
+          <h2 id="form-heading" class="mb-5 text-2xl font-black">شاركنا فكرتك</h2>
+          <form id="request-form" novalidate class="space-y-4">
+            <div class="honeypot" aria-hidden="true">
+              <label for="website">اترك هذا الحقل فارغًا</label>
+              <input id="website" name="website" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="name" class="mb-2 block text-sm font-bold">الاسم <span class="text-[var(--color-icon)]">*</span></label>
+                <input id="name" name="name" required maxlength="120" autocomplete="name" placeholder="مثال: أحمد العلوي" class="requests-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+              </div>
+              <div>
+                <label for="phone" class="mb-2 block text-sm font-bold">الهاتف / واتساب</label>
+                <input id="phone" name="phone" type="tel" maxlength="40" autocomplete="tel" inputmode="tel" placeholder="06xxxxxxxx" class="requests-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="email" class="mb-2 block text-sm font-bold">البريد الإلكتروني</label>
+                <input id="email" name="email" type="email" maxlength="160" autocomplete="email" inputmode="email" placeholder="name@example.com" class="requests-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+              </div>
+              <div>
+                <label for="project-type" class="mb-2 block text-sm font-bold">نوع المشروع</label>
+                <select id="project-type" name="projectType" class="requests-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                  <option value="">اختار نوع المشروع...</option>
+                  <option>موقع تعريفي</option>
+                  <option>موقع أعمال</option>
+                  <option>متجر إلكتروني</option>
+                  <option>تطبيق ويب</option>
+                  <option>شي حاجة أخرى</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="message" class="mb-2 block text-sm font-bold">تفاصيل المشروع <span class="text-[var(--color-icon)]">*</span></label>
+              <textarea id="message" name="message" required maxlength="4000" rows="5" placeholder="شرح لينا شنو بغيتي والهدف من المشروع..." class="requests-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]"></textarea>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <button id="submit-request" type="submit" class="requests-button btn-primary px-5 py-3">حفظ الطلب محليًا</button>
+              <span class="text-xs text-[var(--color-muted)]">الحقول التي تحمل * إلزامية.</span>
+            </div>
+            <p id="form-status" class="request-message mb-0 text-sm font-bold" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="feature-card overflow-hidden" aria-labelledby="saved-heading">
+          <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">استجابة الخادم المحلي</p>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 id="saved-heading" class="mb-1 text-2xl font-black">أحدث الطلبات</h2>
+                <p id="list-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">جارٍ تحميل الطلبات...</p>
+              </div>
+              <button id="refresh-list" type="button" class="requests-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold text-[var(--color-text)]">تحديث</button>
+            </div>
+          </div>
+          <div id="request-list" class="divide-y divide-[var(--color-border)] p-5 sm:p-6" aria-live="polite">
+            <p class="mb-0 text-sm text-[var(--color-muted)]">جارٍ التحميل...</p>
+          </div>
+          <p class="mb-0 border-t border-[var(--color-border)] px-5 py-4 text-xs leading-5 text-[var(--color-muted)]">تُجلب الطلبات من <code>/api/leads</code>. تأكد أن الخادم المحلي الذي أعددته يعمل وأن واجهته وخادمه على الأصل نفسه.</p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">نموذج طلب مشروع مرتبط بخادم محلي.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const form = document.querySelector('#request-form');
+    const formStatus = document.querySelector('#form-status');
+    const requestList = document.querySelector('#request-list');
+    const listStatus = document.querySelector('#list-status');
+    const submitButton = document.querySelector('#submit-request');
+    const endpoint = '/api/leads';
+
+    function setFormStatus(message, kind = '') {
+      formStatus.textContent = message;
+      formStatus.className = `request-message mb-0 text-sm font-bold ${kind}`.trim();
+    }
+
+    function isValidEmail(value) {
+      return !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function isValidPhone(value) {
+      return !value || /^[+0-9\s()\-]{8,}$/.test(value);
+    }
+
+    function safeText(tag, className, value) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      element.textContent = value;
+      return element;
+    }
+
+    function renderLeads(leads) {
+      requestList.replaceChildren();
+      const recentLeads = Array.isArray(leads) ? leads.slice(0, 10) : [];
+
+      if (!recentLeads.length) {
+        requestList.append(safeText('p', 'mb-0 text-sm text-[var(--color-muted)]', 'لا توجد طلبات محفوظة بعد.'));
+        listStatus.textContent = 'لا توجد طلبات محفوظة.';
+        return;
+      }
+
+      recentLeads.forEach((lead) => {
+        const article = document.createElement('article');
+        article.className = 'request-row py-4 first:pt-0 last:pb-0';
+
+        const heading = document.createElement('div');
+        heading.className = 'mb-2 flex flex-wrap items-center justify-between gap-2';
+        heading.append(
+          safeText('h3', 'mb-0 break-words text-base font-extrabold', lead.name || 'بدون اسم'),
+          safeText('span', 'rounded-full bg-[var(--color-soft)] px-3 py-1 text-xs font-bold text-[var(--color-primary)]', lead.status || 'جديد')
+        );
+
+        const dateValue = lead.createdAt ? new Date(lead.createdAt) : null;
+        const dateLabel = dateValue && !Number.isNaN(dateValue.getTime()) ?
+          new Intl.DateTimeFormat('ar-MA', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          }).format(dateValue) :
+          'تاريخ غير متاح';
+        const metadata = safeText('p', 'mb-2 text-xs leading-5 text-[var(--color-muted)]', `${lead.projectType || 'مشروع غير محدد'} · ${dateLabel}`);
+        const details = safeText('p', 'mb-0 whitespace-pre-wrap break-words text-sm leading-7 text-[var(--color-text)]', lead.message || 'لا توجد تفاصيل.');
+        article.append(heading, metadata, details);
+        requestList.append(article);
+      });
+
+      listStatus.textContent = `يعرض ${recentLeads.length} من ${leads.length} طلبات محفوظة.`;
+    }
+
+    async function loadLeads() {
+      listStatus.textContent = 'جارٍ تحميل الطلبات...';
+      requestList.replaceChildren(safeText('p', 'mb-0 text-sm text-[var(--color-muted)]', 'جارٍ التحميل...'));
+
+      try {
+        const response = await fetch(endpoint, {
+          headers: {
+            Accept: 'application/json'
+          },
+          cache: 'no-store'
+        });
+        const data = await response.json();
+        if (!response.ok || data.ok === false || !Array.isArray(data.leads)) {
+          throw new Error(data.error || 'استجابة الخادم غير متوقعة.');
+        }
+        renderLeads(data.leads);
+      } catch {
+        requestList.replaceChildren(safeText('p', 'mb-0 text-sm leading-6 text-[var(--color-muted)]', 'تعذر تحميل الطلبات. تأكد من تشغيل الخادم المحلي وإتاحة المسار /api/leads.'));
+        listStatus.textContent = 'تعذر الاتصال بالخادم المحلي.';
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setFormStatus('');
+
+      const fields = {
+        name: document.querySelector('#name'),
+        phone: document.querySelector('#phone'),
+        email: document.querySelector('#email'),
+        projectType: document.querySelector('#project-type'),
+        message: document.querySelector('#message'),
+        website: document.querySelector('#website')
+      };
+      const values = Object.fromEntries(
+        Object.entries(fields).map(([key, field]) => [key, field.value.trim()])
+      );
+
+      if (values.website) {
+        setFormStatus('تعذر حفظ الطلب. راجع المعلومات وحاول مرة أخرى.', 'error');
+        return;
+      }
+
+      const invalid = {
+        name: !values.name,
+        message: !values.message,
+        phone: !isValidPhone(values.phone),
+        email: !isValidEmail(values.email)
+      };
+      Object.entries(invalid).forEach(([key, state]) => {
+        fields[key].setAttribute('aria-invalid', String(state));
+      });
+
+      if (invalid.name || invalid.message) {
+        setFormStatus('عمّر الاسم وتفاصيل المشروع على الأقل.', 'error');
+        (invalid.name ? fields.name : fields.message).focus();
+        return;
+      }
+      if (invalid.phone) {
+        setFormStatus('رقم الهاتف ماشي صحيح.', 'error');
+        fields.phone.focus();
+        return;
+      }
+      if (invalid.email) {
+        setFormStatus('الإيميل ماشي صحيح.', 'error');
+        fields.email.focus();
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = 'جاري الحفظ...';
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          body: JSON.stringify(values),
+          signal: controller.signal
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || 'تعذّر حفظ الطلب.');
+        }
+
+        setFormStatus('✅ تخزّن الطلب بنجاح على الجهاز.', 'success');
+        form.reset();
+        Object.values(fields).forEach((field) => field.removeAttribute('aria-invalid'));
+        await loadLeads();
+      } catch (error) {
+        setFormStatus(
+          error.name === 'AbortError' ?
+          'انتهى وقت الاتصال. عاود المحاولة من فضلك.' :
+          `❌ ${error.message || 'وقع مشكل فالحفظ. عاود جرب.'}`,
+          'error'
+        );
+      } finally {
+        window.clearTimeout(timeoutId);
+        submitButton.disabled = false;
+        submitButton.textContent = 'حفظ الطلب محليًا';
+      }
+    });
+
+    document.querySelector('#refresh-list').addEventListener('click', loadLeads);
+    loadLeads();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Plan an AgentMail inbox integration and generate local Node.js, Python, or cURL examples without exposing API credentials in your browser.">
+  <title>AgentMail Inbox Planner | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .planner-control:focus-visible,
+    .planner-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .code-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/browserbase-studio">Browserbase Studio</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/tools">Tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Communications · Local code generator</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Plan an AgentMail inbox integration.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Choose a common inbox task and generate a Node.js, Python, or cURL starter. This page only prepares code in your browser; it never registers an inbox, sends email, or asks for an API key.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section class="feature-card p-6 sm:p-8" aria-labelledby="setup-heading">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Configure a starter</p>
+          <h2 id="setup-heading" class="mb-5 text-2xl font-black">What would you like the inbox to do?</h2>
+          <div class="space-y-5">
+            <div>
+              <label for="task" class="mb-2 block text-sm font-bold">Workflow</label>
+              <select id="task" class="planner-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                <option value="signup">Register an agent inbox</option>
+                <option value="send">Send an email</option>
+                <option value="list">List inbox messages</option>
+                <option value="verify">Verify an account with an OTP</option>
+                <option value="status">Check organization status</option>
+              </select>
+            </div>
+            <div>
+              <label for="runtime" class="mb-2 block text-sm font-bold">Code format</label>
+              <select id="runtime" class="planner-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                <option value="node">Node.js · fetch</option>
+                <option value="python">Python · requests</option>
+                <option value="curl">cURL</option>
+              </select>
+            </div>
+            <div id="signup-fields" class="space-y-4">
+              <label for="human-email" class="block text-sm font-bold">Human's email for signup
+                <input id="human-email" type="email" autocomplete="email" class="planner-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="person@example.com">
+              </label>
+              <label for="username" class="block text-sm font-bold">Preferred inbox username
+                <input id="username" maxlength="64" autocomplete="off" class="planner-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="my-assistant">
+              </label>
+              <p class="mb-0 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-5 text-[var(--color-muted)]">Signup returns an API key once. Save it securely in local environment configuration. Re-registering with the same human email rotates the key, so the previous key stops working.</p>
+            </div>
+            <div id="inbox-fields" class="space-y-4" hidden>
+              <label for="inbox-id" class="block text-sm font-bold">Inbox ID
+                <input id="inbox-id" autocomplete="off" class="planner-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="agent-name@agentmail.to">
+              </label>
+              <label id="recipient-field" for="recipient" class="block text-sm font-bold">Recipient email
+                <input id="recipient" type="email" autocomplete="email" class="planner-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="recipient@example.com">
+              </label>
+              <label id="otp-field" for="otp-code" class="block text-sm font-bold" hidden>OTP code
+                <input id="otp-code" autocomplete="one-time-code" class="planner-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="Enter the code provided by your human">
+              </label>
+            </div>
+            <button id="generate" type="button" class="planner-button btn-primary px-5 py-3">Generate starter <span aria-hidden="true">→</span></button>
+          </div>
+        </section>
+
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="code-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Generated in this browser</p>
+              <h2 id="code-heading" class="mb-2 text-2xl font-black">Local starter</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">No request is made until you run the code yourself in a trusted local or server environment.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <pre id="code-output" class="code-output min-h-80 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite"></pre>
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button id="copy-code" type="button" class="planner-button btn-primary px-4 py-3 text-sm">Copy code</button>
+                <button id="download-code" type="button" class="planner-button rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">Download</button>
+              </div>
+              <p id="code-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Starter is ready. No email or API request has been sent.</p>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="rules-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Important account limits</p>
+            <h2 id="rules-heading" class="mb-4 text-2xl font-black">Understand restricted mode</h2>
+            <ul class="space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">Before the human claims the account, the provided instructions say the inbox can only email that human, inbound mail is unavailable, and sending is limited.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">Only use the AgentMail API key with the AgentMail API. Keep it out of browser code, public repositories, chat, and third-party endpoints.</li>
+              <li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">Do not send unsolicited bulk mail, spam, deceptive messages, or messages impersonating someone else.</li>
+            </ul>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <a href="https://docs.agentmail.to" target="_blank" rel="noopener noreferrer" class="font-bold text-[var(--color-primary)]">AgentMail documentation ↗</a>
+              <a href="https://console.agentmail.to" target="_blank" rel="noopener noreferrer" class="font-bold text-[var(--color-primary)]">AgentMail console ↗</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">AgentMail setup and code starter planner.</p>
+      <a href="/browserbase-studio" class="footer-link font-semibold">Browserbase Studio</a>
+    </div>
+  </footer>
+
+  <script>
+    const taskInput = document.querySelector('#task');
+    const runtimeInput = document.querySelector('#runtime');
+    const codeOutput = document.querySelector('#code-output');
+    const statusOutput = document.querySelector('#code-status');
+
+    function jsString(value) {
+      return JSON.stringify(value);
+    }
+
+    function pyString(value) {
+      return `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r/g, '\\r').replace(/\n/g, '\\n')}'`;
+    }
+
+    function workflowDetails() {
+      const task = taskInput.value;
+      const inboxId = document.querySelector('#inbox-id').value.trim() || 'INBOX_ID';
+      const recipient = document.querySelector('#recipient').value.trim() || 'HUMAN_EMAIL';
+      const humanEmail = document.querySelector('#human-email').value.trim() || 'HUMAN_EMAIL';
+      const username = document.querySelector('#username').value.trim() || 'preferred-username';
+      const otp = document.querySelector('#otp-code').value.trim() || 'OTP_CODE';
+
+      if (task === 'signup') {
+        return {
+          path: '/v0/agent/sign-up',
+          method: 'POST',
+          body: {
+            human_email: humanEmail,
+            username,
+            referrer: 'agent.email'
+          },
+          env: 'No API key is needed for initial signup. Save the returned API key securely.'
+        };
+      }
+      if (task === 'send') {
+        return {
+          path: `/v0/inboxes/${encodeURIComponent(inboxId)}/messages/send`,
+          method: 'POST',
+          body: {
+            to: [recipient],
+            subject: 'Hello from my agent',
+            text: 'Hello! This is a message from my AgentMail inbox.',
+            html: '<p>Hello! This is a message from my AgentMail inbox.</p>'
+          },
+          env: 'Sending requires a verified/claimed account for recipients beyond the registered human. Review the recipient before running.'
+        };
+      }
+      if (task === 'list') {
+        return {
+          path: `/v0/inboxes/${encodeURIComponent(inboxId)}/messages`,
+          method: 'GET',
+          body: null,
+          env: 'Requires AGENTMAIL_API_KEY and an inbox you are authorized to access.'
+        };
+      }
+      if (task === 'verify') {
+        return {
+          path: '/v0/agent/verify',
+          method: 'POST',
+          body: {
+            otp_code: otp
+          },
+          env: 'Only enter an OTP explicitly provided by your human. Do not guess or intercept verification codes.'
+        };
+      }
+      return {
+        path: '/v0/organizations',
+        method: 'GET',
+        body: null,
+        env: 'Requires AGENTMAIL_API_KEY. This request checks the current organization and account limits.'
+      };
+    }
+
+    function buildNodeCode(details) {
+      const bodyLine = details.body ? `\n  body: JSON.stringify(${JSON.stringify(details.body, null, 2)}),` : '';
+      const successHandling = taskInput.value === 'signup' ? `const { writeFile } = await import("node:fs/promises");
+await writeFile(
+  "agentmail-credentials.json",
+  JSON.stringify({ api_key: result.api_key, inbox_id: result.inbox_id }, null, 2),
+  { mode: 0o600, flag: "wx" }
+);
+console.log("Signup complete. Credentials saved locally; move them to a secret manager and never commit this file.");` : 'console.log(result);';
+      return `const apiKey = process.env.AGENTMAIL_API_KEY;
+if (${taskInput.value === 'signup' ? 'false' : '!apiKey'}) {
+  throw new Error("Set AGENTMAIL_API_KEY in your trusted local environment.");
+}
+
+const response = await fetch("https://api.agentmail.to${details.path}", {
+  method: "${details.method}",
+  headers: {
+    "Content-Type": "application/json",
+    ...(apiKey ? { Authorization: \`Bearer \${apiKey}\` } : {}),
+  },${bodyLine}
+});
+
+const result = await response.json();
+if (!response.ok) {
+  throw new Error(\`AgentMail request failed (HTTP \${response.status}): \${JSON.stringify(result)}\`);
+}
+
+${successHandling}`;
+    }
+
+    function buildPythonCode(details) {
+      const bodyLine = details.body ? `\n    json=json.loads(${pyString(JSON.stringify(details.body))}),` : '';
+      const successHandling = taskInput.value === 'signup' ? `import os
+flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+fd = os.open("agentmail-credentials.json", flags, 0o600)
+with os.fdopen(fd, "w", encoding="utf-8") as credentials_file:
+    json.dump({"api_key": result["api_key"], "inbox_id": result["inbox_id"]}, credentials_file, indent=2)
+print("Signup complete. Credentials saved locally; move them to a secret manager and never commit this file.")` : 'print(json.dumps(result, indent=2))';
+      return `import json
+import os
+import requests
+
+api_key = os.environ.get("AGENTMAIL_API_KEY")
+${taskInput.value === 'signup' ? '' : 'if not api_key:\n    raise RuntimeError("Set AGENTMAIL_API_KEY in your trusted local environment.")\n'}
+response = requests.request(
+    "${details.method}",
+    "https://api.agentmail.to${details.path}",
+    headers={
+        "Content-Type": "application/json",
+        **({"Authorization": f"Bearer {api_key}"} if api_key else {}),
+    },${bodyLine}
+)
+response.raise_for_status()
+result = response.json()
+
+${successHandling}`;
+    }
+
+    function buildCurlCode(details) {
+      const signup = taskInput.value === 'signup';
+      const authHeader = signup ? '' : ' \\\n  --header "Authorization: Bearer $AGENTMAIL_API_KEY"';
+      const bodyArg = details.body ? ` \\\n  --data '${JSON.stringify(details.body).replace(/'/g, "'\\''")}'` : '';
+      const responseFile = signup ? ' \\\n  --output agentmail-signup-response.json \\\n  --write-out "Signup response saved locally. Protect agentmail-signup-response.json and never commit it.\\n"' : '';
+      return `${signup ? 'umask 077\n' : ''}curl --request ${details.method} \\\n  --url 'https://api.agentmail.to${details.path}' \\\n  --header 'Content-Type: application/json'${authHeader}${bodyArg}${responseFile}`;
+    }
+
+    function updateCode() {
+      const details = workflowDetails();
+      if (runtimeInput.value === 'python') codeOutput.textContent = buildPythonCode(details);
+      else if (runtimeInput.value === 'curl') codeOutput.textContent = buildCurlCode(details);
+      else codeOutput.textContent = buildNodeCode(details);
+      statusOutput.textContent = `${details.env} This page generated code locally; it did not call AgentMail.`;
+      document.querySelector('#signup-fields').hidden = taskInput.value !== 'signup';
+      document.querySelector('#inbox-fields').hidden = taskInput.value === 'signup' || taskInput.value === 'status';
+      document.querySelector('#recipient-field').hidden = taskInput.value !== 'send';
+      document.querySelector('#otp-field').hidden = taskInput.value !== 'verify';
+    }
+
+    taskInput.addEventListener('change', updateCode);
+    runtimeInput.addEventListener('change', updateCode);
+    document.querySelectorAll('#signup-fields input, #inbox-fields input').forEach((input) => {
+      input.addEventListener('input', updateCode);
+    });
+    document.querySelector('#generate').addEventListener('click', updateCode);
+
+    document.querySelector('#copy-code').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(codeOutput.textContent);
+        statusOutput.textContent = 'Starter copied. Review all values and run it only in a trusted environment.';
+      } catch {
+        statusOutput.textContent = 'Clipboard unavailable. Select the code and copy it manually.';
+      }
+    });
+
+    document.querySelector('#download-code').addEventListener('click', () => {
+      const extension = runtimeInput.value === 'python' ? 'py' : runtimeInput.value === 'curl' ? 'sh' : 'mjs';
+      const file = new Blob([codeOutput.textContent], {
+        type: 'text/plain;charset=utf-8'
+      });
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `agentmail-${taskInput.value}.${extension}`;
+      link.click();
+      URL.revokeObjectURL(url);
+      statusOutput.textContent = 'Starter downloaded locally. No API request or email was sent.';
+    });
+
+    updateCode();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

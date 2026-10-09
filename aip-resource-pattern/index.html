@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Professional reference and interactive playground for the Rust aip ResourcePattern API.">
+  <title>ResourcePattern · Rust AIP Reference | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .docs-link:focus-visible,
+    .playground-control:focus-visible,
+    .copy-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .code-block {
+      direction: ltr;
+      overflow: auto;
+      overflow-wrap: anywhere;
+      white-space: pre;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .result-output {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .api-row+.api-row {
+      border-top: 1px solid var(--color-border);
+    }
+
+    .status-success {
+      color: var(--color-primary);
+    }
+
+    .status-error {
+      color: var(--color-muted);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-14 lg:px-8 lg:py-20">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          <span class="h-2 w-2 rounded-full bg-[var(--color-primary)]"></span>
+          Rust crate reference · AIP-122 · AIP-159
+        </p>
+        <h1 class="mb-5 max-w-5xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">ResourcePattern, explained and testable.</h1>
+        <p class="mb-8 max-w-3xl text-lg leading-8 text-[var(--color-muted)]">A practical guide to compiling, scanning, validating, and formatting Google-style resource names in Rust—without a protobuf runtime dependency.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="#playground" class="btn-primary px-5 py-3">Open playground <span aria-hidden="true">↓</span></a>
+          <a href="#api" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Browse API reference</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-10 lg:px-8 lg:py-14">
+      <div class="mx-auto grid max-w-7xl items-start gap-8 lg:grid-cols-[250px_minmax(0,1fr)]">
+        <aside class="feature-card h-fit p-5 lg:sticky lg:top-6">
+          <p class="mb-4 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--color-muted)]">On this page</p>
+          <nav class="space-y-1 text-sm font-semibold" aria-label="Page sections">
+            <a class="docs-link block rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#overview">Overview</a>
+            <a class="docs-link block rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#quick-start">Quick start</a>
+            <a class="docs-link block rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#playground">Playground</a>
+            <a class="docs-link block rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#api">API reference</a>
+            <a class="docs-link block rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#generated">Generated code</a>
+            <a class="docs-link block rounded-[calc(var(--radius)*0.5)] px-3 py-2 hover:bg-[var(--color-bg)]" href="#testing">Testing checklist</a>
+          </nav>
+          <a href="/tools" class="mt-5 block border-t border-[var(--color-border)] pt-4 text-sm font-bold text-[var(--color-primary)]">Back to tools <span aria-hidden="true">→</span></a>
+        </aside>
+
+        <div class="min-w-0 space-y-6">
+          <section id="overview" class="feature-card p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">The design</p>
+            <h2 class="mb-4 text-2xl font-black">Pure resource-name manipulation</h2>
+            <p class="mb-4 leading-7 text-[var(--color-muted)]"><code>aip-rs</code> publishes the crate under that package name, while its Rust library name is <code>aip</code>. The crate focuses on text-level resource patterns. Protobuf traversal belongs to generated code, keeping this layer dependency-free.</p>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Pattern</p>
+                <p class="mb-0 font-mono text-sm font-bold">publishers/{publisher}</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Capture</p>
+                <p class="mb-0 font-mono text-sm font-bold">publisher → p1</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Format</p>
+                <p class="mb-0 font-mono text-sm font-bold">publishers/p1</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="quick-start" class="feature-card overflow-hidden">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)] sm:p-8">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Quick start</p>
+              <h2 class="mb-0 text-2xl font-black">Compile once, reuse safely</h2>
+            </div>
+            <div class="p-6 sm:p-8">
+              <pre id="quick-code" class="code-block rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-7 text-[var(--color-text)]"><code>use std::sync::LazyLock;
+use aip::ResourcePattern;
+
+static BOOK_NAME: LazyLock&lt;ResourcePattern&gt; = LazyLock::new(|| {
+    "publishers/{publisher}/books/{book}"
+        .parse()
+        .expect("book name pattern")
+});
+
+let ids = BOOK_NAME.scan("publishers/p1/books/b1")?;
+assert_eq!(ids, ["p1", "b1"]);
+assert_eq!(BOOK_NAME.format(&amp;ids), "publishers/p1/books/b1");</code></pre>
+              <button type="button" class="copy-button mt-4 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-bold" data-copy-target="quick-code">Copy Rust example</button>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">The example is illustrative and does not run in this page.</p>
+            </div>
+          </section>
+
+          <section id="playground" class="feature-card overflow-hidden" aria-labelledby="playground-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)] sm:p-8">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Interactive local simulator</p>
+              <h2 id="playground-heading" class="mb-2 text-2xl font-black">Try a resource pattern</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">This playground models the documented segment behavior in your browser. It does not compile Rust or call a service.</p>
+            </div>
+            <div class="grid gap-6 p-6 sm:p-8 lg:grid-cols-2">
+              <div class="space-y-4">
+                <label for="pattern-input" class="block text-sm font-bold">Pattern
+                  <input id="pattern-input" value="publishers/{publisher}/books/{book}" class="playground-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-mono text-sm" autocomplete="off">
+                </label>
+                <label for="name-input" class="block text-sm font-bold">Resource name to scan
+                  <input id="name-input" value="publishers/p1/books/b1" class="playground-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-mono text-sm" autocomplete="off">
+                </label>
+                <label for="values-input" class="block text-sm font-bold">Values to format <span class="font-normal text-[var(--color-muted)]">(comma separated)</span>
+                  <input id="values-input" value="p1, b1" class="playground-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-mono text-sm" autocomplete="off">
+                </label>
+                <label for="domain-input" class="block text-sm font-bold">Optional full-name domain
+                  <input id="domain-input" placeholder="library.example.com" class="playground-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-mono text-sm" autocomplete="off">
+                </label>
+                <button id="run-playground" type="button" class="btn-primary px-5 py-3">Run local checks <span aria-hidden="true">→</span></button>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5">
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-primary)]">Output</p>
+                <p id="playground-status" class="mb-4 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">Ready for a pattern.</p>
+                <pre id="playground-output" class="result-output min-h-64 text-sm leading-7 text-[var(--color-text)]" aria-live="polite">Run the checks to see captured variables, validation, and formatted output.</pre>
+              </div>
+            </div>
+          </section>
+
+          <section id="api" class="feature-card overflow-hidden" aria-labelledby="api-heading">
+            <div class="border-b border-[var(--color-border)] p-6 sm:p-8">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Methods</p>
+              <h2 id="api-heading" class="mb-2 text-2xl font-black">API reference</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Use allocating methods for ordinary application code and fixed-size methods in generated code where the pattern arity is known.</p>
+            </div>
+            <div class="text-sm">
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">compile(pattern)</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Compiles the pattern and returns <code>CompileError</code> for invalid syntax or naming.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">as_str()</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Returns the original pattern string.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">variables()</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Returns the number of variable segments.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">variable_names()</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Iterates over variable names in pattern order.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">scan(name)</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Matches a relative resource name and returns borrowed variable values.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">scan_into(name, values)</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Allocation-free scan into a caller-provided slice. Panics on an arity mismatch.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">scan_full(name, domain)</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Matches <code>//domain/</code> followed by the relative pattern.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">format(values)</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Substitutes values in pattern order. Call <code>validate</code> when values are untrusted.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">validate(values)</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Rejects empty values and values containing the <code>/</code> separator.</p>
+              </div>
+              <div class="api-row grid gap-2 p-5 sm:grid-cols-[220px_minmax(0,1fr)]"><code class="font-bold text-[var(--color-primary)]">invalid_value(...)</code>
+                <p class="mb-0 leading-6 text-[var(--color-muted)]">Wraps a typed conversion failure as a pattern-aware <code>ParseError</code>.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="generated" class="feature-card p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Generated code boundary</p>
+            <h2 class="mb-4 text-2xl font-black">Why generated names still matter</h2>
+            <p class="mb-4 leading-7 text-[var(--color-muted)]">A generated API can expose a concrete <code>BookName</code> rather than making callers pass arbitrary pattern strings. The generated type owns domain semantics; <code>ResourcePattern</code> owns the reusable segment walking.</p>
+            <pre class="code-block rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-7 text-[var(--color-text)]"><code>use aip::ResourcePattern;
+use std::sync::LazyLock;
+
+static BOOK_PATTERN: LazyLock&lt;ResourcePattern&gt; = LazyLock::new(|| {
+    "publishers/{publisher}/books/{book}"
+        .parse()
+        .expect("generated pattern is valid")
+});
+
+fn parse_book(name: &amp;str) -&gt; Result&lt;(&amp;str, &amp;str), aip::resource::ParseError&gt; {
+    let values = BOOK_PATTERN.scan(name)?;
+    match values.as_slice() {
+        [publisher, book] =&gt; Ok((*publisher, *book)),
+        _ =&gt; unreachable!("generated pattern arity must be two"),
+    }
+}</code></pre>
+          </section>
+
+          <section id="testing" class="feature-card p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Quality checklist</p>
+            <h2 class="mb-4 text-2xl font-black">Tests worth keeping</h2>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 font-extrabold">Compilation</p>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Valid literals, valid variables, duplicate variables, invalid casing, and unsupported path-template syntax.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 font-extrabold">Matching</p>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Exact literals, missing segments, extra segments, and empty variable values.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 font-extrabold">Allocation-free paths</p>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Successful <code>scan_into</code>, untouched values after failure, and deliberate arity panic tests.</p>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 font-extrabold">Typed IDs</p>
+                <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Successful parsing and <code>invalid_value</code> errors for UUIDs, integers, or other declared types.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Rust AIP resource-name reference and playground.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const patternInput = document.querySelector('#pattern-input');
+    const nameInput = document.querySelector('#name-input');
+    const valuesInput = document.querySelector('#values-input');
+    const domainInput = document.querySelector('#domain-input');
+    const playgroundStatus = document.querySelector('#playground-status');
+    const playgroundOutput = document.querySelector('#playground-output');
+
+    function parsePattern(source) {
+      const segments = source.split('/');
+      if (!source || segments.some((segment) => segment === '')) throw new Error('Pattern segments cannot be empty.');
+      const variables = [];
+      const compiled = segments.map((segment) => {
+        const variable = segment.match(/^\{([a-z][a-z0-9_]*?)\}$/);
+        if (variable) {
+          if (variables.includes(variable[1])) throw new Error(`Variable “${variable[1]}” must be unique.`);
+          variables.push(variable[1]);
+          return {
+            variable: variable[1]
+          };
+        }
+        if (!/^[a-z][a-zA-Z0-9]*$/.test(segment)) throw new Error(`Invalid literal segment: ${segment}`);
+        return {
+          literal: segment
+        };
+      });
+      return {
+        segments: compiled,
+        variables
+      };
+    }
+
+    function scan(compiled, name) {
+      const actual = name.split('/');
+      if (actual.length !== compiled.segments.length) throw new Error('Resource name has the wrong number of segments.');
+      const values = [];
+      compiled.segments.forEach((segment, index) => {
+        const value = actual[index];
+        if (segment.literal && segment.literal !== value) throw new Error(`Literal segment “${segment.literal}” does not match “${value}”.`);
+        if (segment.variable && !value) throw new Error(`Variable “${segment.variable}” cannot be empty.`);
+        if (segment.variable) values.push(value);
+      });
+      return values;
+    }
+
+    function format(compiled, values) {
+      if (values.length !== compiled.variables.length) throw new Error(`Expected ${compiled.variables.length} values, received ${values.length}.`);
+      let index = 0;
+      return compiled.segments.map((segment) => segment.literal || values[index++]).join('/');
+    }
+
+    function runPlayground() {
+      try {
+        const compiled = parsePattern(patternInput.value.trim());
+        const values = valuesInput.value.split(',').map((value) => value.trim());
+        const scanned = scan(compiled, nameInput.value.trim());
+        const formatted = format(compiled, values);
+        const validation = values.every((value) => value.length > 0 && !value.includes('/'));
+        const fullName = domainInput.value.trim() ? `//${domainInput.value.trim()}/${nameInput.value.trim()}` : null;
+        playgroundStatus.className = 'mb-4 text-sm font-semibold status-success';
+        playgroundStatus.textContent = 'Pattern compiled and local checks passed.';
+        playgroundOutput.textContent = JSON.stringify({
+          pattern: patternInput.value.trim(),
+          variableNames: compiled.variables,
+          scanned,
+          formatted,
+          valuesValid: validation,
+          fullName
+        }, null, 2);
+      } catch (error) {
+        playgroundStatus.className = 'mb-4 text-sm font-semibold status-error';
+        playgroundStatus.textContent = 'The local check found a mismatch.';
+        playgroundOutput.textContent = JSON.stringify({
+          error: error.message
+        }, null, 2);
+      }
+    }
+
+    document.querySelector('#run-playground').addEventListener('click', runPlayground);
+    [patternInput, nameInput, valuesInput, domainInput].forEach((input) => input.addEventListener('input', runPlayground));
+
+    document.querySelectorAll('.copy-button').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const target = document.querySelector(`#${button.dataset.copyTarget}`);
+        try {
+          await navigator.clipboard.writeText(target.textContent);
+          document.querySelector('#copy-status').textContent = 'Rust example copied to the clipboard.';
+        } catch {
+          document.querySelector('#copy-status').textContent = 'Clipboard unavailable. Select the code and copy it manually.';
+        }
+      });
+    });
+
+    runPlayground();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

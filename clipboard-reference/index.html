@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A browser-based clipboard utility for copying text, reading clipboard text with permission, paste testing, and synthetic clipboard events.">
+  <title>Clipboard Lab | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .clipboard-control:focus-visible,
+    .clipboard-target:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .mono-output {
+      direction: ltr;
+      text-align: left;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .event-log:empty::before {
+      color: var(--color-muted);
+      content: "No clipboard events recorded yet.";
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/html-reference">HTML lab</a>
+        <a href="/uri-reference">URI lab</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Browser utility · Clipboard</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Copy, paste, and test clipboard behavior.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Use the browser clipboard with your explicit action, test paste into an editable area, and inspect event data when the browser exposes it. Nothing is uploaded or stored by this tool.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="clipboard-text-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Clipboard text</p>
+            <h2 id="clipboard-text-heading" class="mb-4 text-2xl font-black">Copy or read text</h2>
+            <label for="clipboard-input" class="mb-2 block text-sm font-bold">Text to copy</label>
+            <textarea id="clipboard-input" rows="5" class="clipboard-control w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-[var(--color-text)]" placeholder="Type text to copy, or use Read clipboard to load text here."></textarea>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="copy-text" type="button" class="clipboard-control btn-primary px-5 py-3">Copy text</button>
+              <button id="read-text" type="button" class="clipboard-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Read clipboard text</button>
+            </div>
+            <p id="clipboard-status" class="mt-4 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Clipboard read/write may require a secure context, permission, and a user gesture.</p>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="paste-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Paste testing</p>
+            <h2 id="paste-heading" class="mb-3 text-2xl font-black">Paste into this editable area</h2>
+            <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">Click the area and paste normally with your keyboard or device menu. The page records event metadata but does not store clipboard data elsewhere.</p>
+            <div id="paste-target" class="clipboard-target min-h-36 rounded-[calc(var(--radius)*0.6)] border border-dashed border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-[var(--color-text)]" contenteditable="true" role="textbox" aria-label="Paste test area" aria-multiline="true">Click here, then paste.</div>
+            <div class="mt-4 flex flex-wrap gap-3">
+              <button id="clear-paste" type="button" class="clipboard-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">Clear test area</button>
+              <button id="simulate-paste" type="button" class="clipboard-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">Dispatch synthetic paste event</button>
+            </div>
+            <p id="paste-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">Synthetic events are untrusted and do not read the operating-system clipboard.</p>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card p-6" aria-labelledby="event-log-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Event inspector</p>
+            <h2 id="event-log-heading" class="mb-3 text-xl font-black">Clipboard event log</h2>
+            <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">Try copy, cut, or paste on the editable area or text field. Browsers may restrict or omit event data.</p>
+            <ol id="event-log" class="event-log max-h-96 space-y-2 overflow-auto text-sm" aria-live="polite"></ol>
+            <button id="clear-log" type="button" class="clipboard-control mt-4 rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-2 text-sm font-bold">Clear event log</button>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5">
+            <h2 class="mb-2 text-lg font-extrabold">Important security limits</h2>
+            <ul class="mb-0 list-disc space-y-2 pl-5 text-sm leading-6 text-[var(--color-muted)]">
+              <li>A script-created clipboard event is not a trusted OS paste and cannot grant clipboard access.</li>
+              <li>Reading the system clipboard requires a user action and browser permission; it may be unavailable.</li>
+              <li>Pasted text is treated as plain text in this tool. Do not paste secrets into a shared or untrusted device.</li>
+            </ul>
+          </section>
+          <section class="feature-card p-5">
+            <h2 class="mb-2 text-lg font-extrabold">Format check</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">The event log reports available MIME types and whether file items exist. It does not export, upload, or retain file contents.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">Clipboard actions run in your browser.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const clipboardInput = document.querySelector('#clipboard-input');
+    const clipboardStatus = document.querySelector('#clipboard-status');
+    const eventLog = document.querySelector('#event-log');
+    const pasteTarget = document.querySelector('#paste-target');
+    const pasteStatus = document.querySelector('#paste-status');
+
+    function addLog(eventName, event) {
+      const item = document.createElement('li');
+      item.className = 'rounded-[calc(var(--radius)*0.5)] bg-[var(--color-bg)] p-3';
+      const types = event.clipboardData ? [...event.clipboardData.types] : [];
+      const fileCount = event.clipboardData?.files?.length || 0;
+      const data = types.includes('text/plain') ? event.clipboardData.getData('text/plain') : '';
+      const preview = data ? ` · text: ${data.slice(0, 90)}` : '';
+      item.textContent = `${eventName} · trusted=${event.isTrusted} · types=${types.join(', ') || 'none'} · files=${fileCount}${preview}`;
+      eventLog.prepend(item);
+      while (eventLog.children.length > 20) eventLog.lastElementChild.remove();
+    }
+
+    ['copy', 'cut', 'paste'].forEach((eventName) => {
+      document.addEventListener(eventName, (event) => addLog(eventName, event), true);
+    });
+
+    document.querySelector('#copy-text').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(clipboardInput.value);
+        clipboardStatus.textContent = 'Text copied to the system clipboard.';
+      } catch (error) {
+        clipboardStatus.textContent = `Copy failed or permission was denied: ${error.message || 'clipboard unavailable'}`;
+      }
+    });
+
+    document.querySelector('#read-text').addEventListener('click', async () => {
+      try {
+        clipboardInput.value = await navigator.clipboard.readText();
+        clipboardStatus.textContent = 'Clipboard text read into the input. This action depends on browser permission.';
+      } catch (error) {
+        clipboardStatus.textContent = `Read failed or permission was denied: ${error.message || 'clipboard unavailable'}`;
+      }
+    });
+
+    document.querySelector('#clear-paste').addEventListener('click', () => {
+      pasteTarget.replaceChildren();
+      pasteStatus.textContent = 'Paste area cleared.';
+    });
+
+    pasteTarget.addEventListener('paste', (event) => {
+      pasteStatus.textContent = `Paste event received · trusted=${event.isTrusted}. The browser handles the normal insertion.`;
+    });
+
+    document.querySelector('#simulate-paste').addEventListener('click', () => {
+      const sample = clipboardInput.value || 'Synthetic paste test';
+      try {
+        const data = new DataTransfer();
+        data.setData('text/plain', sample);
+        const event = new ClipboardEvent('paste', {
+          bubbles: true,
+          cancelable: true,
+          clipboardData: data
+        });
+        pasteTarget.dispatchEvent(event);
+        pasteStatus.textContent = `Synthetic event dispatched · trusted=${event.isTrusted}. It did not insert text or access the OS clipboard.`;
+      } catch (error) {
+        pasteStatus.textContent = `Synthetic event unavailable in this browser: ${error.message || 'unsupported API'}`;
+      }
+    });
+
+    document.querySelector('#clear-log').addEventListener('click', () => {
+      eventLog.replaceChildren();
+    });
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A static HTML demonstration of the React Router custom link example, with active route matching for Home and About.">
+  <title>Custom Link Example | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .custom-route-link[aria-current="page"] {
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+      color: var(--color-primary);
+    }
+
+    .route-view[hidden] {
+      display: none;
+    }
+
+    .active-indicator {
+      color: var(--color-primary);
+      font-weight: 800;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">React Router concept · Custom Link</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Make the active link stand out.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">This is a static-site adaptation of the React Router v5 example. The active menu item gets a special style and a “&gt;” marker. Hash-based routes keep the demo working on static hosting.</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="https://httpscodesandboxiopsandboxreact-router-custom-link-wxd2j.oneapp.dev/" target="_blank" rel="noopener noreferrer" class="btn-primary px-5 py-3">Open the original live example <span aria-hidden="true">↗</span></a>
+          <a href="#/about" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Try the local version</a>
+        </div>
+        <div class="mt-4 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-soft)] p-4 text-sm leading-6 text-[var(--color-muted)]">
+          <strong class="text-[var(--color-text)]">About saving:</strong> this page can open the original example, but it cannot save content directly there. Direct storage would require the external service to provide an authenticated, documented API or an authorized integration. No data is sent automatically.
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside class="feature-card p-5">
+          <p class="mb-4 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-muted)]">Old-school menu links</p>
+          <nav id="custom-menu" class="space-y-2" aria-label="Example page navigation">
+            <a class="custom-route-link flex items-center gap-2 rounded-[calc(var(--radius)*0.6)] border border-transparent px-4 py-3 font-bold transition" href="#/" data-route="home" aria-current="page">
+              <span class="active-indicator w-4" aria-hidden="true">&gt;</span>
+              <span>Home</span>
+            </a>
+            <a class="custom-route-link flex items-center gap-2 rounded-[calc(var(--radius)*0.6)] border border-transparent px-4 py-3 font-bold transition" href="#/about" data-route="about">
+              <span class="active-indicator w-4" aria-hidden="true"></span>
+              <span>About</span>
+            </a>
+          </nav>
+          <div class="mt-5 border-t border-[var(--color-border)] pt-4">
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-muted)]">Current route</p>
+            <code id="current-route" class="break-all text-sm font-semibold text-[var(--color-primary)]">/</code>
+          </div>
+        </aside>
+
+        <section class="feature-card min-h-80 p-6 sm:p-8" aria-live="polite">
+          <article class="route-view" data-view="home">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Home route · exact match</p>
+            <h2 class="mb-3 text-2xl font-black">Home</h2>
+            <p class="mb-6 max-w-2xl leading-7 text-[var(--color-muted)]">The Home menu link uses exact matching. It is active only when the current route is the home route—not when you visit About.</p>
+            <div class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5">
+              <p class="mb-2 text-sm font-bold">Route shown in this static demo</p>
+              <code class="break-all text-sm">#/</code>
+            </div>
+          </article>
+
+          <article class="route-view" data-view="about" hidden>
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">About route · prefix match</p>
+            <h2 class="mb-3 text-2xl font-black">About</h2>
+            <p class="mb-6 max-w-2xl leading-7 text-[var(--color-muted)]">The About menu link matches this route and nested routes such as <code>#/about/team</code>. Try the nested route to see About remain active.</p>
+                    <div class="flex flex-wrap gap-3">
+          <a href="#/about/team" class="btn-primary px-5 py-3">Open nested About route <span aria-hidden="true">→</span></a>
+          <a href="#/about" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Back to About</a>
+          <a href="https://httpscodesandboxiopsandboxreact-router-custom-link-wxd2j.oneapp.dev/" target="_blank" rel="noopener noreferrer" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Open the linked live example <span aria-hidden="true">↗</span></a>
+        </div>
+          </article>
+
+          <article class="route-view" data-view="not-found" hidden>
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">No matching page</p>
+            <h2 class="mb-3 text-2xl font-black">Route not found</h2>
+            <p class="mb-5 leading-7 text-[var(--color-muted)]">This small example only defines Home and About routes.</p>
+            <a href="#/" class="btn-primary px-5 py-3">Return home <span aria-hidden="true">→</span></a>
+          </article>
+        </section>
+      </div>
+    </section>
+
+    <section class="px-5 pb-16 lg:px-8">
+      <div class="mx-auto max-w-7xl">
+        <article class="feature-card overflow-hidden">
+          <div class="p-6 sm:p-8">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Original React Router idea</p>
+            <h2 class="mb-4 text-2xl font-black">How the custom link decides it is active</h2>
+            <p class="mb-5 max-w-3xl leading-7 text-[var(--color-muted)]">In React Router v5, <code>useRouteMatch</code> checks the current route. When it matches, the component adds an active class and prints the marker before a normal <code>Link</code>.</p>
+            <pre class="overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-6 text-[var(--color-text)]"><code>function OldSchoolMenuLink({ label, to, activeOnlyWhenExact }) {
+  const match = useRouteMatch({
+    path: to,
+    exact: activeOnlyWhenExact
+  });
+
+  return (
+    &lt;div className={match ? "active" : ""}&gt;
+      {match &amp;&amp; "&gt; "}
+      &lt;Link to={to}&gt;{label}&lt;/Link&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+          </div>
+          <div class="border-t border-[var(--color-border)] bg-[var(--color-soft)] px-6 py-4 sm:px-8">
+            <p class="mb-0 text-sm leading-6 text-[var(--color-text)]"><strong>Static demo note:</strong> the original snippet uses React Router v5 and <code>BrowserRouter</code>. This page mirrors its matching and active-state behavior with HTML, CSS, and hash navigation; it does not run React.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <section class="px-5 pb-16 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <article class="feature-card overflow-hidden">
+        <div class="p-6 sm:p-8">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">React Router v5 reference</p>
+          <h2 class="mb-4 text-2xl font-black">How the original custom link works</h2>
+          <p class="mb-5 max-w-3xl leading-7 text-[var(--color-muted)]">In the original React example, <code>useRouteMatch</code> checks the current route. Home requests an exact match, while About also matches nested routes.</p>
+          <pre class="overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5 text-sm leading-6 text-[var(--color-text)]"><code>function OldSchoolMenuLink({ label, to, activeOnlyWhenExact }) {
+  const match = useRouteMatch({
+    path: to,
+    exact: activeOnlyWhenExact
+  });
+
+  return (
+    &lt;div className={match ? "active" : ""}&gt;
+      {match &amp;&amp; "&gt; "}
+      &lt;Link to={to}&gt;{label}&lt;/Link&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+        <div class="border-t border-[var(--color-border)] bg-[var(--color-soft)] px-6 py-4 sm:px-8">
+          <p class="mb-0 text-sm leading-6 text-[var(--color-text)]"><strong>This page is a static HTML adaptation.</strong> Its interactive example uses hash navigation so it works on static hosting; the code above is the React Router v5 pattern and needs a React application to run.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-[var(--color-muted)] sm:flex-row">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">A static demonstration of active route matching.</p>
+      <a href="/tools" class="footer-link font-semibold">Documentation topics</a>
+    </div>
+  </footer>
+
+  <script>
+    const menuLinks = [...document.querySelectorAll('.custom-route-link')];
+    const routeViews = [...document.querySelectorAll('.route-view')];
+    const currentRoute = document.querySelector('#current-route');
+
+    function getCurrentPath() {
+      const route = window.location.hash.replace(/^#/, '') || '/';
+      return route.startsWith('/') ? route : `/${route}`;
+    }
+
+    function routeState(path) {
+      if (path === '/') {
+        return {
+          route: 'home',
+          label: '/',
+          homeActive: true,
+          aboutActive: false
+        };
+      }
+
+      if (path === '/about' || path.startsWith('/about/')) {
+        return {
+          route: 'about',
+          label: path,
+          homeActive: false,
+          aboutActive: true
+        };
+      }
+
+      return {
+        route: 'not-found',
+        label: path,
+        homeActive: false,
+        aboutActive: false
+      };
+    }
+
+    function renderRoute() {
+      const state = routeState(getCurrentPath());
+
+      menuLinks.forEach((link) => {
+        const isActive = link.dataset.route === 'home' ? state.homeActive : state.aboutActive;
+        const marker = link.querySelector('.active-indicator');
+
+        if (isActive) {
+          link.setAttribute('aria-current', 'page');
+          marker.textContent = '>';
+        } else {
+          link.removeAttribute('aria-current');
+          marker.textContent = '';
+        }
+      });
+
+      routeViews.forEach((view) => {
+        view.hidden = view.dataset.view !== state.route;
+      });
+
+      currentRoute.textContent = state.label;
+    }
+
+    window.addEventListener('hashchange', renderRoute);
+
+    if (!window.location.hash) {
+      window.location.hash = '/';
+    } else {
+      renderRoute();
+    }
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

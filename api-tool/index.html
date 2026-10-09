@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Unofficial browser workbench for VirusTotal AI API requests. Independent and not affiliated with or endorsed by VirusTotal.">
+  <title>VirusTotal AI Workbench | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .response-output {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .tool-button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .tool-input:focus,
+    .tool-select:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/tools">Tool directory</a>
+        <a href="/graph">Graph explorer</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Interactive workbench</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">VirusTotal AI tools</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">Run report lookups, submit samples for analysis, recover submission receipts, and check analysis results. Requests go directly from this browser to the VirusTotal AI API.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.72fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="auth-heading">
+            <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Access</p>
+                <h2 id="auth-heading" class="mb-2 text-2xl font-black">Agent token</h2>
+                <p class="mb-0 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">Use an existing VTAI Agent Token or register one. The token stays in this page's memory and is never saved to browser storage. OAuth tokens are not REST credentials.</p>
+              </div>
+              <button id="clear-token" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold">Clear token</button>
+            </div>
+            <label for="api-token" class="mb-2 block text-sm font-bold">VTAI Agent Token</label>
+            <input id="api-token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste an existing token or register below" class="tool-input mb-4 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+            <div class="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+              <label class="sr-only" for="auth-mode">Authentication header</label>
+              <select id="auth-mode" class="tool-select rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                <option value="bearer">Authorization: Bearer</option>
+                <option value="apikey">x-apikey header</option>
+              </select>
+              <button id="register-button" type="button" class="tool-button btn-primary px-5 py-3">Register agent token</button>
+              <button id="access-button" type="button" class="tool-button rounded-[calc(var(--radius)*0.65)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Check access</button>
+            </div>
+            <p class="mb-0 text-xs leading-5 text-[var(--color-muted)]">Register once and reuse the returned identity. Keep your token private. Browser requests may fail if the API does not permit cross-origin requests (CORS).</p>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="lookup-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Existing reports</p>
+              <h2 id="lookup-heading" class="mb-2 text-2xl font-black">Look up an indicator</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Lookups retrieve existing intelligence; they do not explicitly start a new analysis. Each lookup uses query quota. A missing report is unknown evidence, not a safe verdict.</p>
+            </div>
+            <form id="lookup-form" class="space-y-4">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="lookup-type" class="mb-2 block text-sm font-bold">Indicator type</label>
+                  <select id="lookup-type" class="tool-select w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                    <option value="file">File hash (MD5, SHA-1 or SHA-256)</option>
+                    <option value="url">URL</option>
+                    <option value="domain">Domain</option>
+                    <option value="ip">IP address</option>
+                  </select>
+                </div>
+                <div>
+                  <label id="lookup-value-label" for="lookup-value" class="mb-2 block text-sm font-bold">File hash</label>
+                  <input id="lookup-value" type="text" required autocomplete="off" spellcheck="false" placeholder="Enter a file hash" class="tool-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+                </div>
+              </div>
+              <button type="submit" class="tool-button btn-primary px-5 py-3">Look up report <span aria-hidden="true">→</span></button>
+            </form>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="file-submit-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">File analysis</p>
+              <h2 id="file-submit-heading" class="mb-2 text-2xl font-black">Submit a file and recover its receipt</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Files are shared with VirusTotal and its security community and partners. Do not submit private documents, internal code, credentials, or personal data without permission. Maximum size: 32,000,000 bytes. The file is sent as raw bytes; no automatic retry is made.</p>
+            </div>
+            <form id="file-form" class="space-y-4">
+              <div>
+                <label for="file-input" class="mb-2 block text-sm font-bold">Choose a file</label>
+                <input id="file-input" type="file" class="tool-input block w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm">
+                <p id="file-hash" class="mt-2 mb-0 break-all text-xs text-[var(--color-muted)]">The file's SHA-256 will be calculated before submission.</p>
+              </div>
+              <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                <input id="file-consent" type="checkbox" class="mt-1 accent-[var(--color-primary)]">
+                <span>I understand this file will be shared with VirusTotal under standard community sharing, and I have permission to submit it.</span>
+              </label>
+              <button id="file-submit-button" type="submit" class="tool-button btn-primary px-5 py-3">Submit selected file</button>
+            </form>
+            <div class="mt-6 border-t border-[var(--color-border)] pt-5">
+              <label for="file-recovery-hash" class="mb-2 block text-sm font-bold">Recover receipt by SHA-256</label>
+              <div class="flex flex-col gap-3 sm:flex-row">
+                <input id="file-recovery-hash" type="text" autocomplete="off" spellcheck="false" placeholder="Previously submitted SHA-256" class="tool-input min-w-0 flex-1 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+                <button id="file-recovery-button" type="button" class="tool-button rounded-[calc(var(--radius)*0.65)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Recover receipt</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="network-submit-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Network analysis</p>
+              <h2 id="network-submit-heading" class="mb-2 text-2xl font-black">Submit a URL or request reanalysis</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">The exact indicator is disclosed to VirusTotal. URLs can contain private paths, query parameters, or fragments. Ask before submitting URLs containing private or sensitive information. Requests are saved with a UUID in this browser session before dispatch. Never resend an uncertain request; recover its receipt instead.</p>
+            </div>
+            <form id="network-form" class="space-y-4">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="network-type" class="mb-2 block text-sm font-bold">Request type</label>
+                  <select id="network-type" class="tool-select w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)]">
+                    <option value="url">Submit URL</option>
+                    <option value="domain">Reanalyze domain</option>
+                    <option value="ip">Reanalyze IP address</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="network-indicator" class="mb-2 block text-sm font-bold">Indicator</label>
+                  <input id="network-indicator" type="text" required autocomplete="off" placeholder="https://example.com/" class="tool-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+                </div>
+              </div>
+              <label class="flex items-start gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-sm leading-6">
+                <input id="network-consent" type="checkbox" class="mt-1 accent-[var(--color-primary)]">
+                <span>I understand this indicator will be shared with VirusTotal under standard community sharing, and I have permission to submit it.</span>
+              </label>
+              <button id="network-submit-button" type="submit" class="tool-button btn-primary px-5 py-3">Submit network request</button>
+              <p id="network-request-id" class="mb-0 break-all text-xs text-[var(--color-muted)]" aria-live="polite">No network request has been created in this session.</p>
+            </form>
+            <div class="mt-6 border-t border-[var(--color-border)] pt-5">
+              <label for="network-recovery-id" class="mb-2 block text-sm font-bold">Recover network receipt by request ID</label>
+              <div class="flex flex-col gap-3 sm:flex-row">
+                <input id="network-recovery-id" type="text" autocomplete="off" spellcheck="false" placeholder="Saved UUIDv4 request ID" class="tool-input min-w-0 flex-1 rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+                <button id="network-recovery-button" type="button" class="tool-button rounded-[calc(var(--radius)*0.65)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold">Recover receipt</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="analysis-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Result retrieval</p>
+              <h2 id="analysis-heading" class="mb-2 text-2xl font-black">Check an analysis</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Read an analysis registered through this submission flow. Respect the returned polling delay and keep pending submissions for later; completed does not mean safe.</p>
+            </div>
+            <form id="analysis-form" class="space-y-4">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="analysis-id" class="mb-2 block text-sm font-bold">Analysis ID</label>
+                  <input id="analysis-id" type="text" required autocomplete="off" placeholder="Returned analysis_id" class="tool-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+                </div>
+                <div>
+                  <label for="analysis-request-id" class="mb-2 block text-sm font-bold">Network request ID (optional)</label>
+                  <input id="analysis-request-id" type="text" autocomplete="off" placeholder="UUID for network receipt" class="tool-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+                </div>
+              </div>
+              <button type="submit" class="tool-button btn-primary px-5 py-3">Get analysis result</button>
+            </form>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="feed-builder-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Feed download helper</p>
+              <h2 id="feed-builder-heading" class="mb-2 text-2xl font-black">Prepare an hourly feed download</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Choose the UTC hour and generate a Ruby script for your terminal. A File feeds license and an API key are required. Your API key stays in your terminal environment and is never entered into or sent from this page.</p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+              <div>
+                <label for="feed-hour" class="mb-2 block text-sm font-bold">Batch hour in UTC (YYYYMMDDhh)</label>
+                <input id="feed-hour" type="text" inputmode="numeric" maxlength="10" autocomplete="off" spellcheck="false" placeholder="2025092400" class="tool-input w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-[var(--color-text)] placeholder:text-[var(--color-muted)]">
+              </div>
+              <button id="generate-feed-script" type="button" class="btn-primary px-5 py-3">Generate script</button>
+            </div>
+            <p id="feed-builder-status" class="mt-3 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite">Batches are available for the previous 7 days, with a 2-hour delay on the newest batch.</p>
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-border)] pt-5">
+              <p class="mb-0 text-sm font-bold">Ruby downloader</p>
+              <button id="copy-generated-feed-script" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold">Copy script</button>
+            </div>
+            <pre id="generated-feed-script" class="response-output mt-4 overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]"><code># Generate a script by selecting a UTC batch hour above.</code></pre>
+            <p class="mt-3 mb-0 text-xs leading-5 text-[var(--color-muted)]">The script requests the documented endpoint with the x-apikey header, follows its download redirect without forwarding the key, and saves the .tar.bz2 archive in the current folder. Run it locally; direct browser downloads may be blocked by CORS.</p>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="ruby-feed-heading">
+            <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Ruby · VirusTotal API</p>
+                <h2 id="ruby-feed-heading" class="mb-2 text-2xl font-black">Download an hourly file-feed batch</h2>
+                <p class="mb-3 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">This endpoint requires a File feeds license and an API key. Enter the batch hour in UTC as <code>YYYYMMDDhh</code>; batches are available up to 7 days back, with a 2-hour delay on the newest batch. A successful request redirects to a <code>.tar.bz2</code> archive containing 60 minute-by-minute feeds. After extraction, each UTF-8 text file contains one file-object JSON record per line, including feed context such as <code>download_url</code> and, when available, <code>submitter</code>. This example follows the redirect and saves the archive locally.</p>
+                <p class="mb-0 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">Set <code>VT_API_KEY</code> in your environment before running this Ruby script. Keep the key secret. This API key is separate from the VTAI Agent Token used elsewhere on this page.</p>
+                <p class="mt-3 mb-0 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">Run it with a UTC batch hour, for example <code>ruby hourly_feed.rb YYYYMMDDhh</code>. A successful request redirects to a <code>.tar.bz2</code> archive containing 60 UTF-8 text files, one per minute. Each line is a file-object JSON record; records may include <code>download_url</code> and a non-identifying, lossy-ciphered <code>submitter</code> context field. The submitter field is not present on every record. A File feeds license is required.</p>
+              </div>
+              <button id="copy-ruby-feed" type="button" class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold">Copy code</button>
+            </div>
+            <pre id="ruby-feed-example" class="response-output overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]"><code>require 'uri'
+require 'net/http'
+
+api_key = ENV.fetch('VT_API_KEY')
+time = ARGV.fetch(0) { abort 'Usage: ruby hourly_feed.rb YYYYMMDDhh' }
+abort 'Time must use YYYYMMDDhh format.' unless /\A\d{10}\z/.match?(time)
+
+url = URI("https://www.virustotal.com/api/v3/feeds/files/hourly/#{time}")
+request = Net::HTTP::Get.new(url)
+request['accept'] = 'application/json'
+request['x-apikey'] = api_key
+
+response = Net::HTTP.start(url.host, url.port, use_ssl: true) do |http|
+  http.request(request)
+end
+
+if response.is_a?(Net::HTTPRedirection)
+  location = response['location'] or abort 'Redirect did not include a download URL.'
+  download_url = URI.join(url.to_s, location)
+  abort 'Refusing a non-HTTPS download URL.' unless download_url.is_a?(URI::HTTPS)
+
+  download = Net::HTTP.start(download_url.host, download_url.port, use_ssl: true) do |http|
+    http.get(download_url.request_uri)
+  end
+  abort "Download failed: HTTP #{download.code}" unless download.is_a?(Net::HTTPSuccess)
+
+  File.binwrite("hourly-feed-#{time}.tar.bz2", download.body)
+  puts "Saved hourly-feed-#{time}.tar.bz2"
+else
+  abort "Feed request failed: HTTP #{response.code} #{response.message}\n#{response.body}"
+end</code>            </pre>
+            <p class="mt-3 mb-0 text-sm leading-6 text-[var(--color-muted)]">After the download, extract the archive locally with <code>tar -xjf hourly-feed-YYYYMMDDhh.tar.bz2</code>, replacing the time placeholder with the batch hour you requested. Treat downloaded samples and metadata as untrusted, and handle them in accordance with your organization’s security and data-handling policies.</p>
+            <p id="ruby-feed-copy-status" class="mt-3 mb-0 text-sm font-semibold text-[var(--color-muted)]" aria-live="polite"></p>
+
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="service-heading">
+            <div class="mb-5">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">General service checks</p>
+              <h2 id="service-heading" class="mb-2 text-2xl font-black">Health and skills</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">These general requests do not use your token.</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <button type="button" class="tool-button btn-primary px-5 py-3" data-public-path="/health">Check health</button>
+              <button type="button" class="tool-button rounded-[calc(var(--radius)*0.65)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold" data-public-path="/skills">List skills</button>
+              <button type="button" class="tool-button rounded-[calc(var(--radius)*0.65)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 font-bold" data-public-path="/">Request root</button>
+            </div>
+          </section>
+        </div>
+
+        <aside class="feature-card overflow-hidden xl:sticky xl:top-6" aria-labelledby="response-heading">
+          <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Live API response</p>
+            <h2 id="response-heading" class="mb-2 text-2xl font-black">Request console</h2>
+            <p id="response-status" class="mb-0 text-sm text-[var(--color-primary-contrast)] opacity-80" aria-live="polite">Ready. No request sent yet.</p>
+          </div>
+          <div class="p-5 sm:p-6">
+            <p id="response-endpoint" class="mb-3 break-all text-xs font-semibold text-[var(--color-muted)]">Requests will appear here.</p>
+            <p id="retry-after" class="mb-3 hidden rounded-[calc(var(--radius)*0.5)] bg-[var(--color-soft)] p-3 text-sm font-semibold text-[var(--color-text)]"></p>
+            <pre id="response-body" class="response-output min-h-80 overflow-auto rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite">Waiting for an API response…</pre>
+            <p class="mt-4 mb-0 text-xs leading-5 text-[var(--color-muted)]">A 404 means no report or receipt was found; it does not prove a sample is safe or that an uncertain request was never dispatched. Follow Retry-After when supplied. Browser CORS restrictions may prevent direct calls.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-[var(--color-muted)] sm:flex-row">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">VirusTotal AI interactive workbench.</p>
+      <a href="/tools" class="footer-link font-semibold">Integration directory</a>
+    </div>
+  </footer>
+
+  <script>
+    const API_BASE = 'https://ai.virustotal.com';
+    const tokenInput = document.querySelector('#api-token');
+    const authMode = document.querySelector('#auth-mode');
+    const responseStatus = document.querySelector('#response-status');
+    const responseEndpoint = document.querySelector('#response-endpoint');
+    const responseBody = document.querySelector('#response-body');
+    const retryAfter = document.querySelector('#retry-after');
+    const lookupType = document.querySelector('#lookup-type');
+    const lookupValue = document.querySelector('#lookup-value');
+    const lookupLabel = document.querySelector('#lookup-value-label');
+    const networkRequestIdOutput = document.querySelector('#network-request-id');
+    const fileInput = document.querySelector('#file-input');
+    const fileHashOutput = document.querySelector('#file-hash');
+    const MAX_FILE_BYTES = 32000000;
+
+    function setBusy(isBusy) {
+      document.querySelectorAll('.tool-button').forEach((button) => {
+        button.disabled = isBusy;
+      });
+    }
+
+    function requestHeaders(authenticated = false) {
+      const headers = {};
+      if (!authenticated) return headers;
+      const token = tokenInput.value.trim();
+      if (!token) throw new Error('Enter a VTAI Agent Token first.');
+      if (authMode.value === 'apikey') {
+        headers['x-apikey'] = token;
+      } else {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      return headers;
+    }
+
+    function showLocalError(message) {
+      responseStatus.textContent = 'Request not sent';
+      responseEndpoint.textContent = 'Check the input and try again.';
+      responseBody.textContent = message;
+      retryAfter.classList.add('hidden');
+    }
+
+    async function sendRequest(path, options = {}) {
+      const url = `${API_BASE}${path}`;
+      responseEndpoint.textContent = `${options.method || 'GET'} ${url}`;
+      responseStatus.textContent = 'Sending request…';
+      responseBody.textContent = 'Waiting for API response…';
+      retryAfter.classList.add('hidden');
+      setBusy(true);
+
+      try {
+        const response = await fetch(url, options);
+        const rawBody = await response.text();
+        let parsed;
+        try {
+          parsed = rawBody ? JSON.parse(rawBody) : null;
+        } catch {
+          parsed = null;
+        }
+
+        if (response.status === 429 || response.status === 503) {
+          const delay = response.headers.get('Retry-After');
+          if (delay) {
+            retryAfter.textContent = `Retry-After: ${delay}. Wait as directed and reuse the same credential.`;
+            retryAfter.classList.remove('hidden');
+          }
+        }
+
+        responseStatus.textContent = `HTTP ${response.status}${response.statusText ? ` ${response.statusText}` : ''}`;
+        responseBody.textContent = parsed ? JSON.stringify(parsed, null, 2) : (rawBody || '(Empty response)');
+        return {
+          response,
+          data: parsed
+        };
+      } catch (error) {
+        responseStatus.textContent = 'Connection failed';
+        responseBody.textContent = `${error.message || 'Unknown network error.'}\n\nThis may be a CORS restriction or a network/service issue. No automatic retry was made.`;
+        return null;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function validUuid(value) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+    }
+
+    function rememberSessionValue(key, value) {
+      try {
+        sessionStorage.setItem(key, value);
+      } catch {
+        // Continue with the live page state if session storage is unavailable.
+      }
+    }
+
+    function restoreSessionValue(key) {
+      try {
+        return sessionStorage.getItem(key) || '';
+      } catch {
+        return '';
+      }
+    }
+
+    function updateLookupPrompt() {
+      const type = lookupType.value;
+      const labels = {
+        file: ['File hash', 'Enter a file hash', 'File hash (MD5, SHA-1 or SHA-256)'],
+        url: ['URL', 'Enter the full URL', 'URL'],
+        domain: ['Domain', 'Enter a domain without scheme or path', 'Domain'],
+        ip: ['IP address', 'Enter an IPv4 or IPv6 address', 'IP address']
+      };
+      const [label, placeholder, ariaLabel] = labels[type];
+      lookupLabel.textContent = label;
+      lookupValue.placeholder = placeholder;
+      lookupValue.setAttribute('aria-label', ariaLabel);
+    }
+
+    lookupType.addEventListener('change', updateLookupPrompt);
+
+    document.querySelector('#register-button').addEventListener('click', async () => {
+      if (tokenInput.value.trim()) {
+        showLocalError('Clear the existing token before registering a new identity. Reuse existing credentials to avoid creating unnecessary identities.');
+        return;
+      }
+      const result = await sendRequest('/api/v3/agents/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          agent_family: 'browser-workbench',
+          agent_version: '1'
+        })
+      });
+      if (!result || !result.data) return;
+      const token = result.data.agent_token;
+      if (result.response.ok && typeof token === 'string') {
+        tokenInput.value = token;
+        const safeResult = {
+          ...result.data
+        };
+        delete safeResult.agent_token;
+        responseBody.textContent = `${JSON.stringify(safeResult, null, 2)}\n\nAgent token received and placed in the password field. It is not shown in this response or saved to browser storage. Keep it private.`;
+      }
+    });
+
+    document.querySelector('#clear-token').addEventListener('click', () => {
+      tokenInput.value = '';
+      showLocalError('Token cleared from the page.');
+    });
+
+    document.querySelector('#access-button').addEventListener('click', async () => {
+      let headers;
+      try {
+        headers = requestHeaders(true);
+      } catch (error) {
+        showLocalError(error.message);
+        tokenInput.focus();
+        return;
+      }
+      await sendRequest('/api/v3/agents/me/access', {
+        headers
+      });
+    });
+
+    document.querySelector('#lookup-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const value = lookupValue.value.trim();
+      if (!value) return;
+      let headers;
+      try {
+        headers = requestHeaders(true);
+      } catch (error) {
+        showLocalError(error.message);
+        tokenInput.focus();
+        return;
+      }
+
+      const type = lookupType.value;
+      if (type === 'url') {
+        headers['Content-Type'] = 'application/json';
+        await sendRequest('/api/v3/urls/lookup', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            url: value
+          })
+        });
+        return;
+      }
+
+      const paths = {
+        file: '/api/v3/files/',
+        domain: '/api/v3/domains/',
+        ip: '/api/v3/ip_addresses/'
+      };
+      await sendRequest(`${paths[type]}${encodeURIComponent(value)}`, {
+        headers
+      });
+    });
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        fileHashOutput.textContent = 'The file\'s SHA-256 will be calculated before submission.';
+        return;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        fileHashOutput.textContent = 'This file exceeds the 32,000,000-byte API limit.';
+        return;
+      }
+      fileHashOutput.textContent = 'Calculating SHA-256…';
+      try {
+        const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+        const hash = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+        fileInput.dataset.sha256 = hash;
+        document.querySelector('#file-recovery-hash').value = hash;
+        fileHashOutput.textContent = `SHA-256: ${hash}`;
+      } catch {
+        fileInput.dataset.sha256 = '';
+        fileHashOutput.textContent = 'Could not calculate SHA-256. Use a secure context with Web Crypto enabled.';
+      }
+    });
+
+    document.querySelector('#file-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = fileInput.files[0];
+      if (!file) return showLocalError('Choose a file first.');
+      if (file.size > MAX_FILE_BYTES) return showLocalError('The selected file exceeds the 32,000,000-byte limit.');
+      if (!document.querySelector('#file-consent').checked) return showLocalError('Confirm the sharing notice before sending file bytes.');
+      let headers;
+      try {
+        headers = requestHeaders(true);
+      } catch (error) {
+        showLocalError(error.message);
+        tokenInput.focus();
+        return;
+      }
+      let hash = fileInput.dataset.sha256;
+      if (!hash) {
+        try {
+          const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+          hash = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+          fileInput.dataset.sha256 = hash;
+          document.querySelector('#file-recovery-hash').value = hash;
+        } catch {
+          return showLocalError('Could not calculate SHA-256. Use a secure context with Web Crypto enabled.');
+        }
+      }
+      headers['Content-Type'] = 'application/octet-stream';
+      headers['X-VTAI-Consent'] = 'standard-v1';
+      await sendRequest(`/api/v3/submissions/${hash}`, {
+        method: 'POST',
+        headers,
+        body: file
+      });
+    });
+
+    document.querySelector('#file-recovery-button').addEventListener('click', async () => {
+      const hash = document.querySelector('#file-recovery-hash').value.trim();
+      if (!/^[a-f0-9]{64}$/i.test(hash)) return showLocalError('Enter a valid 64-character SHA-256 hash.');
+      let headers;
+      try {
+        headers = requestHeaders(true);
+      } catch (error) {
+        showLocalError(error.message);
+        tokenInput.focus();
+        return;
+      }
+      await sendRequest(`/api/v3/submissions/${hash.toLowerCase()}`, {
+        headers
+      });
+    });
+
+    document.querySelector('#network-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const indicator = document.querySelector('#network-indicator').value.trim();
+      const type = document.querySelector('#network-type').value;
+      if (!indicator) return;
+      if (!document.querySelector('#network-consent').checked) return showLocalError('Confirm the sharing notice before sending a network submission.');
+      let headers;
+      try {
+        headers = requestHeaders(true);
+      } catch (error) {
+        showLocalError(error.message);
+        tokenInput.focus();
+        return;
+      }
+      const requestId = crypto.randomUUID().toLowerCase();
+      rememberSessionValue('vtai-network-request-id', requestId);
+      document.querySelector('#network-recovery-id').value = requestId;
+      document.querySelector('#analysis-request-id').value = requestId;
+      networkRequestIdOutput.textContent = `Request ID saved for this browser session: ${requestId}. Recover this receipt if the outcome is uncertain; do not resubmit.`;
+      headers['Content-Type'] = 'application/json';
+      headers['X-VTAI-Consent'] = 'standard-v1';
+      await sendRequest(`/api/v3/network-submissions/${requestId}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          indicator_type: type,
+          indicator
+        })
+      });
+    });
+
+    document.querySelector('#network-recovery-button').addEventListener('click', async () => {
+      const requestId = document.querySelector('#network-recovery-id').value.trim().toLowerCase();
+      if (!validUuid(requestId)) return showLocalError('Enter a valid UUIDv4 request ID.');
+      let headers;
+      try {
+        headers = requestHeaders(true);
+      } catch (error) {
+        showLocalError(error.message);
+        tokenInput.focus();
+        return;
+      }
+      rememberSessionValue('vtai-network-request-id', requestId);
+      await sendRequest(`/api/v3/network-submissions/${requestId}`, {
+        headers
+      });
+    });
+
+    document.querySelector('#analysis-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const analysisId = document.querySelector('#analysis-id').value.trim();
+      const requestId = document.querySelector('#analysis-request-id').value.trim().toLowerCase();
+      if (!analysisId) return;
+      if (requestId && !validUuid(requestId)) return showLocalError('The optional network request ID must be a UUIDv4.');
+      let headers;
+      try {
+        headers = requestHeaders(true);
+      } catch (error) {
+        showLocalError(error.message);
+        tokenInput.focus();
+        return;
+      }
+      const query = requestId ? `?request_id=${encodeURIComponent(requestId)}` : '';
+      await sendRequest(`/api/v3/analyses/${encodeURIComponent(analysisId)}${query}`, {
+        headers
+      });
+    });
+
+    document.querySelectorAll('[data-public-path]').forEach((button) => {
+      button.addEventListener('click', () => sendRequest(button.dataset.publicPath));
+    });
+
+    const savedRequestId = restoreSessionValue('vtai-network-request-id');
+    if (savedRequestId && validUuid(savedRequestId)) {
+      document.querySelector('#network-recovery-id').value = savedRequestId;
+      document.querySelector('#analysis-request-id').value = savedRequestId;
+      networkRequestIdOutput.textContent = `Recovered request ID from this browser session: ${savedRequestId}`;
+    }
+
+    document.querySelector('#copy-ruby-feed').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      const code = document.querySelector('#ruby-feed-example').textContent;
+      const status = document.querySelector('#ruby-feed-copy-status');
+      try {
+        await navigator.clipboard.writeText(code);
+        status.textContent = 'Ruby example copied to clipboard.';
+      } catch {
+        status.textContent = 'Could not copy automatically. Select the code and copy it manually.';
+      }
+      button.textContent = 'Copied';
+      window.setTimeout(() => {
+        button.textContent = 'Copy code';
+      }, 1800);
+    });
+
+    const feedHourInput = document.querySelector('#feed-hour');
+    const feedBuilderStatus = document.querySelector('#feed-builder-status');
+    const generatedFeedScript = document.querySelector('#generated-feed-script');
+    const generatedFeedCode = `require 'uri'
+require 'net/http'
+
+api_key = ENV.fetch('VT_API_KEY') { abort 'Set VT_API_KEY in your environment first.' }
+time = ARGV.fetch(0)
+abort 'Time must use YYYYMMDDhh format.' unless /\\A\\d{10}\\z/.match?(time)
+
+url = URI("https://www.virustotal.com/api/v3/feeds/files/hourly/#{time}")
+request = Net::HTTP::Get.new(url)
+request['accept'] = 'application/json'
+request['x-apikey'] = api_key
+
+response = Net::HTTP.start(url.host, url.port, use_ssl: true) do |http|
+  http.request(request)
+end
+
+unless response.is_a?(Net::HTTPRedirection)
+  abort "Feed request failed: HTTP #{response.code} #{response.message}\\n#{response.body}"
+end
+
+location = response['location'] or abort 'Redirect did not include a download URL.'
+download_url = URI.join(url.to_s, location)
+abort 'Refusing a non-HTTPS download URL.' unless download_url.is_a?(URI::HTTPS)
+
+download = Net::HTTP.start(download_url.host, download_url.port, use_ssl: true) do |http|
+  http.get(download_url.request_uri)
+end
+abort "Download failed: HTTP #{download.code} #{download.message}" unless download.is_a?(Net::HTTPSuccess)
+
+filename = "hourly-feed-#{time}.tar.bz2"
+File.binwrite(filename, download.body)
+puts "Saved #{filename}"
+`;
+
+    document.querySelector('#generate-feed-script').addEventListener('click', () => {
+      const value = feedHourInput.value.trim();
+      if (!/^\d{10}$/.test(value)) {
+        feedBuilderStatus.textContent = 'Enter exactly 10 digits in YYYYMMDDhh format.';
+        return;
+      }
+
+      const year = Number(value.slice(0, 4));
+      const month = Number(value.slice(4, 6));
+      const day = Number(value.slice(6, 8));
+      const hour = Number(value.slice(8, 10));
+      const batchTime = new Date(Date.UTC(year, month - 1, day, hour));
+      const validDate = batchTime.getUTCFullYear() === year &&
+        batchTime.getUTCMonth() === month - 1 &&
+        batchTime.getUTCDate() === day &&
+        batchTime.getUTCHours() === hour;
+      if (!validDate) {
+        feedBuilderStatus.textContent = 'That is not a valid UTC date and hour.';
+        return;
+      }
+
+      const now = new Date();
+      const oldestAllowed = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+      const newestAllowed = Math.floor((now.getTime() - 2 * 60 * 60 * 1000) / (60 * 60 * 1000)) * 60 * 60 * 1000;
+      if (batchTime.getTime() < oldestAllowed || batchTime.getTime() > newestAllowed) {
+        feedBuilderStatus.textContent = 'Choose a batch within the previous 7 days and at least 2 hours old (UTC).';
+        return;
+      }
+
+      generatedFeedScript.textContent = generatedFeedCode;
+      feedBuilderStatus.textContent = `Batch time ${value} UTC is within the documented availability window. Run the script with this time argument.`;
+      generatedFeedScript.dataset.batchTime = value;
+    });
+
+    document.querySelector('#copy-generated-feed-script').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      const time = generatedFeedScript.dataset.batchTime;
+      if (!time) {
+        feedBuilderStatus.textContent = 'Generate the script for a valid batch hour before copying.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(generatedFeedScript.textContent);
+        feedBuilderStatus.textContent = `Copied. Set VT_API_KEY in your terminal, then run: ruby hourly_feed.rb ${time}`;
+        button.textContent = 'Copied';
+      } catch {
+        feedBuilderStatus.textContent = 'Could not copy automatically. Select the script and copy it manually.';
+      }
+      window.setTimeout(() => {
+        button.textContent = 'Copy script';
+      }, 1800);
+    });
+
+    updateLookupPrompt();
+
+    const queryParams = new URLSearchParams(window.location.search);
+    const presetUrl = queryParams.get('url');
+    if (presetUrl) {
+      lookupType.value = 'url';
+      updateLookupPrompt();
+      lookupValue.value = presetUrl;
+      lookupValue.focus();
+    }
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

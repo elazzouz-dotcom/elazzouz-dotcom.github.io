@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="استشارة أمنية تاريخية حول ثغرات متعددة في Cisco Unified Communications Manager CUCM، مع ملخص للإصلاحات والتحديثات المطلوبة.">
+  <title>Vantage Point Security Advisory 2015-001</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .advisory-prose h2 {
+      margin-top: 2.25rem;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.7rem;
+      color: var(--color-primary);
+      font-size: 1.45rem;
+    }
+
+    .advisory-prose h3 {
+      margin-top: 1.75rem;
+      color: var(--color-text);
+      font-size: 1.1rem;
+    }
+
+    .advisory-prose p,
+    .advisory-prose li {
+      color: var(--color-muted);
+      line-height: 1.9;
+    }
+
+    .advisory-prose ul,
+    .advisory-prose ol {
+      padding-inline-start: 1.4rem;
+    }
+
+    .advisory-code {
+      direction: ltr;
+      overflow-x: auto;
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.6);
+      background: var(--color-dark);
+      padding: 1rem;
+      color: var(--color-primary-contrast);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      text-align: left;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .advisory-link {
+      color: var(--color-primary);
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 0.18rem;
+    }
+
+    .advisory-meta {
+      display: grid;
+      gap: 0.8rem;
+      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">P</span>
+        <span class="text-xl font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">دليل الأدوات</a>
+        <a href="/inference-guide">الأدلة</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Security advisory · Historical record</p>
+        <h1 class="mb-4 max-w-5xl text-4xl font-black leading-tight sm:text-5xl">Vantage Point Security Advisory 2015-001</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">استشارة أمنية تاريخية حول ثغرات متعددة في Cisco Unified Communications Manager، مع ملخص دفاعي للإصدارات المتأثرة وإرشادات المعالجة.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <article class="feature-card p-6 sm:p-8 advisory-prose">
+          <div class="mb-6 rounded-[calc(var(--radius)*0.65)] border border-[var(--color-icon)] bg-[var(--color-soft)] p-4">
+            <p class="mb-0 text-sm leading-7"><strong>تنبيه:</strong> هذه صفحة توثيقية تاريخية. لا تختبر الأنظمة إلا بتفويض صريح، ولا تستخدم الأمثلة ضد أنظمة حقيقية. الأولوية العملية هي التحديث، تقييد الوصول، والتحقق من سجلات الأنظمة.</p>
+          </div>
+
+          <div class="advisory-meta mb-8">
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><span class="block text-xs font-bold text-[var(--color-muted)]">المورّد</span><strong>Cisco</strong></div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><span class="block text-xs font-bold text-[var(--color-muted)]">الخطورة</span><strong>منخفضة إلى متوسطة</strong></div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><span class="block text-xs font-bold text-[var(--color-muted)]">النشر العام</span><strong>13 أغسطس 2015</strong></div>
+            <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><span class="block text-xs font-bold text-[var(--color-muted)]">الكاتب</span><strong>Bernhard Mueller</strong></div>
+          </div>
+
+          <h2>الملخص</h2>
+          <p>Cisco Unified Communications Manager، المعروف اختصارًا بـ CUCM، يوفر خدمات إدارة الجلسات والاتصالات الصوتية والمرئية والرسائل والتنقل والمؤتمرات عبر الويب.</p>
+          <p>وفقًا للاستشارة الأصلية، أُبلغت Cisco بأربع مشكلات أمنية خلال عام 2014، وتم تأكيد إصلاحها في يوليو 2015.</p>
+
+          <h2>1. حقن أوامر Shellshock</h2>
+          <p>كان بإمكان مستخدمين موثّقين الوصول إلى وظائف محدودة عبر واجهة الويب ووحدة تحكم Cisco عبر SSH. وبسبب معالجة خادم SSH لبعض متغيرات البيئة واستخدام إصدار قديم من Bash، أمكن استغلال ثغرة Shellshock المعروفة باسم CVE-2014-6271 لتنفيذ أوامر بصلاحيات المستخدم <code>admin</code>.</p>
+          <p>لأغراض التوثيق فقط، تضمنت الاستشارة الأصلية مثالًا على متغير بيئة مصاغ بطريقة خبيثة. لا نعيد تشغيل المثال هنا؛ يجب التعامل معه كعلامة فحص تاريخية داخل سجلات SSH وسياسات التحديث، وليس كتعليمة تنفيذ.</p>
+          <div class="advisory-code">CVE-2014-6271 · Shellshock
+            المعالجة الدفاعية: تحديث Bash وCUCM، تقييد SSH، ومراجعة سجلات الدخول والأوامر.</div>
+
+          <h2>2. تضمين ملفات محلية (LFI)</h2>
+          <p>سمحت ثغرة في التطبيق بعرض محتوى ملفات يمكن الوصول إليها محليًا على خادم الويب. قد تؤدي مثل هذه الثغرات إلى كشف الشيفرة المصدرية أو ملفات الإعداد أو معلومات حساسة. كان استغلال هذه المشكلة يتطلب حساب مستخدم صالحًا.</p>
+          <p>لا نعرض طلبات استغلال أو مسارات ملفات حساسة. عند التحقيق، راجع سجلات الوصول، ابحث عن طلبات غير معتادة إلى وظائف قراءة الملفات، واعتبر أي ملفات إعداد أو بيانات اعتماد مكشوفة بحاجة إلى تدوير فوري.</p>
+
+          <h2>3. الوصول غير الموثّق إلى أمر Ping</h2>
+          <p>أشارت الاستشارة إلى أن servlet باسم <code>pingExecute</code> كان يسمح لمستخدم غير موثّق بإجراء فحوصات Ping إلى عناوين IP يحددها الطلب. يمكن إساءة استخدام ذلك لاستكشاف الشبكة الداخلية.</p>
+          <p>الإجراء الدفاعي هو تقييد الوصول إلى الوظيفة، والتحقق من المصادقة والتفويض، ومنع الوصول إلى نطاقات الشبكات الداخلية، ومراقبة الطلبات التي تحتوي على عناوين داخلية أو معدلات غير طبيعية.</p>
+
+          <h2>4. معرّف جلسة ثابت يسمح بالوصول إلى SOAP</h2>
+          <p>أفادت الاستشارة بأن بعض أساليب EPAS SOAP كانت تقبل معرّف جلسة ثابتًا، ما قد يسمح بتجاوز المصادقة لأساليب محددة، منها <code>GetUserLoginInfoHandler</code> و<code>GetLoggedinXMPPUserHandler</code>.</p>
+          <p>يجب عدم الاعتماد على معرّفات جلسات ثابتة أو مشتركة. بعد التحديث، راجع جلسات SOAP، أعد تدوير الرموز والجلسات عند الحاجة، وتحقق من أن كل استدعاء يفرض المصادقة والتفويض المناسبين.</p>
+
+          <h2>معلومات الإصلاح</h2>
+          <div class="rounded-[calc(var(--radius)*0.65)] border border-[var(--color-primary)] bg-[var(--color-soft)] p-5">
+            <p class="mb-0 text-lg font-extrabold text-[var(--color-text)]">الترقية إلى CUCM 9.2 أو 10.5.2 أو 11.0.1 بحسب فرع المنتج المستخدم.</p>
+          </div>
+          <p>تحقق من مصفوفة توافق Cisco ومسار الترقية المناسب لبيئتك قبل التنفيذ. خذ نسخة احتياطية، اختبر الترقية في بيئة مرحلية، وراقب الخدمات بعد التحديث.</p>
+
+          <h2>الخط الزمني</h2>
+          <ul>
+            <li><strong>أكتوبر 2014:</strong> أُبلغت Cisco بالمشكلات.</li>
+            <li><strong>يوليو 2015:</strong> تم تأكيد إصلاح جميع المشكلات وفق السجل الأصلي.</li>
+            <li><strong>13 أغسطس 2015:</strong> الإصدار العام للاستشارة.</li>
+          </ul>
+
+          <h2>المراجع</h2>
+          <ul>
+            <li><a class="advisory-link" href="https://tools.cisco.com/quickview/bug/CSCus88031" target="_blank" rel="noopener noreferrer">Cisco bug CSCus88031</a></li>
+            <li><a class="advisory-link" href="https://tools.cisco.com/quickview/bug/CSCur49414" target="_blank" rel="noopener noreferrer">Cisco bug CSCur49414</a></li>
+            <li><a class="advisory-link" href="https://tools.cisco.com/quickview/bug/CSCum05290" target="_blank" rel="noopener noreferrer">Cisco bug CSCum05290</a></li>
+            <li><a class="advisory-link" href="https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20140926-bash" target="_blank" rel="noopener noreferrer">Cisco Shellshock advisory</a></li>
+            <li><a class="advisory-link" href="https://tools.cisco.com/security/center/viewAlert.x?alertId=37111" target="_blank" rel="noopener noreferrer">Cisco security alert 37111</a></li>
+          </ul>
+
+          <h2>عن Vantage Point Security</h2>
+          <p>بحسب النص الأصلي، كانت Vantage Point Security تقدم خدمات اختبار الاختراق والاستشارات الأمنية في سنغافورة، مع تركيز على قطاعات المال والبنوك والاتصالات.</p>
+          <p><a class="advisory-link" href="https://www.vantagepoint.sg/" target="_blank" rel="noopener noreferrer">موقع Vantage Point Security</a></p>
+        </article>
+
+        <aside class="feature-card p-5 lg:sticky lg:top-6">
+          <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">إجراءات دفاعية</p>
+          <h2 class="mb-4 text-xl font-black">قائمة مراجعة قصيرة</h2>
+          <ol class="mb-0 list-decimal space-y-3 pr-5 text-sm leading-6 text-[var(--color-muted)]">
+            <li>حدد إصدارات CUCM الموجودة في بيئتك.</li>
+            <li>خطط للترقية إلى إصدار مصحح ومدعوم.</li>
+            <li>قيّد SSH وواجهات الإدارة على شبكات موثوقة.</li>
+            <li>راجع سجلات SSH والويب وSOAP والطلبات غير الموثقة.</li>
+            <li>دوّر أي أسرار أو جلسات ظهرت في ملفات مكشوفة.</li>
+            <li>اختبر الإصلاحات في بيئة معزولة قبل الإنتاج.</li>
+          </ol>
+          <a href="/tools" class="mt-6 inline-flex font-bold text-[var(--color-primary)]">العودة إلى دليل الأدوات <span class="mr-2" aria-hidden="true">←</span></a>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a>
+      <p class="mb-0">صفحة توثيقية تاريخية للاستشارات الأمنية.</p>
+      <a href="/tools" class="footer-link font-semibold">دليل الأدوات</a>
+    </div>
+  </footer>
+  <script src="/language.js"></script>
+</body>
+
+</html>

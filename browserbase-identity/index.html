@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="أداة تفاعلية لتخطيط ميزات هوية Browserbase وإنشاء مثال إعداد محلي قابل للمراجعة.">
+  <title>مخطط هوية Browserbase | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .identity-option {
+      display: flex;
+      min-height: 100%;
+      flex-direction: column;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      padding: 1.1rem;
+      text-align: right;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .identity-option:hover {
+      transform: translateY(-2px);
+    }
+
+    .identity-option[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 14%, transparent);
+    }
+
+    .identity-option:focus-visible,
+    .identity-control:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .identity-icon {
+      display: grid;
+      width: 2.8rem;
+      height: 2.8rem;
+      place-items: center;
+      border-radius: calc(var(--radius) * 0.7);
+      background: var(--color-soft);
+      color: var(--color-primary);
+    }
+
+    .identity-icon svg {
+      width: 1.4rem;
+      height: 1.4rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
+    }
+
+    .code-output {
+      direction: ltr;
+      overflow: auto;
+      overflow-wrap: anywhere;
+      text-align: left;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .status-dot {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 999px;
+      background: var(--color-primary);
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="العودة إلى الرئيسية">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">V</span>
+        <span class="text-xl font-extrabold tracking-tight">Knowledge<span class="text-[var(--color-primary)]">base</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap items-center gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="التنقل الرئيسي">
+        <a href="/tools">لوحة الأدوات</a>
+        <a href="/browser-session">مخطط الجلسة</a>
+        <a href="/browserbase-studio">Browserbase Studio</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div>
+          <p class="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold text-[var(--color-muted)]">
+            <span class="status-dot" aria-hidden="true"></span>
+            أداة تخطيط محلية · لا اتصال بالخدمة
+          </p>
+          <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">اضبط هوية جلسة المتصفح بما تحتاجه.</h1>
+          <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">اختر الإعدادات المناسبة، وشاهد ملخصًا ومثالًا أوليًا قابلًا للنسخ. هذه الأداة لا تنشئ جلسة، ولا تطلب مفاتيح أو بيانات اعتماد، ولا تتصل بالمواقع.</p>
+        </div>
+        <div class="feature-card p-5 sm:p-6">
+          <div class="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">مساحة الإعداد</p>
+              <h2 class="mb-0 text-lg font-black">خطّط ثم راجع</h2>
+            </div>
+            <span class="icon-box shrink-0" aria-hidden="true">
+              <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 3 4.5 6v5.5c0 4.4 3 7.6 7.5 9.5 4.5-1.9 7.5-5.1 7.5-9.5V6L12 3Z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+            </span>
+          </div>
+          <ol class="space-y-3 text-sm text-[var(--color-muted)]">
+            <li class="flex items-center gap-3"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-soft)] text-xs font-black text-[var(--color-primary)]">١</span>اختر احتياجك</li>
+            <li class="flex items-center gap-3"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-soft)] text-xs font-black text-[var(--color-primary)]">٢</span>راجع التوافق والحدود</li>
+            <li class="flex items-center gap-3"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-soft)] text-xs font-black text-[var(--color-primary)]">٣</span>انسخ المثال وعدّله محليًا</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+        <div class="space-y-6">
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="options-heading">
+            <div class="mb-6">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">١ · ميزات الجلسة</p>
+              <h2 id="options-heading" class="mb-2 text-2xl font-black">ما الذي تحتاجه؟</h2>
+              <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">فعّل ما ينطبق فقط. أهلية الميزات وإعداداتها تعتمد على الخطة والوثائق الحالية.</p>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <button type="button" class="identity-option" data-feature="verified" aria-pressed="false">
+                <span class="identity-icon mb-4" aria-hidden="true"><svg viewBox="0 0 24 24">
+                    <path d="M12 3 4.5 6v5.5c0 4.4 3 7.6 7.5 9.5 4.5-1.9 7.5-5.1 7.5-9.5V6L12 3Z" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg></span>
+                <span class="mb-1 font-extrabold">Verified</span>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">جلسة متصفح مهيأة ببصمة موثوقة للمواقع المدعومة. قد تتطلب خطة مؤهلة.</span>
+              </button>
+              <button type="button" class="identity-option" data-feature="proxies" aria-pressed="false">
+                <span class="identity-icon mb-4" aria-hidden="true"><svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="8.5" />
+                    <path d="M3.8 9h16.4M3.8 15h16.4M12 3.5a13 13 0 0 1 0 17M12 3.5a13 13 0 0 0 0 17" />
+                  </svg></span>
+                <span class="mb-1 font-extrabold">Proxy</span>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">توجيه اتصال الجلسة عبر إعدادات الوكيل المتاحة لحسابك.</span>
+              </button>
+              <button type="button" class="identity-option" data-feature="captcha" aria-pressed="false">
+                <span class="identity-icon mb-4" aria-hidden="true"><svg viewBox="0 0 24 24">
+                    <rect x="4" y="4" width="16" height="16" rx="3" />
+                    <path d="M8 9h.01M12 9h.01M16 9h.01M8 13h.01M12 13h.01M16 13h.01M9 17h6" />
+                  </svg></span>
+                <span class="mb-1 font-extrabold">CAPTCHA المدعوم</span>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">تعامل مع التحديات المدعومة ضمن جلسة مصرح بها، وفق سياسة الموقع.</span>
+              </button>
+              <button type="button" class="identity-option" data-feature="auth" aria-pressed="false">
+                <span class="identity-icon mb-4" aria-hidden="true"><svg viewBox="0 0 24 24">
+                    <rect x="5" y="10" width="14" height="11" rx="2" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+                  </svg></span>
+                <span class="mb-1 font-extrabold">تسجيل الدخول والمصادقة</span>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">خطّط لتدفق تسجيل دخول تفاعلي أو تحديات المصادقة متعددة العوامل.</span>
+              </button>
+              <button type="button" class="identity-option" data-feature="bot-auth" aria-pressed="false">
+                <span class="identity-icon mb-4" aria-hidden="true"><svg viewBox="0 0 24 24">
+                    <path d="M12 3v3M7 10h.01M17 10h.01M8 15h8M5 8h14v11H5z" />
+                    <path d="M3 12v4M21 12v4" />
+                  </svg></span>
+                <span class="mb-1 font-extrabold">Web Bot Auth</span>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">إشارة هوية تشفيرية للمواقع المشاركة؛ لا تمنح إذنًا تلقائيًا للدخول.</span>
+              </button>
+              <button type="button" class="identity-option" data-feature="credentials" aria-pressed="false">
+                <span class="identity-icon mb-4" aria-hidden="true"><svg viewBox="0 0 24 24">
+                    <circle cx="8" cy="15" r="4" />
+                    <path d="m11 12 8-8 3 3-2 2 2 2-3 3-2-2-3 3" />
+                  </svg></span>
+                <span class="mb-1 font-extrabold">مصدر بيانات اعتماد</span>
+                <span class="text-sm leading-6 text-[var(--color-muted)]">خطّط لاسترجاع بيانات الاعتماد من مخزن آمن بدل تضمينها في الكود.</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="settings-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٢ · طريقة البدء</p>
+            <h2 id="settings-heading" class="mb-5 text-2xl font-black">اختر بيئة المثال</h2>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label for="runtime" class="text-sm font-bold">اللغة
+                <select id="runtime" class="identity-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal">
+                  <option value="javascript">Node.js</option>
+                  <option value="python">Python</option>
+                </select>
+              </label>
+            </div>
+            <label for="target-url" class="mt-4 block text-sm font-bold">عنوان صفحة تملك صلاحية الوصول إليها <span class="font-normal text-[var(--color-muted)]">(اختياري)</span>
+              <input id="target-url" type="url" class="identity-control mt-2 w-full rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 font-normal" placeholder="إن لم تدخله، سيقرأه المثال من TARGET_URL" autocomplete="url">
+            </label>
+            <p class="mt-2 mb-0 text-xs leading-5 text-[var(--color-muted)]">القيم المدخلة تُستخدم لتكوين المثال في هذه الصفحة فقط، ولا تُحفظ أو تُرسل.</p>
+          </section>
+
+          <section class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-soft)] p-5 sm:p-6">
+            <h2 class="mb-2 text-lg font-extrabold">استخدام مسؤول</h2>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">استخدم هذه الإعدادات فقط للمواقع والحسابات التي لديك إذن بالوصول إليها. راجع شروط الموقع وحدود خطتك. تحدد المواقع المشاركة سياساتها بنفسها، ولا تتجاوز هذه الإعدادات المصادقة أو تمنح صلاحية وصول.</p>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="summary-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٣ · مراجعة الإعداد</p>
+              <h2 id="summary-heading" class="mb-2 text-2xl font-black">ملخص اختيارك</h2>
+              <p id="summary-status" class="mb-0 text-sm leading-6 opacity-80" aria-live="polite">اختر ميزة أو أكثر لعرض مخططك.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <ul id="feature-summary" class="space-y-3 text-sm leading-6 text-[var(--color-muted)]"></ul>
+              <div class="mt-5 border-t border-[var(--color-border)] pt-5">
+                <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-muted)]">مثال إعداد محلي</p>
+                <pre id="code-output" class="code-output max-h-[28rem] min-h-48 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]" aria-live="polite">اختر الميزات لعرض مثال أولي.</pre>
+                <div class="mt-4 flex flex-wrap gap-3">
+                  <button id="copy-code" type="button" class="btn-primary px-4 py-3 text-sm">نسخ المثال</button>
+                  <button id="download-code" type="button" class="identity-control rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold">تنزيل المثال</button>
+                </div>
+                <p id="copy-status" class="mt-3 mb-0 text-xs leading-5 text-[var(--color-muted)]" aria-live="polite">المثال للتخطيط فقط؛ لا توجد جلسة أو طلب API قيد التشغيل.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-card p-5">
+            <div class="mb-4 flex items-center gap-3">
+              <span class="icon-box shrink-0" aria-hidden="true"><svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-7" />
+                </svg></span>
+              <div>
+                <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-primary)]">توافق الميزات</p>
+                <h2 class="mb-0 text-lg font-black">قبل التنفيذ</h2>
+              </div>
+            </div>
+            <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">قد تتطلب بعض الميزات خطة أو تفعيلًا مسبقًا، وبعضها تجريبي. تحقّق من توافرها وإعداداتها في وثائق حسابك قبل تشغيل المثال.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Knowledgebase</a>
+      <p class="mb-0">مخطط محلي لخيارات هوية جلسة المتصفح.</p>
+      <a href="/tools" class="footer-link font-semibold">العودة إلى الأدوات</a>
+    </div>
+  </footer>
+
+  <script>
+    const featureNames = {
+      verified: 'Verified: استخدام جلسة مهيأة ببصمة متصفح موثوقة عند توفر الميزة في الخطة.',
+      proxies: 'Proxy: تفعيل خيار الوكلاء مع مراجعة إعدادات المنطقة والتوافر.',
+      captcha: 'CAPTCHA: مراجعة دعم التحدي وسياسة الموقع قبل أي تشغيل مصرح به.',
+      auth: 'المصادقة: التعامل مع تدفق تسجيل الدخول أو المصادقة متعددة العوامل يدويًا وبشكل مصرح.',
+      'bot-auth': 'Web Bot Auth: إشارة هوية للمواقع المشاركة؛ لا تمنح صلاحية أو تسجيل دخول.',
+      credentials: 'بيانات الاعتماد: جلبها من مخزن آمن في بيئة الخادم، لا من الواجهة الأمامية.'
+    };
+
+    const featureButtons = [...document.querySelectorAll('.identity-option')];
+    const summaryList = document.querySelector('#feature-summary');
+    const summaryStatus = document.querySelector('#summary-status');
+    const codeOutput = document.querySelector('#code-output');
+    const runtimeSelect = document.querySelector('#runtime');
+    const targetInput = document.querySelector('#target-url');
+    const copyStatus = document.querySelector('#copy-status');
+
+    function selectedFeatures() {
+      return featureButtons
+        .filter((button) => button.getAttribute('aria-pressed') === 'true')
+        .map((button) => button.dataset.feature);
+    }
+
+    function jsCode(features) {
+      const settings = [];
+      if (features.includes('verified')) settings.push('    verified: true,');
+      const browserSettings = settings.length ? `\n  browserSettings: {\n${settings.join('\n')}\n  },` : '';
+      const proxySetting = features.includes('proxies') ? '\n  proxies: true,' : '';
+      const target = targetInput.value.trim();
+      const targetLine = target ? `const targetUrl = ${JSON.stringify(target)};` : 'const targetUrl = process.env.TARGET_URL;';
+      return `import Browserbase from "@browserbasehq/sdk";\n\nconst apiKey = process.env.BROWSERBASE_API_KEY;\nif (!apiKey) throw new Error("Set BROWSERBASE_API_KEY in your local environment.");\n${targetLine}\nif (!targetUrl) throw new Error("Set TARGET_URL to a page you are authorized to access.");\n\nconst bb = new Browserbase({ apiKey });\nconst session = await bb.sessions.create({${browserSettings}${proxySetting}\n});\n\nconsole.log("Session created:", session.id);\nconsole.log("Review and connect to the session using your approved project setup.");\n\n// Use the applicable documented authentication or identity workflow here.\n// Never hardcode credentials or place them in browser-side code.\n`;
+    }
+
+    function pythonCode(features) {
+      const lines = [];
+      if (features.includes('verified')) lines.push('        "verified": True,');
+      const browserSettings = lines.length ? `\n    browser_settings={\n${lines.join('\n')}\n    },` : '';
+      const proxySetting = features.includes('proxies') ? '\n    proxies=True,' : '';
+      return `import os\nfrom browserbase import Browserbase\n\napi_key = os.environ.get("BROWSERBASE_API_KEY")\nif not api_key:\n    raise RuntimeError("Set BROWSERBASE_API_KEY in your local environment.")\ntarget_url = os.environ.get("TARGET_URL")\nif not target_url:\n    raise RuntimeError("Set TARGET_URL to a page you are authorized to access.")\n\nbb = Browserbase(api_key=api_key)\nsession = bb.sessions.create(${browserSettings}${proxySetting}\n)\nprint("Session created:", session.id)\nprint("Review and connect to the session using your approved project setup.")\n\n# Add only the documented authentication or identity workflow you need.\n# Never hardcode credentials or put them in browser-side code.\n`;
+    }
+
+    function render() {
+      const features = selectedFeatures();
+      summaryList.replaceChildren();
+      features.forEach((feature) => {
+        const item = document.createElement('li');
+        item.className = 'rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3';
+        item.textContent = featureNames[feature];
+        summaryList.append(item);
+      });
+
+      if (!features.length) {
+        summaryStatus.textContent = 'اختر ميزة أو أكثر لعرض مخططك.';
+        summaryList.innerHTML = '<li class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-3">لم تُحدّد أي ميزات بعد.</li>';
+        codeOutput.textContent = 'اختر الميزات لعرض مثال أولي.';
+        copyStatus.textContent = 'اختر ميزة واحدة على الأقل. لا توجد جلسة أو طلب API قيد التشغيل.';
+        return;
+      }
+
+      summaryStatus.textContent = `تم اختيار ${features.length} ${features.length === 1 ? 'ميزة' : 'ميزات'}. هذا مخطط محلي وليس اتصالًا بالخدمة.`;
+      codeOutput.textContent = runtimeSelect.value === 'python' ? pythonCode(features) : jsCode(features);
+      copyStatus.textContent = 'راجع متطلبات الخطة والوثائق الحالية. لم تُنشأ جلسة ولم يُرسل طلب.';
+    }
+
+    featureButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const active = button.getAttribute('aria-pressed') === 'true';
+        button.setAttribute('aria-pressed', String(!active));
+        render();
+      });
+    });
+
+    [runtimeSelect, targetInput].forEach((control) => {
+      control.addEventListener('input', render);
+      control.addEventListener('change', render);
+    });
+
+    document.querySelector('#copy-code').addEventListener('click', async () => {
+      if (!selectedFeatures().length) {
+        copyStatus.textContent = 'اختر ميزة واحدة على الأقل قبل نسخ المثال.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(codeOutput.textContent);
+        copyStatus.textContent = 'نُسخ المثال. راجعه وشغّله في بيئة موثوقة فقط.';
+      } catch {
+        copyStatus.textContent = 'تعذر النسخ التلقائي؛ حدّد المثال وانسخه يدويًا.';
+      }
+    });
+
+    document.querySelector('#download-code').addEventListener('click', () => {
+      if (!selectedFeatures().length) {
+        copyStatus.textContent = 'اختر ميزة واحدة على الأقل قبل تنزيل المثال.';
+        return;
+      }
+      const isPython = runtimeSelect.value === 'python';
+      const fileUrl = URL.createObjectURL(new Blob([codeOutput.textContent], {
+        type: 'text/plain;charset=utf-8'
+      }));
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = isPython ? 'browserbase-identity.py' : 'browserbase-identity.mjs';
+      link.click();
+      URL.revokeObjectURL(fileUrl);
+      copyStatus.textContent = 'تم تنزيل المثال محليًا. لم تُنشأ جلسة ولم يُرسل أي طلب.';
+    });
+
+    render();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive local playground for a One App Router nested route example with About, Inbox, and Message routes.">
+  <title>One App Router Nested Routes | Knowledgebase</title>
+  <link rel="stylesheet" href="/theme.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .route-link[aria-current="page"] {
+      border-color: var(--color-primary);
+      background: var(--color-soft);
+      color: var(--color-primary);
+    }
+
+    .route-panel[hidden] {
+      display: none;
+    }
+
+    .code-output {
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .route-link:focus-visible,
+    .demo-button:focus-visible,
+    .copy-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Knowledgebase home">
+        <span class="flex h-10 w-10 items-center justify-center rounded-[var(--radius)] bg-[var(--color-primary)] text-lg font-black text-[var(--color-primary-contrast)]">R</span>
+        <span class="text-xl font-extrabold tracking-tight">Router <span class="text-[var(--color-primary)]">Lab</span></span>
+      </a>
+      <nav class="site-nav flex flex-wrap gap-5 text-sm font-semibold text-[var(--color-muted)]" aria-label="Main navigation">
+        <a href="/tools">Tools</a>
+        <a href="/developer-tools">Developer tools</a>
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+      <div class="mx-auto max-w-7xl">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Interactive route example</p>
+        <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">Explore nested routes with App, Inbox, and Message.</h1>
+        <p class="mb-0 max-w-3xl text-base leading-7 text-[var(--color-muted)]">This local playground mirrors the supplied One App Router example. Click the generated links, inspect the matched route branch, and see how <code>this.props.children</code> and <code>this.props.params.id</code> behave.</p>
+      </div>
+    </section>
+
+    <section class="px-5 py-8 lg:px-8 lg:py-12">
+      <div class="mx-auto grid max-w-7xl items-start gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)]">
+        <div class="space-y-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="demo-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)] sm:p-8">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Live local simulator</p>
+              <h2 id="demo-heading" class="mb-2 text-2xl font-black">Application preview</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">The URL uses a hash so every route works safely on static hosting.</p>
+            </div>
+            <div class="p-5 sm:p-8">
+              <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4">
+                <div>
+                  <p class="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-muted)]">Current location</p>
+                  <code id="current-path" class="text-sm font-bold text-[var(--color-primary)]">/</code>
+                </div>
+                <button id="reset-route" type="button" class="demo-button rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold">Reset to home</button>
+              </div>
+
+              <div class="rounded-[calc(var(--radius)*0.6)] border border-[var(--color-border)] p-5 sm:p-6">
+                <h3 class="mb-4 text-2xl font-black">App</h3>
+                <p class="mb-4 text-sm text-[var(--color-muted)]">The parent route renders its navigation and then renders <code>this.props.children</code>.</p>
+                <nav class="mb-6 flex flex-wrap gap-3" aria-label="Example application navigation">
+                  <a href="#/about" class="route-link rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 text-sm font-bold transition" data-route="/about">About</a>
+                  <a href="#/inbox" class="route-link rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 text-sm font-bold transition" data-route="/inbox">Inbox</a>
+                </nav>
+
+                <div id="about-panel" class="route-panel rounded-[calc(var(--radius)*0.55)] bg-[var(--color-soft)] p-5" hidden>
+                  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-primary)]">Matched child route</p>
+                  <h4 class="mb-0 text-xl font-black">About</h4>
+                </div>
+
+                <div id="inbox-panel" class="route-panel rounded-[calc(var(--radius)*0.55)] bg-[var(--color-soft)] p-5" hidden>
+                  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-primary)]">Matched child route</p>
+                  <h4 class="mb-2 text-xl font-black">Inbox</h4>
+                  <p id="inbox-message" class="mb-4 text-sm leading-6 text-[var(--color-muted)]">Welcome to your Inbox</p>
+                  <a href="#/inbox/messages/42" class="route-link inline-flex rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm font-bold" data-route="/inbox/messages/42">Open message 42</a>
+                </div>
+
+                <div id="message-panel" class="route-panel rounded-[calc(var(--radius)*0.55)] bg-[var(--color-soft)] p-5" hidden>
+                  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--color-primary)]">Nested child of Inbox</p>
+                  <h4 id="message-title" class="mb-2 text-xl font-black">Message 42</h4>
+                  <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">The dynamic <code>:id</code> segment is available as <code>this.props.params.id</code>.</p>
+                </div>
+
+                <div id="home-panel" class="route-panel rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-5">
+                  <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">Choose About or Inbox to render a child route inside App.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="feature-card p-6 sm:p-8" aria-labelledby="branch-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Router inspection</p>
+            <h2 id="branch-heading" class="mb-4 text-2xl font-black">Matched route branch</h2>
+            <div id="route-branch" class="mb-5 flex flex-wrap items-center gap-2" aria-live="polite"></div>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Route params</p>
+                <pre id="route-params" class="mb-0 text-sm text-[var(--color-text)]">{}</pre>
+              </div>
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4">
+                <p class="mb-1 text-xs font-bold text-[var(--color-muted)]">Children behavior</p>
+                <p id="children-status" class="mb-0 text-sm leading-6 text-[var(--color-muted)]">App renders the default content.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="space-y-6 xl:sticky xl:top-6">
+          <section class="feature-card overflow-hidden" aria-labelledby="code-heading">
+            <div class="bg-[var(--color-dark)] p-6 text-[var(--color-primary-contrast)]">
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">Original example</p>
+              <h2 id="code-heading" class="mb-2 text-2xl font-black">React route configuration</h2>
+              <p class="mb-0 text-sm leading-6 opacity-80">The code is shown exactly as a reference; this page simulates it without running React.</p>
+            </div>
+            <div class="p-5 sm:p-6">
+              <pre id="source-code" class="code-output max-h-[38rem] rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-4 text-xs leading-6 text-[var(--color-text)]"></pre>
+              <button id="copy-source" type="button" class="copy-button btn-primary mt-4 px-4 py-3 text-sm">Copy React example</button>
+              <p id="copy-status" class="mt-3 mb-0 text-sm text-[var(--color-muted)]" aria-live="polite">No code has been copied yet.</p>
+            </div>
+          </section>
+
+          <section class="feature-card p-6" aria-labelledby="concepts-heading">
+            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">What to notice</p>
+            <h2 id="concepts-heading" class="mb-4 text-xl font-black">Three routing concepts</h2>
+            <div class="space-y-3 text-sm leading-6 text-[var(--color-muted)]">
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><strong class="text-[var(--color-text)]">Nested rendering</strong><br>Inbox renders Message as its child when the deeper route matches.</div>
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><strong class="text-[var(--color-text)]">Index content</strong><br>Inbox shows “Welcome to your Inbox” when no child route is selected.</div>
+              <div class="rounded-[calc(var(--radius)*0.55)] bg-[var(--color-bg)] p-4"><strong class="text-[var(--color-text)]">Dynamic params</strong><br>The value in <code>/messages/:id</code> becomes <code>params.id</code>.</div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 text-sm text-[var(--color-muted)]">
+      <a href="/" class="font-extrabold text-[var(--color-text)]">Router Lab</a>
+      <p class="mb-0">Local simulator for nested One App Router routes.</p>
+      <a href="/tools" class="footer-link font-semibold">Browse tools</a>
+    </div>
+  </footer>
+
+  <script>
+    const sourceCode = `import React from 'react'
+import { render } from 'react-dom'
+import { Router, Route, Link } from '@americanexpress/one-app-router'
+
+const App = React.createClass({
+  render() {
+    return (
+      <div>
+        <h1>App</h1>
+        <ul>
+          <li><Link to="/about">About</Link></li>
+          <li><Link to="/inbox">Inbox</Link></li>
+        </ul>
+        {this.props.children}
+      </div>
+    )
+  }
+})
+
+const About = React.createClass({
+  render() {
+    return <h3>About</h3>
+  }
+})
+
+const Inbox = React.createClass({
+  render() {
+    return (
+      <div>
+        <h2>Inbox</h2>
+        {this.props.children || "Welcome to your Inbox"}
+      </div>
+    )
+  }
+})
+
+const Message = React.createClass({
+  render() {
+    return <h3>Message {this.props.params.id}</h3>
+  }
+})
+
+render((
+  <Router>
+    <Route path="/" component={App}>
+      <Route path="about" component={About} />
+      <Route path="inbox" component={Inbox}>
+        <Route path="messages/:id" component={Message} />
+      </Route>
+    </Route>
+  </Router>
+), document.body)`;
+
+    const currentPath = document.querySelector('#current-path');
+    const routeParams = document.querySelector('#route-params');
+    const routeBranch = document.querySelector('#route-branch');
+    const childrenStatus = document.querySelector('#children-status');
+    const homePanel = document.querySelector('#home-panel');
+    const aboutPanel = document.querySelector('#about-panel');
+    const inboxPanel = document.querySelector('#inbox-panel');
+    const messagePanel = document.querySelector('#message-panel');
+    const inboxMessage = document.querySelector('#inbox-message');
+    const messageTitle = document.querySelector('#message-title');
+
+    function getPath() {
+      const hash = window.location.hash.replace(/^#/, '');
+      return hash.startsWith('/') ? hash : '/';
+    }
+
+    function setVisible(panel, visible) {
+      panel.hidden = !visible;
+    }
+
+    function renderBranch(names) {
+      routeBranch.replaceChildren();
+      names.forEach((name, index) => {
+        const item = document.createElement('span');
+        item.className = 'rounded-full bg-[var(--color-soft)] px-3 py-2 text-sm font-bold text-[var(--color-primary)]';
+        item.textContent = name;
+        routeBranch.append(item);
+        if (index < names.length - 1) {
+          const arrow = document.createElement('span');
+          arrow.className = 'text-[var(--color-muted)]';
+          arrow.textContent = '→';
+          routeBranch.append(arrow);
+        }
+      });
+    }
+
+    function render() {
+      const path = getPath();
+      const messageMatch = path.match(/^\/inbox\/messages\/([^/]+)\/?$/);
+      const isAbout = path === '/about';
+      const isInbox = path === '/inbox';
+      const isMessage = Boolean(messageMatch);
+      const messageId = messageMatch ? decodeURIComponent(messageMatch[1]) : '';
+
+      currentPath.textContent = path;
+      setVisible(homePanel, path === '/');
+      setVisible(aboutPanel, isAbout);
+      setVisible(inboxPanel, isInbox);
+      setVisible(messagePanel, isMessage);
+
+      document.querySelectorAll('[data-route]').forEach((link) => {
+        const target = link.dataset.route;
+        const active = target === '/inbox' ? isInbox || isMessage : target === path;
+        if (active) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+
+      if (isMessage) {
+        messageTitle.textContent = `Message ${messageId}`;
+        inboxMessage.textContent = 'Inbox rendered this nested Message child:';
+        renderBranch(['Route /', 'App', 'Inbox', 'Message']);
+        routeParams.textContent = JSON.stringify({
+          id: messageId
+        }, null, 2);
+        childrenStatus.textContent = 'Inbox renders Message through this.props.children.';
+      } else if (isInbox) {
+        inboxMessage.textContent = 'Welcome to your Inbox';
+        renderBranch(['Route /', 'App', 'Inbox']);
+        routeParams.textContent = '{}';
+        childrenStatus.textContent = 'Inbox has no matched child, so it renders its fallback text.';
+      } else if (isAbout) {
+        renderBranch(['Route /', 'App', 'About']);
+        routeParams.textContent = '{}';
+        childrenStatus.textContent = 'App renders About through this.props.children.';
+      } else {
+        renderBranch(['Route /', 'App']);
+        routeParams.textContent = '{}';
+        childrenStatus.textContent = 'App renders the default content.';
+      }
+    }
+
+    document.querySelector('#source-code').textContent = sourceCode;
+    document.querySelector('#reset-route').addEventListener('click', () => {
+      window.location.hash = '/';
+    });
+    document.querySelector('#copy-source').addEventListener('click', async (event) => {
+      const button = event.currentTarget;
+      try {
+        await navigator.clipboard.writeText(sourceCode);
+        document.querySelector('#copy-status').textContent = 'React example copied to the clipboard.';
+        button.textContent = 'Copied';
+      } catch {
+        document.querySelector('#copy-status').textContent = 'Clipboard unavailable. Select the code and copy it manually.';
+      }
+      window.setTimeout(() => {
+        button.textContent = 'Copy React example';
+      }, 1600);
+    });
+
+    window.addEventListener('hashchange', render);
+    render();
+
+  </script>
+  <script src="/language.js"></script>
+</body>
+
+</html>
