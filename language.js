@@ -77,7 +77,8 @@
         ['GitHub login setup', '/github-login'],
         ['📋 Project requests', '/project-requests'],
         ['◈ AIP Trading Company', '/aip'],
-        ['✉ Contact', '/contact']
+        ['✉ Contact', '/contact'],
+        ['🔗 Integrations', '/integrations/']
       ]
     },
     {
