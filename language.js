@@ -493,6 +493,7 @@
     const language = getSavedLanguage();
     setDirection(language);
     createSettings(language);
+    if (language !== SOURCE_LANGUAGE) loadTranslator(language);
     hideEmailAddresses();
     removeOrphanedCodeText();
 
