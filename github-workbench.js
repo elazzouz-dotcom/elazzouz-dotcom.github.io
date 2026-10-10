@@ -7,6 +7,7 @@
   const status = $('ghw-status'), panel = $('ghw-panel'), editor = $('ghw-editor');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
   const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create');
+  const tokenInput = $('ghw-token'), tokenButton = $('ghw-token-use');
   let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
   const setStatus = (message, good = false) => { status.textContent = message; status.style.color = good ? '#16a34a' : 'var(--color-icon)'; };
   const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -47,6 +48,15 @@
       throw new Error('انتهت صلاحية رمز الدخول.');
     } catch (error) { setStatus(`تعذر الربط: ${error.message}`); connect.disabled = false; }
   }
+  async function usePersonalToken() {
+    const value = tokenInput?.value.trim();
+    if (!value) return setStatus('أدخل Token في الحقل المحلي أولًا.');
+    tokenButton.disabled = true; setStatus('جاري التحقق من Token داخل جلسة المتصفح...');
+    try { token = value; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = `متصل: @${user.login}`; setStatus('تم التحقق من Token. لم يُحفظ خارج ذاكرة الصفحة.', true); tokenInput.value = ''; }
+    catch (error) { token = null; setStatus(`تعذر التحقق من Token: ${error.message}`); }
+    finally { tokenButton.disabled = false; }
+  }
+
   async function loadFile() {
     try { setStatus('جاري تحميل الملف...'); const data = await request(filePath()); currentSha = data.sha; editor.value = base64Decode(data.content); setStatus(`تم تحميل ${$('ghw-path').value}.`, true); }
     catch (error) { currentSha = null; setStatus(`تعذر تحميل الملف: ${error.message}`); }
@@ -71,5 +81,6 @@
     try { const owner = $('ghw-owner').value.trim(), repo = $('ghw-repo').value.trim(), branch = $('ghw-branch').value.trim(); const base = await request(`/repos/${owner}/${repo}/git/ref/heads/main`); await request(`/repos/${owner}/${repo}/git/refs`, { method: 'POST', body: { ref: `refs/heads/${branch}`, sha: base.object.sha } }); setStatus(`تم إنشاء الفرع ${branch}.`, true); }
     catch (error) { setStatus(`تعذر إنشاء الفرع: ${error.message}`); }
   }
-  connect.addEventListener('click', connectGitHub); loadButton.addEventListener('click', loadFile); saveButton.addEventListener('click', () => saveFile(false)); publishButton.addEventListener('click', () => saveFile(true)); createRepoButton.addEventListener('click', createRepo); branchButton.addEventListener('click', createBranch);
+  connect.addEventListener('click', connectGitHub);
+  tokenButton?.addEventListener('click', usePersonalToken); loadButton.addEventListener('click', loadFile); saveButton.addEventListener('click', () => saveFile(false)); publishButton.addEventListener('click', () => saveFile(true)); createRepoButton.addEventListener('click', createRepo); branchButton.addEventListener('click', createBranch);
 })();
