@@ -153,6 +153,35 @@
         </aside>
       </div>
     </section>
+
+<section class="feature-card mt-8 p-6 sm:p-8" aria-labelledby="github-workbench-heading">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">GitHub Workbench</p>
+  <h2 id="github-workbench-heading" class="mb-2 text-2xl font-black">تعديل ونشر الكود من Hosting Studio</h2>
+  <p class="mb-5 text-sm leading-6 text-[var(--color-muted)]">سجّل الدخول عبر GitHub Device Flow، ثم حمّل أي ملف من مستودعك وعدّله واحفظه كـ commit. يبقى Access Token في ذاكرة الصفحة فقط ولا يُحفظ في localStorage.</p>
+  <div class="flex flex-wrap gap-3">
+    <button id="ghw-connect" class="btn-primary px-4 py-3 font-bold" type="button">ربط حساب GitHub</button>
+    <button id="ghw-create-repo" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>إنشاء مستودع</button>
+    <span id="ghw-status" class="self-center text-sm font-bold" role="status" aria-live="polite">غير متصل</span>
+  </div>
+  <div id="ghw-panel" class="mt-6 hidden space-y-4">
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <label class="text-sm font-bold">المالك<input id="ghw-owner" value="elazzouz-dotcom" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+      <label class="text-sm font-bold">المستودع<input id="ghw-repo" value="elazzouz-dotcom.github.io" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+      <label class="text-sm font-bold">الفرع<input id="ghw-branch" value="main" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+      <label class="text-sm font-bold">مسار الملف<input id="ghw-path" value="index.html" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <button id="ghw-load" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>تحميل الملف</button>
+      <button id="ghw-branch-create" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>إنشاء الفرع</button>
+      <button id="ghw-save" class="btn-primary px-4 py-3 font-bold" type="button" disabled>حفظ كـ commit</button>
+      <button id="ghw-publish" class="rounded-[calc(var(--radius)*0.55)] border border-[var(--color-primary)] px-4 py-3 font-bold text-[var(--color-primary)]" type="button" disabled>حفظ وفتح النشر</button>
+    </div>
+    <label class="block text-sm font-bold">رسالة الـ commit<input id="ghw-message" value="Update from Hosting Studio" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+    <label class="block text-sm font-bold">محتوى الملف<textarea id="ghw-editor" rows="18" spellcheck="false" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-dark)] p-4 font-mono text-sm leading-6 text-[var(--color-text)]" placeholder="حمّل ملفًا أو اكتب الكود هنا..."></textarea></label>
+    <p class="mb-0 text-xs leading-5 text-[var(--color-muted)]">للنشر على GitHub Pages: احفظ ملف <code>index.html</code> في الفرع الرئيسي، ثم فعّل Pages من إعدادات المستودع إذا لم تكن مفعّلة. لا تضع Client Secret أو مفاتيح API داخل الملفات.</p>
+  </div>
+</section>
+
   </main>
 
   <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
@@ -163,6 +192,7 @@
     </div>
   </footer>
 
+  <script src="/github-workbench.js"></script>
   <script>
     const checklistItems = [...document.querySelectorAll('.check-item')];
     const progressOutput = document.querySelector('#check-progress');
