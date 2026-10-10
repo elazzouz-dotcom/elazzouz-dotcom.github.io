@@ -12,6 +12,7 @@
  */
 
 const CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
+const LEGACY_CLIENT_ID = 'Ov23li9xlu3kRKACL6Tz';
 const DEFAULT_SCOPE = 'repo workflow admin:repo_hook read:user user:email';
 const GITHUB_API_BASE = 'https://api.github.com';
 const GITHUB_AUTH_BASE = 'https://github.com';

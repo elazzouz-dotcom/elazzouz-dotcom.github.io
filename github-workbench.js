@@ -7,7 +7,7 @@
   const status = $('ghw-status'), panel = $('ghw-panel'), editor = $('ghw-editor');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
   const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create');
-  let token = null, currentSha = null, currentDevice = null;
+  let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
   const setStatus = (message, good = false) => { status.textContent = message; status.style.color = good ? '#16a34a' : 'var(--color-icon)'; };
   const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   const request = async (path, options = {}) => {
@@ -16,7 +16,7 @@
     if (options.body && typeof options.body !== 'string') { headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(options.body); }
     const response = await fetch(`${API}${path}`, { ...options, headers });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.message || data.error_description || data.error || `HTTP ${response.status}`);
+    if (!response.ok && !(['/token'].includes(path) && ['authorization_pending','slow_down'].includes(data.error))) throw new Error(data.message || data.error_description || data.error || `HTTP ${response.status}`);
     return data;
   };
   const base64Encode = (value) => { const bytes = new TextEncoder().encode(value); let binary = ''; bytes.forEach(byte => binary += String.fromCharCode(byte)); return btoa(binary); };
@@ -28,7 +28,9 @@
   async function connectGitHub() {
     connect.disabled = true; setStatus('جاري طلب رمز آمن من GitHub...');
     try {
-      currentDevice = await request('/device/code', { method: 'POST', body: { client_id: CLIENT_ID, scope: 'repo workflow admin:repo_hook read:user user:email' } });
+      const health = await fetch(`${API}/health`, { cache: 'no-store' }).then(response => response.json()).catch(() => ({}));
+      activeClientId = health.client_id || CLIENT_ID;
+      currentDevice = await request('/device/code', { method: 'POST', body: { client_id: activeClientId, scope: 'repo workflow admin:repo_hook read:user user:email' } });
       const verify = currentDevice.verification_uri_complete || currentDevice.verification_uri;
       window.open(verify, '_blank', 'noopener,noreferrer');
       setStatus(`افتح GitHub وأدخل الكود: ${currentDevice.user_code}`);
@@ -36,7 +38,7 @@
       let interval = Math.max(Number(currentDevice.interval || 5), 5) * 1000;
       while (Date.now() < deadline) {
         await wait(interval);
-        const result = await request('/token', { method: 'POST', body: { client_id: CLIENT_ID, device_code: currentDevice.device_code, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' } });
+        const result = await request('/token', { method: 'POST', body: { client_id: activeClientId, device_code: currentDevice.device_code, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' } });
         if (result.access_token) { token = result.access_token; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = `متصل: @${user.login}`; setStatus('تم ربط GitHub بهذه الجلسة.', true); return; }
         if (result.error === 'slow_down') interval += 5000;
         if (!['authorization_pending', 'slow_down'].includes(result.error)) throw new Error(result.error_description || result.error);
