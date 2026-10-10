@@ -2,9 +2,18 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
+  <meta name="robots" content="noindex,nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="لوحة إدارة خاصة لتحرير ملفات موقع Slaks ونشرها عبر GitHub.">
   <title>لوحة إدارة الموقع | Slaks</title>
+  <link rel="canonical" href="https://elazzouz-dotcom.github.io/admin/">
+  <meta property="og:title" content="لوحة إدارة الموقع | Slaks">
+  <meta property="og:description" content="لوحة إدارة خاصة لتحرير ملفات موقع Slaks ونشرها عبر GitHub.">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/admin/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="stylesheet" href="/theme.css">
   <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -40,6 +49,8 @@
 (() => {
   const OWNER='elazzouz-dotcom', REPO='elazzouz-dotcom.github.io', BRANCH='main';
   const CLIENT_ID='Ov23liu35kgtgP1COSii', AUTH_BASE='https://github-oauth-proxy.elazzouz4.workers.dev';
+  const ALLOWED_LOGINS=new Set(['elazzouz-dotcom']);
+  const isSafeGitHubUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='github.com'}catch{return false}};
   const API='https://api.github.com';
   const allowed=/\.(html?|css|js|json|md|txt|xml|svg)$/i;
   const uploadable=/^[^/]+\.(png|jpe?g|gif|webp|ico|svg|pdf|txt|md|json|css|js|html?|woff2?|mp3|mp4)$/i;
@@ -58,18 +69,20 @@
     try{
       const d=await device();
       $('#auth-user-code').textContent=d.user_code;
-      $('#auth-verify').href=d.verification_uri_complete||d.verification_uri||'https://github.com/login/device';
+      const verifyUrl=d.verification_uri_complete||d.verification_uri||'https://github.com/login/device';if(!isSafeGitHubUrl(verifyUrl))throw new Error('رابط التحقق غير موثوق');$('#auth-verify').href=verifyUrl;
       $('#auth-code-panel').classList.remove('hidden');
       window.open($('#auth-verify').href,'_blank','noopener,noreferrer');
       message('افتح GitHub وأدخل الرمز الظاهر في الصندوق، ثم اترك هذه الصفحة مفتوحة.');
       const deadline=Date.now()+Number(d.expires_in||900)*1000;
+      let pollMs=Math.max(Number(d.interval||5),5)*1000;
       while(Date.now()<deadline){
-        await wait(Math.max(Number(d.interval||5),5)*1000);
+        await wait(pollMs);
         const r=await fetch(`${AUTH_BASE}/token`,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({client_id:CLIENT_ID,device_code:d.device_code,grant_type:'urn:ietf:params:oauth:grant-type:device_code'})});
         const t=await r.json();
         if(t.access_token){
           token=t.access_token;
           const user=await api(`${API}/user`);
+          if(!ALLOWED_LOGINS.has(String(user.login||'').toLowerCase())){token=null;throw new Error('هذا الحساب غير مخول لإدارة الموقع')}
           $('#auth-badge').innerHTML=`<span class="status-dot good"></span>متصل: ${user.login}`;
           $('#login').classList.add('hidden');
           $('#logout').classList.remove('hidden');
@@ -79,25 +92,26 @@
           return;
         }
         if(t.error==='authorization_pending')continue;
-        if(t.error==='slow_down'){await wait(5000);continue;}
+        if(t.error==='slow_down'){pollMs+=5000;continue;}
+        if(['access_denied','expired_token','invalid_grant'].includes(t.error))throw new Error(t.error_description||'تم رفض أو انتهاء جلسة GitHub');
         throw new Error(t.error_description||t.error||'فشل تسجيل الدخول');
       }
       throw new Error('انتهت صلاحية رمز GitHub');
     }catch(e){message(`تعذر تسجيل الدخول: ${e.message}`,'bad')}
     finally{btn.disabled=false}
   }
-  async function loadFiles(){filesEl.innerHTML='<p class="p-4 text-xs text-[var(--color-muted)]">جاري تحميل الملفات...</p>';const tree=await api(`${API}/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`);files=tree.tree.filter(x=>x.type==='blob'&&allowed.test(x.path)&&!x.path.startsWith('.github/')&&Number(x.size||0)<=1024*1024).sort((a,b)=>a.path.localeCompare(b.path));filesEl.innerHTML='';files.forEach(file=>{const b=document.createElement('button');b.type='button';b.className='file-button';b.textContent=file.path;b.dataset.path=file.path;b.onclick=()=>selectFile(file.path);filesEl.append(b)});$('#file-meta').textContent=`${files.length} ملفًا نصيًا · الفرع ${BRANCH}`;if(files.length)await selectFile(files.some(f=>f.path==='index.html')?'index.html':files[0].path)}
+  async function loadFiles(){filesEl.innerHTML='<p class="p-4 text-xs text-[var(--color-muted)]">جاري تحميل الملفات...</p>';const tree=await api(`${API}/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`);if(!Array.isArray(tree.tree))throw new Error('استجابة GitHub غير صالحة');if(tree.truncated)message('تنبيه: قائمة الملفات كبيرة وقد تكون ناقصة.','bad');files=tree.tree.filter(x=>x.type==='blob'&&allowed.test(x.path)&&!x.path.startsWith('.github/')&&Number(x.size||0)<=1024*1024).sort((a,b)=>a.path.localeCompare(b.path));filesEl.innerHTML='';files.forEach(file=>{const b=document.createElement('button');b.type='button';b.className='file-button';b.textContent=file.path;b.dataset.path=file.path;b.onclick=()=>selectFile(file.path);filesEl.append(b)});$('#file-meta').textContent=`${files.length} ملفًا نصيًا · الفرع ${BRANCH}`;if(files.length)await selectFile(files.some(f=>f.path==='index.html')?'index.html':files[0].path)}
   async function selectFile(path){if(selected&&editor.value!==original&&!confirm('لديك تعديلات غير محفوظة. هل تريد تبديل الملف؟'))return;const file=files.find(f=>f.path===path);if(!file)return;message(`جاري قراءة ${path}...`);const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}?ref=${BRANCH}`);selected={path,sha:data.sha};original=b64decode(data.content);editor.value=original;editor.disabled=false;$('#selected-file').textContent=path;$('#dirty').classList.add('hidden');document.querySelectorAll('.file-button').forEach(b=>b.classList.toggle('active',b.dataset.path===path));$('#refresh').disabled=false;$('#new-file').disabled=false;$('#upload-file').disabled=false;$('#preview-btn').disabled=false;$('#save').disabled=false;renderPreview();message(`تم تحميل ${path}.`,'good')}
   function renderPreview(){if(!selected)return;let html=editor.value;if(selected.path.endsWith('.html')){const css=files.find(f=>f.path==='theme.css');if(css&&window._theme)html=html.replace(/<link[^>]+href=["']\/?theme\.css["'][^>]*>/i,`<style>${window._theme}</style>`);html=html.replace(/<script[^>]+src=["']https:\/\/cdn\.tailwindcss\.com[^>]*><\/script>/gi,'');}else html=`<pre style="white-space:pre-wrap;font:14px monospace;padding:20px;color:#111">${editor.value.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</pre>`;preview.srcdoc=html}
   $('#upload-file').onclick=()=>$('#file-upload').click();
-  $('#file-upload').onchange=async()=>{const input=$('#file-upload');const file=input.files[0];input.value='';if(!file)return;if(file.size>10*1024*1024)return message('حجم الملف أكبر من 10 MB.','bad');if(!uploadable.test(file.name))return message('نوع الملف غير مسموح. استخدم صورة أو ملفًا نصيًا أو ملف PDF.','bad');const path=prompt('مسار الملف داخل GitHub:',`assets/${file.name}`);if(!path||path.includes('..')||path.startsWith('/')||path.startsWith('.github/')||path.length>180)return message('المسار غير مسموح.','bad');const commit=prompt('اكتب وصف الـ Commit:',`رفع ${file.name} من لوحة الإدارة`);if(!commit)return;$('#upload-file').disabled=true;message('جاري تحويل ورفع الملف إلى GitHub...');try{const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('تعذر قراءة الملف'));reader.readAsDataURL(file)});let sha;try{const existing=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}?ref=${BRANCH}`);sha=existing.sha}catch(e){if(!String(e.message).toLowerCase().includes('not found')&&!String(e.message).includes('404'))throw e}const payload={message:commit,content:String(dataUrl).split(',')[1],branch:BRANCH};if(sha)payload.sha=sha;const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});message(`تم رفع ${path} بنجاح إلى GitHub.`,'good');if(data.content?.html_url)window.open(data.content.html_url,'_blank','noopener,noreferrer')}catch(e){message(`فشل رفع الملف: ${e.message}`,'bad')}finally{$('#upload-file').disabled=false}};
+  $('#file-upload').onchange=async()=>{const input=$('#file-upload');const file=input.files[0];input.value='';if(!file)return;if(file.size>10*1024*1024)return message('حجم الملف أكبر من 10 MB.','bad');if(!uploadable.test(file.name))return message('نوع الملف غير مسموح. استخدم صورة أو ملفًا نصيًا أو ملف PDF.','bad');const path=prompt('مسار الملف داخل GitHub:',`assets/${file.name}`);if(!path||!uploadable.test(path.split('/').pop())||path.includes('..')||path.startsWith('/')||path.startsWith('.github/')||path.length>180)return message('المسار غير مسموح.','bad');const commit=prompt('اكتب وصف الـ Commit:',`رفع ${file.name} من لوحة الإدارة`);if(!commit)return;$('#upload-file').disabled=true;message('جاري تحويل ورفع الملف إلى GitHub...');try{const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('تعذر قراءة الملف'));reader.readAsDataURL(file)});let sha;try{const existing=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}?ref=${BRANCH}`);sha=existing.sha;if(!confirm(`الملف ${path} موجود. هل تريد استبداله؟`))return}catch(e){if(!String(e.message).toLowerCase().includes('not found')&&!String(e.message).includes('404'))throw e}const payload={message:commit,content:String(dataUrl).split(',')[1],branch:BRANCH};if(sha)payload.sha=sha;const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});message(`تم رفع ${path} بنجاح إلى GitHub.`,'good');if(data.content?.html_url)window.open(data.content.html_url,'_blank','noopener,noreferrer')}catch(e){message(`فشل رفع الملف: ${e.message}`,'bad')}finally{$('#upload-file').disabled=false}};
   $('#new-file').onclick=async()=>{const path=prompt('اكتب مسار الملف الجديد، مثل pages/about.html أو data/content.json:','new-page.html');if(!path)return;if(!allowed.test(path)||path.includes('..')||path.startsWith('/')||path.startsWith('.github/'))return message('المسار غير مسموح. استخدم ملفًا نصيًا داخل المستودع دون .. أو أسرار.','bad');if(files.some(f=>f.path===path))return message('هذا الملف موجود بالفعل. اختر مسارًا آخر.','bad');const content=prompt('اكتب محتوى الملف الأولي:','');if(content===null)return;const commit=prompt('اكتب وصف الـ Commit:','إضافة ملف جديد من لوحة الإدارة');if(!commit)return;$('#new-file').disabled=true;message('جاري إنشاء الملف...');try{const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:commit,content:b64encode(content),branch:BRANCH})});message(`تم إنشاء ${path} بنجاح.`,'good');await loadFiles();await selectFile(path)}catch(e){message(`فشل إنشاء الملف: ${e.message}`,'bad')}finally{$('#new-file').disabled=false}};
   $('#editor').addEventListener('input',()=>$('#dirty').classList.toggle('hidden',editor.value===original));
   $('#preview-btn').onclick=renderPreview;
   $('#refresh').onclick=()=>loadFiles().catch(e=>message(`تعذر تحديث الملفات: ${e.message}`,'bad'));
   $('#save').onclick=async()=>{if(!selected||editor.value===original)return message('لا توجد تعديلات لحفظها.');const commit=prompt('اكتب وصفًا واضحًا لهذا التعديل:','تحديث من لوحة إدارة الموقع');if(!commit)return;$('#save').disabled=true;message('جاري إنشاء Commit...');try{const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(selected.path)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:commit,content:b64encode(editor.value),sha:selected.sha,branch:BRANCH})});selected.sha=data.content.sha;original=editor.value;$('#dirty').classList.add('hidden');message(`تم الحفظ بنجاح: ${data.commit.html_url||'Commit جديد'}`,'good');renderPreview()}catch(e){message(`فشل الحفظ: ${e.message}`,'bad')}finally{$('#save').disabled=false}};
-  $('#auth-copy').onclick=async()=>{await navigator.clipboard.writeText($('#auth-user-code').textContent);$('#auth-copy').textContent='تم النسخ';setTimeout(()=>$('#auth-copy').textContent='نسخ الرمز',1600)};
-  $('#logout').onclick=()=>{token=null;files=[];selected=null;original='';editor.value='';editor.disabled=true;filesEl.innerHTML='<p class="p-4 text-xs text-[var(--color-muted)]">ستظهر الملفات هنا بعد تسجيل الدخول.</p>';$('#login').classList.remove('hidden');$('#logout').classList.add('hidden');$('#auth-code-panel').classList.add('hidden');$('#auth-badge').innerHTML='<span class="status-dot"></span>غير مسجّل';$('#file-meta').textContent='سجّل الدخول لتحميل الملفات النصية.';message('تم تسجيل الخروج من هذه الجلسة.')};
+  $('#auth-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#auth-user-code').textContent);$('#auth-copy').textContent='تم النسخ';setTimeout(()=>$('#auth-copy').textContent='نسخ الرمز',1600)}catch{$('#status').textContent='تعذر النسخ تلقائيًا؛ حدّد الرمز وانسخه يدويًا.'}};
+  $('#logout').onclick=()=>{if(selected&&editor.value!==original&&!confirm('توجد تعديلات غير محفوظة. هل تريد تسجيل الخروج؟'))return;token=null;files=[];selected=null;original='';editor.value='';preview.srcdoc='';editor.disabled=true;filesEl.innerHTML='<p class="p-4 text-xs text-[var(--color-muted)]">ستظهر الملفات هنا بعد تسجيل الدخول.</p>';$('#login').classList.remove('hidden');$('#logout').classList.add('hidden');$('#auth-code-panel').classList.add('hidden');$('#auth-badge').innerHTML='<span class="status-dot"></span>غير مسجّل';$('#file-meta').textContent='سجّل الدخول لتحميل الملفات النصية.';message('تم تسجيل الخروج من هذه الجلسة.')};
   $('#login').onclick=login;
   fetch('/theme.css').then(r=>r.text()).then(css=>window._theme=css).catch(()=>{});
 })();

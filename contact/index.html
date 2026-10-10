@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="تواصل معنا وشارك تفاصيل مشروعك لنساعدك على اختيار الخطوة المناسبة.">
   <title>تواصل معنا | Slaks</title>
+  <link rel="canonical" href="https://elazzouz-dotcom.github.io/contact/">
+  <meta property="og:title" content="تواصل معنا | Slaks">
+  <meta property="og:description" content="تواصل معنا وشارك تفاصيل مشروعك لنساعدك على اختيار الخطوة المناسبة.">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/contact/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="stylesheet" href="/theme.css">
   <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -232,7 +240,8 @@
     }
 
     function saveLead(lead) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([lead, ...getLeads()]));
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify([lead, ...getLeads()])); return true; }
+      catch { return false; }
     }
 
     function markInvalid(field, invalid) {
@@ -284,7 +293,7 @@
         fields.email.focus();
         return;
       }
-      saveLead({
+      const saved = saveLead({
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         name: values.name,
@@ -293,6 +302,7 @@
         projectType: values.projectType,
         message: values.message
       });
+      if (!saved) { showContactStatus('تعذر التخزين في هذا المتصفح. انسخ بيانات الطلب قبل إغلاق الصفحة.', 'error'); return; }
       showContactStatus('✅ تخزّن الطلب بنجاح داخل هذا المتصفح.', 'success');
       contactForm.reset();
       Object.values(fields).forEach((field) => field.removeAttribute('aria-invalid'));
