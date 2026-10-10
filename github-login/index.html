@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="حالة ربط الموقع بـ GitHub Pages ومعلومات إعداد تسجيل الدخول.">
   <title>GitHub Login والحالة | Slaks</title>
+  <link rel="canonical" href="https://elazzouz-dotcom.github.io/github-login/">
+  <meta property="og:title" content="GitHub Login والحالة | Slaks">
+  <meta property="og:description" content="حالة ربط الموقع بـ GitHub Pages ومعلومات إعداد تسجيل الدخول.">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/github-login/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="stylesheet" href="/theme.css">
   <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -50,6 +58,7 @@
   const account = document.querySelector('#github-account');
   let accessToken = null;
   let pollTimer = null;
+  const isSafeGitHubUrl = value => { try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'github.com'; } catch { return false; } };
 
   const setStatus = (text, good = false) => {
     status.textContent = text;
@@ -93,7 +102,7 @@
 
   function showAccount(user) {
     account.classList.remove('hidden');
-    account.innerHTML = `<b>تم تسجيل الدخول بنجاح</b><br><span class="text-sm text-[var(--color-muted)]">${user.name || user.login} (@${user.login})</span><br><a class="text-sm text-[var(--color-primary)]" href="${user.html_url}" target="_blank" rel="noreferrer">فتح حساب GitHub ↗</a>`;
+    account.replaceChildren(); const title=document.createElement('b'); title.textContent='تم تسجيل الدخول بنجاح'; const line=document.createElement('span'); line.className='text-sm text-[var(--color-muted)]'; line.textContent=`${user.name || user.login} (@${user.login})`; const link=document.createElement('a'); link.className='text-sm text-[var(--color-primary)]'; link.target='_blank'; link.rel='noreferrer'; link.textContent='فتح حساب GitHub ↗'; if(isSafeGitHubUrl(user.html_url)) link.href=user.html_url; account.append(title,document.createElement('br'),line,document.createElement('br'),link);
     logoutButton.classList.remove('hidden');
     startButton.classList.add('hidden');
   }
@@ -106,10 +115,10 @@
     try {
       const device = await requestDeviceCode();
       userCode.textContent = device.user_code;
-      verifyLink.href = device.verification_uri || device.verification_uri_complete;
+      const verifyUrl=device.verification_uri_complete||device.verification_uri;if(!isSafeGitHubUrl(verifyUrl))throw new Error('رابط التحقق غير موثوق');verifyLink.href=verifyUrl;
       codePanel.classList.remove('hidden');
       window.open(verifyLink.href, '_blank', 'noopener,noreferrer');
-      const interval = Math.max(Number(device.interval || 5), 5) * 1000;
+      let interval = Math.max(Number(device.interval || 5), 5) * 1000;
       const deadline = Date.now() + Number(device.expires_in || 900) * 1000;
       setStatus('أدخل الكود في GitHub، وسأتحقق تلقائيًا من الموافقة...');
       while (Date.now() < deadline) {
@@ -123,7 +132,8 @@
           return;
         }
         if (token.error === 'authorization_pending') continue;
-        if (token.error === 'slow_down') { await wait(5000); continue; }
+        if (token.error === 'slow_down') { interval += 5000; continue; }
+        if (['access_denied', 'expired_token', 'invalid_grant'].includes(token.error)) throw new Error(token.error_description || 'تم رفض أو انتهاء جلسة GitHub.');
         throw new Error(token.error_description || token.error || 'authorization_failed');
       }
       throw new Error('انتهت صلاحية الكود. ابدأ العملية من جديد.');
@@ -144,6 +154,6 @@
     codePanel.classList.add('hidden');
     setStatus('تم تسجيل الخروج من هذه الجلسة.', true);
   });
-  copyButton.addEventListener('click', async () => { await navigator.clipboard.writeText(userCode.textContent); copyButton.textContent = 'تم النسخ'; setTimeout(() => copyButton.textContent = 'نسخ الكود', 1600); });
+  copyButton.addEventListener('click', async () => { try { await navigator.clipboard.writeText(userCode.textContent); copyButton.textContent = 'تم النسخ'; setTimeout(() => copyButton.textContent = 'نسخ الكود', 1600); } catch { setStatus('تعذر النسخ تلقائيًا؛ حدّد الكود وانسخه يدويًا.'); } });
 })();
 </script><script src="/language.js"></script></body></html>

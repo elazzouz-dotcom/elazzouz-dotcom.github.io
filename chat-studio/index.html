@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="استوديو محلي لعرض سجل هذه المحادثة والبحث فيه ونسخه.">
   <title>استوديو هذه الدردشة | Slaks</title>
+  <link rel="canonical" href="https://elazzouz-dotcom.github.io/chat-studio/">
+  <meta property="og:title" content="استوديو هذه الدردشة | Slaks">
+  <meta property="og:description" content="استوديو محلي لعرض سجل هذه المحادثة والبحث فيه ونسخه.">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/chat-studio/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="stylesheet" href="/theme.css">
   <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -266,7 +274,7 @@
       let visible = 0;
 
       messages.forEach((message) => {
-        const matches = message.textContent.toLocaleLowerCase().includes(query);
+        const matches = message.querySelector('.message-text')?.textContent.toLocaleLowerCase().includes(query) ?? false;
         message.hidden = !matches;
         if (matches) visible += 1;
       });
