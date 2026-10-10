@@ -77,7 +77,13 @@
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ client_id: CLIENT_ID, device_code: deviceCode, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' })
     });
-    return json(response);
+    const data = await response.json().catch(() => ({}));
+    // GitHub returns HTTP 400 while the user has not approved the device yet.
+    // Keep that response in the polling loop instead of treating it as a fatal error.
+    if (!response.ok && !['authorization_pending', 'slow_down'].includes(data.error)) {
+      throw new Error(data.error_description || data.error || 'authorization_failed');
+    }
+    return data;
   }
 
   async function loadAccount(token) {
