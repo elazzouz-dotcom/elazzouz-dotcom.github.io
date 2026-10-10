@@ -17,3 +17,46 @@
     new MutationObserver(sync).observe(status, { childList: true, characterData: true, subtree: true }); sync();
   }
 })();
+
+// Gmail OTP admin gate: active only after Cloudflare secrets are configured.
+(() => {
+  const API = 'https://github-oauth-proxy.elazzouz4.workers.dev';
+  const gate = document.getElementById('studio-otp-gate');
+  const config = document.getElementById('studio-otp-config');
+  const requestButton = document.getElementById('studio-otp-request');
+  const verifyButton = document.getElementById('studio-otp-verify');
+  const copyButton = document.getElementById('studio-otp-copy');
+  const codeRow = document.getElementById('studio-otp-code-row');
+  const codeInput = document.getElementById('studio-otp-code');
+  const status = document.getElementById('studio-otp-status');
+  if (!gate || !requestButton) return;
+  const setStatus = (text, kind = '') => { status.textContent = text; status.className = `studio-otp-status ${kind}`; };
+  const json = async (url, options = {}) => {
+    const response = await fetch(`${API}${url}`, { ...options, credentials: 'include', headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    return data;
+  };
+  const init = async () => {
+    try {
+      const session = await json('/otp/session', { method: 'GET' });
+      if (!session.configured) { config?.classList.add('visible'); return; }
+      if (!session.authenticated) gate.classList.remove('hidden');
+    } catch { config?.classList.add('visible'); }
+  };
+  requestButton.addEventListener('click', async () => {
+    requestButton.disabled = true; setStatus('جاري إرسال الرمز إلى Gmail...');
+    try { await json('/otp/request', { method: 'POST', body: JSON.stringify({ email: 'elazzouz4@gmail.com' }) }); codeRow.hidden = false; codeInput.focus(); setStatus('تم إرسال الرمز. صالح لمدة 10 دقائق.', 'good'); }
+    catch (error) { setStatus(error.message === 'gmail_otp_not_configured' ? 'أضف أسرار Google OAuth إلى Cloudflare أولًا.' : `تعذر إرسال الرمز: ${error.message}`, 'bad'); }
+    finally { requestButton.disabled = false; }
+  });
+  verifyButton.addEventListener('click', async () => {
+    const code = codeInput.value.trim(); if (!/^\d{6}$/.test(code)) return setStatus('أدخل رمزًا من 6 أرقام.', 'bad');
+    verifyButton.disabled = true; setStatus('جاري التحقق...');
+    try { await json('/otp/verify', { method: 'POST', body: JSON.stringify({ code }) }); gate.classList.add('hidden'); setStatus('تم التحقق.', 'good'); }
+    catch (error) { setStatus(`تعذر التحقق: ${error.message}`, 'bad'); }
+    finally { verifyButton.disabled = false; }
+  });
+  copyButton.addEventListener('click', async () => { if (!codeInput.value) return; await navigator.clipboard?.writeText(codeInput.value); setStatus('تم نسخ الرمز.', 'good'); });
+  init();
+})();
