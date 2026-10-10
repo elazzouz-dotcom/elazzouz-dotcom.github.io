@@ -74,7 +74,6 @@
         ['🚀 GitHub Pages publishing guide', '/github-pages'],
         ['🐘 Project files', '/project-files'],
         ['GitHub Studios', '/github-studios'],
-        ['GitHub login setup', '/github-login'],
         ['📋 Project requests', '/project-requests'],
         ['◈ AIP Trading Company', '/aip'],
         ['✉ Contact', '/contact'],
