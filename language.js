@@ -165,6 +165,10 @@
   }
 
   function getSavedLanguage() {
+    const requestedLanguage = new URLSearchParams(window.location.search).get('locale');
+    if (requestedLanguage && LANGUAGES.some(([code]) => code === requestedLanguage)) {
+      return requestedLanguage;
+    }
     try {
       return localStorage.getItem(LANGUAGE_STORAGE_KEY) || 'en';
     } catch {
