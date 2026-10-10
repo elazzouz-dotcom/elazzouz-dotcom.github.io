@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="لوحة إدارة خاصة لتحرير ملفات موقع Practical Tools ونشرها عبر GitHub.">
-  <title>لوحة إدارة الموقع | Practical Tools</title>
+  <meta name="description" content="لوحة إدارة خاصة لتحرير ملفات موقع Slaks ونشرها عبر GitHub.">
+  <title>لوحة إدارة الموقع | Slaks</title>
   <link rel="stylesheet" href="/theme.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -24,7 +24,7 @@
   </style>
 </head>
 <body class="min-h-screen">
-  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8"><a href="/" class="font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></a><nav class="flex flex-wrap gap-4 text-sm font-semibold text-[var(--color-muted)]"><a href="/tools">الأدوات</a><a href="/github-login">تسجيل GitHub</a><a href="/">الرئيسية</a></nav></div></header>
+  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8"><a href="/" class="font-extrabold">Slaks</a><nav class="flex flex-wrap gap-4 text-sm font-semibold text-[var(--color-muted)]"><a href="/tools">الأدوات</a><a href="/github-login">تسجيل GitHub</a><a href="/">الرئيسية</a></nav></div></header>
   <main class="mx-auto max-w-[1600px] px-5 py-8 lg:px-8">
     <section class="admin-hero rounded-[var(--radius)] p-7 sm:p-10"><p class="mb-3 text-xs font-extrabold uppercase tracking-[.16em] text-[var(--color-primary)]">Private site administration</p><div class="flex flex-wrap items-end justify-between gap-5"><div><h1 class="mb-3 text-4xl font-black sm:text-5xl">لوحة إدارة الموقع</h1><p class="mb-0 max-w-3xl leading-7 text-[var(--color-muted)]">حرّر ملفات الموقع، شاهد المعاينة، ثم أنشئ Commit واضحًا في المستودع المحدد. هذه النسخة لا تحفظ رمز GitHub في المتصفح.</p></div><div id="auth-badge" class="rounded-full border border-[var(--color-border)] px-4 py-2 text-sm font-bold"><span class="status-dot"></span>غير مسجّل</div></div></section>
     <section class="mt-6 grid gap-5 lg:grid-cols-[1fr_340px]">
@@ -34,7 +34,7 @@
     <section class="feature-card mt-6 overflow-hidden" aria-label="محرر ملفات الموقع"><div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-4"><div><h2 class="mb-1 text-xl font-black">محرر الملفات</h2><p id="file-meta" class="mb-0 text-xs text-[var(--color-muted)]">سجّل الدخول لتحميل الملفات النصية.</p></div><div class="flex flex-wrap gap-2"><button id="refresh" class="admin-action rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-xs font-bold" type="button" disabled>تحديث الملفات</button><button id="new-file" class="admin-action rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-xs font-bold" type="button" disabled>ملف جديد</button><button id="preview-btn" class="admin-action rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-xs font-bold" type="button" disabled>تحديث المعاينة</button><button id="save" class="admin-action btn-primary px-4 py-2 text-xs" type="button" disabled>حفظ Commit</button></div></div><div class="editor-shell"><div class="file-list" id="files" aria-label="ملفات قابلة للتحرير"><p class="p-4 text-xs leading-6 text-[var(--color-muted)]">ستظهر الملفات هنا بعد تسجيل الدخول.</p></div><div class="editor-pane"><div class="flex items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[var(--color-dark)] px-4 py-3"><code id="selected-file" class="text-xs text-[var(--color-primary)]">لم يُختر ملف</code><span id="dirty" class="hidden text-xs font-bold text-[#f59e0b]">تعديلات غير محفوظة</span></div><textarea id="editor" spellcheck="false" aria-label="محرر الكود" disabled placeholder="سجّل الدخول ثم اختر ملفًا."></textarea></div><div class="preview-pane"><div class="border-b border-[#d8dee8] bg-[#f4f7fa] px-4 py-3 text-xs font-bold text-[#334155]">معاينة معزولة</div><iframe id="preview" title="معاينة الملف" sandbox=""></iframe></div></div></section>
     <section class="mt-6 rounded-[var(--radius)] border border-[#8f6b20] bg-[#2b2110] p-5 text-sm leading-7 text-[#f8df9c]"><strong>تنبيه أمني:</strong> هذه لوحة خاصة وليست نظام صلاحيات مستقلًا. احمِ حساب GitHub، راجع التغييرات قبل الحفظ، ولا تضع أسرارًا أو مفاتيح API داخل الملفات العامة.</section>
   </main>
-  <footer class="mt-10 border-t border-[var(--color-border)] px-5 py-7 text-center text-sm text-[var(--color-muted)]"><a href="/" class="font-extrabold text-[var(--color-text)]">Practical Tools</a> · لوحة إدارة ثابتة متصلة بـ GitHub Contents API</footer>
+  <footer class="mt-10 border-t border-[var(--color-border)] px-5 py-7 text-center text-sm text-[var(--color-muted)]"><a href="/" class="font-extrabold text-[var(--color-text)]">Slaks</a> · لوحة إدارة ثابتة متصلة بـ GitHub Contents API</footer>
 <script>
 (() => {
   const OWNER='elazzouz-dotcom', REPO='elazzouz-dotcom.github.io', BRANCH='main';
