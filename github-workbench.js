@@ -31,6 +31,7 @@
       const health = await fetch(`${API}/health`, { cache: 'no-store' }).then(response => response.json()).catch(() => ({}));
       activeClientId = health.client_id || CLIENT_ID;
       currentDevice = await request('/device/code', { method: 'POST', body: { client_id: activeClientId, scope: 'repo workflow admin:repo_hook read:user user:email' } });
+      if (!currentDevice || !currentDevice.device_code) throw new Error('لم يصل device_code صالح من GitHub Worker');
       const verify = currentDevice.verification_uri_complete || currentDevice.verification_uri;
       window.open(verify, '_blank', 'noopener,noreferrer');
       setStatus(`افتح GitHub وأدخل الكود: ${currentDevice.user_code}`);
@@ -38,7 +39,7 @@
       let interval = Math.max(Number(currentDevice.interval || 5), 5) * 1000;
       while (Date.now() < deadline) {
         await wait(interval);
-        const result = await request('/token', { method: 'POST', body: { client_id: activeClientId, device_code: currentDevice.device_code, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' } });
+        const result = await request('/token', { method: 'POST', body: { client_id: activeClientId, clientId: activeClientId, device_code: currentDevice.device_code, deviceCode: currentDevice.device_code, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' } });
         if (result.access_token) { token = result.access_token; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = `متصل: @${user.login}`; setStatus('تم ربط GitHub بهذه الجلسة.', true); return; }
         if (result.error === 'slow_down') interval += 5000;
         if (!['authorization_pending', 'slow_down'].includes(result.error)) throw new Error(result.error_description || result.error);

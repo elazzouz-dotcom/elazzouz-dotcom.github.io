@@ -84,7 +84,7 @@
     const response = await fetch(`${API_BASE}/token`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: CLIENT_ID, device_code: deviceCode, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' })
+      body: JSON.stringify({ client_id: CLIENT_ID, clientId: CLIENT_ID, device_code: deviceCode, deviceCode, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' })
     });
     const data = await response.json().catch(() => ({}));
     // GitHub returns HTTP 400 while the user has not approved the device yet.
