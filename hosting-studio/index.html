@@ -201,6 +201,7 @@
     <button id="ghw-connect" class="studio-login-anchor btn-primary px-4 py-3 font-bold" type="button">ربط حساب GitHub</button>
     <button id="ghw-create-repo" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>إنشاء مستودع</button>
     <span id="ghw-status" class="self-center text-sm font-bold" role="status" aria-live="polite">غير متصل</span>
+    <button id="ghw-copy-code" class="studio-otp-copy self-center" type="button" hidden>نسخ كود GitHub</button>
   </div>
   <div id="ghw-panel" class="mt-6 hidden space-y-4">
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -231,7 +232,7 @@
     </div>
   </footer>
 
-  <script src="/github-workbench.js?v=multi-client-1"></script>
+  <script src="/github-workbench.js?v=copy-code-2"></script>
   <script>
     const checklistItems = [...document.querySelectorAll('.check-item')];
     const progressOutput = document.querySelector('#check-progress');

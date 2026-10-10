@@ -4,12 +4,19 @@
   const $ = (id) => document.getElementById(id);
   const connect = $('ghw-connect');
   if (!connect) return;
-  const status = $('ghw-status'), panel = $('ghw-panel'), editor = $('ghw-editor');
+  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), panel = $('ghw-panel'), editor = $('ghw-editor');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
   const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create');
   const tokenInput = $('ghw-token'), tokenButton = $('ghw-token-use');
   let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
-  const setStatus = (message, good = false) => { status.textContent = message; status.style.color = good ? '#16a34a' : 'var(--color-icon)'; };
+  let currentUserCode = '';
+  const setStatus = (message, good = false) => {
+    status.textContent = message;
+    status.style.color = good ? '#16a34a' : 'var(--color-icon)';
+    const match = String(message).match(/الكود:\s*([A-Z0-9-]+)/i);
+    if (match) { currentUserCode = match[1]; if (copyCodeButton) { copyCodeButton.hidden = false; copyCodeButton.textContent = 'نسخ كود GitHub'; } }
+    else if (copyCodeButton) { copyCodeButton.hidden = true; currentUserCode = ''; }
+  };
   const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   const request = async (path, options = {}) => {
     const headers = { Accept: 'application/vnd.github+json', ...(options.headers || {}) };
@@ -62,6 +69,15 @@
     finally { tokenButton.disabled = false; }
   }
 
+  async function copyGitHubCode() {
+    if (!currentUserCode || !copyCodeButton) return;
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(currentUserCode);
+      else { const helper = document.createElement('textarea'); helper.value = currentUserCode; helper.style.position = 'fixed'; helper.style.opacity = '0'; document.body.appendChild(helper); helper.select(); document.execCommand('copy'); helper.remove(); }
+      copyCodeButton.textContent = 'تم نسخ الكود ✓';
+    } catch { copyCodeButton.textContent = 'حدده وانسخه يدويًا'; }
+  }
+
   async function loadFile() {
     try { setStatus('جاري تحميل الملف...'); const data = await request(filePath()); currentSha = data.sha; editor.value = base64Decode(data.content); setStatus(`تم تحميل ${$('ghw-path').value}.`, true); }
     catch (error) { currentSha = null; setStatus(`تعذر تحميل الملف: ${error.message}`); }
@@ -86,6 +102,7 @@
     try { const owner = $('ghw-owner').value.trim(), repo = $('ghw-repo').value.trim(), branch = $('ghw-branch').value.trim(); const base = await request(`/repos/${owner}/${repo}/git/ref/heads/main`); await request(`/repos/${owner}/${repo}/git/refs`, { method: 'POST', body: { ref: `refs/heads/${branch}`, sha: base.object.sha } }); setStatus(`تم إنشاء الفرع ${branch}.`, true); }
     catch (error) { setStatus(`تعذر إنشاء الفرع: ${error.message}`); }
   }
+  copyCodeButton?.addEventListener('click', copyGitHubCode);
   connect.addEventListener('click', connectGitHub);
   tokenButton?.addEventListener('click', usePersonalToken); loadButton.addEventListener('click', loadFile); saveButton.addEventListener('click', () => saveFile(false)); publishButton.addEventListener('click', () => saveFile(true)); createRepoButton.addEventListener('click', createRepo); branchButton.addEventListener('click', createBranch);
 })();
