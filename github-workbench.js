@@ -1,6 +1,6 @@
 (() => {
   const API = 'https://github-oauth-proxy.elazzouz4.workers.dev';
-  const CLIENT_ID = 'Ov23li9xlu3kRKACL6Tz';
+  const CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
   const $ = (id) => document.getElementById(id);
   const connect = $('ghw-connect');
   if (!connect) return;
@@ -28,7 +28,7 @@
   async function connectGitHub() {
     connect.disabled = true; setStatus('جاري طلب رمز آمن من GitHub...');
     try {
-      currentDevice = await request('/device/code', { method: 'POST', body: { client_id: CLIENT_ID, scope: 'repo read:user user:email' } });
+      currentDevice = await request('/device/code', { method: 'POST', body: { client_id: CLIENT_ID, scope: 'repo workflow admin:repo_hook read:user user:email' } });
       const verify = currentDevice.verification_uri_complete || currentDevice.verification_uri;
       window.open(verify, '_blank', 'noopener,noreferrer');
       setStatus(`افتح GitHub وأدخل الكود: ${currentDevice.user_code}`);

@@ -46,7 +46,7 @@
 </main>
 <script>
 (() => {
-  const CLIENT_ID = 'Ov23li9xlu3kRKACL6Tz';
+  const CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
   const API_BASE = 'https://github-oauth-proxy.elazzouz4.workers.dev';
   const startButton = document.querySelector('#github-start');
   const logoutButton = document.querySelector('#github-logout');
@@ -75,7 +75,7 @@
     const response = await fetch(`${API_BASE}/device/code`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: CLIENT_ID, scope: 'read:user user:email' })
+      body: JSON.stringify({ client_id: CLIENT_ID, scope: 'repo workflow admin:repo_hook read:user user:email' })
     });
     return json(response);
   }

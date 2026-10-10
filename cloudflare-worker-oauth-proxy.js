@@ -7,12 +7,12 @@
  *   - CLIENT_SECRET: Your GitHub OAuth App client secret
  * 
  * Configuration:
- *   - CLIENT_ID: Ov23li9xlu3kRKACL6Tz (can be public)
- *   - Default Scope: read:user user:email repo
+ *   - CLIENT_ID: Ov23liCSQUsIFcULd37T (can be public)
+ *   - Default Scope: repo workflow admin:repo_hook read:user user:email
  */
 
-const CLIENT_ID = 'Ov23li9xlu3kRKACL6Tz';
-const DEFAULT_SCOPE = 'read:user user:email repo';
+const CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
+const DEFAULT_SCOPE = 'repo workflow admin:repo_hook read:user user:email';
 const GITHUB_API_BASE = 'https://api.github.com';
 const GITHUB_AUTH_BASE = 'https://github.com';
 
