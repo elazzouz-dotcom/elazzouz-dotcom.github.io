@@ -16,13 +16,13 @@
 </head>
 <body class="min-h-screen">
 <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-5 lg:px-8"><a href="/" class="font-extrabold">Practical <span class="text-[var(--color-primary)]">Tools</span></a><nav class="flex flex-wrap gap-2 text-sm"><a href="/github-studios" class="footer-link">GitHub Studios</a><a href="/integrations/" class="footer-link">التكاملات</a><a href="/github-login/" class="footer-link font-bold">GitHub Login</a></nav></div></header>
-<main class="mx-auto max-w-7xl px-5 py-12 lg:px-8"><section class="hero rounded-[var(--radius)] p-8 sm:p-12"><p class="mb-3 text-sm font-extrabold uppercase tracking-[.16em] text-[var(--color-primary)]">GitHub connection status</p><h1 class="mb-4 text-4xl font-black sm:text-6xl">حالة GitHub للموقع</h1><p class="mb-0 max-w-3xl text-lg leading-8 opacity-90">هناك نوعان مختلفان من الربط: نشر الموقع عبر GitHub Pages، وتسجيل دخول زوار الموقع إلى حساباتهم في GitHub. الأول مفعّل، والثاني يحتاج تطبيق OAuth وخادمًا خلفيًا.</p></section>
+<main class="mx-auto max-w-7xl px-5 py-12 lg:px-8"><section class="hero rounded-[var(--radius)] p-8 sm:p-12"><p class="mb-3 text-sm font-extrabold uppercase tracking-[.16em] text-[var(--color-primary)]">GitHub connection status</p><h1 class="mb-4 text-4xl font-black sm:text-6xl">حالة GitHub للموقع</h1><p class="mb-0 max-w-3xl text-lg leading-8 opacity-90">هناك نوعان مختلفان من الربط: نشر الموقع عبر GitHub Pages، وتسجيل دخول زوار الموقع إلى حساباتهم في GitHub. الأول مفعّل، والثاني يستخدم تطبيق OAuth ووسيط Cloudflare Worker آمن.</p></section>
 <section class="mt-8 grid gap-5 lg:grid-cols-2"><article class="status-card feature-card p-6"><h2 class="mb-4 text-2xl font-black"><span class="dot"></span>GitHub Pages — مربوط</h2><p class="leading-7 text-[var(--color-muted)]">الموقع المنشور مرتبط فعليًا بمستودع GitHub ويُبنى تلقائيًا من الفرع الرئيسي.</p><dl class="mt-5 space-y-3 text-sm"><div class="flex justify-between gap-4 border-b border-[var(--color-border)] pb-3"><dt class="font-bold">المستودع</dt><dd><a class="text-[var(--color-primary)]" href="https://github.com/elazzouz-dotcom/elazzouz-dotcom.github.io" target="_blank" rel="noreferrer">elazzouz-dotcom/elazzouz-dotcom.github.io ↗</a></dd></div><div class="flex justify-between gap-4 border-b border-[var(--color-border)] pb-3"><dt class="font-bold">الفرع</dt><dd><code>main</code></dd></div><div class="flex justify-between gap-4 border-b border-[var(--color-border)] pb-3"><dt class="font-bold">الحالة</dt><dd>Built / منشور</dd></div><div class="flex justify-between gap-4"><dt class="font-bold">HTTPS</dt><dd>مفعّل</dd></div></dl></article>
 <article class="status-card feature-card p-6"><h2 class="mb-4 text-2xl font-black"><span class="dot"></span>تسجيل دخول GitHub — Device Flow مفعّل</h2><p class="leading-7 text-[var(--color-muted)]">يمكنك الآن بدء تسجيل الدخول من خلال GitHub باستخدام رمز مؤقت. لا يتم إرسال كلمة المرور إلى هذا الموقع ولا يتم تخزين Client Secret.</p><div class="mt-5 flex flex-wrap gap-3"><a class="rounded-[var(--radius)] border border-[var(--color-border)] px-4 py-3 text-sm font-bold" href="/integrations/">صفحة التكاملات</a><a class="rounded-[var(--radius)] border border-[var(--color-border)] px-4 py-3 text-sm font-bold" href="https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps" target="_blank" rel="noreferrer">دليل GitHub OAuth ↗</a></div></article></section>
 <section class="feature-card mt-8 p-6"><h2 class="mb-3 text-2xl font-black">ما يلزم لتفعيل تسجيل الدخول</h2><ol class="list-inside list-decimal space-y-3 text-[var(--color-muted)]"><li>إنشاء OAuth App داخل GitHub Developer Settings.</li><li>وضع Client ID في إعدادات الواجهة، مع إبقاء Client Secret على خادم خلفي فقط.</li><li>إنشاء Callback على Cloudflare Worker أو n8n أو خادم Node.js باستخدام HTTPS.</li><li>تخزين access token بشكل مشفر وعدم إرساله إلى GitHub Pages أو localStorage.</li></ol><div class="code-box mt-5">https://YOUR-BACKEND.example.com/oauth/github/callback</div><p class="mt-4 mb-0 text-sm text-[var(--color-muted)]">لا يمكن تنفيذ تبادل Client Secret بأمان داخل موقع GitHub Pages ثابت؛ لذلك لم أضع زرًا وهميًا أو كودًا يوحي بأن الحساب مسجّل.</p></section>
 <section class="feature-card mt-8 p-6" id="device-flow-card">
   <h2 class="mb-3 text-2xl font-black">تسجيل الدخول الآن</h2>
-  <p class="mb-5 text-[var(--color-muted)]">اضغط الزر، ثم أدخل الكود الظاهر في صفحة GitHub. سيبقى الاتصال في ذاكرة هذه الصفحة فقط.</p>
+  <p class="mb-5 text-[var(--color-muted)]">اضغط الزر، ثم أدخل الكود الظاهر في صفحة GitHub. يمر الاتصال عبر Cloudflare Worker ويبقى Access Token في ذاكرة هذه الصفحة فقط.</p>
   <div class="flex flex-wrap gap-3">
     <button id="github-start" class="btn-primary px-5 py-3 font-bold" type="button">بدء تسجيل الدخول عبر GitHub</button>
     <button id="github-logout" class="hidden rounded-[var(--radius)] border border-[var(--color-border)] px-5 py-3 font-bold" type="button">تسجيل الخروج</button>
@@ -38,6 +38,7 @@
 <script>
 (() => {
   const CLIENT_ID = 'Ov23liu35kgtgP1COSii';
+  const API_BASE = 'https://github-oauth-proxy.elazzouz4.workers.dev';
   const startButton = document.querySelector('#github-start');
   const logoutButton = document.querySelector('#github-logout');
   const status = document.querySelector('#github-status');
@@ -61,7 +62,7 @@
   };
 
   async function requestDeviceCode() {
-    const response = await fetch('https://github.com/login/device/code', {
+    const response = await fetch(`${API_BASE}/device/code`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ client_id: CLIENT_ID, scope: 'read:user user:email' })
@@ -70,7 +71,7 @@
   }
 
   async function exchangeDeviceCode(deviceCode) {
-    const response = await fetch('https://github.com/login/oauth/access_token', {
+    const response = await fetch(`${API_BASE}/token`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ client_id: CLIENT_ID, device_code: deviceCode, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' })
@@ -79,7 +80,7 @@
   }
 
   async function loadAccount(token) {
-    const response = await fetch('https://api.github.com/user', { headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}` } });
+    const response = await fetch(`${API_BASE}/user`, { headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}` } });
     return json(response);
   }
 
