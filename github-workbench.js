@@ -30,8 +30,13 @@
     connect.disabled = true; setStatus('جاري طلب رمز آمن من GitHub...');
     try {
       const health = await fetch(`${API}/health`, { cache: 'no-store' }).then(response => response.json()).catch(() => ({}));
-      activeClientId = health.client_id || CLIENT_ID;
-      currentDevice = await request('/device/code', { method: 'POST', body: { client_id: activeClientId, scope: 'repo workflow admin:repo_hook read:user user:email' } });
+      const candidates = [...new Set([...(health.client_ids || []), health.client_id, CLIENT_ID].filter(Boolean))];
+      let lastError = null;
+      for (const candidate of candidates) {
+        try { currentDevice = await request('/device/code', { method: 'POST', body: { client_id: candidate, clientId: candidate, scope: 'repo workflow admin:repo_hook read:user user:email' } }); activeClientId = candidate; break; }
+        catch (error) { lastError = error; }
+      }
+      if (!currentDevice) throw lastError || new Error('لم يتوفر أي OAuth client صالح.');
       if (!currentDevice || !currentDevice.device_code) throw new Error('لم يصل device_code صالح من GitHub Worker');
       const verify = currentDevice.verification_uri_complete || currentDevice.verification_uri;
       window.open(verify, '_blank', 'noopener,noreferrer');

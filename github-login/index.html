@@ -58,6 +58,7 @@
   const account = document.querySelector('#github-account');
   let accessToken = null;
   let pollTimer = null;
+  let activeClientId = CLIENT_ID;
   const isSafeGitHubUrl = value => { try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'github.com'; } catch { return false; } };
 
   const setStatus = (text, good = false) => {
@@ -72,19 +73,22 @@
   };
 
   async function requestDeviceCode() {
-    const response = await fetch(`${API_BASE}/device/code`, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: CLIENT_ID, scope: 'repo workflow admin:repo_hook read:user user:email' })
-    });
-    return json(response);
+    const health = await fetch(`${API_BASE}/health`, { cache: 'no-store' }).then(response => response.json()).catch(() => ({}));
+    const candidates = [...new Set([...(health.client_ids || []), health.client_id, CLIENT_ID].filter(Boolean))];
+    let lastError = null;
+    for (const candidate of candidates) {
+      const response = await fetch(`${API_BASE}/device/code`, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: candidate, clientId: candidate, scope: 'repo workflow admin:repo_hook read:user user:email' }) });
+      if (response.ok) { activeClientId = candidate; return response.json(); }
+      lastError = await response.json().catch(() => ({}));
+    }
+    throw new Error(lastError?.error_description || lastError?.error || 'لا يوجد OAuth client متاح');
   }
 
   async function exchangeDeviceCode(deviceCode) {
     const response = await fetch(`${API_BASE}/token`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: CLIENT_ID, clientId: CLIENT_ID, device_code: deviceCode, deviceCode, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' })
+      body: JSON.stringify({ client_id: activeClientId, clientId: activeClientId, device_code: deviceCode, deviceCode, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' })
     });
     const data = await response.json().catch(() => ({}));
     // GitHub returns HTTP 400 while the user has not approved the device yet.
