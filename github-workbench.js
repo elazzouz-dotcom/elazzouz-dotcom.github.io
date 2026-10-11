@@ -38,7 +38,7 @@
   const repoPath = () => `/repos/${encodeURIComponent($('ghw-owner').value.trim())}/${encodeURIComponent($('ghw-repo').value.trim())}`;
   const filePath = () => `${repoPath()}/contents/${$('ghw-path').value.trim().split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent($('ghw-branch').value.trim())}`;
   const setEnabled = (enabled) => [loadButton, saveButton, publishButton, createRepoButton, branchButton].forEach(button => button.disabled = !enabled);
-  const setLogoutVisible = (visible) => [logoutButton, topLogoutButton].forEach(button => { if (button) button.hidden = !visible; });
+  const setLogoutVisible = (visible) => [logoutButton, topLogoutButton].forEach(button => { if (button) { button.hidden = false; button.disabled = !visible; } });
   const saveToken = (value) => { try { localStorage.setItem(STORAGE_KEY, value); } catch {} };
   const readToken = () => { try { return localStorage.getItem(STORAGE_KEY); } catch { return null; } };
   const clearToken = () => { try { localStorage.removeItem(STORAGE_KEY); } catch {} };
