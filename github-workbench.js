@@ -4,18 +4,20 @@
   const $ = (id) => document.getElementById(id);
   const connect = $('ghw-connect');
   if (!connect) return;
-  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), panel = $('ghw-panel'), editor = $('ghw-editor');
+  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), topAuthButton = $('studio-top-auth'), panel = $('ghw-panel'), editor = $('ghw-editor');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
   const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create');
   const tokenInput = $('ghw-token'), tokenButton = $('ghw-token-use');
   let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
   let currentUserCode = '';
+  let currentVerificationUrl = '';
   const setStatus = (message, good = false) => {
     status.textContent = message;
     status.style.color = good ? '#16a34a' : 'var(--color-icon)';
     const match = String(message).match(/الكود:\s*([A-Z0-9-]+)/i);
     if (match) currentUserCode = match[1];
     if (currentUserCode) {
+      if (topAuthButton) topAuthButton.hidden = !currentVerificationUrl;
       if (copyCodeButton) { copyCodeButton.hidden = false; copyCodeButton.textContent = 'نسخ كود GitHub'; }
       if (topCopyCodeButton) { topCopyCodeButton.hidden = false; topCopyCodeButton.textContent = 'نسخ الكود'; }
     }
@@ -49,6 +51,8 @@
       if (!currentDevice) throw lastError || new Error('لم يتوفر أي OAuth client صالح.');
       if (!currentDevice || !currentDevice.device_code) throw new Error('لم يصل device_code صالح من GitHub Worker');
       const verify = currentDevice.verification_uri_complete || currentDevice.verification_uri;
+      currentVerificationUrl = verify;
+      if (topAuthButton) { topAuthButton.hidden = false; topAuthButton.textContent = 'فتح GitHub لإدخال الكود'; }
       window.open(verify, '_blank', 'noopener,noreferrer');
       setStatus(`افتح GitHub وأدخل الكود: ${currentDevice.user_code}`);
       const deadline = Date.now() + Number(currentDevice.expires_in || 900) * 1000;
@@ -106,6 +110,9 @@
     try { const owner = $('ghw-owner').value.trim(), repo = $('ghw-repo').value.trim(), branch = $('ghw-branch').value.trim(); const base = await request(`/repos/${owner}/${repo}/git/ref/heads/main`); await request(`/repos/${owner}/${repo}/git/refs`, { method: 'POST', body: { ref: `refs/heads/${branch}`, sha: base.object.sha } }); setStatus(`تم إنشاء الفرع ${branch}.`, true); }
     catch (error) { setStatus(`تعذر إنشاء الفرع: ${error.message}`); }
   }
+  topAuthButton?.addEventListener('click', () => {
+    if (currentVerificationUrl) window.open(currentVerificationUrl, '_blank', 'noopener,noreferrer');
+  });
   copyCodeButton?.addEventListener('click', copyGitHubCode);
   topCopyCodeButton?.addEventListener('click', copyGitHubCode);
   connect.addEventListener('click', connectGitHub);
