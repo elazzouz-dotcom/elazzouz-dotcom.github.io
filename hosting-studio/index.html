@@ -75,7 +75,7 @@
     <div class="studio-sidebar-footer"><span class="studio-live-dot"></span><span>جلسة محلية آمنة</span><a href="/">العودة للموقع</a></div>
   </aside>
   <div class="studio-dashboard">
-    <div class="studio-commandbar"><div class="studio-breadcrumb"><span>إدارة المواقع</span><b>/</b><strong>Hosting Studio</strong></div><div class="studio-command-actions"><span class="studio-github-chip"><span class="studio-github-icon">GH</span><span><b>GitHub</b><small id="studio-top-status">غير متصل</small></span></span><button id="studio-top-connect" class="studio-top-connect" type="button">تسجيل الدخول إلى GitHub</button><button id="studio-top-auth" class="studio-top-auth" type="button" hidden>فتح GitHub لإدخال الكود</button><button id="studio-top-copy-code" class="studio-top-copy-code" type="button" hidden>نسخ الكود</button></div></div>
+    <div class="studio-commandbar"><div class="studio-breadcrumb"><span>إدارة المواقع</span><b>/</b><strong>Hosting Studio</strong></div><div class="studio-command-actions"><span class="studio-github-chip"><span class="studio-github-icon">GH</span><span><b>GitHub</b><small id="studio-top-status">غير متصل</small></span></span><button id="studio-top-connect" class="studio-top-connect" type="button">تسجيل الدخول إلى GitHub</button><button id="studio-top-logout" class="studio-top-logout" type="button" hidden>تسجيل الخروج</button><button id="studio-top-auth" class="studio-top-auth" type="button" hidden>فتح GitHub لإدخال الكود</button><button id="studio-top-copy-code" class="studio-top-copy-code" type="button" hidden>نسخ الكود</button></div></div>
     <div class="studio-dashboard-body">
       <div class="studio-page-panel is-active" data-studio-panel="overview">
         <div class="studio-hero-card"><div><span class="studio-eyebrow">DEVELOPER CONTROL CENTER</span><h2>أدر موقعك من مكان واحد.</h2><p>اربط GitHub، عدّل الملفات محليًا، راجع المعاينة، وانشر النسخة الجاهزة دون مغادرة لوحة إدارة المواقع.</p><div class="studio-hero-actions"><button id="studio-hero-login" class="studio-primary-action" type="button">تسجيل الدخول عبر GitHub</button><button class="studio-secondary-action" data-jump="connections" type="button">ربط تطبيقاتك <span>←</span></button><button class="studio-secondary-action" data-jump="editor" type="button">فتح محرر الكود</button></div></div><div class="studio-hero-code" aria-hidden="true"><span>const</span> site = <em>deploy</em>();<br><span>await</span> github.commit(site);<br><strong>✓ ready_to_ship</strong></div></div>
@@ -198,7 +198,7 @@
   <h2 id="github-workbench-heading" class="mb-2 text-2xl font-black">تعديل ونشر الكود من Hosting Studio</h2>
   <p class="mb-5 text-sm leading-6 text-[var(--color-muted)]">سجّل الدخول عبر GitHub Device Flow، ثم حمّل أي ملف من مستودعك وعدّله واحفظه كـ commit. يبقى Access Token في ذاكرة الصفحة فقط ولا يُحفظ في localStorage.</p>
   <div class="flex flex-wrap gap-3">
-    <button id="ghw-connect" class="btn-primary px-4 py-3 font-bold" type="button">ربط حساب GitHub</button>
+    <button id="ghw-connect" class="btn-primary px-4 py-3 font-bold" type="button">ربط حساب GitHub</button><button id="ghw-logout" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" hidden>تسجيل الخروج</button>
     <button id="ghw-create-repo" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>إنشاء مستودع</button>
     <span id="ghw-status" class="self-center text-sm font-bold" role="status" aria-live="polite">غير متصل</span>
     <button id="ghw-copy-code" class="studio-otp-copy self-center" type="button" hidden>نسخ كود GitHub</button>
@@ -232,7 +232,7 @@
     </div>
   </footer>
 
-  <script src="/github-workbench.js?v=login-visible-2"></script>
+  <script src="/github-workbench.js?v=persistent-session-1"></script>
   <script>
     const checklistItems = [...document.querySelectorAll('.check-item')];
     const progressOutput = document.querySelector('#check-progress');

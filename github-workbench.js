@@ -4,13 +4,14 @@
   const $ = (id) => document.getElementById(id);
   const connect = $('ghw-connect');
   if (!connect) return;
-  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), topAuthButton = $('studio-top-auth'), panel = $('ghw-panel'), editor = $('ghw-editor');
+  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), topAuthButton = $('studio-top-auth'), topLogoutButton = $('studio-top-logout'), logoutButton = $('ghw-logout'), panel = $('ghw-panel'), editor = $('ghw-editor');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
   const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create');
   const tokenInput = $('ghw-token'), tokenButton = $('ghw-token-use');
   let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
   let currentUserCode = '';
   let currentVerificationUrl = '';
+  const STORAGE_KEY = 'hosting-studio.github.access-token';
   const setStatus = (message, good = false) => {
     status.textContent = message;
     status.style.color = good ? '#16a34a' : 'var(--color-icon)';
@@ -37,6 +38,11 @@
   const repoPath = () => `/repos/${encodeURIComponent($('ghw-owner').value.trim())}/${encodeURIComponent($('ghw-repo').value.trim())}`;
   const filePath = () => `${repoPath()}/contents/${$('ghw-path').value.trim().split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent($('ghw-branch').value.trim())}`;
   const setEnabled = (enabled) => [loadButton, saveButton, publishButton, createRepoButton, branchButton].forEach(button => button.disabled = !enabled);
+  const setLogoutVisible = (visible) => [logoutButton, topLogoutButton].forEach(button => { if (button) button.hidden = !visible; });
+  const saveToken = (value) => { try { localStorage.setItem(STORAGE_KEY, value); } catch {} };
+  const readToken = () => { try { return localStorage.getItem(STORAGE_KEY); } catch { return null; } };
+  const clearToken = () => { try { localStorage.removeItem(STORAGE_KEY); } catch {} };
+  const activateSession = (user, message) => { panel.classList.remove('hidden'); setEnabled(true); setLogoutVisible(true); connect.disabled = false; connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus(message, true); };
 
   async function connectGitHub() {
     connect.disabled = true; setStatus('جاري طلب رمز آمن من GitHub...');
@@ -60,7 +66,7 @@
       while (Date.now() < deadline) {
         await wait(interval);
         const result = await request('/token', { method: 'POST', body: { client_id: activeClientId, clientId: activeClientId, device_code: currentDevice.device_code, deviceCode: currentDevice.device_code, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' } });
-        if (result.access_token) { token = result.access_token; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus('تم ربط GitHub بهذه الجلسة.', true); return; }
+        if (result.access_token) { token = result.access_token; saveToken(token); const user = await request('/user'); activateSession(user, 'تم تسجيل الدخول إلى GitHub. ستبقى الجلسة حتى تضغط تسجيل الخروج.'); return; }
         if (result.error === 'slow_down') interval += 5000;
         if (!['authorization_pending', 'slow_down'].includes(result.error)) throw new Error(result.error_description || result.error);
       }
@@ -71,9 +77,25 @@
     const value = tokenInput?.value.trim();
     if (!value) return setStatus('أدخل Token في الحقل المحلي أولًا.');
     tokenButton.disabled = true; setStatus('جاري التحقق من Token داخل جلسة المتصفح...');
-    try { token = value; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus('تم التحقق من Token. لم يُحفظ خارج ذاكرة الصفحة.', true); tokenInput.value = ''; }
+    try { token = value; saveToken(token); const user = await request('/user'); activateSession(user, 'تم تسجيل الدخول وحفظ الجلسة على هذا المتصفح.'); tokenInput.value = ''; }
     catch (error) { token = null; setStatus(`تعذر التحقق من Token: ${error.message}`); }
     finally { tokenButton.disabled = false; }
+  }
+
+  async function restoreSession() {
+    const stored = readToken();
+    if (!stored) { setLogoutVisible(false); setEnabled(false); return; }
+    token = stored; setStatus('جاري التحقق من جلسة GitHub المحفوظة...');
+    try { const user = await request('/user'); activateSession(user, 'تم استعادة جلسة GitHub. اضغط تسجيل الخروج لإنهائها.'); }
+    catch { token = null; clearToken(); setLogoutVisible(false); setEnabled(false); setStatus('انتهت جلسة GitHub؛ سجّل الدخول من جديد.'); }
+  }
+  function logout() {
+    token = null; currentSha = null; currentUserCode = ''; currentVerificationUrl = ''; clearToken();
+    panel.classList.add('hidden'); setEnabled(false); setLogoutVisible(false); connect.disabled = false; connect.textContent = 'تسجيل الدخول إلى GitHub';
+    if (topAuthButton) topAuthButton.hidden = true;
+    if (copyCodeButton) copyCodeButton.hidden = true;
+    if (topCopyCodeButton) topCopyCodeButton.hidden = true;
+    setStatus('تم تسجيل الخروج يدويًا.');
   }
 
   async function copyGitHubCode() {
@@ -110,6 +132,8 @@
     try { const owner = $('ghw-owner').value.trim(), repo = $('ghw-repo').value.trim(), branch = $('ghw-branch').value.trim(); const base = await request(`/repos/${owner}/${repo}/git/ref/heads/main`); await request(`/repos/${owner}/${repo}/git/refs`, { method: 'POST', body: { ref: `refs/heads/${branch}`, sha: base.object.sha } }); setStatus(`تم إنشاء الفرع ${branch}.`, true); }
     catch (error) { setStatus(`تعذر إنشاء الفرع: ${error.message}`); }
   }
+  logoutButton?.addEventListener('click', logout);
+  topLogoutButton?.addEventListener('click', logout);
   topAuthButton?.addEventListener('click', () => {
     if (currentVerificationUrl) window.open(currentVerificationUrl, '_blank', 'noopener,noreferrer');
   });
@@ -117,4 +141,5 @@
   topCopyCodeButton?.addEventListener('click', copyGitHubCode);
   connect.addEventListener('click', connectGitHub);
   tokenButton?.addEventListener('click', usePersonalToken); loadButton.addEventListener('click', loadFile); saveButton.addEventListener('click', () => saveFile(false)); publishButton.addEventListener('click', () => saveFile(true)); createRepoButton.addEventListener('click', createRepo); branchButton.addEventListener('click', createBranch);
+  restoreSession();
 })();
