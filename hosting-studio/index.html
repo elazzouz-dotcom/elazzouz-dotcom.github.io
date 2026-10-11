@@ -201,11 +201,18 @@
     <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[#b9d4ff]">AI CODE EDITOR</p>
     <h3 class="mb-2 text-lg font-black">عدّل الموقع بالذكاء الاصطناعي عبر OneCompiler</h3>
     <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">اكتب طلبك بلغة طبيعية مثل: «غيّر الألوان وأضف زر تسجيل الدخول». يفتح هذا مشروع Vibe Code المرتبط في محرر OneCompiler. بعد تسجيل الدخول إلى GitHub من هذا الموقع، يستطيع كود OneCompiler استدعاء جسر النشر المباشر وإنشاء Commit في المستودع.</p>
-    <div class="mb-4 rounded-[calc(var(--radius)*0.5)] border border-[#3ddc9755] bg-[#3ddc970d] p-3 text-sm leading-6 text-[var(--color-muted)]"><b class="text-[#8af0bf]">النشر المباشر مفعّل:</b> اطلب من OneCompiler AI إضافة جسر النشر، أو حمّل ملف الجسر من الزر أدناه، ثم استدعِ <code>OneCompilerGitHub.publishToGitHub({ files })</code>. لا تضع Access Token داخل كود OneCompiler.</div>
+    <div class="mb-4 rounded-[calc(var(--radius)*0.5)] border border-[#3ddc9755] bg-[#3ddc970d] p-3 text-sm leading-6 text-[var(--color-muted)]"><b class="text-[#8af0bf]">النشر المباشر مفعّل:</b> أضف ملف الجسر، ثم اطلب من OneCompiler AI جمع الملفات المعدلة واستدعاء <code>OneCompilerGitHub.publishToGitHub({ owner, repo, branch, message, files })</code>. لا تضع Access Token داخل كود OneCompiler.</div>
+    <pre class="mb-4 overflow-x-auto rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-3 text-xs leading-6 text-[var(--color-text)]"><code>&lt;script src="https://elazzouz-dotcom.github.io/onecompiler-publish-bridge.js"&gt;&lt;/script&gt;
+await OneCompilerGitHub.publishToGitHub({
+  owner: 'elazzouz-dotcom', repo: 'elazzouz-dotcom.github.io', branch: 'main',
+  message: 'Update site from OneCompiler AI', files
+});</code></pre>
+    <p class="mb-4 text-xs leading-5 text-[var(--color-muted)]">قبل الاستدعاء: سجّل الدخول إلى GitHub في هذه الصفحة، أرسل الملفات المعدلة فقط، واستخدم مسارات نسبية مثل <code>index.html</code>. اقرأ <a class="font-bold text-[var(--color-primary)] underline" href="/ONECOMPILER-PUBLISH-GUIDE.md" target="_blank" rel="noopener noreferrer">الدليل الكامل للتكامل</a> للتعليمات والرسائل الشائعة.</p>
     <div class="flex flex-wrap gap-3">
       <a class="btn-primary px-4 py-3 font-bold" href="https://onecompiler.com/login?redirectTo=/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer">تسجيل الدخول وفتح AI Editor ↗</a>
       <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="https://onecompiler.com/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer">فتح المشروع مباشرة ↗</a>
       <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="/onecompiler-publish-bridge.js" target="_blank" rel="noopener noreferrer">كود جسر النشر ↗</a>
+      <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="/ONECOMPILER-PUBLISH-GUIDE.md" target="_blank" rel="noopener noreferrer">دليل OneCompiler AI ↗</a>
     </div>
   </div>
   <div class="flex flex-wrap gap-3">
