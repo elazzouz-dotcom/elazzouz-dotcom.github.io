@@ -4,7 +4,7 @@
   const $ = (id) => document.getElementById(id);
   const connect = $('ghw-connect');
   if (!connect) return;
-  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), panel = $('ghw-panel'), editor = $('ghw-editor');
+  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), panel = $('ghw-panel'), editor = $('ghw-editor');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
   const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create');
   const tokenInput = $('ghw-token'), tokenButton = $('ghw-token-use');
@@ -14,8 +14,11 @@
     status.textContent = message;
     status.style.color = good ? '#16a34a' : 'var(--color-icon)';
     const match = String(message).match(/الكود:\s*([A-Z0-9-]+)/i);
-    if (match) { currentUserCode = match[1]; if (copyCodeButton) { copyCodeButton.hidden = false; copyCodeButton.textContent = 'نسخ كود GitHub'; } }
-    else if (copyCodeButton) { copyCodeButton.hidden = true; currentUserCode = ''; }
+    if (match) currentUserCode = match[1];
+    if (currentUserCode) {
+      if (copyCodeButton) { copyCodeButton.hidden = false; copyCodeButton.textContent = 'نسخ كود GitHub'; }
+      if (topCopyCodeButton) { topCopyCodeButton.hidden = false; topCopyCodeButton.textContent = 'نسخ الكود'; }
+    }
   };
   const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   const request = async (path, options = {}) => {
@@ -70,12 +73,13 @@
   }
 
   async function copyGitHubCode() {
-    if (!currentUserCode || !copyCodeButton) return;
+    if (!currentUserCode) return;
+    const buttons = [copyCodeButton, topCopyCodeButton].filter(Boolean);
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(currentUserCode);
       else { const helper = document.createElement('textarea'); helper.value = currentUserCode; helper.style.position = 'fixed'; helper.style.opacity = '0'; document.body.appendChild(helper); helper.select(); document.execCommand('copy'); helper.remove(); }
-      copyCodeButton.textContent = 'تم نسخ الكود ✓';
-    } catch { copyCodeButton.textContent = 'حدده وانسخه يدويًا'; }
+      buttons.forEach(button => { button.textContent = 'تم نسخ الكود ✓'; });
+    } catch { buttons.forEach(button => { button.textContent = 'حدده وانسخه يدويًا'; }); }
   }
 
   async function loadFile() {
@@ -103,6 +107,7 @@
     catch (error) { setStatus(`تعذر إنشاء الفرع: ${error.message}`); }
   }
   copyCodeButton?.addEventListener('click', copyGitHubCode);
+  topCopyCodeButton?.addEventListener('click', copyGitHubCode);
   connect.addEventListener('click', connectGitHub);
   tokenButton?.addEventListener('click', usePersonalToken); loadButton.addEventListener('click', loadFile); saveButton.addEventListener('click', () => saveFile(false)); publishButton.addEventListener('click', () => saveFile(true)); createRepoButton.addEventListener('click', createRepo); branchButton.addEventListener('click', createBranch);
 })();

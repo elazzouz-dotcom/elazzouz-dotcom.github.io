@@ -75,7 +75,7 @@
     <div class="studio-sidebar-footer"><span class="studio-live-dot"></span><span>جلسة محلية آمنة</span><a href="/">العودة للموقع</a></div>
   </aside>
   <div class="studio-dashboard">
-    <div class="studio-commandbar"><div class="studio-breadcrumb"><span>إدارة المواقع</span><b>/</b><strong>Hosting Studio</strong></div><div class="studio-command-actions"><span class="studio-github-chip"><span class="studio-github-icon">GH</span><span><b>GitHub</b><small id="studio-top-status">غير متصل</small></span></span><button id="studio-top-connect" class="studio-top-connect" type="button">تسجيل الدخول إلى GitHub</button></div></div>
+    <div class="studio-commandbar"><div class="studio-breadcrumb"><span>إدارة المواقع</span><b>/</b><strong>Hosting Studio</strong></div><div class="studio-command-actions"><span class="studio-github-chip"><span class="studio-github-icon">GH</span><span><b>GitHub</b><small id="studio-top-status">غير متصل</small></span></span><button id="studio-top-connect" class="studio-top-connect" type="button">تسجيل الدخول إلى GitHub</button><button id="studio-top-copy-code" class="studio-top-copy-code" type="button" hidden>نسخ الكود</button></div></div>
     <div class="studio-dashboard-body">
       <div class="studio-page-panel is-active" data-studio-panel="overview">
         <div class="studio-hero-card"><div><span class="studio-eyebrow">DEVELOPER CONTROL CENTER</span><h2>أدر موقعك من مكان واحد.</h2><p>اربط GitHub، عدّل الملفات محليًا، راجع المعاينة، وانشر النسخة الجاهزة دون مغادرة لوحة إدارة المواقع.</p><div class="studio-hero-actions"><button class="studio-primary-action" data-jump="connections" type="button">ربط تطبيقاتك <span>←</span></button><button class="studio-secondary-action" data-jump="editor" type="button">فتح محرر الكود</button></div></div><div class="studio-hero-code" aria-hidden="true"><span>const</span> site = <em>deploy</em>();<br><span>await</span> github.commit(site);<br><strong>✓ ready_to_ship</strong></div></div>
@@ -232,7 +232,7 @@
     </div>
   </footer>
 
-  <script src="/github-workbench.js?v=copy-code-2"></script>
+  <script src="/github-workbench.js?v=copy-code-3"></script>
   <script>
     const checklistItems = [...document.querySelectorAll('.check-item')];
     const progressOutput = document.querySelector('#check-progress');
