@@ -60,7 +60,7 @@
       while (Date.now() < deadline) {
         await wait(interval);
         const result = await request('/token', { method: 'POST', body: { client_id: activeClientId, clientId: activeClientId, device_code: currentDevice.device_code, deviceCode: currentDevice.device_code, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' } });
-        if (result.access_token) { token = result.access_token; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = `متصل: @${user.login}`; setStatus('تم ربط GitHub بهذه الجلسة.', true); return; }
+        if (result.access_token) { token = result.access_token; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus('تم ربط GitHub بهذه الجلسة.', true); return; }
         if (result.error === 'slow_down') interval += 5000;
         if (!['authorization_pending', 'slow_down'].includes(result.error)) throw new Error(result.error_description || result.error);
       }
@@ -71,7 +71,7 @@
     const value = tokenInput?.value.trim();
     if (!value) return setStatus('أدخل Token في الحقل المحلي أولًا.');
     tokenButton.disabled = true; setStatus('جاري التحقق من Token داخل جلسة المتصفح...');
-    try { token = value; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = `متصل: @${user.login}`; setStatus('تم التحقق من Token. لم يُحفظ خارج ذاكرة الصفحة.', true); tokenInput.value = ''; }
+    try { token = value; const user = await request('/user'); panel.classList.remove('hidden'); setEnabled(true); connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus('تم التحقق من Token. لم يُحفظ خارج ذاكرة الصفحة.', true); tokenInput.value = ''; }
     catch (error) { token = null; setStatus(`تعذر التحقق من Token: ${error.message}`); }
     finally { tokenButton.disabled = false; }
   }
