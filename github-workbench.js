@@ -28,7 +28,7 @@
     const headers = { Accept: 'application/vnd.github+json', ...(options.headers || {}) };
     if (token) headers.Authorization = `Bearer ${token}`;
     if (options.body && typeof options.body !== 'string') { headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(options.body); }
-    const response = await fetch(`${API}${path}`, { ...options, headers });
+    const response = await fetch(`${API}${path}`, { ...options, credentials: 'include', headers });
     const data = await response.json().catch(() => ({}));
     if (!response.ok && !(['/token'].includes(path) && ['authorization_pending','slow_down'].includes(data.error))) throw new Error(data.message || data.error_description || data.error || `HTTP ${response.status}`);
     return data;
@@ -84,13 +84,14 @@
 
   async function restoreSession() {
     const stored = readToken();
-    if (!stored) { setLogoutVisible(false); setEnabled(false); return; }
-    token = stored; setStatus('جاري التحقق من جلسة GitHub المحفوظة...');
+    token = stored || null; setStatus('جاري التحقق من جلسة GitHub المحفوظة...');
     try { const user = await request('/user'); activateSession(user, 'تم استعادة جلسة GitHub. اضغط تسجيل الخروج لإنهائها.'); }
     catch { token = null; clearToken(); setLogoutVisible(false); setEnabled(false); setStatus('انتهت جلسة GitHub؛ سجّل الدخول من جديد.'); }
   }
   function logout() {
+    const tokenToRevoke = token;
     token = null; currentSha = null; currentUserCode = ''; currentVerificationUrl = ''; clearToken();
+    if (tokenToRevoke) request('/token/revoke', { method: 'POST', body: { access_token: tokenToRevoke } }).catch(() => {});
     panel.classList.add('hidden'); setEnabled(false); setLogoutVisible(false); connect.disabled = false; connect.textContent = 'تسجيل الدخول إلى GitHub';
     if (topAuthButton) topAuthButton.hidden = true;
     if (copyCodeButton) copyCodeButton.hidden = true;
