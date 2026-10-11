@@ -200,10 +200,12 @@
   <div class="mb-6 rounded-[calc(var(--radius)*0.65)] border border-[#8cb7ff55] bg-[#8cb7ff0d] p-4">
     <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[#b9d4ff]">AI CODE EDITOR</p>
     <h3 class="mb-2 text-lg font-black">عدّل الموقع بالذكاء الاصطناعي عبر OneCompiler</h3>
-    <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">اكتب طلبك بلغة طبيعية مثل: «غيّر الألوان وأضف زر تسجيل الدخول». يفتح هذا مشروع Vibe Code المرتبط في محرر OneCompiler. التعديلات هناك لا تُرسل إلى GitHub تلقائيًا؛ راجعها ثم انشرها من المسار المناسب.</p>
+    <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">اكتب طلبك بلغة طبيعية مثل: «غيّر الألوان وأضف زر تسجيل الدخول». يفتح هذا مشروع Vibe Code المرتبط في محرر OneCompiler. بعد تسجيل الدخول إلى GitHub من هذا الموقع، يستطيع كود OneCompiler استدعاء جسر النشر المباشر وإنشاء Commit في المستودع.</p>
+    <div class="mb-4 rounded-[calc(var(--radius)*0.5)] border border-[#3ddc9755] bg-[#3ddc970d] p-3 text-sm leading-6 text-[var(--color-muted)]"><b class="text-[#8af0bf]">النشر المباشر مفعّل:</b> اطلب من OneCompiler AI إضافة جسر النشر، أو حمّل ملف الجسر من الزر أدناه، ثم استدعِ <code>OneCompilerGitHub.publishToGitHub({ files })</code>. لا تضع Access Token داخل كود OneCompiler.</div>
     <div class="flex flex-wrap gap-3">
       <a class="btn-primary px-4 py-3 font-bold" href="https://onecompiler.com/login?redirectTo=/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer">تسجيل الدخول وفتح AI Editor ↗</a>
       <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="https://onecompiler.com/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer">فتح المشروع مباشرة ↗</a>
+      <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="/onecompiler-publish-bridge.js" target="_blank" rel="noopener noreferrer">كود جسر النشر ↗</a>
     </div>
   </div>
   <div class="flex flex-wrap gap-3">
