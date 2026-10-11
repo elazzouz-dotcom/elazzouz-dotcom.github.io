@@ -20,6 +20,8 @@
 <script src="https://elazzouz-dotcom.github.io/onecompiler-publish-bridge.js"></script>
 ```
 
+يوجد المقطع كاملًا في ملف [`onecompiler-publish-snippet.html`](./onecompiler-publish-snippet.html) داخل المستودع.
+
 > لا تضف `CLIENT_SECRET` أو `gho_...` أو أي Access Token إلى ملفات OneCompiler. المصادقة تتم من خلال جلسة GitHub في Worker.
 
 ## الاستدعاء الأساسي
