@@ -24,6 +24,17 @@
 
 > لا تضف `CLIENT_SECRET` أو `gho_...` أو أي Access Token إلى ملفات OneCompiler. المصادقة تتم من خلال جلسة GitHub في Worker.
 
+## عقد ثابت لا يتغير
+
+الجسر يثبت هذه القيم داخليًا ولا يسمح لكود OneCompiler بتغييرها:
+
+- Worker: `https://github-oauth-proxy.elazzouz4.workers.dev`
+- المالك: `elazzouz-dotcom`
+- المستودع: `elazzouz-dotcom.github.io`
+- الفرع: `main`
+
+يمكن تغيير رسالة الـ Commit والملفات المعدلة فقط. يحمي فحص GitHub Actions هذا العقد من التغيير العرضي.
+
 ## الاستدعاء الأساسي
 
 بعد أن ينتهي OneCompiler AI من تعديل الملفات، استدعِ الدالة التالية من كود المشروع:

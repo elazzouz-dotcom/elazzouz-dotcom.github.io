@@ -17,11 +17,15 @@
  * or a client secret in OneCompiler code.
  */
 (() => {
-  const API = 'https://github-oauth-proxy.elazzouz4.workers.dev';
-  const DEFAULTS = Object.freeze({
+  // Stable integration contract. Change these values only as a deliberate
+  // migration, together with the contract check and the user-facing guide.
+  const STABLE_TARGET = Object.freeze({
+    api: 'https://github-oauth-proxy.elazzouz4.workers.dev',
     owner: 'elazzouz-dotcom',
     repo: 'elazzouz-dotcom.github.io',
     branch: 'main',
+  });
+  const DEFAULTS = Object.freeze({
     message: 'Update site from OneCompiler AI',
   });
 
@@ -49,11 +53,22 @@
   }
 
   async function publishToGitHub(options = {}) {
-    const input = { ...DEFAULTS, ...options };
+    for (const key of ['owner', 'repo', 'branch']) {
+      if (options[key] !== undefined && options[key] !== STABLE_TARGET[key]) {
+        throw new Error(`${key} is fixed for this integration: ${STABLE_TARGET[key]}`);
+      }
+    }
+    const input = {
+      owner: STABLE_TARGET.owner,
+      repo: STABLE_TARGET.repo,
+      branch: STABLE_TARGET.branch,
+      message: options.message ?? DEFAULTS.message,
+      files: options.files,
+    };
     validateInput(input);
     let response;
     try {
-      response = await fetch(`${API}/publish`, {
+      response = await fetch(`${STABLE_TARGET.api}/publish`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },

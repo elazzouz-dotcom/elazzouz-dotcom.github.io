@@ -17,3 +17,5 @@ jobs:
         uses: actions/checkout@v4
       - name: Validate HTML links and IDs
         run: python3 scripts/check_site.py
+      - name: Validate fixed OneCompiler integration contract
+        run: python3 scripts/check_onecompiler_contract.py
