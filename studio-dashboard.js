@@ -9,6 +9,7 @@
   links.forEach(link => link.addEventListener('click', () => show(link.dataset.studioPage)));
   document.querySelectorAll('[data-jump]').forEach(button => button.addEventListener('click', () => show(button.dataset.jump, true)));
   document.querySelectorAll('[data-scroll-target]').forEach(button => button.addEventListener('click', () => document.getElementById(button.dataset.scrollTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' })));
+  document.getElementById('studio-preview-reload')?.addEventListener('click', () => { const frame = document.getElementById('studio-preview-frame'); if (frame) frame.src = frame.src.split('?')[0] + '?preview=' + Date.now(); });
   document.getElementById('studio-top-connect')?.addEventListener('click', () => document.getElementById('ghw-connect')?.click());
   document.getElementById('studio-hero-login')?.addEventListener('click', () => document.getElementById('ghw-connect')?.click());
   document.getElementById('studio-connection-github')?.addEventListener('click', () => document.getElementById('studio-top-connect')?.click());
