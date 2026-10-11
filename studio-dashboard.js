@@ -10,6 +10,7 @@
   document.querySelectorAll('[data-jump]').forEach(button => button.addEventListener('click', () => show(button.dataset.jump, true)));
   document.querySelectorAll('[data-scroll-target]').forEach(button => button.addEventListener('click', () => document.getElementById(button.dataset.scrollTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' })));
   document.getElementById('studio-top-connect')?.addEventListener('click', () => document.getElementById('ghw-connect')?.click());
+  document.getElementById('studio-hero-login')?.addEventListener('click', () => document.getElementById('ghw-connect')?.click());
   document.getElementById('studio-connection-github')?.addEventListener('click', () => document.getElementById('studio-top-connect')?.click());
   const status = document.getElementById('ghw-status'), topStatus = document.getElementById('studio-top-status'), topButton = document.getElementById('studio-top-connect');
   if (status && topStatus) {
