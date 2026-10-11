@@ -1,126 +1,156 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="منصة elazzouz-dotcom المتكاملة: التطبيقات والذكاء الاصطناعي والمتاجر." />
+    <title>elazzouz-dotcom</title>
+    <meta property="og:title" content="elazzouz-dotcom" />
+    <meta property="og:description" content="منصة متكاملة للتطبيقات والذكاء الاصطناعي والمتاجر." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://elazzouz-dotcom.github.io/" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #111827;
+        --panel-2: #0f172a;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #7dd3fc;
+        --accent-2: #38bdf8;
+        --border: rgba(148, 163, 184, 0.2);
+      }
+      html { scroll-behavior: smooth; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: Arial, Tahoma, sans-serif;
+      }
+      .panel {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid var(--border);
+      }
+      .accent {
+        color: var(--accent);
+      }
+      a:hover { opacity: 0.9; }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <header class="border-b border-slate-800 bg-slate-950/90">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-xl font-black text-cyan-300">E</div>
+          <div>
+            <div class="text-xl font-black tracking-tight text-white">elazzouz-dotcom</div>
+          </div>
+        </div>
+        <nav class="hidden items-center gap-5 text-sm font-semibold text-slate-300 md:flex">
+          <a href="/?locale=ar">الرئيسية</a>
+          <a href="/apps/">التطبيقات</a>
+          <a href="/github-apps/">GitHub Apps</a>
+          <a href="/admin/">الإدارة</a>
+        </nav>
+      </div>
+    </header>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="A practical collection of browser-based developer utilities, local builders, and API workbenches.">
-  <title>Slaks</title>
-  <link rel="canonical" href="https://elazzouz-dotcom.github.io/">
-  <meta property="og:title" content="Slaks">
-  <meta property="og:description" content="A practical collection of browser-based developer utilities, local builders, and API workbenches.">
-  <meta property="og:url" content="https://elazzouz-dotcom.github.io/">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <link rel="stylesheet" href="/theme.css">
-  <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
-  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="min-h-screen">
-  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 lg:px-8">
-      <a href="/" class="flex items-center gap-3" aria-label="Home">
-        <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[var(--radius)] bg-[var(--color-dark)] text-lg font-black text-[var(--color-primary-contrast)]"><img src="/assets/slaks-logo.jpg" alt="" class="h-full w-full object-cover"></span>
-        <span class="text-xl font-extrabold tracking-tight">Slaks</span>
-      </a>
-      <div class="flex flex-wrap items-center gap-3"><a href="/hosting-studio/" class="rounded-[var(--radius)] border border-[var(--color-primary)] px-4 py-3 text-sm font-bold text-[var(--color-primary)]">إدارة المواقع</a><a href="/tools" class="btn-primary px-5 py-3 text-sm">Open tool directory <span aria-hidden="true">→</span></a></div>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero-grid px-5 py-20 lg:px-8 lg:py-28">
-      <div class="mx-auto max-w-7xl">
-        <div class="mb-6 flex items-center gap-4"><img src="/assets/slaks-logo.jpg" alt="شعار Slaks" class="h-24 w-44 rounded-[var(--radius)] border border-[var(--color-border)] object-cover shadow-[var(--shadow-lifted)]"><div><p class="mb-1 text-3xl font-black tracking-tight text-[var(--color-primary)]">Slaks</p><p class="mb-0 text-sm text-[var(--color-muted)]">مساحة أدواتك الرقمية</p></div></div>
-        <p class="mb-5 inline-flex items-center gap-2 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--color-muted)]">
-          <span class="h-2 w-2 rounded-full bg-[var(--color-primary)]" aria-hidden="true"></span>
-          Local-first workspace
+    <main class="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+      <section class="panel mb-10 overflow-hidden rounded-3xl p-6 shadow-2xl shadow-cyan-500/5 md:p-10">
+        <p class="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+          Platform Suite
         </p>
-        <h1 class="mb-6 max-w-4xl text-5xl font-black leading-[1.05] sm:text-6xl lg:text-7xl">Tools that help you <span class="text-[var(--color-primary)]">finish the task.</span></h1>
-        <p class="mb-8 max-w-2xl text-lg leading-8 text-[var(--color-muted)]">Use focused browser utilities for code, data, automation planning, API inspection, and safe local transformations. No filler directories—just useful interfaces and generators.</p>
-        <div class="flex flex-wrap gap-3">
-          <a href="/tools" class="btn-primary px-6 py-4">Browse working tools <span aria-hidden="true">→</span></a>
-          <a href="/developer-tools" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">Open developer toolkit</a>
-          <a href="/hosting-studio" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">🐺 Hosting Studio</a>
-          <a href="/chat-studio" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">💬 Chat Studio</a>
-          <a href="/aip" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">◈ AIP Trading</a>
-          <a href="/aips-dashboard" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">📊 AIPS local dashboard</a>
-          <a href="/inference-providers" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">⚡ Inference Providers</a>
-          <a href="/contact" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">✉ Contact</a>
-          <a href="/integrations/" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">🔗 Integrations</a>
-          <a href="/project-requests" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">📋 Project requests</a>
-          <a href="/github-pages" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">🚀 GitHub Pages guide</a>
-          <a href="/project-files" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold"><span aria-hidden="true">🐘</span> Project files</a>
-          <a href="/github-studios" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">GitHub Studios <span aria-hidden="true">↗</span></a>
-          <a href="/hosting-studio" class="rounded-[var(--radius)] border border-[var(--color-primary)] bg-[var(--color-soft)] px-6 py-4 font-bold text-[var(--color-primary)]">🐺 إدارة المواقع</a>
+        <h1 class="max-w-4xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+          جميع التطبيقات والأنظمة في موقع واحد
+        </h1>
+        <p class="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
+          منصة متكاملة تجمع بين الذكاء الاصطناعي، المتاجر الإلكترونية، الشبكات الاجتماعية، ومنصة GitHub Pages الرسمية.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/apps/" class="rounded-xl bg-cyan-400 px-6 py-3 font-bold text-slate-950">استكشف التطبيقات</a>
+          <a href="/github-apps/" class="rounded-xl border border-slate-700 px-6 py-3 font-bold text-cyan-300">مستودعات GitHub</a>
+          <a href="/?locale=en" class="rounded-xl border border-slate-700 px-6 py-3 font-bold text-slate-200">English</a>
+        </div>
+      </section>
+
+      <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div class="panel rounded-2xl p-6">
+          <div class="text-3xl font-black text-cyan-300">20+</div>
+          <div class="mt-2 text-sm text-slate-300">تطبيقات ومشاريع</div>
+        </div>
+        <div class="panel rounded-2xl p-6">
+          <div class="text-3xl font-black text-cyan-300">AI</div>
+          <div class="mt-2 text-sm text-slate-300">نماذج ذكاء اصطناعي</div>
+        </div>
+        <div class="panel rounded-2xl p-6">
+          <div class="text-3xl font-black text-cyan-300">SOOQ</div>
+          <div class="mt-2 text-sm text-slate-300">منصة تجارة اجتماعية</div>
+        </div>
+        <div class="panel rounded-2xl p-6">
+          <div class="text-3xl font-black text-cyan-300">GOBI</div>
+          <div class="mt-2 text-sm text-slate-300">شبكة اجتماعية</div>
+        </div>
+      </section>
+
+      <section class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <a href="/apps/" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">📱</div>
+          <h2 class="mb-2 text-xl font-black text-white">التطبيقات</h2>
+          <p class="text-sm leading-6 text-slate-300">لوحة مركزية للتطبيقات والواجهات الرئيسية داخل المنصة.</p>
+        </a>
+
+        <a href="/github-apps/" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">🧩</div>
+          <h2 class="mb-2 text-xl font-black text-white">GitHub Apps</h2>
+          <p class="text-sm leading-6 text-slate-300">قائمة كاملة للمستودعات، المشاريع،وبرامج GitHub المرتبطة بالحساب.</p>
+        </a>
+
+        <a href="/admin/" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">⚙️</div>
+          <h2 class="mb-2 text-xl font-black text-white">الإدارة</h2>
+          <p class="text-sm leading-6 text-slate-300">إدارة قواعد المشروع، المواقع، والتحكم داخل المنصة.</p>
+        </a>
+
+        <a href="https://github.com/elazzouz-dotcom/AI-Platform" target="_blank" rel="noreferrer" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">🤖</div>
+          <h2 class="mb-2 text-xl font-black text-white">AI Platform</h2>
+          <p class="text-sm leading-6 text-slate-300">منصة الذكاء الاصطناعي مع أكثر من 2500 نموذج.</p>
+        </a>
+
+        <a href="https://github.com/elazzouz-dotcom/sooq-platform" target="_blank" rel="noreferrer" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">🛍️</div>
+          <h2 class="mb-2 text-xl font-black text-white">SOOQ Platform</h2>
+          <p class="text-sm leading-6 text-slate-300">منصة تجارة اجتماعية عربية متكاملة مع بحث وذكاء اصطناعي.</p>
+        </a>
+
+        <a href="https://github.com/elazzouz-dotcom/Gobi" target="_blank" rel="noreferrer" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">👥</div>
+          <h2 class="mb-2 text-xl font-black text-white">GOBI</h2>
+          <p class="text-sm leading-6 text-slate-300">منصة اجتماعية ومجتمعية للتواصل والمشاركة.</p>
+        </a>
+      </section>
+    </main>
+
+    <footer class="border-t border-slate-800 bg-slate-950 py-8">
+      <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 text-sm text-slate-400 md:flex-row lg:px-8">
+        <p>© 2026 elazzouz-dotcom</p>
+        <div class="flex gap-5">
+          <a href="/?locale=ar">العربية</a>
+          <a href="/?locale=en">English</a>
+          <a href="/apps/">التطبيقات</a>
         </div>
       </div>
-    </section>
+    </footer>
 
-    <section class="px-5 py-16 lg:px-8 lg:py-20" aria-labelledby="workspaces-heading">
-      <div class="mx-auto max-w-7xl">
-        <div class="mb-8">
-          <p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Start here</p>
-          <h2 id="workspaces-heading" class="mb-0 text-3xl font-black sm:text-4xl">Useful workspaces.</h2>
-        </div>
-        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <a href="/developer-tools" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">⌨</span>
-            <h3 class="mb-2 text-xl font-extrabold">Developer toolkit</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Format JSON, encode text, hash files, test Regex, compare text, preview Markdown, inspect colors, convert time, and generate UUIDs.</p>
-          </a>
-          <a href="/browserbase-studio" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">⌘</span>
-            <h3 class="mb-2 text-xl font-extrabold">Browser workflow studio</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Arrange browser steps and generate reviewed Playwright or Stagehand starters without entering credentials.</p>
-          </a>
-          <a href="/api-tool" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">⌁</span>
-            <h3 class="mb-2 text-xl font-extrabold">API workbench</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Inspect supported API requests from the browser while keeping credentials in page memory only.</p>
-          </a>
-          <a href="/chat-studio" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">💬</span>
-            <h3 class="mb-2 text-xl font-extrabold">Chat Studio</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Browse assistant replies from this conversation, search them, and copy the local transcript.</p>
-          </a>
-          <a href="/slaksi" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">▣</span>
-            <h3 class="mb-2 text-xl font-extrabold">SLaksi image vault</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Explore local file encryption and image embedding tools in your browser.</p>
-          </a>
-          <a href="/community" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">✳</span>
-            <h3 class="mb-2 text-xl font-extrabold">Developer community</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Draft discussions and manage a local community feed on this device.</p>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <section class="px-5 pb-20 lg:px-8 lg:pb-24">
-      <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 rounded-[var(--radius)] bg-[var(--color-dark)] p-8 text-[var(--color-text)] sm:p-12 lg:flex-row lg:items-center">
-        <div>
-          <p class="mb-3 text-sm font-bold uppercase tracking-[0.16em] text-[var(--color-primary)]">Focused collection</p>
-          <h2 class="mb-0 max-w-2xl text-3xl font-black sm:text-4xl">Find a tool, generate an output, move on.</h2>
-        </div>
-        <a href="/tools" class="btn-primary shrink-0 px-6 py-4">Open all tools <span aria-hidden="true">→</span></a>
-      </div>
-    </section>
-  </main>
-
-  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
-    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-4 text-sm text-[var(--color-muted)]">
-      <a href="/" class="font-extrabold text-[var(--color-text)]">Slaks</a>
-      <p class="mb-0">Working browser tools and local code generators.</p>
-      <a href="/chat-studio" class="footer-link font-semibold">Chat Studio</a>
-      <a href="/tools" class="footer-link font-semibold">Tool directory</a>
-    </div>
-  </footer>
-  <script src="/language.js"></script>
-</body>
-
+    <script>
+      (function () {
+        const q = new URLSearchParams(window.location.search);
+        const locale = (q.get('locale') || 'ar').toLowerCase();
+        const html = document.documentElement;
+        const isArabic = locale === 'ar';
+        html.setAttribute('lang', isArabic ? 'ar' : 'en');
+        html.setAttribute('dir', isArabic ? 'rtl' : 'ltr');
+      })();
+    </script>
+  </body>
 </html>
