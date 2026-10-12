@@ -3,7 +3,7 @@
   if (!widget) return;
   const track = widget.querySelector('.data-flow-track');
   const nodes = [...widget.querySelectorAll('[data-node]')];
-  const links = [...widget.querySelectorAll('[data-link]')];
+  const links = [...widget.querySelectorAll('[data-link]')].slice(0, nodes.length - 1);
   const send = widget.querySelector('#data-flow-send');
   const status = widget.querySelector('#data-flow-status');
   let payload = 'حمولة تجريبية';
