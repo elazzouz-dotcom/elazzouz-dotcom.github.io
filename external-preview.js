@@ -7,6 +7,7 @@
   const title = document.querySelector('#external-preview-title');
   const open = document.querySelector('#external-preview-open');
   const summary = document.querySelector('#external-preview-summary');
+  const PREVIEW_WORKER = 'https://github-oauth-proxy.elazzouz4.workers.dev/preview';
   if (!input || !add) return;
   const escape = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
   const row = (label, value) => `<div><dt class="font-bold text-[var(--color-text)]">${escape(label)}</dt><dd>${escape(value)}</dd></div>`;
@@ -19,12 +20,14 @@
   };
   const inspect = async (url) => {
     try {
-      const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
-      const html = await response.text();
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      return { title: doc.querySelector('meta[property="og:title"]')?.content || doc.title, description: doc.querySelector('meta[name="description"]')?.content || doc.querySelector('meta[property="og:description"]')?.content, status: `استجابة ${response.status}` };
+      const response = await fetch(`${PREVIEW_WORKER}?url=${encodeURIComponent(url)}`, { headers: { Accept: 'application/json' } });
+      const payload = await response.json();
+      if (!response.ok || !payload.html) throw new Error(payload.error || 'Cloudflare Preview failed');
+      frame.removeAttribute('src');
+      frame.srcdoc = payload.html;
+      return { title: payload.title, description: payload.description, status: `استضافة وسيطة Cloudflare · استجابة ${payload.status}` };
     } catch {
-      return { status: 'المعاينة تعمل؛ قراءة العنوان محجوبة بسياسة CORS الخاصة بالموقع الخارجي' };
+      return { status: 'تعذر جلب الواجهة عبر Cloudflare؛ استخدم رابط الفتح المباشر.' };
     }
   };
   frame.addEventListener('load', () => {
@@ -42,7 +45,7 @@
       url = new URL(/^[a-z][a-z\d+.-]*:/i.test(raw) ? raw : `https://${raw}`);
       if (!['http:', 'https:'].includes(url.protocol) || !url.hostname) throw new Error();
     } catch { summary.innerHTML = row('الحالة', 'أدخل أي رابط ويب صالح، مثل example.com أو https://example.com.'); return; }
-    add.disabled = true; add.textContent = 'جاري تجهيز العقدة…'; empty.hidden = true; stage.classList.remove('hidden'); frame.src = url.href; describe(url.href); const metadata = await inspect(url.href); describe(url.href, metadata); window.dispatchEvent(new CustomEvent('external-preview-added', { detail: { url: url.href, title: metadata.title || url.hostname, description: metadata.description || '' } })); add.disabled = false; add.textContent = '+ إضافة إلى عقدة';
+    add.disabled = true; add.textContent = 'جاري استضافة الواجهة…'; empty.hidden = true; stage.classList.remove('hidden'); frame.removeAttribute('srcdoc'); frame.src = 'about:blank'; describe(url.href); const metadata = await inspect(url.href); describe(url.href, metadata); window.dispatchEvent(new CustomEvent('external-preview-added', { detail: { url: url.href, title: metadata.title || url.hostname, description: metadata.description || '' } })); add.disabled = false; add.textContent = '+ إضافة إلى عقدة';
   });
   input.addEventListener('keydown', (event) => { if (event.key === 'Enter') add.click(); });
 })();

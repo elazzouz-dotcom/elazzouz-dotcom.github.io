@@ -60,6 +60,11 @@ async function handleRequest(request) {
       return handleTokenCheck(request);
     }
 
+    // Public external-site preview: fetch, sanitize, summarize, and return embeddable HTML.
+    if (path === '/preview' && method === 'GET') {
+      return handleExternalPreview(url);
+    }
+
     // User endpoints
     if (path.startsWith('/user')) {
       return proxyToGitHub(request, path);
@@ -146,7 +151,8 @@ async function handleRequest(request) {
           notifications: 'ANY /notifications/*',
           meta: 'GET /meta, /emojis, /markdown, etc.',
           graphql: 'POST /graphql',
-          proxy: 'ANY /proxy/* - Forward any request to GitHub API'
+          proxy: 'ANY /proxy/* - Forward any request to GitHub API',
+          preview: 'GET /preview?url=https://example.com - Fetch and sanitize a public web page'
         }
       }), {
         status: 200,
@@ -170,6 +176,58 @@ async function handleRequest(request) {
     });
   }
 }
+
+
+async function handleExternalPreview(requestUrl) {
+  const raw = requestUrl.searchParams.get('url');
+  let target;
+  try {
+    target = new URL(raw || '');
+    if (!['http:', 'https:'].includes(target.protocol) || !isPublicHostname(target.hostname)) throw new Error('Only public HTTP/HTTPS URLs are allowed.');
+  } catch (error) {
+    return previewResponse({ error: error.message || 'Invalid public URL.' }, 400);
+  }
+  try {
+    const upstream = await fetch(target.href, { redirect: 'follow', headers: { 'User-Agent': 'Slaks-Cloudflare-Preview/1.0', Accept: 'text/html,application/xhtml+xml' } });
+    const finalUrl = new URL(upstream.url || target.href);
+    if (!isPublicHostname(finalUrl.hostname)) throw new Error('The destination redirected to a private or local host.');
+    const contentType = upstream.headers.get('content-type') || '';
+    const rawBody = await upstream.text();
+    const html = sanitizePreviewHtml(rawBody.slice(0, 1500000), finalUrl.href);
+    const metadata = extractPreviewMetadata(rawBody, finalUrl.href);
+    return previewResponse({ ok: upstream.ok, status: upstream.status, target: target.href, finalUrl: finalUrl.href, contentType, ...metadata, html, text: metadata.text.slice(0, 1200) }, upstream.ok ? 200 : 502);
+  } catch (error) {
+    return previewResponse({ error: 'Unable to fetch the public URL.', message: error.message, target: target.href }, 502);
+  }
+}
+
+function isPublicHostname(hostname) {
+  const host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
+  if (!host || host === 'localhost' || host.endsWith('.local') || host.endsWith('.localhost') || host.endsWith('.internal')) return false;
+  if (host === '::1' || host === '0.0.0.0' || host.startsWith('127.') || host.startsWith('10.') || host.startsWith('192.168.') || host.startsWith('169.254.')) return false;
+  const octets = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (octets) { const [a, b] = octets.slice(1, 3).map(Number); if (a === 0 || a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254)) return false; }
+  return true;
+}
+
+function extractPreviewMetadata(html, sourceUrl) {
+  const pick = pattern => (html.match(pattern)?.[1] || '').replace(/\s+/g, ' ').trim();
+  const title = pick(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["']/i) || pick(/<title[^>]*>([\s\S]*?)<\/title>/i) || new URL(sourceUrl).hostname;
+  const description = pick(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"']*)["']/i);
+  const text = html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const links = [...html.matchAll(/<a\b[^>]+href=["']([^"']+)["']/gi)].slice(0, 100).map(match => match[1]);
+  return { title, description, text, links };
+}
+
+function sanitizePreviewHtml(html, baseUrl) {
+  let safe = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '').replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, '').replace(/<embed\b[^>]*>/gi, '');
+  safe = safe.replace(/\s+on[a-z]+\s*=\s*(["'])[^"']*\1/gi, '').replace(/\s+(?:href|src|action)\s*=\s*(["'])\s*javascript:[^"']*\1/gi, '');
+  const base = `<base href="${escapeHtml(baseUrl)}">`;
+  return /<head[^>]*>/i.test(safe) ? safe.replace(/<head[^>]*>/i, match => `${match}${base}`) : `<!doctype html><html><head>${base}<meta charset="utf-8"></head><body>${safe}</body></html>`;
+}
+
+function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character])); }
+function previewResponse(payload, status = 200) { return new Response(JSON.stringify(payload), { status, headers: corsHeaders({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) }); }
 
 /**
  * Handle CORS preflight requests
