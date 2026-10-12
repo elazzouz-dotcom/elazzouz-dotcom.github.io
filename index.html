@@ -10,6 +10,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://elazzouz-dotcom.github.io/" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/data-flow.css">
     <style>
       :root {
         --bg: #0b1020;
@@ -135,6 +136,50 @@
           <p class="text-sm leading-6 text-slate-300">استكشف منظومة Semantic Versioning التفاعلية، وأضف رابطًا من علامة + داخل أي عقدة.</p>
         </a>
       </section>
+    <section class="px-5 py-16 lg:px-8 lg:py-20" aria-labelledby="external-preview-heading">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-8 max-w-3xl">
+          <p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">External preview · معاينة خارجية</p>
+          <h2 id="external-preview-heading" class="mb-4 text-3xl font-black sm:text-5xl">أضف رابطًا إلى عقدة، وشاهد الموقع يعمل.</h2>
+          <p class="mb-0 text-lg leading-8 text-[var(--color-muted)]">اكتب رابط الموقع واضغط «+». ستظهر معاينته داخل الواجهة، مع محاولة قراءة العنوان والوصف واللغة. المواقع التي تمنع تضمين iframe أو CORS ستظهر برسالة واضحة ورابط فتح مباشر بدل ادعاء قراءة غير ممكنة.</p>
+        </div>
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+          <div class="feature-card overflow-hidden p-4 sm:p-6">
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <label class="sr-only" for="external-preview-url">رابط الموقع الخارجي</label>
+              <input id="external-preview-url" class="tool-input min-w-0 flex-1 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="url" inputmode="url" placeholder="https://example.com" autocomplete="url">
+              <button id="external-preview-add" class="btn-primary shrink-0 px-5 py-3" type="button" aria-label="إضافة الموقع إلى عقدة">+ إضافة إلى عقدة</button>
+            </div>
+            <div id="external-preview-empty" class="mt-5 rounded-[var(--radius)] border border-dashed border-[var(--color-border)] p-8 text-center text-sm text-[var(--color-muted)]">ستظهر المعاينة هنا بعد إضافة رابط.</div>
+            <div id="external-preview-stage" class="mt-5 hidden overflow-hidden rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-dark)]">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-3"><strong id="external-preview-title">معاينة الموقع</strong><a id="external-preview-open" class="footer-link text-sm font-bold" href="#" target="_blank" rel="noopener noreferrer">فتح في تبويب جديد ↗</a></div>
+              <iframe id="external-preview-frame" class="h-[28rem] w-full bg-white" title="معاينة موقع خارجي" loading="lazy" sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"></iframe>
+            </div>
+          </div>
+          <aside class="feature-card p-5" aria-live="polite">
+            <span class="data-node-badge">NODE + URL</span><h3 class="mt-4 text-xl font-black">ملخص العقدة</h3>
+            <dl id="external-preview-summary" class="mt-4 space-y-3 text-sm leading-6 text-[var(--color-muted)]"><div><dt class="font-bold text-[var(--color-text)]">الحالة</dt><dd>بانتظار رابط</dd></div></dl>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="data-flow-section px-5 py-16 lg:px-8 lg:py-20" aria-labelledby="data-flow-heading">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-8 max-w-3xl"><p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Data aggregation · شبكة المعلومات</p><h2 id="data-flow-heading" class="mb-4 text-3xl font-black sm:text-5xl">أرسل المعلومة من العقدة الأولى إلى GitHub.</h2><p class="mb-0 text-lg leading-8 text-[var(--color-muted)]">أنابيب مترابطة بصريًا تنقل حمولة تجريبية بين العقد. المسافة الواسعة تمنح كل عقدة مساحة واضحة على الهاتف والحاسوب، والعقدة الأخيرة هي بوابة GitHub الحقيقية.</p></div>
+        <div class="data-flow-shell" data-flow-widget>
+          <div class="data-flow-viewport" tabindex="0" aria-label="مسار نقل المعلومات بين العقد"><div class="data-flow-track">
+            <svg class="data-flow-link" data-link="0" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle" r="7"></circle></svg><article class="data-node source" data-node="0"><span class="data-node-badge">المصدر</span><div><span class="data-node-number">01</span><h3>ربط الموقع</h3><p>العقدة الأولى تستقبل الحمولة من الواجهة الحالية وتبدأ مسارها الآمن.</p></div></article>
+            <svg class="data-flow-link" data-link="1" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle alt" r="7"></circle></svg><article class="data-node" data-node="1"><span class="data-node-badge">تحقق</span><div><span class="data-node-number">02</span><h3>فحص الحمولة</h3><p>تُراجع المسارات والنصوص قبل السماح بمرور البيانات.</p></div></article>
+            <svg class="data-flow-link" data-link="2" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle" r="7"></circle></svg><article class="data-node" data-node="2"><span class="data-node-badge">تجهيز</span><div><span class="data-node-number">03</span><h3>تجميع الملفات</h3><p>تتحول التغييرات إلى كائن files بمسارات نسبية واضحة.</p></div></article>
+            <svg class="data-flow-link" data-link="3" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle alt" r="7"></circle></svg><article class="data-node" data-node="3"><span class="data-node-badge">Worker</span><div><span class="data-node-number">04</span><h3>Cloudflare Worker</h3><p>ينقل الطلب عبر جلسة GitHub المشتركة دون وضع سر في الواجهة.</p></div></article>
+            <svg class="data-flow-link" data-link="4" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle" r="7"></circle></svg><article class="data-node final" data-node="4"><span class="data-node-badge">الوجهة النهائية</span><div><span class="data-node-number">GH</span><h3>تسجيل الدخول إلى GitHub</h3><p>بوابة Device Flow حقيقية. يبقى الرمز محفوظًا محليًا حتى تنتهي الجلسة أو تختار تسجيل الخروج.</p><div class="github-login-box"><span id="home-github-status" class="github-login-status">اضغط لطلب كود GitHub من Worker.</span><div class="github-code-row" hidden><output id="home-github-code" class="github-code" aria-label="كود GitHub"></output><button id="home-github-copy" class="github-copy" type="button">نسخ</button></div><a id="home-github-open" class="github-open" href="#" target="_blank" rel="noopener noreferrer" hidden>فتح GitHub وإدخال الكود ↗</a><button id="home-github-login" class="data-flow-button mt-2 w-full" type="button">تسجيل الدخول إلى GitHub</button></div></div></article>
+          </div></div>
+          <div class="data-flow-controls"><span id="data-flow-status" role="status">المسار جاهز. اضغط لنقل حمولة تجريبية عبر الأنابيب.</span><button id="data-flow-send" class="data-flow-button" type="button">نقل المعلومة الآن</button></div>
+        </div>
+      </div>
+    </section>
+
     </main>
 
     <footer class="border-t border-slate-800 bg-slate-950 py-8">
@@ -148,6 +193,8 @@
       </div>
     </footer>
 
+    <script src="/external-preview.js"></script>
+    <script src="/data-flow.js"></script>
     <script>
       (function () {
         const q = new URLSearchParams(window.location.search);
