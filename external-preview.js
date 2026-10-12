@@ -27,9 +27,21 @@
       return { status: 'المعاينة تعمل؛ قراءة العنوان محجوبة بسياسة CORS الخاصة بالموقع الخارجي' };
     }
   };
+  frame.addEventListener('load', () => {
+    const current = new URL(frame.src);
+    const existing = summary.innerHTML;
+    summary.innerHTML = existing.replace(/(الحالة[\s\S]*?<dd>)[^<]*/, '$1تم تحميل المعاينة من ' + escape(current.hostname));
+  });
+  frame.addEventListener('error', () => {
+    summary.innerHTML = summary.innerHTML.replace(/(الحالة[\s\S]*?<dd>)[^<]*/, '$1تعذر تضمين الموقع؛ استخدم رابط الفتح المباشر أدناه.');
+  });
   add.addEventListener('click', async () => {
     let url;
-    try { url = new URL(input.value.trim()); if (!['http:', 'https:'].includes(url.protocol)) throw new Error(); } catch { summary.innerHTML = row('الحالة', 'أدخل رابط HTTP أو HTTPS صالحًا.'); return; }
+    try {
+      const raw = input.value.trim();
+      url = new URL(/^[a-z][a-z\d+.-]*:/i.test(raw) ? raw : `https://${raw}`);
+      if (!['http:', 'https:'].includes(url.protocol) || !url.hostname) throw new Error();
+    } catch { summary.innerHTML = row('الحالة', 'أدخل أي رابط ويب صالح، مثل example.com أو https://example.com.'); return; }
     add.disabled = true; add.textContent = 'جاري تجهيز العقدة…'; empty.hidden = true; stage.classList.remove('hidden'); frame.src = url.href; describe(url.href); const metadata = await inspect(url.href); describe(url.href, metadata); window.dispatchEvent(new CustomEvent('external-preview-added', { detail: { url: url.href, title: metadata.title || url.hostname, description: metadata.description || '' } })); add.disabled = false; add.textContent = '+ إضافة إلى عقدة';
   });
   input.addEventListener('keydown', (event) => { if (event.key === 'Enter') add.click(); });

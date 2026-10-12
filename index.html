@@ -141,19 +141,19 @@
         <div class="mb-8 max-w-3xl">
           <p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">External preview · معاينة خارجية</p>
           <h2 id="external-preview-heading" class="mb-4 text-3xl font-black sm:text-5xl">أضف رابطًا إلى عقدة، وشاهد الموقع يعمل.</h2>
-          <p class="mb-0 text-lg leading-8 text-[var(--color-muted)]">اكتب رابط الموقع واضغط «+». ستظهر معاينته داخل الواجهة، مع محاولة قراءة العنوان والوصف واللغة. المواقع التي تمنع تضمين iframe أو CORS ستظهر برسالة واضحة ورابط فتح مباشر بدل ادعاء قراءة غير ممكنة.</p>
+          <p class="mb-0 text-lg leading-8 text-[var(--color-muted)]">اكتب أي رابط ويب خارجي، حتى من استضافة أو نطاق مختلف، واضغط «+». ستظهر المعاينة داخل الواجهة، مع محاولة قراءة العنوان والوصف واللغة. إذا منع الموقع التضمين، يبقى رابط الفتح المباشر متاحًا بدل إخفاء الموقع أو ادعاء قراءة غير ممكنة.</p>
         </div>
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
           <div class="feature-card overflow-hidden p-4 sm:p-6">
             <div class="flex flex-col gap-3 sm:flex-row">
               <label class="sr-only" for="external-preview-url">رابط الموقع الخارجي</label>
-              <input id="external-preview-url" class="tool-input min-w-0 flex-1 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="url" inputmode="url" placeholder="https://example.com" autocomplete="url">
+              <input id="external-preview-url" class="tool-input min-w-0 flex-1 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="url" inputmode="url" placeholder="example.com أو https://example.com" autocomplete="url">
               <button id="external-preview-add" class="btn-primary shrink-0 px-5 py-3" type="button" aria-label="إضافة الموقع إلى عقدة">+ إضافة إلى عقدة</button>
             </div>
             <div id="external-preview-empty" class="mt-5 rounded-[var(--radius)] border border-dashed border-[var(--color-border)] p-8 text-center text-sm text-[var(--color-muted)]">ستظهر المعاينة هنا بعد إضافة رابط.</div>
             <div id="external-preview-stage" class="mt-5 hidden overflow-hidden rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-dark)]">
               <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-3"><strong id="external-preview-title">معاينة الموقع</strong><a id="external-preview-open" class="footer-link text-sm font-bold" href="#" target="_blank" rel="noopener noreferrer">فتح في تبويب جديد ↗</a></div>
-              <iframe id="external-preview-frame" class="h-[28rem] w-full bg-white" title="معاينة موقع خارجي" loading="lazy" sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"></iframe>
+              <iframe id="external-preview-frame" class="h-[28rem] w-full bg-white" title="معاينة موقع خارجي" loading="eager" referrerpolicy="no-referrer-when-downgrade" allow="fullscreen; picture-in-picture; clipboard-read; clipboard-write"></iframe>
             </div>
           </div>
           <aside class="feature-card p-5" aria-live="polite">
