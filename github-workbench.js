@@ -6,7 +6,7 @@
   if (!connect) return;
   const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), topAuthButton = $('studio-top-auth'), topLogoutButton = $('studio-top-logout'), logoutButton = $('ghw-logout'), panel = $('ghw-panel'), editor = $('ghw-editor');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
-  const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create'), branchRefreshButton = $('ghw-branches-refresh'), branchList = $('ghw-branch-list'), newBranchInput = $('ghw-new-branch'), visibleBranchCreateButton = $('ghw-branch-create-visible'), branchStatus = $('ghw-branch-status'), mergeSource = $('ghw-merge-source'), mergeTarget = $('ghw-merge-target'), mergeCheckButton = $('ghw-merge-check'), autoMergeButton = $('ghw-auto-merge'), mergeReport = $('ghw-merge-report'), mergeState = $('ghw-merge-state');
+  const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create'), branchRefreshButton = $('ghw-branches-refresh'), branchList = $('ghw-branch-list'), newBranchInput = $('ghw-new-branch'), visibleBranchCreateButton = $('ghw-branch-create-visible'), branchStatus = $('ghw-branch-status'), mergeSource = $('ghw-merge-source'), mergeTarget = $('ghw-merge-target'), mergeCheckButton = $('ghw-merge-check'), autoMergeButton = $('ghw-auto-merge'), mergeReport = $('ghw-merge-report'), mergeState = $('ghw-merge-state'), terminalForm = $('ghw-terminal-form'), terminalInput = $('ghw-terminal-input'), terminalOutput = $('ghw-terminal-output'), terminalClear = $('ghw-terminal-clear');
   const tokenInput = $('ghw-token'), tokenButton = $('ghw-token-use');
   let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
   let currentUserCode = '';
@@ -147,6 +147,28 @@
       window.studioLog?.(`تم تحميل ${branches.length} فرعًا من GitHub`, 'success');
     } catch (error) { branchStatus && (branchStatus.textContent = `تعذر تحميل الفروع: ${error.message}`); window.studioLog?.(`تعذر تحميل الفروع: ${error.message}`, 'error'); }
   }
+  function terminalPrint(text, kind = '') {
+    if (!terminalOutput) return;
+    const line = document.createElement('div'); line.className = `terminal-line ${kind}`; line.textContent = text; terminalOutput.appendChild(line); terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  }
+  function terminalList() { return ['help                 عرض الأوامر الآمنة', 'status               حالة المستودع الحالي', 'whoami               حساب GitHub المتصل', 'branches             عرض فروع المستودع', 'branch               عرض الفرع النشط', 'compare SRC TARGET   عرض الملفات بين فرعين', 'load PATH            تحميل ملف إلى المحرر', 'preview              تحديث المعاينة الحية', 'clear                مسح الطرفية']; }
+  async function runTerminalCommand(raw) {
+    const command = raw.trim(); if (!command) return;
+    terminalPrint(`studio@github:~$ ${command}`, 'terminal-command');
+    const [name, ...args] = command.split(/\s+/); const lower = name.toLowerCase();
+    try {
+      if (lower === 'help') terminalList().forEach(line => terminalPrint(line, 'terminal-info'));
+      else if (lower === 'clear') terminalOutput.innerHTML = '';
+      else if (lower === 'branch') terminalPrint(`الفرع النشط: ${$('ghw-branch').value.trim() || 'غير محدد'}`, 'terminal-success');
+      else if (lower === 'branches') { await loadBranches(); terminalPrint('تم تحديث قائمة الفروع أعلى اللوحة.', 'terminal-success'); }
+      else if (lower === 'whoami') { const user = await request('/user'); terminalPrint(`متصل باسم @${user.login || user.name || 'unknown'}`, 'terminal-success'); }
+      else if (lower === 'status') { const data = await request(repoPath()); terminalPrint(`${data.full_name || 'المستودع'} · default: ${data.default_branch || 'غير معروف'} · visibility: ${data.visibility || 'unknown'}`, 'terminal-success'); }
+      else if (lower === 'compare') { if (args.length < 2) throw new Error('الاستخدام: compare SRC TARGET'); const data = await request(`${repoPath()}/compare/${encodeURIComponent(args[1])}...${encodeURIComponent(args[0])}`); terminalPrint(`${data.status || 'unknown'} · ${data.ahead_by || 0} commits ahead · ${data.files?.length || 0} files changed`, 'terminal-success'); }
+      else if (lower === 'load') { if (!args[0]) throw new Error('الاستخدام: load PATH'); $('ghw-path').value = args.join(' '); await loadFile(); terminalPrint(`تم تحميل ${$('ghw-path').value}`, 'terminal-success'); }
+      else if (lower === 'preview') { window.studioRefreshPreview?.(); terminalPrint('تم طلب تحديث المعاينة الحية.', 'terminal-success'); }
+      else terminalPrint(`أمر غير معروف: ${name}. اكتب help.`, 'terminal-error');
+    } catch (error) { terminalPrint(`خطأ: ${error.message}`, 'terminal-error'); }
+  }
   function renderMergeReport(title, details = [], kind = 'info') {
     if (!mergeReport) return;
     mergeReport.innerHTML = `<div class="studio-merge-report-title ${kind}">${title}</div>` + (details.length ? `<ul>${details.map(item => `<li>${item}</li>`).join('')}</ul>` : '');
@@ -189,7 +211,7 @@
       $('ghw-branch').value = branch; if (newBranchInput) newBranchInput.value = ''; setStatus(`تم إنشاء الفرع ${branch} من ${baseName}.`, true); await loadBranches(); if (branchList) branchList.value = branch;
     } catch (error) { setStatus(`تعذر إنشاء الفرع: ${error.message}`); }
   }
-  branchRefreshButton?.addEventListener('click', loadBranches); mergeCheckButton?.addEventListener('click', checkMergeConflicts); autoMergeButton?.addEventListener('click', autoMerge); branchList?.addEventListener('change', () => { if (branchList.value) { $('ghw-branch').value = branchList.value; branchStatus && (branchStatus.textContent = `تم اختيار الفرع: ${branchList.value}`); window.studioLog?.(`تم اختيار الفرع ${branchList.value}`,'success'); currentSha = null; } }); visibleBranchCreateButton?.addEventListener('click', () => createBranch()); newBranchInput?.addEventListener('keydown', event => { if (event.key === 'Enter') createBranch(); });
+  branchRefreshButton?.addEventListener('click', loadBranches); mergeCheckButton?.addEventListener('click', checkMergeConflicts); autoMergeButton?.addEventListener('click', autoMerge); terminalForm?.addEventListener('submit', event => { event.preventDefault(); const value = terminalInput?.value || ''; if (terminalInput) terminalInput.value = ''; runTerminalCommand(value); }); terminalClear?.addEventListener('click', () => { if (terminalOutput) terminalOutput.innerHTML = '<div class="terminal-line terminal-muted">تم مسح الطرفية.</div>'; }); branchList?.addEventListener('change', () => { if (branchList.value) { $('ghw-branch').value = branchList.value; branchStatus && (branchStatus.textContent = `تم اختيار الفرع: ${branchList.value}`); window.studioLog?.(`تم اختيار الفرع ${branchList.value}`,'success'); currentSha = null; } }); visibleBranchCreateButton?.addEventListener('click', () => createBranch()); newBranchInput?.addEventListener('keydown', event => { if (event.key === 'Enter') createBranch(); });
   logoutButton?.addEventListener('click', logout);
   topLogoutButton?.addEventListener('click', logout);
   topAuthButton?.addEventListener('click', () => {
