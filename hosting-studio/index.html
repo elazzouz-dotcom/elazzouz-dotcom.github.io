@@ -75,7 +75,7 @@
     <div class="studio-sidebar-footer"><span class="studio-live-dot"></span><span>جلسة محلية آمنة</span><a href="/">العودة للموقع</a></div>
   </aside>
   <div class="studio-dashboard">
-    <div class="studio-commandbar"><div class="studio-breadcrumb"><span>إدارة المواقع</span><b>/</b><strong>Hosting Studio</strong></div><div class="studio-command-actions"><span class="studio-github-chip"><span class="studio-github-icon">GH</span><span><b>GitHub</b><small id="studio-top-status">غير متصل</small></span></span><button id="studio-top-connect" class="studio-top-connect" type="button">تسجيل الدخول إلى GitHub</button><button id="studio-top-logout" class="studio-top-logout" type="button" disabled>تسجيل الخروج</button><button id="studio-top-auth" class="studio-top-auth" type="button" hidden>فتح GitHub لإدخال الكود</button><button id="studio-top-copy-code" class="studio-top-copy-code" type="button" hidden>نسخ الكود</button></div></div>
+    <div class="studio-commandbar"><div class="studio-breadcrumb"><span>إدارة المواقع</span><b>/</b><strong>Hosting Studio</strong></div><div class="studio-command-actions"><button id="studio-locale-toggle" class="studio-locale-toggle" type="button">EN</button><span class="studio-github-chip"><span class="studio-github-icon">GH</span><span><b>GitHub</b><small id="studio-top-status">غير متصل</small></span></span><button id="studio-top-connect" class="studio-top-connect" type="button">تسجيل الدخول إلى GitHub</button><button id="studio-top-logout" class="studio-top-logout" type="button" disabled>تسجيل الخروج</button><button id="studio-top-auth" class="studio-top-auth" type="button" hidden>فتح GitHub لإدخال الكود</button><button id="studio-top-copy-code" class="studio-top-copy-code" type="button" hidden>نسخ الكود</button></div></div>
     <div class="studio-dashboard-body">
       <div class="studio-page-panel is-active" data-studio-panel="overview">
         <div class="studio-hero-card"><div><span class="studio-eyebrow">DEVELOPER CONTROL CENTER</span><h2>أدر موقعك من مكان واحد.</h2><p>اربط GitHub، عدّل الملفات محليًا، راجع المعاينة، وانشر النسخة الجاهزة دون مغادرة لوحة إدارة المواقع.</p><div class="studio-hero-actions"><button id="studio-hero-login" class="studio-primary-action" type="button">تسجيل الدخول عبر GitHub</button><button class="studio-secondary-action" data-jump="connections" type="button">ربط تطبيقاتك <span>←</span></button><button class="studio-secondary-action" data-jump="editor" type="button">فتح محرر الكود</button></div></div><div class="studio-hero-code" aria-hidden="true"><span>const</span> site = <em>deploy</em>();<br><span>await</span> github.commit(site);<br><strong>✓ ready_to_ship</strong></div></div>
@@ -222,21 +222,21 @@ await OneCompilerGitHub.publishToGitHub({
     <span id="ghw-status" class="self-center text-sm font-bold" role="status" aria-live="polite">غير متصل</span>
     <button id="ghw-copy-code" class="studio-otp-copy self-center" type="button" hidden>نسخ كود GitHub</button>
   </div>
-  <div id="ghw-panel" class="mt-6 hidden space-y-4">
+  <div id="ghw-panel" class="mt-6 hidden space-y-4"><div class="studio-workbench-shell"><section class="studio-config-panel"><div class="studio-panel-heading"><span class="studio-eyebrow">01 · REPOSITORY SETTINGS</span><h3>إعدادات المستودع والنشر</h3><p>افصل مصدر المشروع ومسار الملف عن مساحة التحرير لتعمل بخطوات واضحة.</p></div>
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <label class="text-sm font-bold">المالك<input id="ghw-owner" value="elazzouz-dotcom" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
       <label class="text-sm font-bold">المستودع<input id="ghw-repo" value="elazzouz-dotcom.github.io" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
       <label class="text-sm font-bold">الفرع<input id="ghw-branch" value="main" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
       <label class="text-sm font-bold">مسار الملف<input id="ghw-path" value="index.html" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
-    </div>
-    <div class="flex flex-wrap gap-3">
+    </div></section><section class="studio-editor-panel"><div class="studio-panel-heading"><span class="studio-eyebrow">02 · CODE EDITOR</span><h3>محرر الملف</h3><p>عدّل الكود، اختر لغة الملف، ثم راقب المعاينة والسجل في الجانب المقابل.</p></div>
+    <div class="flex flex-wrap gap-3 studio-editor-actions">
       <button id="ghw-load" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>تحميل الملف</button>
       <button id="ghw-branch-create" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>إنشاء الفرع</button>
       <button id="ghw-save" class="btn-primary px-4 py-3 font-bold" type="button" disabled>حفظ كـ commit</button>
       <button id="ghw-publish" class="rounded-[calc(var(--radius)*0.55)] border border-[var(--color-primary)] px-4 py-3 font-bold text-[var(--color-primary)]" type="button" disabled>حفظ وفتح النشر</button>
     </div>
-    <label class="block text-sm font-bold">رسالة الـ commit<input id="ghw-message" value="Update from Hosting Studio" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
-    <label class="block text-sm font-bold">محتوى الملف<textarea id="ghw-editor" rows="18" spellcheck="false" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-dark)] p-4 font-mono text-sm leading-6 text-[var(--color-text)]" placeholder="حمّل ملفًا أو اكتب الكود هنا..."></textarea></label>
+    <div class="studio-commit-row"><label class="block text-sm font-bold flex-1">رسالة الـ commit<input id="ghw-message" value="Update from Hosting Studio" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label><label class="studio-language-select">لغة الملف<select id="ghw-language" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3"><option value="html">HTML</option><option value="css">CSS</option><option value="javascript">JavaScript</option><option value="json">JSON</option></select></label></div>
+    <label class="block text-sm font-bold">محتوى الملف<textarea id="ghw-editor" rows="18" spellcheck="false" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-dark)] p-4 font-mono text-sm leading-6 text-[var(--color-text)]" placeholder="حمّل ملفًا أو اكتب الكود هنا..."></textarea><pre id="ghw-highlight" class="studio-highlight" aria-label="معاينة تلوين الكود"><code></code></pre></label></section><aside class="studio-live-panel"><div class="studio-panel-heading"><span class="studio-eyebrow">03 · LIVE DEPLOYMENT</span><h3>المعاينة والسجل</h3><p id="ghw-preview-url">ستظهر المعاينة بعد أول نشر ناجح.</p></div><div class="studio-live-frame"><div class="studio-live-toolbar"><span class="studio-live-dot"></span><b>GitHub Pages Preview</b><button id="ghw-preview-reload" type="button">↻</button></div><iframe id="ghw-live-preview" title="المعاينة الحية بعد النشر" loading="lazy"></iframe></div><div class="studio-console"><div class="studio-console-head"><b>Console Logs</b><button id="ghw-console-clear" type="button">مسح</button></div><div id="ghw-console-logs" role="log" aria-live="polite"><div class="studio-log muted">جاهز لعرض خطوات الاتصال والـ commit والنشر.</div></div></div></aside></div>
     <p class="mb-0 text-xs leading-5 text-[var(--color-muted)]">للنشر على GitHub Pages: احفظ ملف <code>index.html</code> في الفرع الرئيسي، ثم فعّل Pages من إعدادات المستودع إذا لم تكن مفعّلة. لا تضع Client Secret أو مفاتيح API داخل الملفات.</p>
   </div>
 </section>
@@ -251,7 +251,16 @@ await OneCompilerGitHub.publishToGitHub({
     </div>
   </footer>
 
-  <script src="/github-workbench.js?v=persistent-cookie-3"></script>
+  <script>
+    (()=>{const $=id=>document.getElementById(id), editor=$('ghw-editor'), highlight=$('ghw-highlight')?.querySelector('code'), logs=$('ghw-console-logs'), frame=$('ghw-live-preview'), urlOut=$('ghw-preview-url');
+      window.studioLog=(message,type='info')=>{if(!logs)return;const row=document.createElement('div');row.className='studio-log '+type;row.textContent=new Date().toLocaleTimeString()+' · '+message;logs.appendChild(row);logs.scrollTop=logs.scrollHeight};
+      window.studioRefreshPreview=()=>{const owner=$('ghw-owner')?.value.trim(),repo=$('ghw-repo')?.value.trim();if(!owner||!repo)return;const url='https://'+owner+'.github.io/'+(repo.toLowerCase()===owner.toLowerCase()+'.github.io'?'':repo+'/');if(frame){frame.src=url+'?studio='+Date.now();urlOut.textContent=url;window.studioLog('تم تحديث المعاينة الحية: '+url,'success')}};
+      $('ghw-preview-reload')?.addEventListener('click',()=>window.studioRefreshPreview());$('ghw-console-clear')?.addEventListener('click',()=>{if(logs)logs.innerHTML='<div class="studio-log muted">تم مسح السجل.</div>'});
+      const escape=v=>String(v||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));const paint=()=>{if(highlight)highlight.innerHTML=escape(editor?.value).replace(/(&lt;\/?[\w-]+)/g,'<span class="tok-tag">$1</span>').replace(/([\w-]+)=(&quot;.*?&quot;)/g,'<span class="tok-attr">$1</span>=<span class="tok-string">$2</span>');};editor?.addEventListener('input',paint);paint();
+      $('studio-locale-toggle')?.addEventListener('click',()=>{const html=document.documentElement;const ar=html.lang==='ar';html.lang=ar?'en':'ar';html.dir=ar?'ltr':'rtl';$('studio-locale-toggle').textContent=ar?'AR':'EN';window.studioLog(ar?'Interface switched to English':'تم التبديل إلى العربية','success')});
+    })();
+  </script>
+  <script src="/github-workbench.js?v=studio-redesign-1"></script>
   <script>
     const checklistItems = [...document.querySelectorAll('.check-item')];
     const progressOutput = document.querySelector('#check-progress');

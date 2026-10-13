@@ -13,7 +13,7 @@
   let currentVerificationUrl = '';
   const STORAGE_KEY = 'hosting-studio.github.access-token';
   const setStatus = (message, good = false) => {
-    status.textContent = message;
+    status.textContent = message; window.studioLog?.(message, good ? 'success' : 'info');
     status.style.color = good ? '#16a34a' : 'var(--color-icon)';
     const match = String(message).match(/الكود:\s*([A-Z0-9-]+)/i);
     if (match) currentUserCode = match[1];
@@ -120,7 +120,7 @@
       const body = { message: $('ghw-message').value.trim() || 'Update from Hosting Studio', content: base64Encode(editor.value), branch: $('ghw-branch').value.trim() };
       if (currentSha) body.sha = currentSha;
       const result = await request(filePath().split('?')[0], { method: 'PUT', body });
-      currentSha = result.content?.sha || currentSha; setStatus('تم حفظ الكود كـ commit على GitHub.', true);
+      currentSha = result.content?.sha || currentSha; setStatus('تم حفظ الكود كـ commit على GitHub.', true); window.studioLog?.('Commit saved to GitHub successfully','success'); window.studioRefreshPreview?.();
       if (openPublish) window.open(`https://github.com/${$('ghw-owner').value}/${$('ghw-repo').value}/settings/pages`, '_blank', 'noopener,noreferrer');
     } catch (error) { setStatus(`تعذر الحفظ: ${error.message}`); }
   }
