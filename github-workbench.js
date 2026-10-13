@@ -6,7 +6,7 @@
   if (!connect) return;
   const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), topAuthButton = $('studio-top-auth'), topLogoutButton = $('studio-top-logout'), logoutButton = $('ghw-logout'), panel = $('ghw-panel'), editor = $('ghw-editor');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
-  const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create');
+  const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create'), branchRefreshButton = $('ghw-branches-refresh'), branchList = $('ghw-branch-list'), newBranchInput = $('ghw-new-branch'), visibleBranchCreateButton = $('ghw-branch-create-visible'), branchStatus = $('ghw-branch-status');
   const tokenInput = $('ghw-token'), tokenButton = $('ghw-token-use');
   let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
   let currentUserCode = '';
@@ -37,12 +37,12 @@
   const base64Decode = (value) => { const binary = atob(value.replace(/\n/g, '')); const bytes = Uint8Array.from(binary, char => char.charCodeAt(0)); return new TextDecoder().decode(bytes); };
   const repoPath = () => `/repos/${encodeURIComponent($('ghw-owner').value.trim())}/${encodeURIComponent($('ghw-repo').value.trim())}`;
   const filePath = () => `${repoPath()}/contents/${$('ghw-path').value.trim().split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent($('ghw-branch').value.trim())}`;
-  const setEnabled = (enabled) => [loadButton, saveButton, publishButton, createRepoButton, branchButton].forEach(button => button.disabled = !enabled);
+  const setEnabled = (enabled) => [loadButton, saveButton, publishButton, createRepoButton, branchButton, branchRefreshButton, visibleBranchCreateButton].forEach(button => { if (button) button.disabled = !enabled; });
   const setLogoutVisible = (visible) => [logoutButton, topLogoutButton].forEach(button => { if (button) { button.hidden = false; button.disabled = !visible; } });
   const saveToken = (value) => { try { localStorage.setItem(STORAGE_KEY, value); } catch {} };
   const readToken = () => { try { return localStorage.getItem(STORAGE_KEY); } catch { return null; } };
   const clearToken = () => { try { localStorage.removeItem(STORAGE_KEY); } catch {} };
-  const activateSession = (user, message) => { panel.classList.remove('hidden'); setEnabled(true); setLogoutVisible(true); connect.disabled = false; connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus(message, true); };
+  const activateSession = (user, message) => { panel.classList.remove('hidden'); setEnabled(true); setLogoutVisible(true); connect.disabled = false; connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus(message, true); loadBranches(); };
 
   async function connectGitHub() {
     connect.disabled = true; setStatus('جاري طلب رمز آمن من GitHub...');
@@ -129,10 +129,33 @@
     try { setStatus('جاري إنشاء المستودع...'); const result = await request('/repos/create', { method: 'POST', body: { name, description: 'Created from Hosting Studio', private: false } }); $('ghw-owner').value = result.owner?.login || $('ghw-owner').value; setStatus(`تم إنشاء المستودع ${result.full_name}.`, true); }
     catch (error) { setStatus(`تعذر إنشاء المستودع: ${error.message}`); }
   }
-  async function createBranch() {
-    try { const owner = $('ghw-owner').value.trim(), repo = $('ghw-repo').value.trim(), branch = $('ghw-branch').value.trim(); const base = await request(`/repos/${owner}/${repo}/git/ref/heads/main`); await request(`/repos/${owner}/${repo}/git/refs`, { method: 'POST', body: { ref: `refs/heads/${branch}`, sha: base.object.sha } }); setStatus(`تم إنشاء الفرع ${branch}.`, true); }
-    catch (error) { setStatus(`تعذر إنشاء الفرع: ${error.message}`); }
+  async function loadBranches() {
+    if (!branchList) return;
+    try {
+      branchStatus && (branchStatus.textContent = 'جاري تحميل فروع المستودع...');
+      const data = await request(`${repoPath()}/branches?per_page=100`);
+      const branches = Array.isArray(data) ? data : (data.branches || []);
+      branchList.innerHTML = '';
+      if (!branches.length) { branchList.innerHTML = '<option value="">لا توجد فروع</option>'; branchStatus && (branchStatus.textContent = 'لم يتم العثور على فروع.'); return; }
+      branches.forEach(item => { const option = document.createElement('option'); option.value = item.name; option.textContent = `${item.name}${item.protected ? ' · محمي' : ''}`; option.dataset.sha = item.commit?.sha || ''; branchList.appendChild(option); });
+      const active = $('ghw-branch').value.trim(); branchList.value = branches.some(item => item.name === active) ? active : branches[0].name;
+      if (!$('ghw-branch').value.trim()) $('ghw-branch').value = branchList.value;
+      branchStatus && (branchStatus.textContent = `تم تحميل ${branches.length} فرعًا. الفرع النشط: ${branchList.value}`);
+      window.studioLog?.(`تم تحميل ${branches.length} فرعًا من GitHub`, 'success');
+    } catch (error) { branchStatus && (branchStatus.textContent = `تعذر تحميل الفروع: ${error.message}`); window.studioLog?.(`تعذر تحميل الفروع: ${error.message}`, 'error'); }
   }
+  async function createBranch(name = '') {
+    try {
+      const owner = $('ghw-owner').value.trim(), repo = $('ghw-repo').value.trim(), baseName = $('ghw-branch').value.trim() || 'main', branch = (name || newBranchInput?.value || '').trim();
+      if (!branch) throw new Error('أدخل اسم الفرع الجديد.');
+      if (branch === baseName) throw new Error('اختر اسمًا مختلفًا عن الفرع الأساسي.');
+      setStatus(`جاري إنشاء الفرع ${branch} من ${baseName}...`);
+      const base = await request(`/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(baseName)}`);
+      await request(`/repos/${owner}/${repo}/git/refs`, { method: 'POST', body: { ref: `refs/heads/${branch}`, sha: base.object.sha } });
+      $('ghw-branch').value = branch; if (newBranchInput) newBranchInput.value = ''; setStatus(`تم إنشاء الفرع ${branch} من ${baseName}.`, true); await loadBranches(); if (branchList) branchList.value = branch;
+    } catch (error) { setStatus(`تعذر إنشاء الفرع: ${error.message}`); }
+  }
+  branchRefreshButton?.addEventListener('click', loadBranches); branchList?.addEventListener('change', () => { if (branchList.value) { $('ghw-branch').value = branchList.value; branchStatus && (branchStatus.textContent = `تم اختيار الفرع: ${branchList.value}`); window.studioLog?.(`تم اختيار الفرع ${branchList.value}`,'success'); currentSha = null; } }); visibleBranchCreateButton?.addEventListener('click', () => createBranch()); newBranchInput?.addEventListener('keydown', event => { if (event.key === 'Enter') createBranch(); });
   logoutButton?.addEventListener('click', logout);
   topLogoutButton?.addEventListener('click', logout);
   topAuthButton?.addEventListener('click', () => {

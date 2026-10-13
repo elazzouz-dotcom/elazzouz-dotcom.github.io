@@ -60,6 +60,10 @@ async function handleRequest(request) {
       return handleTokenCheck(request);
     }
 
+    if (path === '/analyze' && method === 'POST') {
+      return handleAIAnalysis(request);
+    }
+
     // Public external-site preview: fetch, sanitize, summarize, and return embeddable HTML.
     if (path === '/preview' && method === 'GET') {
       return handleExternalPreview(url);
@@ -142,7 +146,8 @@ async function handleRequest(request) {
             'POST /token': 'Exchange code for token',
             'POST /token/refresh': 'Refresh token',
             'POST /token/revoke': 'Revoke token',
-            'GET /token/check': 'Check token validity'
+            'GET /token/check': 'Check token validity',
+            'POST /analyze': 'Analyze node data with Cloudflare Workers AI'
           },
           user: 'GET /user/*',
           repos: 'ANY /repos/*',
@@ -468,6 +473,25 @@ async function handleTokenCheck(request) {
       headers: corsHeaders({ 'Content-Type': 'application/json' })
     });
   }
+}
+
+/**
+ * Analyze a node using a Cloudflare Workers AI binding named AI.
+ * The binding is attached at deploy time; no model key is exposed to the site.
+ */
+async function handleAIAnalysis(request) {
+  try {
+    const body = await request.json();
+    const nodeId = Number(body.nodeId || 0);
+    const source = String(body.text || body.html || '').slice(0, 12000);
+    if (!nodeId || !source) return new Response(JSON.stringify({ error: 'nodeId and content are required' }), { status: 400, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
+    if (typeof AI === 'undefined' || !AI || typeof AI.run !== 'function') return new Response(JSON.stringify({ error: 'AI binding is not configured', hint: 'Deploy this Worker with an AI binding named AI.' }), { status: 503, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
+    const prompt = `Analyze this SemVer Hub node and return JSON only. Fields: nodeId, status, title, summary, keywords, technologies, relations, riskFlags, confidence. Do not invent facts. Node ID: ${nodeId}. URL: ${String(body.url || '').slice(0, 500)}. Content: ${source}`;
+    const result = await AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [{ role: 'system', content: 'You are a careful technical data analyst. Return valid JSON only.' }, { role: 'user', content: prompt }] });
+    const raw = typeof result?.response === 'string' ? result.response : JSON.stringify(result);
+    let analysis; try { analysis = JSON.parse(raw.replace(/^```json\s*|\s*```$/g, '').trim()); } catch { analysis = { summary: raw.slice(0, 2000), keywords: [], technologies: [], relations: [], riskFlags: ['model_returned_non_json'], confidence: 0.5 }; }
+    return new Response(JSON.stringify({ nodeId, status: 'analyzed', ...analysis, analyzedAt: new Date().toISOString() }), { status: 200, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
+  } catch (error) { return new Response(JSON.stringify({ error: 'AI analysis failed', message: error.message }), { status: 500, headers: corsHeaders({ 'Content-Type': 'application/json' }) }); }
 }
 
 /**
