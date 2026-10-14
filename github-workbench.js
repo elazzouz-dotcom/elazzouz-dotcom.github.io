@@ -4,7 +4,7 @@
   const $ = (id) => document.getElementById(id);
   const connect = $('ghw-connect');
   if (!connect) return;
-  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), topAuthButton = $('studio-top-auth'), topLogoutButton = $('studio-top-logout'), logoutButton = $('ghw-logout'), panel = $('ghw-panel'), editor = $('ghw-editor');
+  const status = $('ghw-status'), copyCodeButton = $('ghw-copy-code'), topCopyCodeButton = $('studio-top-copy-code'), topAuthButton = $('studio-top-auth'), topLogoutButton = $('studio-top-logout'), logoutButton = $('ghw-logout'), panel = $('ghw-panel'), editor = $('ghw-editor'), clefAnalyzeButton = $('ghw-clef-analyze');
   const loadButton = $('ghw-load'), saveButton = $('ghw-save'), publishButton = $('ghw-publish');
   const createRepoButton = $('ghw-create-repo'), branchButton = $('ghw-branch-create'), branchRefreshButton = $('ghw-branches-refresh'), branchList = $('ghw-branch-list'), newBranchInput = $('ghw-new-branch'), visibleBranchCreateButton = $('ghw-branch-create-visible'), branchStatus = $('ghw-branch-status'), mergeSource = $('ghw-merge-source'), mergeTarget = $('ghw-merge-target'), mergeCheckButton = $('ghw-merge-check'), autoMergeButton = $('ghw-auto-merge'), mergeReport = $('ghw-merge-report'), mergeState = $('ghw-merge-state'), terminalForm = $('ghw-terminal-form'), terminalInput = $('ghw-terminal-input'), terminalOutput = $('ghw-terminal-output'), terminalClear = $('ghw-terminal-clear');
   const tokenInput = $('ghw-token'), tokenButton = $('ghw-token-use');
@@ -37,7 +37,7 @@
   const base64Decode = (value) => { const binary = atob(value.replace(/\n/g, '')); const bytes = Uint8Array.from(binary, char => char.charCodeAt(0)); return new TextDecoder().decode(bytes); };
   const repoPath = () => `/repos/${encodeURIComponent($('ghw-owner').value.trim())}/${encodeURIComponent($('ghw-repo').value.trim())}`;
   const filePath = () => `${repoPath()}/contents/${$('ghw-path').value.trim().split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent($('ghw-branch').value.trim())}`;
-  const setEnabled = (enabled) => [loadButton, saveButton, publishButton, createRepoButton, branchButton, branchRefreshButton, visibleBranchCreateButton, mergeCheckButton, autoMergeButton].forEach(button => { if (button) button.disabled = !enabled; });
+  const setEnabled = (enabled) => [loadButton, saveButton, publishButton, createRepoButton, branchButton, branchRefreshButton, visibleBranchCreateButton, mergeCheckButton, autoMergeButton, clefAnalyzeButton].forEach(button => { if (button) button.disabled = !enabled; });
   const setLogoutVisible = (visible) => [logoutButton, topLogoutButton].forEach(button => { if (button) { button.hidden = false; button.disabled = !visible; } });
   const saveToken = (value) => { try { localStorage.setItem(STORAGE_KEY, value); } catch {} };
   const readToken = () => { try { return localStorage.getItem(STORAGE_KEY); } catch { return null; } };
@@ -113,6 +113,34 @@
     try { setStatus('جاري تحميل الملف...'); const data = await request(filePath()); currentSha = data.sha; editor.value = base64Decode(data.content); setStatus(`تم تحميل ${$('ghw-path').value}.`, true); }
     catch (error) { currentSha = null; setStatus(`تعذر تحميل الملف: ${error.message}`); }
   }
+  async function analyzeWithClef() {
+    const content = editor?.value || '';
+    if (!content.trim()) return setStatus('حمّل ملفًا أو اكتب محتواه قبل تحليل Clef.');
+    if (clefAnalyzeButton) clefAnalyzeButton.disabled = true;
+    setStatus('جاري إرسال الملف إلى Clef للتحليل...');
+    try {
+      const state = JSON.stringify({ file: { path: $('ghw-path').value.trim(), content, branch: $('ghw-branch').value.trim() } });
+      const questions = JSON.stringify({
+        syntax: { type: 'choice', instructions: 'Is this file structurally valid and ready to review?', criteria: { valid: 'The file is structurally valid.', needs_review: 'The file needs human review.', invalid: 'The file has a likely structural problem.' } },
+        secrets: { type: 'noul', instructions: 'Does the file appear to contain a secret, token, password, or private credential?' },
+        deploy: { type: 'choice', instructions: 'Is this file safe to commit to a public GitHub Pages repository?', criteria: { safe: 'No sensitive data is visible and the change is suitable for a public site.', needs_review: 'Human review is needed before publishing.', unsafe: 'Do not publish this file because it appears unsafe.' } }
+      });
+      const submit = await fetch('https://elazzouz4-clef-demo.hf.space/gradio_api/call/decide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: [state, questions, null] }) });
+      const ticket = await submit.json();
+      if (!submit.ok || !ticket.event_id) throw new Error(ticket.error || 'لم يصل رقم طلب Clef.');
+      const stream = await fetch(`https://elazzouz4-clef-demo.hf.space/gradio_api/call/decide/${encodeURIComponent(ticket.event_id)}`);
+      const text = await stream.text();
+      const block = text.split(/\n\s*\n/).find(item => item.includes('event: complete') || item.includes('event: error')) || '';
+      const dataLine = block.split('\n').find(line => line.startsWith('data:'));
+      if (!dataLine) throw new Error('لم تصل نتيجة من Clef.');
+      const payload = JSON.parse(dataLine.slice(5).trim());
+      if (block.includes('event: error')) throw new Error(payload.error || 'فشل تحليل Clef.');
+      const result = typeof payload === 'string' ? JSON.parse(payload) : payload;
+      window.studioLog?.(`نتيجة Clef للملف ${$('ghw-path').value.trim()}: ${JSON.stringify(result)}`, 'success');
+      setStatus('اكتمل تحليل الملف عبر Clef. راجع Console Logs للنتيجة.', true);
+    } catch (error) { setStatus(`تعذر تحليل الملف عبر Clef: ${error.message}`); window.studioLog?.(`Clef analysis failed: ${error.message}`, 'error'); }
+    finally { if (clefAnalyzeButton) clefAnalyzeButton.disabled = !token; }
+  }
   async function saveFile(openPublish = false) {
     try {
       if (!editor.value.trim()) throw new Error('اكتب محتوى الملف أولًا.');
@@ -151,7 +179,7 @@
     if (!terminalOutput) return;
     const line = document.createElement('div'); line.className = `terminal-line ${kind}`; line.textContent = text; terminalOutput.appendChild(line); terminalOutput.scrollTop = terminalOutput.scrollHeight;
   }
-  function terminalList() { return ['help                 عرض الأوامر الآمنة', 'status               حالة المستودع الحالي', 'whoami               حساب GitHub المتصل', 'branches             عرض فروع المستودع', 'branch               عرض الفرع النشط', 'compare SRC TARGET   عرض الملفات بين فرعين', 'load PATH            تحميل ملف إلى المحرر', 'preview              تحديث المعاينة الحية', 'clear                مسح الطرفية']; }
+  function terminalList() { return ['help                 عرض الأوامر الآمنة', 'status               حالة المستودع الحالي', 'whoami               حساب GitHub المتصل', 'branches             عرض فروع المستودع', 'branch               عرض الفرع النشط', 'compare SRC TARGET   عرض الملفات بين فرعين', 'load PATH            تحميل ملف إلى المحرر', 'clef                 تحليل الملف الحالي عبر Space', 'preview              تحديث المعاينة الحية', 'clear                مسح الطرفية']; }
   async function runTerminalCommand(raw) {
     const command = raw.trim(); if (!command) return;
     terminalPrint(`studio@github:~$ ${command}`, 'terminal-command');
@@ -165,6 +193,7 @@
       else if (lower === 'status') { const data = await request(repoPath()); terminalPrint(`${data.full_name || 'المستودع'} · default: ${data.default_branch || 'غير معروف'} · visibility: ${data.visibility || 'unknown'}`, 'terminal-success'); }
       else if (lower === 'compare') { if (args.length < 2) throw new Error('الاستخدام: compare SRC TARGET'); const data = await request(`${repoPath()}/compare/${encodeURIComponent(args[1])}...${encodeURIComponent(args[0])}`); terminalPrint(`${data.status || 'unknown'} · ${data.ahead_by || 0} commits ahead · ${data.files?.length || 0} files changed`, 'terminal-success'); }
       else if (lower === 'load') { if (!args[0]) throw new Error('الاستخدام: load PATH'); $('ghw-path').value = args.join(' '); await loadFile(); terminalPrint(`تم تحميل ${$('ghw-path').value}`, 'terminal-success'); }
+      else if (lower === 'clef') { await analyzeWithClef(); terminalPrint('تم إرسال الملف إلى Clef. راجع Console Logs للنتيجة.', 'terminal-success'); }
       else if (lower === 'preview') { window.studioRefreshPreview?.(); terminalPrint('تم طلب تحديث المعاينة الحية.', 'terminal-success'); }
       else terminalPrint(`أمر غير معروف: ${name}. اكتب help.`, 'terminal-error');
     } catch (error) { terminalPrint(`خطأ: ${error.message}`, 'terminal-error'); }
@@ -220,6 +249,6 @@
   copyCodeButton?.addEventListener('click', copyGitHubCode);
   topCopyCodeButton?.addEventListener('click', copyGitHubCode);
   connect.addEventListener('click', connectGitHub);
-  tokenButton?.addEventListener('click', usePersonalToken); loadButton.addEventListener('click', loadFile); saveButton.addEventListener('click', () => saveFile(false)); publishButton.addEventListener('click', () => saveFile(true)); createRepoButton.addEventListener('click', createRepo); branchButton.addEventListener('click', createBranch);
+  tokenButton?.addEventListener('click', usePersonalToken); loadButton.addEventListener('click', loadFile); clefAnalyzeButton?.addEventListener('click', analyzeWithClef); saveButton.addEventListener('click', () => saveFile(false)); publishButton.addEventListener('click', () => saveFile(true)); createRepoButton.addEventListener('click', createRepo); branchButton.addEventListener('click', createBranch);
   restoreSession();
 })();

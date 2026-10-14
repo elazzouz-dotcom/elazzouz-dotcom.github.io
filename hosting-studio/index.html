@@ -232,6 +232,7 @@ await OneCompilerGitHub.publishToGitHub({
     <div class="flex flex-wrap gap-3 studio-editor-actions">
       <button id="ghw-load" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>تحميل الملف</button>
       <button id="ghw-branch-create" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>إنشاء الفرع</button>
+      <button id="ghw-clef-analyze" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-cyan-300/50 px-4 py-3 font-bold text-cyan-200" type="button" disabled>تحليل الملف عبر Clef</button>
       <button id="ghw-save" class="btn-primary px-4 py-3 font-bold" type="button" disabled>حفظ كـ commit</button>
       <button id="ghw-publish" class="rounded-[calc(var(--radius)*0.55)] border border-[var(--color-primary)] px-4 py-3 font-bold text-[var(--color-primary)]" type="button" disabled>حفظ وفتح النشر</button>
     </div>
@@ -260,7 +261,7 @@ await OneCompilerGitHub.publishToGitHub({
       $('studio-locale-toggle')?.addEventListener('click',()=>{const html=document.documentElement;const ar=html.lang==='ar';html.lang=ar?'en':'ar';html.dir=ar?'ltr':'rtl';$('studio-locale-toggle').textContent=ar?'AR':'EN';window.studioLog(ar?'Interface switched to English':'تم التبديل إلى العربية','success')});
     })();
   </script>
-  <script src="/github-workbench.js?v=studio-redesign-1"></script>
+  <script src="/github-workbench.js?v=studio-redesign-2"></script>
   <script>
     const checklistItems = [...document.querySelectorAll('.check-item')];
     const progressOutput = document.querySelector('#check-progress');
