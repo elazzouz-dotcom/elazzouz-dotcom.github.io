@@ -81,6 +81,9 @@
     .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     .card { display: flex; flex-direction: column; min-height: 250px; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
     .card:hover { transform: translateY(-3px); border-color: rgba(103, 232, 249, .52); box-shadow: 0 18px 44px rgba(2, 8, 23, .26); }
+    .card { min-width: 0; }
+    .card-top > div { min-width: 0; }
+    .card h3 { overflow-wrap: anywhere; }
     .card[hidden] { display: none; }
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
     .category { margin: 0 0 5px; color: var(--accent); font-size: .78rem; font-weight: 750; }
@@ -107,6 +110,7 @@
       main { padding-block: 24px 44px; }
       .hero { border-radius: 22px; }
       .controls, .grid { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: minmax(0, 1fr); }
       .card { min-height: 0; }
       .section-heading { align-items: start; flex-direction: column; }
     }
@@ -144,7 +148,7 @@
           <p class="eyebrow">ابحث واختر</p>
           <h2 id="tools-heading">الأدوات المتاحة للتجربة</h2>
         </div>
-        <span class="count" id="result-count" aria-live="polite">9 أدوات</span>
+        <span class="count" id="result-count" aria-live="polite">16 أداة</span>
       </div>
 
       <div class="controls">
@@ -157,9 +161,11 @@
           <select class="field" id="category-filter">
             <option value="all">كل الأنواع</option>
             <option value="chat">محادثة وكتابة</option>
+            <option value="writing">كتابة وترجمة</option>
             <option value="image">توليد صور</option>
             <option value="edit">تحرير صور</option>
             <option value="audio">صوت</option>
+            <option value="video">توليد فيديو</option>
             <option value="creative">رسم وتجارب</option>
           </select>
         </label>
@@ -227,6 +233,55 @@
           <p>ارسم الشيء المطلوب، ودع الشبكة العصبية تحاول تخمين رسمتك.</p>
           <p class="limits">لعبة وتجربة تعليمية مجانية، وليست أداة لإنشاء محتوى احترافي.</p>
           <div class="actions"><a class="visit" href="https://quickdraw.withgoogle.com/" target="_blank" rel="noopener noreferrer">افتح Quick, Draw! ↗</a><a class="source" href="https://quickdraw.withgoogle.com/data" target="_blank" rel="noopener noreferrer">عن بيانات التجربة</a></div>
+        </article>
+
+        <article class="card" data-category="chat" data-search="iask ai آي اسك سؤال إجابة بحث مصادر مساعد بحث">
+          <div class="card-top"><div><p class="category">محادثة وكتابة</p><h3>iAsk AI</h3></div><span class="badge">مجاني دون حساب</span></div>
+          <p>مساعد بحث يجيب عن الأسئلة مع روابط ومصادر، ويمكن إرسال السؤال مباشرةً دون تسجيل.</p>
+          <p class="limits">الخطة المجانية تستخدم النموذج الأساسي؛ حفظ الإجابات وبعض الميزات المتقدمة تتطلب حسابًا أو خطة مدفوعة.</p>
+          <div class="actions"><a class="visit" href="https://iask.ai/" target="_blank" rel="noopener noreferrer">افتح iAsk AI ↗</a><a class="source" href="https://iask.ai/pricing" target="_blank" rel="noopener noreferrer">الخطة والحدود</a></div>
+        </article>
+
+        <article class="card" data-category="writing" data-search="scribbr paraphrasing إعادة صياغة كتابة فقرات fluency standard">
+          <div class="card-top"><div><p class="category">كتابة وترجمة</p><h3>Scribbr Paraphrasing Tool</h3></div><span class="badge">مجاني دون حساب</span></div>
+          <p>إعادة صياغة للجمل والفقرات بخياري Standard وFluency، وفق صفحة الأداة الرسمية.</p>
+          <p class="limits">الحد المعلن 125 كلمة لكل إدخال؛ لم نتحقق من جودة إعادة الصياغة باللغة العربية.</p>
+          <div class="actions"><a class="visit" href="https://www.scribbr.com/paraphrasing-tool/" target="_blank" rel="noopener noreferrer">افتح أداة Scribbr ↗</a><a class="source" href="https://www.scribbr.com/frequently-asked-questions/does-the-paraphrasing-tool-improve-the-readability-and-tone-of-the-content/" target="_blank" rel="noopener noreferrer">تفاصيل الأداة</a></div>
+        </article>
+
+        <article class="card" data-category="writing" data-search="machinetranslation ترجمة آلة نماذج لغات عربي multilingual">
+          <div class="card-top"><div><p class="category">كتابة وترجمة</p><h3>MachineTranslation.com</h3></div><span class="badge">تجربة مجانية دون حساب</span></div>
+          <p>مترجم يقارن مخرجات عدة نماذج؛ أمكن اختبار ترجمة قصيرة مباشرةً دون إنشاء حساب.</p>
+          <p class="limits">المعاينة المجانية تغطي أول 60 كلمة في الجلسة؛ النص الأطول مدفوع.</p>
+          <div class="actions"><a class="visit" href="https://www.machinetranslation.com/" target="_blank" rel="noopener noreferrer">افتح المترجم ↗</a><a class="source" href="https://www.machinetranslation.com/frequently-asked-questions" target="_blank" rel="noopener noreferrer">الحد المجاني</a></div>
+        </article>
+
+        <article class="card" data-category="image" data-search="raphael ai توليد صور صورة نص وصف watermarked">
+          <div class="card-top"><div><p class="category">توليد صور</p><h3>Raphael AI</h3></div><span class="badge">توليد مجاني دون حساب</span></div>
+          <p>إنشاء صورة من وصف نصي عبر المتصفح؛ تتيح الصفحة بدء التوليد الأساسي دون تسجيل.</p>
+          <p class="limits">تظهر علامة مائية على الصور المجانية، والاستخدام المجاني شخصي وغير تجاري؛ تحرير الصور يتطلب حسابًا.</p>
+          <div class="actions"><a class="visit" href="https://raphael.app/" target="_blank" rel="noopener noreferrer">افتح Raphael AI ↗</a><a class="source" href="https://raphael.app/pricing" target="_blank" rel="noopener noreferrer">الأسعار والحدود</a><a class="source" href="https://raphael.app/tos" target="_blank" rel="noopener noreferrer">شروط الاستخدام</a></div>
+        </article>
+
+        <article class="card" data-category="video" data-search="magic hour فيديو توليد نص فيديو text to video صوت watermark">
+          <div class="card-top"><div><p class="category">توليد فيديو</p><h3>Magic Hour</h3></div><span class="badge">3 توليدات مجانية يوميًا</span></div>
+          <p>تحويل وصف نصي إلى مقطع فيديو قصير دون إنشاء حساب، بحسب صفحة الأداة والأسئلة الشائعة.</p>
+          <p class="limits">حتى 3 مقاطع يوميًا، كل منها 3 ثوانٍ وبدقة 480p مع علامة مائية؛ المخرجات المجانية للاستخدام الشخصي.</p>
+          <div class="actions"><a class="visit" href="https://magichour.ai/tools/text-to-video" target="_blank" rel="noopener noreferrer">افتح أداة الفيديو ↗</a><a class="source" href="https://magichour.ai/faq" target="_blank" rel="noopener noreferrer">الحدود والأسئلة الشائعة</a></div>
+        </article>
+
+        <article class="card" data-category="audio" data-search="superwhisper تفريغ صوت تحويل كلام نص transcription audio">
+          <div class="card-top"><div><p class="category">صوت</p><h3>Superwhisper Web Transcription</h3></div><span class="badge">مجاني دون حساب</span></div>
+          <p>تفريغ ملف صوتي أو تسجيله من المتصفح إلى نص، وفق أداة الويب الرسمية.</p>
+          <p class="limits">الملف بحد أقصى 10 دقائق؛ يُرسل الصوت إلى خوادم الخدمة، ودعم العربية لم يتأكد من الصفحة.</p>
+          <div class="actions"><a class="visit" href="https://superwhisper.com/transcribe" target="_blank" rel="noopener noreferrer">افتح التفريغ الصوتي ↗</a><a class="source" href="https://superwhisper.com/docs/billing/plans" target="_blank" rel="noopener noreferrer">تفاصيل الخطة</a></div>
+        </article>
+
+        <article class="card" data-category="audio" data-search="notegpt text to speech تحويل نص كلام صوت mp3 أصوات">
+          <div class="card-top"><div><p class="category">صوت</p><h3>NoteGPT AI Voice Generator</h3></div><span class="badge">أصوات مجانية دون حساب</span></div>
+          <p>تحويل النص إلى كلام مع خيار أصوات مجانية وتنزيل ملف MP3 بحسب صفحة الأداة.</p>
+          <p class="limits">حصة الاستخدام المجاني ودعم العربية لم يتضحا؛ لا تفترض أن كل الأصوات والميزات مجانية.</p>
+          <div class="actions"><a class="visit" href="https://notegpt.io/ai-voice-generator" target="_blank" rel="noopener noreferrer">افتح مولد الصوت ↗</a><a class="source" href="https://notegpt.io/pricing" target="_blank" rel="noopener noreferrer">الأسعار والحدود</a></div>
         </article>
       </div>
       <p class="empty" id="empty-state">لم نعثر على أدوات تطابق البحث. جرّب كلمة أخرى أو اختر «كل الأنواع».</p>
