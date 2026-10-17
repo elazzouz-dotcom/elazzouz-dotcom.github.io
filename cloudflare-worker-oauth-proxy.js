@@ -30,6 +30,7 @@ addEventListener('fetch', event => {
 async function handleRequest(request) {
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
+    if (new URL(request.url).pathname.startsWith('/auth/')) return handleAuthPreflight(request);
     return handleCORS();
   }
 
@@ -37,6 +38,16 @@ async function handleRequest(request) {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+
+    // Browser sign-in API: returns encrypted short-lived sessions, never GitHub tokens.
+    if (path.startsWith('/auth/')) {
+      if (!isAllowedAuthOrigin(request)) return authJson(request, { error: 'origin_not_allowed' }, 403);
+      if (path === '/auth/device/code' && method === 'POST') return handleAuthDeviceCode(request);
+      if (path === '/auth/device/token' && method === 'POST') return handleAuthDeviceToken(request);
+      if (path === '/auth/me' && method === 'GET') return handleAuthMe(request);
+      if (path === '/auth/logout' && method === 'POST') return handleAuthLogout(request);
+      return authJson(request, { error: 'not_found' }, 404);
+    }
 
     // Route requests to appropriate handlers
     // Authentication endpoints
@@ -255,6 +266,154 @@ function corsHeaders(additionalHeaders = {}) {
     'Access-Control-Max-Age': '86400',
     ...additionalHeaders
   };
+}
+
+const AUTH_ORIGIN = 'https://elazzouz-dotcom.github.io';
+const AUTH_SESSION_SECONDS = 4 * 60 * 60;
+
+function isAllowedAuthOrigin(request) {
+  return request.headers.get('Origin') === AUTH_ORIGIN;
+}
+
+function authHeaders(request) {
+  const headers = {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+    'Vary': 'Origin'
+  };
+  if (isAllowedAuthOrigin(request)) {
+    headers['Access-Control-Allow-Origin'] = AUTH_ORIGIN;
+    headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
+    headers['Access-Control-Allow-Headers'] = 'Authorization, Content-Type, Accept';
+    headers['Access-Control-Max-Age'] = '600';
+  }
+  return headers;
+}
+
+function authJson(request, data, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: authHeaders(request) });
+}
+
+function handleAuthPreflight(request) {
+  if (!isAllowedAuthOrigin(request)) return new Response(null, { status: 403 });
+  return new Response(null, { status: 204, headers: authHeaders(request) });
+}
+
+function base64UrlEncode(bytes) {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function base64UrlDecode(value) {
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(normalized + '='.repeat((4 - normalized.length % 4) % 4));
+  return Uint8Array.from(binary, character => character.charCodeAt(0));
+}
+
+async function getSessionCryptoKey() {
+  if (typeof SESSION_ENCRYPTION_KEY === 'undefined' || !SESSION_ENCRYPTION_KEY) throw new Error('Session encryption key is not configured.');
+  const raw = Uint8Array.from(atob(SESSION_ENCRYPTION_KEY), character => character.charCodeAt(0));
+  if (raw.byteLength !== 32) throw new Error('Session encryption key must be 32 bytes.');
+  return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+}
+
+async function createAuthSession(accessToken, profile) {
+  const now = Math.floor(Date.now() / 1000);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const payload = new TextEncoder().encode(JSON.stringify({
+    v: 1,
+    access_token: accessToken,
+    sub: profile.id,
+    login: profile.login,
+    iat: now,
+    exp: now + AUTH_SESSION_SECONDS
+  }));
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await getSessionCryptoKey(), payload);
+  return { session: `v1.${base64UrlEncode(iv)}.${base64UrlEncode(new Uint8Array(encrypted))}`, expires_at: new Date((now + AUTH_SESSION_SECONDS) * 1000).toISOString() };
+}
+
+async function readAuthSession(request) {
+  const match = (request.headers.get('Authorization') || '').match(/^Bearer (v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/);
+  if (!match) return null;
+  try {
+    const [, version, ivText, encryptedText] = match[1].match(/^(v1)\.([^.]+)\.([^.]+)$/);
+    if (version !== 'v1') return null;
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: base64UrlDecode(ivText) }, await getSessionCryptoKey(), base64UrlDecode(encryptedText));
+    const payload = JSON.parse(new TextDecoder().decode(decrypted));
+    if (payload.v !== 1 || !payload.access_token || !payload.sub || payload.exp <= Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+async function githubProfile(accessToken) {
+  const response = await fetch(`${GITHUB_API_BASE}/user`, {
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/vnd.github+json', 'User-Agent': 'elazzouz-dotcom-sign-in' }
+  });
+  if (!response.ok) return null;
+  const user = await response.json();
+  return { id: user.id, login: user.login, name: user.name || user.login, avatar_url: user.avatar_url, html_url: user.html_url };
+}
+
+async function handleAuthDeviceCode(request) {
+  try {
+    const response = await fetch(`${GITHUB_AUTH_BASE}/login/device/code`, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: CLIENT_ID, scope: 'read:user user:email' })
+    });
+    const data = await response.json();
+    return authJson(request, data, response.status);
+  } catch {
+    return authJson(request, { error: 'device_flow_unavailable' }, 502);
+  }
+}
+
+async function handleAuthDeviceToken(request) {
+  try {
+    const body = await request.json();
+    if (typeof body.device_code !== 'string' || body.device_code.length < 8 || body.device_code.length > 256) return authJson(request, { error: 'invalid_device_code' }, 400);
+    const tokenBody = { client_id: CLIENT_ID, device_code: body.device_code, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' };
+    if (typeof CLIENT_SECRET !== 'undefined' && CLIENT_SECRET) tokenBody.client_secret = CLIENT_SECRET;
+    const response = await fetch(`${GITHUB_AUTH_BASE}/login/oauth/access_token`, {
+      method: 'POST', headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify(tokenBody)
+    });
+    const result = await response.json();
+    if (result.error) return authJson(request, { error: result.error, error_description: result.error_description }, response.ok ? 200 : response.status);
+    if (!result.access_token) return authJson(request, { error: 'token_exchange_failed' }, 502);
+    const profile = await githubProfile(result.access_token);
+    if (!profile) return authJson(request, { error: 'github_identity_unavailable' }, 502);
+    const session = await createAuthSession(result.access_token, profile);
+    return authJson(request, { ...session, user: profile });
+  } catch {
+    return authJson(request, { error: 'session_creation_failed' }, 500);
+  }
+}
+
+async function handleAuthMe(request) {
+  const session = await readAuthSession(request);
+  if (!session) return authJson(request, { error: 'unauthorized' }, 401);
+  const user = await githubProfile(session.access_token);
+  if (!user) return authJson(request, { error: 'github_session_invalid' }, 401);
+  return authJson(request, { user, expires_at: new Date(session.exp * 1000).toISOString() });
+}
+
+async function handleAuthLogout(request) {
+  const session = await readAuthSession(request);
+  let revoked = false;
+  if (session && typeof CLIENT_SECRET !== 'undefined' && CLIENT_SECRET) {
+    try {
+      const response = await fetch(`${GITHUB_AUTH_BASE}/applications/${CLIENT_ID}/token`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json', 'Authorization': `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}` },
+        body: JSON.stringify({ access_token: session.access_token })
+      });
+      revoked = response.status === 204 || response.ok;
+    } catch { /* Clear the browser session even if GitHub revocation is temporarily unavailable. */ }
+  }
+  return authJson(request, { success: true, revoked });
 }
 
 /**
