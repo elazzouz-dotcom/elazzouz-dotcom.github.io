@@ -19,3 +19,5 @@ jobs:
         run: python3 scripts/check_site.py
       - name: Validate fixed OneCompiler integration contract
         run: python3 scripts/check_onecompiler_contract.py
+      - name: Validate GitHub sign-in security contract
+        run: python3 scripts/check_github_login.py
