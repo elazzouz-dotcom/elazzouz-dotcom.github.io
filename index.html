@@ -9,7 +9,7 @@
     <meta property="og:description" content="منصة متكاملة للتطبيقات والذكاء الاصطناعي والمتاجر." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://elazzouz-dotcom.github.io/" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/assets/css/site-tailwind.min.css" />
     <link rel="stylesheet" href="/data-flow.css">
     <style>
       :root {
@@ -36,28 +36,71 @@
         color: var(--accent);
       }
       a:hover { opacity: 0.9; }
+      .site-header-inner { min-height: 72px; }
+      .site-brand { min-width: 0; }
+      .site-brand-mark { flex: 0 0 auto; }
+      .site-brand-title { white-space: nowrap; }
+      .site-mobile-menu { position: relative; z-index: 60; }
+      .site-mobile-menu > summary {
+        display: flex; min-height: 44px; align-items: center; gap: 8px;
+        border: 1px solid rgba(148, 163, 184, .28); border-radius: 12px;
+        background: rgba(15, 23, 42, .9); padding: 0 11px; color: #e2e8f0;
+        font-size: .9rem; font-weight: 700; cursor: pointer; list-style: none;
+      }
+      .site-mobile-menu > summary::-webkit-details-marker { display: none; }
+      .site-mobile-menu > summary::marker { content: ""; }
+      .site-mobile-menu-panel {
+        position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 70;
+        display: grid; width: min(240px, calc(100vw - 24px)); gap: 4px;
+        border: 1px solid rgba(148, 163, 184, .24); border-radius: 14px;
+        background: #0f172a; padding: 8px; box-shadow: 0 18px 42px rgba(0, 0, 0, .42);
+      }
+      .site-mobile-menu-panel a {
+        display: flex; min-height: 44px; align-items: center; border-radius: 9px;
+        padding: 8px 10px; color: #dbe6f3; text-decoration: none;
+      }
+      .site-mobile-menu-panel a:hover, .site-mobile-menu-panel a:focus-visible { background: rgba(125, 211, 252, .12); color: #7dd3fc; }
+      .site-footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
+      .site-footer-links a { display: flex; min-height: 44px; align-items: center; padding-inline: 4px; }
+      @media (max-width: 767px) {
+        .site-header-inner { gap: 8px; padding-inline: 12px; padding-block: 10px; }
+        .site-brand { gap: 8px; }
+        .site-brand-title { font-size: clamp(1rem, 4vw, 1.2rem); }
+      }
+      @media (min-width: 768px) { .site-mobile-menu { display: none; } }
     </style>
   </head>
   <body class="min-h-screen">
     <header class="border-b border-slate-800 bg-slate-950/90">
-      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-xl font-black text-cyan-300">E</div>
+      <div class="site-header-inner mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+        <div class="site-brand flex items-center gap-3">
+          <div class="site-brand-mark flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-xl font-black text-cyan-300">E</div>
           <div>
-            <div class="text-xl font-black tracking-tight text-white">elazzouz-dotcom</div>
+            <div class="site-brand-title text-xl font-black tracking-tight text-white">elazzouz-dotcom</div>
           </div>
         </div>
-        <nav class="hidden items-center gap-5 text-sm font-semibold text-slate-300 md:flex">
+        <nav class="hidden items-center gap-5 text-sm font-semibold text-slate-300 md:flex" aria-label="التنقل الرئيسي">
           <a href="/?locale=ar">الرئيسية</a>
           <a href="/apps/">التطبيقات</a>
           <a href="/github-apps/">GitHub Apps</a>
           <a href="/terminal/">الطرفية</a>
           <a href="/admin/">الإدارة</a>
         </nav>
+        <details class="site-mobile-menu">
+          <summary aria-label="فتح قائمة الموقع"><span aria-hidden="true">☰</span><span>القائمة</span></summary>
+          <nav class="site-mobile-menu-panel" aria-label="التنقل الرئيسي على الهاتف">
+            <a href="/?locale=ar">الرئيسية</a>
+            <a href="/apps/">التطبيقات</a>
+            <a href="/ai-tools/">أدوات الذكاء الاصطناعي</a>
+            <a href="/github-apps/">GitHub Apps</a>
+            <a href="/terminal/">الطرفية</a>
+            <a href="/admin/">الإدارة</a>
+          </nav>
+        </details>
       </div>
     </header>
 
-    <main class="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-5 sm:py-12 lg:px-8">
       <section class="panel mb-10 overflow-hidden rounded-3xl p-6 shadow-2xl shadow-cyan-500/5 md:p-10">
         <p class="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
           Platform Suite
@@ -87,7 +130,7 @@
             <a href="/onecompiler-publish-guide/" class="inline-flex rounded-xl bg-cyan-400 px-6 py-3 font-bold text-slate-950 transition hover:bg-cyan-300">افتح دليل النشر</a>
           </div>
           <div class="overflow-hidden rounded-2xl border border-cyan-300/20 bg-slate-950 shadow-xl shadow-cyan-500/10">
-            <video class="aspect-video w-full" controls preload="metadata" poster="/assets/videos/onecompiler-ai-cloudflare-poster.png" aria-label="فيديو يشرح النشر من OneCompiler AI إلى GitHub Pages">
+            <video class="aspect-video w-full" controls preload="none" poster="/assets/videos/onecompiler-ai-cloudflare-poster.png" aria-label="فيديو يشرح النشر من OneCompiler AI إلى GitHub Pages">
               <source src="/assets/videos/onecompiler-ai-cloudflare-30s.mp4" type="video/mp4" />
               متصفحك لا يدعم تشغيل الفيديو. <a class="text-cyan-300 underline" href="/assets/videos/onecompiler-ai-cloudflare-30s.mp4">تحميل الفيديو</a>
             </video>
@@ -192,7 +235,7 @@
             <div id="external-preview-empty" class="mt-5 rounded-[var(--radius)] border border-dashed border-[var(--color-border)] p-8 text-center text-sm text-[var(--color-muted)]">ستظهر المعاينة هنا بعد إضافة رابط.</div>
             <div id="external-preview-stage" class="mt-5 hidden overflow-hidden rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-dark)]">
               <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-3"><strong id="external-preview-title">معاينة الموقع</strong><a id="external-preview-open" class="footer-link text-sm font-bold" href="#" target="_blank" rel="noopener noreferrer">فتح في تبويب جديد ↗</a></div>
-              <iframe id="external-preview-frame" class="h-[72vh] min-h-[28rem] max-h-[56rem] w-full bg-white" title="معاينة موقع خارجي" loading="eager" referrerpolicy="no-referrer-when-downgrade" allow="fullscreen; picture-in-picture; clipboard-read; clipboard-write"></iframe>
+              <iframe id="external-preview-frame" class="h-[72vh] min-h-[28rem] max-h-[56rem] w-full bg-white" title="معاينة موقع خارجي" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allow="fullscreen; picture-in-picture; clipboard-read; clipboard-write"></iframe>
             </div>
           </div>
           <aside class="feature-card p-5" aria-live="polite">
@@ -212,7 +255,7 @@
             <svg class="data-flow-link" data-link="1" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle alt" r="7"></circle></svg><article class="data-node" data-node="1"><span class="data-node-badge">تحقق</span><div><span class="data-node-number">02</span><h3>فحص الحمولة</h3><p>تُراجع المسارات والنصوص قبل السماح بمرور البيانات.</p></div></article>
             <svg class="data-flow-link" data-link="2" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle" r="7"></circle></svg><article class="data-node" data-node="2"><span class="data-node-badge">تجهيز</span><div><span class="data-node-number">03</span><h3>تجميع الملفات</h3><p>تتحول التغييرات إلى كائن files بمسارات نسبية واضحة.</p></div></article>
             <svg class="data-flow-link" data-link="3" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle alt" r="7"></circle></svg><article class="data-node" data-node="3"><span class="data-node-badge">Worker</span><div><span class="data-node-number">04</span><h3>Cloudflare Worker</h3><p>ينقل الطلب عبر جلسة GitHub المشتركة دون وضع سر في الواجهة.</p></div></article>
-            <svg class="data-flow-link" data-link="4" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle" r="7"></circle></svg><article class="data-node final" data-node="4"><span class="data-node-badge">الوجهة النهائية</span><div><span class="data-node-number">GH</span><h3>تسجيل الدخول إلى GitHub</h3><p>بوابة Device Flow حقيقية. يبقى الرمز محفوظًا محليًا حتى تنتهي الجلسة أو تختار تسجيل الخروج.</p><div class="github-login-box"><span id="home-github-status" class="github-login-status">اضغط لطلب كود GitHub من Worker.</span><div class="github-code-row" hidden><output id="home-github-code" class="github-code" aria-label="كود GitHub"></output><button id="home-github-copy" class="github-copy" type="button">نسخ</button></div><a id="home-github-open" class="github-open" href="#" target="_blank" rel="noopener noreferrer" hidden>فتح GitHub وإدخال الكود ↗</a><button id="home-github-login" class="data-flow-button mt-2 w-full" type="button">تسجيل الدخول إلى GitHub</button></div></div></article>
+            <article class="data-node final" data-node="4"><span class="data-node-badge">الوجهة النهائية</span><div><span class="data-node-number">GH</span><h3>تسجيل الدخول إلى GitHub</h3><p>بوابة Device Flow حقيقية. يبقى الرمز محفوظًا محليًا حتى تنتهي الجلسة أو تختار تسجيل الخروج.</p><div class="github-login-box"><span id="home-github-status" class="github-login-status" role="status" aria-live="polite" aria-atomic="true">اضغط لطلب كود GitHub من Worker.</span><div class="github-code-row" hidden><output id="home-github-code" class="github-code" aria-label="كود GitHub"></output><button id="home-github-copy" class="github-copy" type="button">نسخ</button></div><a id="home-github-open" class="github-open" href="#" target="_blank" rel="noopener noreferrer" hidden>فتح GitHub وإدخال الكود ↗</a><button id="home-github-login" class="data-flow-button mt-2 w-full" type="button">تسجيل الدخول إلى GitHub</button></div></div></article>
           </div></div>
           <div class="data-flow-controls"><span id="data-flow-status" role="status">المسار جاهز. اضغط لنقل حمولة تجريبية عبر الأنابيب.</span><button id="data-flow-send" class="data-flow-button" type="button">نقل المعلومة الآن</button></div>
         </div>
@@ -224,7 +267,7 @@
     <footer class="border-t border-slate-800 bg-slate-950 py-8">
       <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 text-sm text-slate-400 md:flex-row lg:px-8">
         <p>© 2026 elazzouz-dotcom</p>
-        <div class="flex gap-5">
+        <div class="site-footer-links flex gap-5">
           <a href="/?locale=ar">العربية</a>
           <a href="/?locale=en">English</a>
           <a href="/apps/">التطبيقات</a>

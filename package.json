@@ -1,0 +1,11 @@
+{
+  "name": "elazzouz-dotcom-static-css",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "build:css": "tailwindcss --config tailwind.config.cjs --input styles/tailwind.input.css --output assets/css/site-tailwind.min.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

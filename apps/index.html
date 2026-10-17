@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="منصة متكاملة بجميع التطبيقات والمشاريع">
   <title>elazzouz-dotcom | المنصة المتكاملة</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/assets/css/site-tailwind.min.css">
   <link rel="stylesheet" href="/theme.css">
   <style>
     :root {
@@ -27,41 +27,84 @@
       border-color: var(--color-primary);
       box-shadow: 0 20px 50px rgba(125, 211, 252, 0.1);
     }
+    button { min-height: 44px; }
+    .apps-header-inner { min-height: 64px; }
+    .apps-logo { min-width: 0; white-space: nowrap; }
+    .desktop-tabs button { min-height: 44px; flex: 0 0 auto; padding-inline: 4px; white-space: nowrap; }
+    .mobile-tabs { display: none; position: relative; z-index: 60; }
+    .mobile-tabs > summary {
+      display: flex; min-height: 44px; align-items: center; gap: 8px;
+      border: 1px solid var(--color-border); border-radius: 10px;
+      background: var(--color-surface); padding: 0 12px; color: var(--color-text);
+      font-weight: 800; cursor: pointer; list-style: none;
+    }
+    .mobile-tabs > summary::-webkit-details-marker { display: none; }
+    .mobile-tabs > summary::marker { content: ""; }
+    .mobile-tabs-panel {
+      position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 70;
+      display: grid; width: min(240px, calc(100vw - 24px)); gap: 4px;
+      border: 1px solid var(--color-border); border-radius: 12px;
+      background: var(--color-surface); padding: 8px; box-shadow: 0 18px 42px rgba(0,0,0,.42);
+    }
+    .mobile-tabs-panel button {
+      width: 100%; min-height: 44px; border: 0; border-radius: 8px;
+      background: transparent; padding: 8px 10px; color: var(--color-text);
+      font-weight: 700; text-align: right;
+    }
+    .mobile-tabs-panel button:hover, .mobile-tabs-panel button:focus-visible {
+      background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary);
+    }
+    @media (max-width: 767px) {
+      .apps-header-inner { gap: 8px; padding-inline: 12px; padding-block: 10px; }
+      .apps-logo { font-size: clamp(1rem, 4vw, 1.25rem); }
+      .desktop-tabs { display: none !important; }
+      .mobile-tabs { display: block; }
+    }
+    @media (min-width: 768px) { .mobile-tabs { display: none; } }
   </style>
 </head>
 <body class="min-h-screen">
 
 <!-- Navigation -->
 <header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
-  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
-    <div class="text-2xl font-black text-white">🚀 elazzouz-dotcom</div>
-    <nav class="flex gap-6">
+  <div class="apps-header-inner mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+    <div class="apps-logo text-2xl font-black text-white">🚀 elazzouz-dotcom</div>
+    <nav class="desktop-tabs flex gap-6" aria-label="أقسام المنصة">
       <button onclick="showSection('dashboard')" class="nav-btn text-sm font-bold text-[var(--color-primary)]">لوحة التحكم</button>
       <button onclick="showSection('apps')" class="nav-btn text-sm font-bold text-[var(--color-muted)] hover:text-[var(--color-primary)]">التطبيقات</button>
       <button onclick="showSection('ai')" class="nav-btn text-sm font-bold text-[var(--color-muted)] hover:text-[var(--color-primary)]">الذكاء الاصطناعي</button>
       <button onclick="showSection('marketplace')" class="nav-btn text-sm font-bold text-[var(--color-muted)] hover:text-[var(--color-primary)]">المتاجر</button>
     </nav>
+    <details class="mobile-tabs" id="mobile-section-menu">
+      <summary aria-label="فتح قائمة أقسام المنصة"><span>الأقسام</span><span aria-hidden="true">⌄</span></summary>
+      <nav class="mobile-tabs-panel" aria-label="أقسام المنصة">
+        <button type="button" onclick="showSection('dashboard')">لوحة التحكم</button>
+        <button type="button" onclick="showSection('apps')">التطبيقات</button>
+        <button type="button" onclick="showSection('ai')">الذكاء الاصطناعي</button>
+        <button type="button" onclick="showSection('marketplace')">المتاجر</button>
+      </nav>
+    </details>
   </div>
 </header>
 
 <!-- Main Content -->
-<main class="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+<main class="mx-auto max-w-7xl px-4 py-8 sm:px-5 sm:py-12 lg:px-8">
 
   <!-- Dashboard Section -->
   <section id="dashboard-section" class="space-y-8">
-    <div class="rounded-2xl border border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface)] to-blue-900/20 p-8">
-      <h1 class="mb-4 text-5xl font-black">مرحباً بك في المنصة المتكاملة</h1>
+    <div class="rounded-2xl border border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface)] to-blue-900/20 p-5 sm:p-8">
+      <h1 class="mb-4 text-3xl font-black sm:text-4xl lg:text-5xl">مرحباً بك في المنصة المتكاملة</h1>
       <p class="mb-6 max-w-3xl text-lg text-[var(--color-muted)]">
         منصة شاملة تجمع بين الذكاء الاصطناعي والتجارة الاجتماعية والشبكات الاجتماعية في مساحة عمل واحدة
       </p>
       <div class="flex flex-wrap gap-4">
-        <button onclick="showSection('apps')" class="rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)] hover:opacity-90">استكشف التطبيقات →</button>
-        <button onclick="showSection('ai')" class="rounded-lg border border-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10">الذكاء الاصطناعي 🤖</button>
+        <button onclick="showSection('apps')" class="w-full rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)] hover:opacity-90 sm:w-auto">استكشف التطبيقات →</button>
+        <button onclick="showSection('ai')" class="w-full rounded-lg border border-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 sm:w-auto">الذكاء الاصطناعي 🤖</button>
       </div>
     </div>
 
     <!-- Quick Stats -->
-    <div class="grid gap-5 md:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-4 sm:gap-5">
       <div class="app-card rounded-xl p-6">
         <div class="text-3xl font-black text-[var(--color-primary)]">20+</div>
         <div class="text-sm text-[var(--color-muted)]">تطبيق وخدمة</div>
@@ -454,6 +497,8 @@
       if (btn.textContent.includes('الذكاء') && section === 'ai') btn.classList.add('text-[var(--color-primary)]');
       if (btn.textContent.includes('المتاجر') && section === 'marketplace') btn.classList.add('text-[var(--color-primary)]');
     });
+    const mobileMenu = document.getElementById('mobile-section-menu');
+    if (mobileMenu) mobileMenu.open = false;
   }
 
   function loadApp(appId) {
