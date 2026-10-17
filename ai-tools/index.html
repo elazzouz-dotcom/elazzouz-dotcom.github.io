@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08111f">
+  <meta name="description" content="دليل منتقى لأدوات الذكاء الاصطناعي التي يمكن تجربة ميزاتها الأساسية دون إنشاء حساب، مع روابط رسمية وقيود الاستخدام المجاني.">
+  <meta property="og:title" content="أدوات ذكاء اصطناعي دون تسجيل دخول | elazzouz-dotcom">
+  <meta property="og:description" content="روابط رسمية لأدوات AI يمكن تجربة ميزاتها الأساسية دون إنشاء حساب.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/ai-tools/">
+  <title>أدوات ذكاء اصطناعي دون تسجيل دخول | elazzouz-dotcom</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #08111f;
+      --surface: rgba(15, 28, 47, .88);
+      --surface-2: #101d30;
+      --line: rgba(148, 163, 184, .2);
+      --text: #e8f0fb;
+      --muted: #a9b8ca;
+      --accent: #67e8f9;
+      --accent-2: #a78bfa;
+      --good: #a7f3d0;
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 88% 2%, rgba(14, 165, 233, .18), transparent 34rem),
+        radial-gradient(ellipse at 8% 25%, rgba(139, 92, 246, .12), transparent 30rem),
+        var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+      line-height: 1.65;
+    }
+    a { color: inherit; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin-inline: auto; }
+    .topbar { border-bottom: 1px solid var(--line); background: rgba(8, 17, 31, .72); }
+    .topbar-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { text-decoration: none; font-weight: 850; letter-spacing: -.02em; }
+    .brand-mark { display: inline-grid; place-items: center; width: 34px; height: 34px; margin-inline-end: 8px; border-radius: 50%; background: rgba(103, 232, 249, .13); color: var(--accent); }
+    .nav { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: .92rem; }
+    .nav a { text-decoration: none; }
+    .nav a:hover, .source:hover { color: var(--accent); }
+    main { padding-block: 48px 64px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(24px, 5vw, 54px);
+      border: 1px solid rgba(103, 232, 249, .24);
+      border-radius: 30px;
+      background: linear-gradient(125deg, rgba(14, 116, 144, .24), rgba(30, 41, 59, .84) 55%, rgba(91, 33, 182, .18));
+      box-shadow: 0 24px 80px rgba(2, 8, 23, .28);
+    }
+    .hero::after { content: ""; position: absolute; width: 250px; height: 250px; inset-inline-start: -95px; top: -125px; border: 1px solid rgba(103, 232, 249, .18); border-radius: 50%; box-shadow: 0 0 0 28px rgba(103, 232, 249, .025), 0 0 0 58px rgba(103, 232, 249, .02); pointer-events: none; }
+    .eyebrow { display: inline-block; margin: 0 0 12px; color: var(--accent); font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
+    h1 { max-width: 800px; margin: 0; font-size: clamp(2rem, 6vw, 3.65rem); line-height: 1.18; letter-spacing: -.04em; }
+    .hero-copy { max-width: 760px; margin: 18px 0 0; color: #d1deed; font-size: clamp(1rem, 2.5vw, 1.12rem); }
+    .verified { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; padding: 7px 12px; border: 1px solid rgba(167, 243, 208, .26); border-radius: 999px; color: var(--good); background: rgba(16, 185, 129, .08); font-size: .86rem; }
+    .note { margin: 20px 0 28px; padding: 15px 18px; border: 1px solid rgba(250, 204, 21, .25); border-radius: 16px; color: #e5ddbf; background: rgba(113, 63, 18, .17); font-size: .93rem; }
+    .controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(190px, 260px); gap: 12px; margin-bottom: 20px; }
+    .field { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 13px; color: var(--text); background: rgba(15, 28, 47, .9); font: inherit; }
+    .field::placeholder { color: #91a2b8; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin: 30px 0 16px; }
+    .section-heading h2 { margin: 0; font-size: 1.3rem; }
+    .count { color: var(--muted); font-size: .9rem; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .card { display: flex; flex-direction: column; min-height: 250px; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+    .card:hover { transform: translateY(-3px); border-color: rgba(103, 232, 249, .52); box-shadow: 0 18px 44px rgba(2, 8, 23, .26); }
+    .card[hidden] { display: none; }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .category { margin: 0 0 5px; color: var(--accent); font-size: .78rem; font-weight: 750; }
+    .card h3 { margin: 0; font-size: 1.2rem; }
+    .badge { flex: 0 0 auto; padding: 4px 9px; border: 1px solid rgba(167, 243, 208, .3); border-radius: 999px; color: var(--good); background: rgba(16, 185, 129, .08); font-size: .72rem; font-weight: 750; }
+    .card p { margin: 14px 0 10px; color: var(--muted); font-size: .93rem; }
+    .limits { margin-top: auto !important; padding-top: 8px; color: #cad6e4 !important; font-size: .83rem !important; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 13px; margin-top: 12px; }
+    .visit { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 8px 14px; border-radius: 11px; color: #06202a; background: var(--accent); text-decoration: none; font-weight: 850; }
+    .visit:hover { background: #a5f3fc; }
+    .source { color: #cbd5e1; font-size: .83rem; text-decoration: underline; text-underline-offset: 3px; }
+    .empty { display: none; padding: 25px; border: 1px dashed var(--line); border-radius: 16px; color: var(--muted); text-align: center; }
+    .bottom-note { margin-top: 28px; color: var(--muted); font-size: .9rem; }
+    footer { border-top: 1px solid var(--line); padding-block: 22px; color: var(--muted); font-size: .86rem; }
+    .footer-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    @media (max-width: 850px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 600px) {
+      .wrap { width: min(100% - 24px, 1120px); }
+      .topbar-inner { min-height: 60px; }
+      .nav { gap: 10px; font-size: .82rem; }
+      .nav a:last-child { display: none; }
+      main { padding-block: 24px 44px; }
+      .hero { border-radius: 22px; }
+      .controls, .grid { grid-template-columns: 1fr; }
+      .card { min-height: 0; }
+      .section-heading { align-items: start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/" aria-label="العودة إلى الصفحة الرئيسية"><span class="brand-mark" aria-hidden="true">E</span>elazzouz-dotcom</a>
+      <nav class="nav" aria-label="التنقل الرئيسي">
+        <a href="/">الرئيسية</a>
+        <a href="/apps/">التطبيقات</a>
+        <a href="#tools">الأدوات</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">دليل أدوات مستقل · روابط رسمية</p>
+      <h1 id="page-title">أدوات ذكاء اصطناعي يمكنك تجربتها دون حساب</h1>
+      <p class="hero-copy">مجموعة منتقاة من المواقع التي أمكن التحقق من إتاحة ميزتها الأساسية دون إنشاء حساب. اختر الأداة لفتح موقعها الرسمي مباشرةً.</p>
+      <span class="verified">آخر مراجعة: 17 أكتوبر 2026</span>
+    </section>
+
+    <aside class="note" aria-label="ملاحظة حول طريقة عمل الدليل">
+      هذه روابط خارجية وليست ربطًا تقنيًا عبر API أو تضمينًا داخل الصفحة. تغادر بياناتك هذا الموقع عند فتح أداة خارجية؛ راجع سياسة الخصوصية وشروطها قبل إدخال معلومات حساسة. قد تتغير الحدود أو الإتاحة حسب البلد والضغط على الخدمة، وبعض الميزات المتقدمة قد تتطلب حسابًا أو اشتراكًا.
+    </aside>
+
+    <section id="tools" aria-labelledby="tools-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ابحث واختر</p>
+          <h2 id="tools-heading">الأدوات المتاحة للتجربة</h2>
+        </div>
+        <span class="count" id="result-count" aria-live="polite">9 أدوات</span>
+      </div>
+
+      <div class="controls">
+        <label>
+          <span class="sr-only">ابحث عن أداة</span>
+          <input class="field" id="tool-search" type="search" placeholder="ابحث باسم الأداة أو وظيفتها…" autocomplete="off">
+        </label>
+        <label>
+          <span class="sr-only">تصفية حسب النوع</span>
+          <select class="field" id="category-filter">
+            <option value="all">كل الأنواع</option>
+            <option value="chat">محادثة وكتابة</option>
+            <option value="image">توليد صور</option>
+            <option value="edit">تحرير صور</option>
+            <option value="audio">صوت</option>
+            <option value="creative">رسم وتجارب</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="grid" id="tool-grid">
+        <article class="card" data-category="chat" data-search="duck.ai duck ai محادثة دردشة بحث تلخيص نماذج">
+          <div class="card-top"><div><p class="category">محادثة وكتابة</p><h3>Duck.ai</h3></div><span class="badge">دون حساب</span></div>
+          <p>محادثة مع نماذج ذكاء اصطناعي أساسية لصياغة النصوص والتلخيص ومتابعة البحث.</p>
+          <p class="limits">النماذج والحدود المتقدمة قد تكون ضمن اشتراك مدفوع.</p>
+          <div class="actions"><a class="visit" href="https://duck.ai/" target="_blank" rel="noopener noreferrer">افتح Duck.ai ↗</a><a class="source" href="https://duckduckgo.com/duckduckgo-help-pages/duckai" target="_blank" rel="noopener noreferrer">معلومات الاستخدام</a></div>
+        </article>
+
+        <article class="card" data-category="chat" data-search="perchance بيرتشانس دردشة شخصيات قصص صور نصوص">
+          <div class="card-top"><div><p class="category">محادثة وكتابة</p><h3>Perchance AI</h3></div><span class="badge">دون حساب</span></div>
+          <p>محادثات وشخصيات مولدة، مع أدوات نصوص وصور في مجموعة Perchance.</p>
+          <p class="limits">توفر كل مولّد ونتائجه يعتمد على الأداة المختارة.</p>
+          <div class="actions"><a class="visit" href="https://perchance.org/ai-character-chat" target="_blank" rel="noopener noreferrer">افتح Perchance ↗</a><a class="source" href="https://perchance.org/ai-chat" target="_blank" rel="noopener noreferrer">صفحة الأداة</a></div>
+        </article>
+
+        <article class="card" data-category="chat" data-search="deepai ديب اي محادثة كتابة صور برمجة">
+          <div class="card-top"><div><p class="category">محادثة وكتابة</p><h3>DeepAI</h3></div><span class="badge">دون حساب</span></div>
+          <p>أدوات أساسية للدردشة والكتابة وتوليد الصور، ويمكن تجربة الاستخدام المجاني دون حساب.</p>
+          <p class="limits">الميزات والحدود المتقدمة تتطلب خطة مدفوعة.</p>
+          <div class="actions"><a class="visit" href="https://deepai.org/" target="_blank" rel="noopener noreferrer">افتح DeepAI ↗</a><a class="source" href="https://deepai.org/pricing" target="_blank" rel="noopener noreferrer">الخطط والحدود</a></div>
+        </article>
+
+        <article class="card" data-category="image" data-search="craiyon كرايون رسم صور توليد صورة نص">
+          <div class="card-top"><div><p class="category">توليد صور</p><h3>Craiyon</h3></div><span class="badge">دون حساب</span></div>
+          <p>إنشاء صور من وصف نصي مع خيارات أسلوب مختلفة.</p>
+          <p class="limits">الخطة المجانية قد تتضمن انتظارًا وعلامة مائية؛ ميزات إضافية مدفوعة.</p>
+          <div class="actions"><a class="visit" href="https://www.craiyon.com/" target="_blank" rel="noopener noreferrer">افتح Craiyon ↗</a><a class="source" href="https://www.craiyon.com/pricing" target="_blank" rel="noopener noreferrer">الأسعار والحدود</a></div>
+        </article>
+
+        <article class="card" data-category="image" data-search="ai horde توليد صور نصوص صور مجتمع انتظار">
+          <div class="card-top"><div><p class="category">توليد صور</p><h3>AI Horde</h3></div><span class="badge">مجهول متاح</span></div>
+          <p>توليد صور ونصوص عبر موارد مجتمع المتطوعين، دون اشتراط حساب للتجربة الأساسية.</p>
+          <p class="limits">قد ينتظر الزائر غير المسجل مدة أطول بحسب الازدحام وتوفر العمال.</p>
+          <div class="actions"><a class="visit" href="https://aihorde.net/generate/image" target="_blank" rel="noopener noreferrer">افتح AI Horde ↗</a><a class="source" href="https://aihorde.net/mission" target="_blank" rel="noopener noreferrer">عن الخدمة</a></div>
+        </article>
+
+        <article class="card" data-category="audio" data-search="ttsmaker تي تي اس ميكر صوت قراءة نطق تحويل نص كلام">
+          <div class="card-top"><div><p class="category">صوت</p><h3>TTSMaker</h3></div><span class="badge">دون حساب</span></div>
+          <p>تحويل النص إلى كلام بأصوات ولغات متعددة، مع الاستماع والتنزيل.</p>
+          <p class="limits">الخطة المجانية لها سقف أسبوعي وحد أقصى للنص في كل تحويل.</p>
+          <div class="actions"><a class="visit" href="https://ttsmaker.com/" target="_blank" rel="noopener noreferrer">افتح TTSMaker ↗</a><a class="source" href="https://ttsmaker.com/" target="_blank" rel="noopener noreferrer">تفاصيل الاستخدام</a></div>
+        </article>
+
+        <article class="card" data-category="edit" data-search="cleanup pictures حذف إزالة أشخاص أشياء تحرير صور">
+          <div class="card-top"><div><p class="category">تحرير صور</p><h3>Cleanup.pictures</h3></div><span class="badge">دون حساب</span></div>
+          <p>إزالة عناصر أو أشخاص أو عيوب من الصورة باستخدام التحرير التوليدي.</p>
+          <p class="limits">تصدير الخطة المجانية محدود الدقة؛ الدقة الأعلى وبعض التحسينات مدفوعة.</p>
+          <div class="actions"><a class="visit" href="https://cleanup.pictures/" target="_blank" rel="noopener noreferrer">افتح Cleanup ↗</a><a class="source" href="https://cleanup.pictures/" target="_blank" rel="noopener noreferrer">الأسعار والحدود</a></div>
+        </article>
+
+        <article class="card" data-category="creative" data-search="autodraw اوتودراو رسم اقتراحات تعلم آلي">
+          <div class="card-top"><div><p class="category">رسم وتجارب</p><h3>AutoDraw</h3></div><span class="badge">دون حساب</span></div>
+          <p>ارسم شكلًا سريعًا، وسيقترح الموقع رسومات أنظف بمساعدة تعلم الآلة.</p>
+          <p class="limits">تجربة رسم بسيطة عبر المتصفح، وليست مولد صور مفتوحًا من وصف نصي.</p>
+          <div class="actions"><a class="visit" href="https://www.autodraw.com/" target="_blank" rel="noopener noreferrer">افتح AutoDraw ↗</a><a class="source" href="https://www.autodraw.com/help/" target="_blank" rel="noopener noreferrer">طريقة الاستخدام</a></div>
+        </article>
+
+        <article class="card" data-category="creative" data-search="quick draw كويك درو تخمين رسم لعبة تعلم آلي جوجل">
+          <div class="card-top"><div><p class="category">رسم وتجارب</p><h3>Quick, Draw!</h3></div><span class="badge">دون حساب</span></div>
+          <p>ارسم الشيء المطلوب، ودع الشبكة العصبية تحاول تخمين رسمتك.</p>
+          <p class="limits">لعبة وتجربة تعليمية مجانية، وليست أداة لإنشاء محتوى احترافي.</p>
+          <div class="actions"><a class="visit" href="https://quickdraw.withgoogle.com/" target="_blank" rel="noopener noreferrer">افتح Quick, Draw! ↗</a><a class="source" href="https://quickdraw.withgoogle.com/data" target="_blank" rel="noopener noreferrer">عن بيانات التجربة</a></div>
+        </article>
+      </div>
+      <p class="empty" id="empty-state">لم نعثر على أدوات تطابق البحث. جرّب كلمة أخرى أو اختر «كل الأنواع».</p>
+    </section>
+
+    <p class="bottom-note">هذه قائمة منتقاة وليست حصرًا لكل خدمات الذكاء الاصطناعي على الإنترنت. لم ندرج الخدمات التي تشترط تسجيل الدخول أو لم يتضح فيها شرط الاستخدام دون حساب. تحقق من الشروط الحالية قبل إدخال محتوى خاص أو حساس.</p>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner"><span>© 2026 elazzouz-dotcom</span><a href="/">العودة إلى الصفحة الرئيسية</a></div>
+  </footer>
+  <script>
+    (() => {
+      const search = document.getElementById('tool-search');
+      const filter = document.getElementById('category-filter');
+      const cards = Array.from(document.querySelectorAll('.card'));
+      const count = document.getElementById('result-count');
+      const empty = document.getElementById('empty-state');
+      const apply = () => {
+        const query = search.value.trim().toLocaleLowerCase('ar');
+        const category = filter.value;
+        let visible = 0;
+        for (const card of cards) {
+          const text = (card.dataset.search + ' ' + card.textContent).toLocaleLowerCase('ar');
+          const matches = (!query || text.includes(query)) && (category === 'all' || card.dataset.category === category);
+          card.hidden = !matches;
+          if (matches) visible += 1;
+        }
+        count.textContent = `${visible} من ${cards.length} أدوات`;
+        empty.style.display = visible ? 'none' : 'block';
+      };
+      search.addEventListener('input', apply);
+      filter.addEventListener('change', apply);
+      apply();
+    })();
+  </script>
+</body>
+</html>
