@@ -45,10 +45,10 @@
     .wrap { width: min(1120px, calc(100% - 32px)); margin-inline: auto; }
     .topbar { border-bottom: 1px solid var(--line); background: rgba(8, 17, 31, .72); }
     .topbar-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .brand { text-decoration: none; font-weight: 850; letter-spacing: -.02em; }
+    .brand { display: flex; align-items: center; min-height: 44px; text-decoration: none; font-weight: 850; letter-spacing: -.02em; white-space: nowrap; }
     .brand-mark { display: inline-grid; place-items: center; width: 34px; height: 34px; margin-inline-end: 8px; border-radius: 50%; background: rgba(103, 232, 249, .13); color: var(--accent); }
     .nav { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: .92rem; }
-    .nav a { text-decoration: none; }
+    .nav a { display: flex; min-height: 44px; align-items: center; justify-content: center; text-decoration: none; white-space: nowrap; }
     .nav a:hover, .source:hover { color: var(--accent); }
     main { padding-block: 48px 64px; }
     .hero {
@@ -65,7 +65,12 @@
     h1 { max-width: 800px; margin: 0; font-size: clamp(2rem, 6vw, 3.65rem); line-height: 1.18; letter-spacing: -.04em; }
     .hero-copy { max-width: 760px; margin: 18px 0 0; color: #d1deed; font-size: clamp(1rem, 2.5vw, 1.12rem); }
     .verified { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; padding: 7px 12px; border: 1px solid rgba(167, 243, 208, .26); border-radius: 999px; color: var(--good); background: rgba(16, 185, 129, .08); font-size: .86rem; }
-    .note { margin: 20px 0 28px; padding: 15px 18px; border: 1px solid rgba(250, 204, 21, .25); border-radius: 16px; color: #e5ddbf; background: rgba(113, 63, 18, .17); font-size: .93rem; }
+    .note { margin: 20px 0 28px; padding: 12px 16px; border: 1px solid rgba(250, 204, 21, .25); border-radius: 16px; color: #e5ddbf; background: rgba(113, 63, 18, .17); font-size: .93rem; }
+    .note summary { display: flex; min-height: 44px; align-items: center; cursor: pointer; font-weight: 750; list-style-position: inside; }
+    .note summary::marker { color: #facc15; }
+    .note summary::after { content: "+"; margin-inline-start: auto; padding-inline-start: 12px; color: #facc15; font-size: 1.25rem; }
+    .note[open] summary::after { content: "−"; }
+    .note-content { margin: 8px 0 2px; color: #e5ddbf; }
     .controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(190px, 260px); gap: 12px; margin-bottom: 20px; }
     .field { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 13px; color: var(--text); background: rgba(15, 28, 47, .9); font: inherit; }
     .field::placeholder { color: #91a2b8; }
@@ -84,19 +89,21 @@
     .card p { margin: 14px 0 10px; color: var(--muted); font-size: .93rem; }
     .limits { margin-top: auto !important; padding-top: 8px; color: #cad6e4 !important; font-size: .83rem !important; }
     .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 13px; margin-top: 12px; }
-    .visit { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 8px 14px; border-radius: 11px; color: #06202a; background: var(--accent); text-decoration: none; font-weight: 850; }
+    .visit { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 14px; border-radius: 11px; color: #06202a; background: var(--accent); text-decoration: none; font-weight: 850; }
     .visit:hover { background: #a5f3fc; }
-    .source { color: #cbd5e1; font-size: .83rem; text-decoration: underline; text-underline-offset: 3px; }
+    .source { display: inline-flex; min-height: 44px; align-items: center; padding-inline: 4px; color: #cbd5e1; font-size: .83rem; text-decoration: underline; text-underline-offset: 3px; }
     .empty { display: none; padding: 25px; border: 1px dashed var(--line); border-radius: 16px; color: var(--muted); text-align: center; }
     .bottom-note { margin-top: 28px; color: var(--muted); font-size: .9rem; }
     footer { border-top: 1px solid var(--line); padding-block: 22px; color: var(--muted); font-size: .86rem; }
     .footer-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .footer-inner a { display: inline-flex; min-height: 44px; align-items: center; padding-inline: 4px; }
     @media (max-width: 850px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 600px) {
       .wrap { width: min(100% - 24px, 1120px); }
-      .topbar-inner { min-height: 60px; }
-      .nav { gap: 10px; font-size: .82rem; }
-      .nav a:last-child { display: none; }
+      .topbar-inner { min-height: 60px; flex-wrap: wrap; gap: 4px 8px; padding-block: 8px; }
+      .brand { font-size: 1rem; }
+      .nav { width: 100%; justify-content: space-between; gap: 4px; font-size: .82rem; }
+      .nav a { flex: 1 1 0; padding-inline: 4px; }
       main { padding-block: 24px 44px; }
       .hero { border-radius: 22px; }
       .controls, .grid { grid-template-columns: 1fr; }
@@ -122,13 +129,14 @@
     <section class="hero" aria-labelledby="page-title">
       <p class="eyebrow">دليل أدوات مستقل · روابط رسمية</p>
       <h1 id="page-title">أدوات ذكاء اصطناعي يمكنك تجربتها دون حساب</h1>
-      <p class="hero-copy">مجموعة منتقاة من المواقع التي أمكن التحقق من إتاحة ميزتها الأساسية دون إنشاء حساب. اختر الأداة لفتح موقعها الرسمي مباشرةً.</p>
+      <p class="hero-copy">روابط مباشرة لأدوات ذكاء اصطناعي أمكن تجربة ميزاتها الأساسية دون حساب. قد تختلف الحدود حسب الخدمة والبلد.</p>
       <span class="verified">آخر مراجعة: 17 أكتوبر 2026</span>
     </section>
 
-    <aside class="note" aria-label="ملاحظة حول طريقة عمل الدليل">
-      هذه روابط خارجية وليست ربطًا تقنيًا عبر API أو تضمينًا داخل الصفحة. تغادر بياناتك هذا الموقع عند فتح أداة خارجية؛ راجع سياسة الخصوصية وشروطها قبل إدخال معلومات حساسة. قد تتغير الحدود أو الإتاحة حسب البلد والضغط على الخدمة، وبعض الميزات المتقدمة قد تتطلب حسابًا أو اشتراكًا.
-    </aside>
+    <details class="note" aria-label="ملاحظة حول طريقة عمل الدليل">
+      <summary>تنبيه: روابط خارجية؛ لا تُدخل معلومات حساسة.</summary>
+      <p class="note-content">هذه روابط خارجية وليست ربطًا تقنيًا عبر API أو تضمينًا داخل الصفحة. تغادر بياناتك هذا الموقع عند فتح أداة خارجية؛ راجع سياسة الخصوصية وشروطها قبل إدخال معلومات حساسة. قد تتغير الحدود أو الإتاحة حسب البلد والضغط على الخدمة، وبعض الميزات المتقدمة قد تتطلب حسابًا أو اشتراكًا.</p>
+    </details>
 
     <section id="tools" aria-labelledby="tools-heading">
       <div class="section-heading">

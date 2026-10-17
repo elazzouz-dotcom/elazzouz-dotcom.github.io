@@ -28,15 +28,22 @@
   });
   window.addEventListener('resize', draw);
   draw();
+  if ('IntersectionObserver' in window) {
+    const motionObserver = new IntersectionObserver(([entry]) => {
+      widget.dataset.offscreen = String(!entry.isIntersecting);
+    }, { rootMargin: '120px 0px' });
+    motionObserver.observe(widget);
+  }
   send.addEventListener('click', async () => {
     send.disabled = true;
     nodes.forEach((node) => node.classList.remove('is-active'));
     links.forEach((link) => link.classList.remove('is-moving'));
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     for (let index = 0; index < nodes.length; index += 1) {
       nodes[index].classList.add('is-active');
       status.textContent = `تنتقل ${payload} إلى العقدة ${index + 1} من ${nodes.length}...`;
-      await sleep(500);
-      if (links[index]) { links[index].classList.add('is-moving'); await sleep(1100); links[index].classList.remove('is-moving'); }
+      await sleep(reducedMotion ? 0 : 500);
+      if (links[index] && !reducedMotion) { links[index].classList.add('is-moving'); await sleep(1100); links[index].classList.remove('is-moving'); }
     }
     status.textContent = `اكتمل المسار: وصلت ${payload} إلى عقدة GitHub النهائية.`;
     send.disabled = false;

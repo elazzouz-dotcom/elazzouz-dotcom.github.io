@@ -178,6 +178,7 @@ header::after {
 
 .btn-primary {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: .5rem;
