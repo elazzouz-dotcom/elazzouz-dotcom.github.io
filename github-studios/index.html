@@ -37,5 +37,5 @@ document.querySelector('.nav').appendChild(languageSelect);
 function translateText(root,dict){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{let value=node.nodeValue;for(const [from,to] of Object.entries(dict)){if(value.trim()===from) value=value.replace(from,to);}node.nodeValue=value;});root.querySelectorAll('input[placeholder]').forEach(input=>{if(dict[input.placeholder])input.placeholder=dict[input.placeholder];});}
 function applyLanguage(code){const lang=siteTranslations[code]||siteTranslations.en;document.documentElement.lang=code;document.documentElement.dir=code==='ar'||code==='ur'?'rtl':'ltr';translateText(document.body,lang);languageSelect.value=code;localStorage.setItem('site-language',code);}
 languageSelect.addEventListener('change',()=>{localStorage.setItem('site-language',languageSelect.value);location.reload();});
-const savedLanguage=localStorage.getItem('site-language')||'en';languageSelect.value=savedLanguage;applyLanguage(savedLanguage);
+const queryLanguage=new URLSearchParams(location.search).get('locale');const savedLanguage=queryLanguage&&siteTranslations[queryLanguage]?queryLanguage:(localStorage.getItem('site-language')||'en');languageSelect.value=savedLanguage;applyLanguage(savedLanguage);
 </script></body></html>

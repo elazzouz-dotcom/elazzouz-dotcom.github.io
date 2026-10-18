@@ -15,8 +15,10 @@
   <meta name="twitter:card" content="summary_large_image">
 
   <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/studio-dashboard.css">
   <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="/studio-dashboard.js?v=preview-1"></script>
   <style>
     .studio-control:focus-visible,
     .check-item:focus-visible,
@@ -35,6 +37,8 @@
       content: "✓";
     }
 
+    .studio-legacy-hero{display:none}
+    .studio-login-anchor{display:none!important}
   </style>
 </head>
 
@@ -53,8 +57,43 @@
     </div>
   </header>
 
+<div id="studio-otp-config" class="studio-otp-config">تسجيل الدخول بالبريد جاهز، لكنه ينتظر إضافة أسرار Google OAuth إلى Cloudflare Worker.</div>
+<div id="studio-otp-gate" class="studio-otp-gate hidden" role="dialog" aria-modal="true" aria-labelledby="studio-otp-title"><div class="studio-otp-card"><span class="studio-eyebrow">SECURE ADMIN ACCESS</span><h2 id="studio-otp-title">تأكيد هوية مدير الموقع</h2><p>سنرسل رمزًا من 6 أرقام إلى البريد الإداري المعتمد. لا تشارك الرمز مع أي شخص.</p><label for="studio-otp-email" class="studio-card-kicker">البريد الإداري</label><input id="studio-otp-email" class="studio-otp-email" type="email" value="elazzouz4@gmail.com" readonly><button id="studio-otp-request" class="studio-top-connect" type="button">إرسال رمز إلى البريد</button><div id="studio-otp-code-row" class="studio-otp-row" hidden><input id="studio-otp-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" aria-label="رمز التحقق"><button id="studio-otp-copy" class="studio-otp-copy" type="button">نسخ</button><button id="studio-otp-verify" class="studio-top-connect" type="button">تحقق</button></div><p id="studio-otp-status" class="studio-otp-status" role="status" aria-live="polite"></p></div></div>
+<section class="studio-app-shell" aria-label="لوحة إدارة المواقع">
+  <aside class="studio-sidebar">
+    <div class="studio-brand"><span class="studio-code-mark" aria-hidden="true">&lt;/&gt;</span><div><b>Hosting Studio</b><small>Site Operations</small></div></div>
+    <div class="studio-workspace-label">مساحة العمل</div>
+    <nav class="studio-page-nav" aria-label="صفحات إدارة الموقع">
+      <button class="studio-page-link is-active" data-studio-page="overview" type="button"><span>⌂</span>نظرة عامة</button>
+      <button class="studio-page-link" data-studio-page="repositories" type="button"><span>◈</span>المستودعات</button>
+      <button class="studio-page-link" data-studio-page="editor" type="button"><span>&lt;/&gt;</span>محرر الكود</button>
+      <button class="studio-page-link" data-studio-page="preview" type="button"><span>◉</span>المعاينة</button>
+      <button class="studio-page-link" data-studio-page="deploy" type="button"><span>↥</span>النشر</button>
+      <button class="studio-page-link" data-studio-page="connections" type="button"><span>⌘</span>ربط التطبيقات</button>
+      <button class="studio-page-link" data-studio-page="activity" type="button"><span>◷</span>النشاط</button>
+    </nav>
+    <div class="studio-sidebar-footer"><span class="studio-live-dot"></span><span>جلسة محلية آمنة</span><a href="/">العودة للموقع</a></div>
+  </aside>
+  <div class="studio-dashboard">
+    <div class="studio-commandbar"><div class="studio-breadcrumb"><span>إدارة المواقع</span><b>/</b><strong>Hosting Studio</strong></div><div class="studio-command-actions"><button id="studio-locale-toggle" class="studio-locale-toggle" type="button">EN</button><span class="studio-github-chip"><span class="studio-github-icon">GH</span><span><b>GitHub</b><small id="studio-top-status">غير متصل</small></span></span><button id="studio-top-connect" class="studio-top-connect" type="button">تسجيل الدخول إلى GitHub</button><button id="studio-top-logout" class="studio-top-logout" type="button" disabled>تسجيل الخروج</button><button id="studio-top-auth" class="studio-top-auth" type="button" hidden>فتح GitHub لإدخال الكود</button><button id="studio-top-copy-code" class="studio-top-copy-code" type="button" hidden>نسخ الكود</button></div></div>
+    <div class="studio-dashboard-body">
+      <div class="studio-page-panel is-active" data-studio-panel="overview">
+        <div class="studio-hero-card"><div><span class="studio-eyebrow">DEVELOPER CONTROL CENTER</span><h2>أدر موقعك من مكان واحد.</h2><p>اربط GitHub، عدّل الملفات محليًا، راجع المعاينة، وانشر النسخة الجاهزة دون مغادرة لوحة إدارة المواقع.</p><div class="studio-hero-actions"><button id="studio-hero-login" class="studio-primary-action" type="button">تسجيل الدخول عبر GitHub</button><button class="studio-secondary-action" data-jump="connections" type="button">ربط تطبيقاتك <span>←</span></button><button class="studio-secondary-action" data-jump="editor" type="button">فتح محرر الكود</button></div></div><div class="studio-hero-code" aria-hidden="true"><span>const</span> site = <em>deploy</em>();<br><span>await</span> github.commit(site);<br><strong>✓ ready_to_ship</strong></div></div>
+        <div class="studio-metric-grid"><article class="studio-metric-card"><small>حالة المشروع</small><b>جاهز للإدارة</b><span class="studio-metric-good">● متصل بالواجهة</span></article><article class="studio-metric-card"><small>مصدر الكود</small><b>GitHub Repository</b><span>elazzouz-dotcom.github.io</span></article><article class="studio-metric-card"><small>بيئة المعاينة</small><b>Local Preview</b><span>معزولة وآمنة</span></article><article class="studio-metric-card"><small>آخر نشر</small><b>GitHub Pages</b><span>يُحدّث بعد الـ commit</span></article></div>
+        <div class="studio-section-heading"><div><span class="studio-eyebrow">QUICK ACCESS</span><h3>ابدأ من مساحة العمل</h3></div><span class="studio-section-caption">6 وحدات تشغيلية</span></div><div class="studio-quick-grid"><button data-jump="repositories" type="button"><span class="studio-quick-icon">◈</span><b>المستودعات</b><small>اختر المشروع والفرع</small></button><button data-jump="editor" type="button"><span class="studio-quick-icon code">&lt;/&gt;</span><b>الكود والملفات</b><small>تحميل، تعديل، Commit</small></button><button data-jump="preview" type="button"><span class="studio-quick-icon">◉</span><b>المعاينة</b><small>افحص النتيجة قبل النشر</small></button><button data-jump="deploy" type="button"><span class="studio-quick-icon">↥</span><b>النشر</b><small>GitHub Pages وعمليات النشر</small></button></div>
+      </div>
+      <div class="studio-page-panel" data-studio-panel="repositories"><div class="studio-page-title"><span class="studio-eyebrow">SOURCE CONTROL</span><h2>المستودعات والفروع</h2><p>إدارة مصدر الكود من خلال اتصال GitHub الوحيد في هذه اللوحة.</p></div><div class="studio-detail-grid"><article class="studio-detail-card studio-github-detail"><div class="studio-detail-icon">GH</div><div><span class="studio-card-kicker">PRIMARY CONNECTION</span><h3>GitHub</h3><p>تسجيل دخول متعدد التطبيقات مع تبديل تلقائي عند الحاجة.</p></div><span class="studio-status-badge">متاح</span></article><article class="studio-detail-card"><span class="studio-card-kicker">ACTIVE PROJECT</span><h3>elazzouz-dotcom.github.io</h3><p>فرع النشر: <code>main</code></p><button data-jump="editor" type="button" class="studio-inline-link">فتح ملفات المشروع ←</button></article></div><button data-scroll-target="github-workbench-heading" type="button" class="studio-wide-action">فتح مساحة GitHub الكاملة</button></div>
+      <div class="studio-page-panel" data-studio-panel="editor"><div class="studio-page-title"><span class="studio-eyebrow">CODE WORKSPACE</span><h2>محرر الكود</h2><p>استخدم محرر الملفات أسفل اللوحة لتعديل الكود وإضافة الملفات وحفظها كـ Commit.</p></div><div class="studio-process-grid"><div><span>01</span><b>حمّل الملف</b><small>اختر المستودع والفرع والمسار.</small></div><div><span>02</span><b>عدّل محليًا</b><small>التغييرات تبقى في هذه الجلسة.</small></div><div><span>03</span><b>احفظ Commit</b><small>راجع الرسالة قبل إرسالها إلى GitHub.</small></div></div><button data-scroll-target="github-workbench-heading" type="button" class="studio-wide-action">الانتقال إلى محرر الملفات ↓</button></div>
+      <div class="studio-page-panel" data-studio-panel="preview"><div class="studio-page-title"><span class="studio-eyebrow">PREVIEW ENVIRONMENT</span><h2>المعاينة والتحقق</h2><p>راجع الموقع المنشور، اختبر المسارات، ثم عد إلى المحرر لتطبيق التعديلات.</p></div><div class="studio-preview-card"><div class="studio-preview-top"><span class="studio-live-dot"></span><b>معاينة الموقع المنشور</b><button id="studio-preview-reload" class="studio-preview-reload" type="button">إعادة تحميل</button><a href="https://elazzouz-dotcom.github.io/" target="_blank" rel="noreferrer">فتح الموقع ↗</a></div><iframe id="studio-preview-frame" src="https://elazzouz-dotcom.github.io/" title="معاينة الموقع المنشور" loading="lazy"></iframe></div></div>
+      <div class="studio-page-panel" data-studio-panel="deploy"><div class="studio-page-title"><span class="studio-eyebrow">RELEASE CONTROL</span><h2>النشر والإصدارات</h2><p>كل حفظ ناجح ينشئ Commit في GitHub. بعد ذلك تتولى GitHub Pages بناء النسخة العامة.</p></div><div class="studio-deploy-timeline"><div class="studio-deploy-step done"><span>✓</span><div><b>Commit إلى GitHub</b><small>رفع الكود مع رسالة واضحة.</small></div></div><div class="studio-deploy-step"><span>2</span><div><b>Build & checks</b><small>تشغيل فحوصات المستودع.</small></div></div><div class="studio-deploy-step"><span>3</span><div><b>GitHub Pages</b><small>إتاحة النسخة للزوار.</small></div></div></div><a href="https://github.com/elazzouz-dotcom/elazzouz-dotcom.github.io/actions" target="_blank" rel="noreferrer" class="studio-wide-action">عرض عمليات GitHub Actions ↗</a></div>
+      <div class="studio-page-panel" data-studio-panel="connections"><div class="studio-page-title"><span class="studio-eyebrow">INTEGRATION HUB</span><h2>ربط التطبيقات</h2><p>تظهر كل الخدمات المرتبطة بالموقع هنا. يمكنك تسجيل الدخول مباشرةً من بطاقة GitHub أو من الشريط العلوي.</p></div><div class="studio-connection-grid"><article class="studio-connection-card featured"><div class="studio-connection-head"><span class="studio-app-icon github">GH</span><span class="studio-status-badge">أساسي</span></div><h3>GitHub</h3><p>المستودعات، الفروع، الملفات، Commits، Actions وGitHub Pages.</p><button id="studio-connection-github" type="button" class="studio-connection-action">تسجيل الدخول إلى GitHub</button></article><article class="studio-connection-card"><div class="studio-connection-head"><span class="studio-app-icon cloud">CF</span><span class="studio-status-badge muted">جاهز للربط</span></div><h3>Cloudflare</h3><p>Worker وسيط OAuth يعمل كطبقة اتصال خلفية.</p><button type="button" class="studio-connection-action muted-action">إدارة من Worker</button></article><article class="studio-connection-card"><div class="studio-connection-head"><span class="studio-app-icon one">OC</span><span class="studio-status-badge">متاح</span></div><h3>OneCompiler</h3><p>تطوير وتجربة الكود من مشروعك المرتبط.</p><a href="/chat-studio" class="studio-connection-action">فتح Chat Studio ↗</a></article></div></div>
+      <div class="studio-page-panel" data-studio-panel="activity"><div class="studio-page-title"><span class="studio-eyebrow">AUDIT TRAIL</span><h2>النشاط</h2><p>ملخص محلي لخطوات العمل في هذه الجلسة.</p></div><div class="studio-activity-list"><div><span class="studio-activity-dot green"></span><p><b>Hosting Studio جاهز</b><small>تم تحميل لوحة التحكم متعددة الصفحات.</small></p><time>الآن</time></div><div><span class="studio-activity-dot"></span><p><b>GitHub بانتظار الاتصال</b><small>اضغط زر GitHub في الشريط العلوي.</small></p><time>الآن</time></div><div><span class="studio-activity-dot"></span><p><b>المعاينة متاحة</b><small>يمكنك فتح نسخة الموقع قبل إجراء Commit.</small></p><time>الآن</time></div></div></div>
+    </div>
+  </div>
+</section>
+
   <main>
-    <section class="hero-grid px-5 py-12 lg:px-8 lg:py-16">
+    <section class="hero-grid studio-legacy-hero px-5 py-12 lg:px-8 lg:py-16">
       <div class="mx-auto max-w-7xl">
         <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">مساحة تجهيز النشر</p>
         <h1 class="mb-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl">جهّز موقع هذه المحادثة للاستضافة.</h1>
@@ -153,6 +192,56 @@
         </aside>
       </div>
     </section>
+
+<section class="feature-card mt-8 p-6 sm:p-8" aria-labelledby="github-workbench-heading">
+  <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">GitHub Workbench</p>
+  <h2 id="github-workbench-heading" class="mb-2 text-2xl font-black">تعديل ونشر الكود من Hosting Studio</h2>
+  <p class="mb-5 text-sm leading-6 text-[var(--color-muted)]">سجّل الدخول عبر GitHub Device Flow، ثم حمّل أي ملف من مستودعك وعدّله واحفظه كـ commit. تبقى الجلسة فعّالة على هذا المتصفح حتى تضغط «تسجيل الخروج». يُحفظ الرمز محليًا ولا يُرفع إلى GitHub أو المستودع.</p>
+  <div class="mb-6 rounded-[calc(var(--radius)*0.65)] border border-[#8cb7ff55] bg-[#8cb7ff0d] p-4">
+    <p class="mb-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[#b9d4ff]">AI CODE EDITOR</p>
+    <h3 class="mb-2 text-lg font-black">عدّل الموقع بالذكاء الاصطناعي عبر OneCompiler</h3>
+    <p class="mb-4 text-sm leading-6 text-[var(--color-muted)]">اكتب طلبك بلغة طبيعية مثل: «غيّر الألوان وأضف زر تسجيل الدخول». يفتح هذا مشروع Vibe Code المرتبط في محرر OneCompiler. بعد تسجيل الدخول إلى GitHub من هذا الموقع، يستطيع كود OneCompiler استدعاء جسر النشر المباشر وإنشاء Commit في المستودع.</p>
+    <div class="mb-4 rounded-[calc(var(--radius)*0.5)] border border-[#3ddc9755] bg-[#3ddc970d] p-3 text-sm leading-6 text-[var(--color-muted)]"><b class="text-[#8af0bf]">النشر المباشر مفعّل:</b> أضف ملف الجسر، ثم اطلب من OneCompiler AI جمع الملفات المعدلة واستدعاء <code>OneCompilerGitHub.publishToGitHub({ owner, repo, branch, message, files })</code>. لا تضع Access Token داخل كود OneCompiler.</div>
+    <pre class="mb-4 overflow-x-auto rounded-[calc(var(--radius)*0.5)] bg-[var(--color-dark)] p-3 text-xs leading-6 text-[var(--color-text)]"><code>&lt;script src="https://elazzouz-dotcom.github.io/onecompiler-publish-bridge.js"&gt;&lt;/script&gt;
+await OneCompilerGitHub.publishToGitHub({
+  owner: 'elazzouz-dotcom', repo: 'elazzouz-dotcom.github.io', branch: 'main',
+  message: 'Update site from OneCompiler AI', files
+});</code></pre>
+    <p class="mb-4 text-xs leading-5 text-[var(--color-muted)]">قبل الاستدعاء: سجّل الدخول إلى GitHub في هذه الصفحة، أرسل الملفات المعدلة فقط، واستخدم مسارات نسبية مثل <code>index.html</code>. اقرأ <a class="font-bold text-[var(--color-primary)] underline" href="/onecompiler-publish-guide/" target="_blank" rel="noopener noreferrer">الدليل الكامل للتكامل</a> للتعليمات والرسائل الشائعة.</p>
+    <div class="flex flex-wrap gap-3">
+      <a class="btn-primary px-4 py-3 font-bold" href="https://onecompiler.com/login?redirectTo=/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer">تسجيل الدخول وفتح AI Editor ↗</a>
+      <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="https://onecompiler.com/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer">فتح المشروع مباشرة ↗</a>
+      <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="/onecompiler-publish-bridge.js" target="_blank" rel="noopener noreferrer">كود جسر النشر ↗</a>
+      <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="/onecompiler-publish-snippet.html" target="_blank" rel="noopener noreferrer">مقطع OneCompiler الجاهز ↗</a>
+      <a class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" href="/onecompiler-publish-guide/" target="_blank" rel="noopener noreferrer">دليل OneCompiler AI ↗</a>
+    </div>
+  </div>
+  <div class="flex flex-wrap gap-3">
+    <button id="ghw-connect" class="btn-primary px-4 py-3 font-bold" type="button">ربط حساب GitHub</button><button id="ghw-logout" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>تسجيل الخروج</button>
+    <button id="ghw-create-repo" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>إنشاء مستودع</button>
+    <span id="ghw-status" class="self-center text-sm font-bold" role="status" aria-live="polite">غير متصل</span>
+    <button id="ghw-copy-code" class="studio-otp-copy self-center" type="button" hidden>نسخ كود GitHub</button>
+  </div>
+  <div id="ghw-panel" class="mt-6 hidden space-y-4"><div class="studio-workbench-shell"><section class="studio-config-panel"><div class="studio-panel-heading"><span class="studio-eyebrow">01 · REPOSITORY SETTINGS</span><h3>إعدادات المستودع والنشر</h3><p>افصل مصدر المشروع ومسار الملف عن مساحة التحرير لتعمل بخطوات واضحة.</p></div>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <label class="text-sm font-bold">المالك<input id="ghw-owner" value="elazzouz-dotcom" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+      <label class="text-sm font-bold">المستودع<input id="ghw-repo" value="elazzouz-dotcom.github.io" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+      <label class="text-sm font-bold">الفرع النشط<input id="ghw-branch" value="main" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+      <label class="text-sm font-bold">مسار الملف<input id="ghw-path" value="index.html" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label>
+    </div><div class="studio-branch-manager"><div class="studio-branch-manager-head"><div><span class="studio-card-kicker">BRANCH MANAGEMENT</span><h4>إدارة فروع المستودع</h4><p>اعرض الفروع، اختر فرع العمل، أو أنشئ فرعًا جديدًا من الواجهة.</p></div><button id="ghw-branches-refresh" class="studio-branch-refresh" type="button" disabled>تحديث الفروع</button></div><div class="studio-branch-controls"><label>الفروع المتاحة<select id="ghw-branch-list" class="studio-control"><option value="">اضغط «تحديث الفروع» لعرضها</option></select></label><label>اسم الفرع الجديد<input id="ghw-new-branch" class="studio-control" placeholder="feature/my-update" autocomplete="off" /></label><button id="ghw-branch-create-visible" class="studio-branch-create" type="button" disabled>إنشاء فرع</button></div><div id="ghw-branch-status" class="studio-branch-status" role="status" aria-live="polite">لم يتم تحميل الفروع بعد.</div><div class="studio-merge-manager"><div class="studio-branch-manager-head"><div><span class="studio-card-kicker">AUTO-MERGE & CONFLICTS</span><h4>دمج الفروع تلقائيًا</h4><p>افحص الفروقات أولًا، ثم ادمج الفرع المصدر في الفرع الهدف مع تقرير التعارضات.</p></div><span id="ghw-merge-state" class="studio-merge-badge">جاهز للفحص</span></div><div class="studio-merge-controls"><label>الفرع المصدر<select id="ghw-merge-source" class="studio-control"><option value="">حمّل الفروع أولًا</option></select></label><span class="studio-merge-arrow">←</span><label>الفرع الهدف<select id="ghw-merge-target" class="studio-control"><option value="">حمّل الفروع أولًا</option></select></label><button id="ghw-merge-check" class="studio-merge-check" type="button" disabled>فحص التعارضات</button><button id="ghw-auto-merge" class="studio-auto-merge" type="button" disabled>دمج تلقائي</button></div><div id="ghw-merge-report" class="studio-merge-report" role="status" aria-live="polite"><div class="studio-merge-empty">لم يتم فحص أي دمج بعد.</div></div></div></div></section><section class="studio-editor-panel"><div class="studio-panel-heading"><span class="studio-eyebrow">02 · CODE EDITOR</span><h3>محرر الملف</h3><p>عدّل الكود، اختر لغة الملف، ثم راقب المعاينة والسجل في الجانب المقابل.</p></div>
+    <div class="flex flex-wrap gap-3 studio-editor-actions">
+      <button id="ghw-load" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>تحميل الملف</button>
+      <button id="ghw-branch-create" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] px-4 py-3 font-bold" type="button" disabled>إنشاء الفرع</button>
+      <button id="ghw-clef-analyze" class="studio-action rounded-[calc(var(--radius)*0.55)] border border-cyan-300/50 px-4 py-3 font-bold text-cyan-200" type="button" disabled>تحليل الملف عبر Clef</button>
+      <button id="ghw-save" class="btn-primary px-4 py-3 font-bold" type="button" disabled>حفظ كـ commit</button>
+      <button id="ghw-publish" class="rounded-[calc(var(--radius)*0.55)] border border-[var(--color-primary)] px-4 py-3 font-bold text-[var(--color-primary)]" type="button" disabled>حفظ وفتح النشر</button>
+    </div>
+    <div class="studio-commit-row"><label class="block text-sm font-bold flex-1">رسالة الـ commit<input id="ghw-message" value="Update from Hosting Studio" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3" /></label><label class="studio-language-select">لغة الملف<select id="ghw-language" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-3"><option value="html">HTML</option><option value="css">CSS</option><option value="javascript">JavaScript</option><option value="json">JSON</option></select></label></div>
+    <label class="block text-sm font-bold">محتوى الملف<textarea id="ghw-editor" rows="18" spellcheck="false" class="studio-control mt-2 w-full rounded border border-[var(--color-border)] bg-[var(--color-dark)] p-4 font-mono text-sm leading-6 text-[var(--color-text)]" placeholder="حمّل ملفًا أو اكتب الكود هنا..."></textarea><pre id="ghw-highlight" class="studio-highlight" aria-label="معاينة تلوين الكود"><code></code></pre></label><section class="studio-terminal-panel"><div class="studio-terminal-head"><div><span class="studio-eyebrow">04 · SAFE TERMINAL</span><h3>Terminal</h3><p>أوامر آمنة لإدارة المستودع من خلال GitHub API دون تنفيذ أوامر نظام على الخادم.</p></div><button id="ghw-terminal-clear" type="button">مسح</button></div><div id="ghw-terminal-output" class="studio-terminal-output" role="log" aria-live="polite"><div class="terminal-line terminal-muted">اكتب <b>help</b> لعرض الأوامر المتاحة.</div></div><form id="ghw-terminal-form" class="studio-terminal-form"><span class="terminal-prompt">studio@github:~$</span><input id="ghw-terminal-input" autocomplete="off" spellcheck="false" placeholder="help" aria-label="أمر الطرفية"><button type="submit">تشغيل</button></form></section></section><aside class="studio-live-panel"><div class="studio-panel-heading"><span class="studio-eyebrow">03 · LIVE DEPLOYMENT</span><h3>المعاينة والسجل</h3><p id="ghw-preview-url">ستظهر المعاينة بعد أول نشر ناجح.</p></div><div class="studio-live-frame"><div class="studio-live-toolbar"><span class="studio-live-dot"></span><b>GitHub Pages Preview</b><button id="ghw-preview-reload" type="button">↻</button></div><iframe id="ghw-live-preview" title="المعاينة الحية بعد النشر" loading="lazy"></iframe></div><div class="studio-console"><div class="studio-console-head"><b>Console Logs</b><button id="ghw-console-clear" type="button">مسح</button></div><div id="ghw-console-logs" role="log" aria-live="polite"><div class="studio-log muted">جاهز لعرض خطوات الاتصال والـ commit والنشر.</div></div></div></aside></div>
+    <p class="mb-0 text-xs leading-5 text-[var(--color-muted)]">للنشر على GitHub Pages: احفظ ملف <code>index.html</code> في الفرع الرئيسي، ثم فعّل Pages من إعدادات المستودع إذا لم تكن مفعّلة. لا تضع Client Secret أو مفاتيح API داخل الملفات.</p>
+  </div>
+</section>
+
   </main>
 
   <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-7 lg:px-8">
@@ -163,6 +252,16 @@
     </div>
   </footer>
 
+  <script>
+    (()=>{const $=id=>document.getElementById(id), editor=$('ghw-editor'), highlight=$('ghw-highlight')?.querySelector('code'), logs=$('ghw-console-logs'), frame=$('ghw-live-preview'), urlOut=$('ghw-preview-url');
+      window.studioLog=(message,type='info')=>{if(!logs)return;const row=document.createElement('div');row.className='studio-log '+type;row.textContent=new Date().toLocaleTimeString()+' · '+message;logs.appendChild(row);logs.scrollTop=logs.scrollHeight};
+      window.studioRefreshPreview=()=>{const owner=$('ghw-owner')?.value.trim(),repo=$('ghw-repo')?.value.trim();if(!owner||!repo)return;const url='https://'+owner+'.github.io/'+(repo.toLowerCase()===owner.toLowerCase()+'.github.io'?'':repo+'/');if(frame){frame.src=url+'?studio='+Date.now();urlOut.textContent=url;window.studioLog('تم تحديث المعاينة الحية: '+url,'success')}};
+      $('ghw-preview-reload')?.addEventListener('click',()=>window.studioRefreshPreview());$('ghw-console-clear')?.addEventListener('click',()=>{if(logs)logs.innerHTML='<div class="studio-log muted">تم مسح السجل.</div>'});
+      const escape=v=>String(v||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));const paint=()=>{if(highlight)highlight.innerHTML=escape(editor?.value).replace(/(&lt;\/?[\w-]+)/g,'<span class="tok-tag">$1</span>').replace(/([\w-]+)=(&quot;.*?&quot;)/g,'<span class="tok-attr">$1</span>=<span class="tok-string">$2</span>');};editor?.addEventListener('input',paint);paint();
+      $('studio-locale-toggle')?.addEventListener('click',()=>{const html=document.documentElement;const ar=html.lang==='ar';html.lang=ar?'en':'ar';html.dir=ar?'ltr':'rtl';$('studio-locale-toggle').textContent=ar?'AR':'EN';window.studioLog(ar?'Interface switched to English':'تم التبديل إلى العربية','success')});
+    })();
+  </script>
+  <script src="/github-workbench.js?v=studio-redesign-2"></script>
   <script>
     const checklistItems = [...document.querySelectorAll('.check-item')];
     const progressOutput = document.querySelector('#check-progress');

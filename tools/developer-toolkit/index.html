@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Toolkit - أدوات التطوير</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { --bg: #0b1020; --panel: #0f172a; --text: #e2e8f0; --accent: #7dd3fc; }
+    body { background: var(--bg); color: var(--text); font-family: Arial, Tahoma, sans-serif; }
+    .tool-panel { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.2); }
+    .mono { font-family: 'Courier New', monospace; }
+    .code-editor { background: #0b1020; color: #7dd3fc; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <header class="border-b border-slate-800 bg-slate-950/90">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="text-xl font-black text-white">Developer Toolkit</a>
+      <nav class="hidden gap-5 text-sm font-semibold text-slate-300 md:flex">
+        <a href="/workspaces/">الأدوات</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+    <section class="mb-10 rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 to-blue-900/20 p-8">
+      <h1 class="text-4xl font-black">مجموعة أدوات التطوير</h1>
+      <p class="mt-3 max-w-3xl text-lg text-slate-300">أدوات احترافية لمعالجة البيانات والنصوص والأكواد، تعمل محليًا في متصفحك بدون إرسال بيانات خارجية.</p>
+    </section>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <!-- JSON Tool -->
+      <div class="tool-panel rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold text-cyan-300">{ } JSON Tools</h3>
+        <textarea id="json-input" class="code-editor w-full rounded-lg border border-slate-700 p-4 text-sm" rows="6" placeholder='{"name": "example"}'></textarea>
+        <div class="mt-4 flex gap-2">
+          <button onclick="formatJSON()" class="rounded-lg bg-cyan-500 px-4 py-2 font-bold text-slate-950">تنسيق</button>
+          <button onclick="minifyJSON()" class="rounded-lg border border-cyan-500 px-4 py-2 font-bold text-cyan-300">ضغط</button>
+        </div>
+        <pre id="json-output" class="code-editor mt-4 overflow-auto rounded-lg border border-slate-700 p-4 text-sm"></pre>
+      </div>
+
+      <!-- Base64 Tool -->
+      <div class="tool-panel rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold text-cyan-300">↔ Encoding</h3>
+        <textarea id="encode-input" class="code-editor w-full rounded-lg border border-slate-700 p-4 text-sm" rows="6" placeholder="أدخل النص"></textarea>
+        <div class="mt-4 flex gap-2">
+          <button onclick="encodeBase64()" class="rounded-lg bg-cyan-500 px-4 py-2 font-bold text-slate-950">تشفير</button>
+          <button onclick="decodeBase64()" class="rounded-lg border border-cyan-500 px-4 py-2 font-bold text-cyan-300">فك التشفير</button>
+        </div>
+        <pre id="encode-output" class="code-editor mt-4 overflow-auto rounded-lg border border-slate-700 p-4 text-sm"></pre>
+      </div>
+
+      <!-- Hash Tool -->
+      <div class="tool-panel rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold text-cyan-300">🔐 SHA-256</h3>
+        <textarea id="hash-input" class="code-editor w-full rounded-lg border border-slate-700 p-4 text-sm" rows="6" placeholder="أدخل النص للتجزئة"></textarea>
+        <div class="mt-4">
+          <button onclick="hashText()" class="rounded-lg bg-cyan-500 px-4 py-2 font-bold text-slate-950">احسب Hash</button>
+        </div>
+        <pre id="hash-output" class="code-editor mt-4 overflow-auto rounded-lg border border-slate-700 p-4 text-sm"></pre>
+      </div>
+
+      <!-- Regex Tool -->
+      <div class="tool-panel rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold text-cyan-300">.* Regex Tester</h3>
+        <input id="regex-pattern" class="mono w-full rounded-lg border border-slate-700 px-4 py-2" placeholder="أدخل regex pattern">
+        <input id="regex-text" class="mono mt-3 w-full rounded-lg border border-slate-700 px-4 py-2" placeholder="أدخل النص للبحث">
+        <div class="mt-4">
+          <button onclick="testRegex()" class="rounded-lg bg-cyan-500 px-4 py-2 font-bold text-slate-950">اختبر</button>
+        </div>
+        <pre id="regex-output" class="code-editor mt-4 overflow-auto rounded-lg border border-slate-700 p-4 text-sm"></pre>
+      </div>
+
+      <!-- UUID Tool -->
+      <div class="tool-panel rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold text-cyan-300">✦ UUID Generator</h3>
+        <p class="mb-4 text-sm text-slate-300">توليد معرّفات فريدة عشوائية.</p>
+        <div class="flex gap-2">
+          <button onclick="generateUUID()" class="rounded-lg bg-cyan-500 px-4 py-2 font-bold text-slate-950">توليد</button>
+          <button onclick="generateMultipleUUIDs()" class="rounded-lg border border-cyan-500 px-4 py-2 font-bold text-cyan-300">10 معرفات</button>
+        </div>
+        <pre id="uuid-output" class="code-editor mt-4 overflow-auto rounded-lg border border-slate-700 p-4 text-sm"></pre>
+      </div>
+
+      <!-- Text Compare -->
+      <div class="tool-panel rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold text-cyan-300">📝 مقارنة النصوص</h3>
+        <textarea id="compare-left" class="code-editor w-full rounded-lg border border-slate-700 p-4 text-sm" rows="5" placeholder="النص الأول"></textarea>
+        <textarea id="compare-right" class="code-editor mt-3 w-full rounded-lg border border-slate-700 p-4 text-sm" rows="5" placeholder="النص الثاني"></textarea>
+        <button onclick="compareText()" class="mt-4 rounded-lg bg-cyan-500 px-4 py-2 font-bold text-slate-950">قارن</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-sm text-slate-400 mt-12">
+    <p>© 2026 elazzouz-dotcom - جميع الأدوات تعمل محليًا في متصفحك</p>
+  </footer>
+
+  <script>
+    function formatJSON() {
+      try {
+        const json = JSON.parse(document.getElementById('json-input').value);
+        document.getElementById('json-output').textContent = JSON.stringify(json, null, 2);
+      } catch (e) {
+        document.getElementById('json-output').textContent = 'خطأ في JSON: ' + e.message;
+      }
+    }
+
+    function minifyJSON() {
+      try {
+        const json = JSON.parse(document.getElementById('json-input').value);
+        document.getElementById('json-output').textContent = JSON.stringify(json);
+      } catch (e) {
+        document.getElementById('json-output').textContent = 'خطأ في JSON: ' + e.message;
+      }
+    }
+
+    function encodeBase64() {
+      const text = document.getElementById('encode-input').value;
+      document.getElementById('encode-output').textContent = btoa(text);
+    }
+
+    function decodeBase64() {
+      try {
+        const text = document.getElementById('encode-input').value;
+        document.getElementById('encode-output').textContent = atob(text);
+      } catch (e) {
+        document.getElementById('encode-output').textContent = 'خطأ في فك التشفير';
+      }
+    }
+
+    async function hashText() {
+      const text = document.getElementById('hash-input').value;
+      const encoder = new TextEncoder();
+      const data = encoder.encode(text);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      document.getElementById('hash-output').textContent = hashHex;
+    }
+
+    function testRegex() {
+      try {
+        const pattern = document.getElementById('regex-pattern').value;
+        const text = document.getElementById('regex-text').value;
+        const regex = new RegExp(pattern, 'g');
+        const matches = text.match(regex) || [];
+        document.getElementById('regex-output').textContent = `العدد: ${matches.length}\n${matches.join('\n')}`;
+      } catch (e) {
+        document.getElementById('regex-output').textContent = 'خطأ في Regex: ' + e.message;
+      }
+    }
+
+    function generateUUID() {
+      const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+      document.getElementById('uuid-output').textContent = uuid;
+    }
+
+    function generateMultipleUUIDs() {
+      let uuids = '';
+      for (let i = 0; i < 10; i++) {
+        const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+        uuids += uuid + '\n';
+      }
+      document.getElementById('uuid-output').textContent = uuids;
+    }
+
+    function compareText() {
+      const left = document.getElementById('compare-left').value;
+      const right = document.getElementById('compare-right').value;
+      const isSame = left === right ? '✅ النصوص متطابقة' : '❌ النصوص مختلفة';
+      alert(isSame + '\n\nالطول الأول: ' + left.length + '\nالطول الثاني: ' + right.length);
+    }
+  </script>
+</body>
+</html>
