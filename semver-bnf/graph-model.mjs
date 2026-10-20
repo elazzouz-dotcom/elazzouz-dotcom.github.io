@@ -23,7 +23,7 @@ function isPrivateIpv4(host) {
   const match = String(host).match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!match) return false;
   const [a, b, c, d] = match.slice(1).map(Number);
-  if ([a, b, c, d].some((part) => part > 255)) return true;
+  if ([a, b, c, d].some((part) => part > 255)) return false;
   return a === 0 || a === 10 || a === 127 || a >= 224 ||
     (a === 100 && b >= 64 && b <= 127) ||
     (a === 169 && b === 254) ||

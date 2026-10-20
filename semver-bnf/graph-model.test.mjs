@@ -59,6 +59,8 @@ test('ترفض الروابط الخطرة أو عناوين الشبكة الخ
     assert.throws(() => parseNodeLink(value));
   }
   assert.equal(isPrivateHost('10.0.0.1'), true);
+  assert.equal(isPrivateHost('256.0.0.1'), false);
+  assert.throws(() => parseNodeLink('http://256.0.0.1'));
 });
 
 test('جمع التقرير يحد عدد المهام المتزامنة', async () => {
