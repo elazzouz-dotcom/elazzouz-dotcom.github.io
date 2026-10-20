@@ -315,7 +315,11 @@ function fetchNodePayload(id) {
   const data = getHubData(id);
   if (!data) return null;
   if (data.url) {
-    const link = parseNodeLink(data.url);
+    let link;
+    try { link = parseNodeLink(data.url); }
+    catch (error) {
+      return { id, kind: 'invalid', url: String(data.url).slice(0, 8192), title: 'رابط غير صالح', text: error?.message || 'تعذر التحقق من الرابط.', source: 'فحص محلي', status: 'invalid', error: error?.message || 'رابط غير صالح.' };
+    }
     if (link.kind !== 'web') {
       return { id, kind: link.kind, url: link.url, title: link.display, text: 'هذا رابط اتصال؛ لا يُجلب محتواه. استخدم الفتح الخارجي.', source: 'رابط خارجي', status: 'external-only' };
     }
@@ -548,7 +552,11 @@ function renderReport(results) {
   results.forEach((item) => {
     const card = document.createElement('article');
     card.className = 'report-card';
-    const status = item.status === 'external-only' ? 'رابط اتصال — فتح خارجي فقط' : item.error ? 'تعذر الاستخراج' : 'اكتمل الاستخراج';
+    const status = item.error
+      ? 'تعذر إعداد الملخص المحلي'
+      : item.status === 'external-only'
+        ? (item.kind === 'web' ? 'رابط ويب — بيانات الرابط فقط' : 'رابط اتصال — فتح خارجي فقط')
+        : 'اكتمل الملخص المحلي';
     appendReportText(card, 'strong', `${nodeLabel(item.id)} · ${status}`);
     appendReportText(card, 'small', `${item.source || ''} · ${item.url || item.kind || 'HTML محلي'}`);
     if (item.title) appendReportText(card, 'small', item.title);
@@ -572,12 +580,12 @@ async function collectReport() {
   }
   button.disabled = true;
   exportButton.disabled = true;
-  status.textContent = `جارٍ فحص ${active.length} عقدة بأربع مهام متزامنة كحد أقصى…`;
+  status.textContent = `جارٍ إعداد ملخص محلي لـ ${active.length} عقدة…`;
   const results = await mapConcurrent(active, 4, async (item) => {
     try { return await fetchNodePayload(item.id) || { id: item.id, error: 'لا توجد بيانات.' }; }
-    catch (error) { return { id: item.id, url: item.url || '', error: error?.message || 'تعذر جلب المصدر.', source: 'المعاينة الخارجية' }; }
+    catch (error) { return { id: item.id, url: item.url || '', error: error?.message || 'تعذر إعداد الملخص المحلي.', source: 'فحص محلي' }; }
   }, (completed, total) => {
-    status.textContent = `تقدم التقرير: ${completed} من ${total} عقدة…`;
+    status.textContent = `إعداد الملخص المحلي: ${completed} من ${total} عقدة…`;
   });
   latestReport = {
     generatedAt: new Date().toISOString(),
