@@ -34,5 +34,9 @@ jobs:
         run: python3 scripts/check_mobile_contract.py
       - name: Validate HTML links and IDs
         run: python3 scripts/check_site.py
+      - name: Validate Restream launch page contract
+        run: python3 scripts/check_stream_contract.py
+      - name: Test SemVer node graph and safe URL parsing
+        run: node --test semver-bnf/graph-model.test.mjs
       - name: Validate fixed OneCompiler integration contract
         run: python3 scripts/check_onecompiler_contract.py
