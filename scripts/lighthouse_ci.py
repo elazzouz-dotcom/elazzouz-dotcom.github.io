@@ -15,7 +15,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
-PAGES = (("home", "/"), ("apps", "/apps/"), ("ai-tools", "/ai-tools/"))
+PAGES = (("home", "/"), ("apps", "/apps/"), ("ai-tools", "/ai-tools/"), ("stream", "/stream/"))
 MIN_PERFORMANCE = 0.60
 MIN_ACCESSIBILITY = 0.90
 
