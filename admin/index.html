@@ -1,106 +1,17 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="لوحة إدارة خاصة لتحرير ملفات موقع Slaks ونشرها عبر GitHub.">
-  <title>لوحة إدارة الموقع | Slaks</title>
-  <link rel="stylesheet" href="/theme.css">
-  <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .admin-hero{background:linear-gradient(120deg,var(--color-dark),#12352b,var(--color-surface));color:var(--color-text)}
-    .editor-shell{display:grid;grid-template-columns:220px minmax(0,1fr) minmax(280px,34%);min-height:620px}
-    .file-list{border-inline-end:1px solid var(--color-border);background:color-mix(in srgb,var(--color-dark) 42%,var(--color-surface))}
-    .editor-pane{min-width:0;border-inline-end:1px solid var(--color-border)}
-    .preview-pane{min-width:0;background:#fff}
-    #editor{display:block;width:100%;height:540px;resize:none;border:0;outline:0;background:#081019;color:#dbe6f3;direction:ltr;text-align:left;padding:1rem;font:500 .86rem/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:2}
-    #preview{display:block;width:100%;height:540px;border:0;background:#fff}
-    .file-button{display:block;width:100%;border-inline-start:3px solid transparent;padding:.7rem .8rem;text-align:start;font:600 .78rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--color-muted);overflow-wrap:anywhere}
-    .file-button:hover,.file-button.active{border-inline-start-color:var(--color-primary);background:var(--color-soft);color:var(--color-text)}
-    .status-dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:#f59e0b;margin-inline-end:.35rem}.status-dot.good{background:#22c55e}.status-dot.bad{background:#ef4444}
-    .admin-action:focus-visible{outline:3px solid var(--color-primary);outline-offset:3px}
-    @media (max-width:1000px){.editor-shell{grid-template-columns:190px minmax(0,1fr)}.preview-pane{grid-column:1/-1;border-top:1px solid var(--color-border);border-inline-end:0}.preview-pane #preview{height:420px}}
-    @media (max-width:640px){.editor-shell{display:block}.file-list{border-inline-end:0;border-bottom:1px solid var(--color-border);max-height:180px;overflow:auto}.editor-pane{border-inline-end:0}.editor-pane #editor{height:480px}}
-  </style>
-</head>
-<body class="min-h-screen">
-  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 lg:px-8"><a href="/" class="font-extrabold">Slaks</a><nav class="flex flex-wrap gap-4 text-sm font-semibold text-[var(--color-muted)]"><a href="/tools">الأدوات</a><a href="/github-login">تسجيل GitHub</a><a href="/">الرئيسية</a></nav></div></header>
-  <main class="mx-auto max-w-[1600px] px-5 py-8 lg:px-8">
-    <section class="admin-hero rounded-[var(--radius)] p-7 sm:p-10"><p class="mb-3 text-xs font-extrabold uppercase tracking-[.16em] text-[var(--color-primary)]">Private site administration</p><div class="flex flex-wrap items-end justify-between gap-5"><div><h1 class="mb-3 text-4xl font-black sm:text-5xl">لوحة إدارة الموقع</h1><p class="mb-0 max-w-3xl leading-7 text-[var(--color-muted)]">حرّر ملفات الموقع، شاهد المعاينة، ثم أنشئ Commit واضحًا في المستودع المحدد. هذه النسخة لا تحفظ رمز GitHub في المتصفح.</p></div><div id="auth-badge" class="rounded-full border border-[var(--color-border)] px-4 py-2 text-sm font-bold"><span class="status-dot"></span>غير مسجّل</div></div></section>
-    <section class="mt-6 grid gap-5 lg:grid-cols-[1fr_340px]">
-      <div class="feature-card p-5 sm:p-6"><div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="mb-1 text-xl font-black">جلسة الإدارة</h2><p id="status" class="mb-0 text-sm text-[var(--color-muted)]" role="status" aria-live="polite">سجّل الدخول للبدء.</p></div><div class="flex flex-wrap gap-2"><button id="login" class="admin-action btn-primary px-4 py-3 text-sm" type="button">تسجيل الدخول عبر GitHub</button><button id="logout" class="admin-action hidden rounded-[var(--radius)] border border-[var(--color-border)] px-4 py-3 text-sm font-bold" type="button">تسجيل الخروج</button></div><div id="auth-code-panel" class="mt-5 hidden rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-bg)] p-4"><p class="mb-2 text-sm text-[var(--color-muted)]">افتح GitHub، ثم أدخل هذا الرمز في صفحة التحقق. لا تكتبه داخل هذه الصفحة:</p><div class="flex flex-wrap items-center gap-3"><code id="auth-user-code" class="rounded-[var(--radius)] bg-[var(--color-dark)] px-4 py-3 text-2xl font-black tracking-[.18em] text-[var(--color-primary)]">—</code><button id="auth-copy" class="admin-action rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-sm font-bold" type="button">نسخ الرمز</button><a id="auth-verify" class="btn-primary px-3 py-2 text-sm" target="_blank" rel="noreferrer">فتح GitHub للتحقق ↗</a></div></div></div></div>
-      <aside class="feature-card p-5"><p class="mb-2 text-xs font-extrabold uppercase tracking-[.14em] text-[var(--color-primary)]">المجال المسموح</p><h2 class="mb-3 text-xl font-black">مستودع واحد · فرع main</h2><code class="block break-all rounded-[var(--radius)] bg-[var(--color-dark)] p-3 text-xs text-[var(--color-primary)]">elazzouz-dotcom/elazzouz-dotcom.github.io</code><p class="mt-3 mb-3 text-xs leading-6 text-[var(--color-muted)]">لا يمكن للواجهة اختيار مستودعات أو فروع أخرى. الرمز يبقى في ذاكرة الجلسة ويُمسح عند تسجيل الخروج أو إغلاق الصفحة.</p><a class="text-xs font-bold text-[var(--color-primary)]" href="https://github.com/elazzouz-dotcom/elazzouz-dotcom.github.io/commits/main" target="_blank" rel="noreferrer">فتح سجل Commits ↗</a></aside>
-    </section>
-    <section class="feature-card mt-6 overflow-hidden" aria-label="محرر ملفات الموقع"><div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-4"><div><h2 class="mb-1 text-xl font-black">محرر الملفات</h2><p id="file-meta" class="mb-0 text-xs text-[var(--color-muted)]">سجّل الدخول لتحميل الملفات النصية.</p></div><div class="flex flex-wrap gap-2"><button id="refresh" class="admin-action rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-xs font-bold" type="button" disabled>تحديث الملفات</button><button id="new-file" class="admin-action rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-xs font-bold" type="button" disabled>ملف جديد</button><button id="upload-file" class="admin-action rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-xs font-bold" type="button" disabled>رفع ملف</button><input id="file-upload" type="file" class="hidden" accept="image/*,.pdf,.svg,.txt,.md,.json,.css,.js,.html,.woff,.woff2"><button id="preview-btn" class="admin-action rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-xs font-bold" type="button" disabled>تحديث المعاينة</button><button id="save" class="admin-action btn-primary px-4 py-2 text-xs" type="button" disabled>حفظ Commit</button></div></div><div class="editor-shell"><div class="file-list" id="files" aria-label="ملفات قابلة للتحرير"><p class="p-4 text-xs leading-6 text-[var(--color-muted)]">ستظهر الملفات هنا بعد تسجيل الدخول.</p></div><div class="editor-pane"><div class="flex items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[var(--color-dark)] px-4 py-3"><code id="selected-file" class="text-xs text-[var(--color-primary)]">لم يُختر ملف</code><span id="dirty" class="hidden text-xs font-bold text-[#f59e0b]">تعديلات غير محفوظة</span></div><textarea id="editor" spellcheck="false" aria-label="محرر الكود" disabled placeholder="سجّل الدخول ثم اختر ملفًا."></textarea></div><div class="preview-pane"><div class="border-b border-[#d8dee8] bg-[#f4f7fa] px-4 py-3 text-xs font-bold text-[#334155]">معاينة معزولة</div><iframe id="preview" title="معاينة الملف" sandbox=""></iframe></div></div></section>
-    <section class="mt-6 rounded-[var(--radius)] border border-[#8f6b20] bg-[#2b2110] p-5 text-sm leading-7 text-[#f8df9c]"><strong>تنبيه أمني:</strong> هذه لوحة خاصة وليست نظام صلاحيات مستقلًا. احمِ حساب GitHub، راجع التغييرات قبل الحفظ، ولا تضع أسرارًا أو مفاتيح API داخل الملفات العامة.</section>
-  </main>
-  <footer class="mt-10 border-t border-[var(--color-border)] px-5 py-7 text-center text-sm text-[var(--color-muted)]"><a href="/" class="font-extrabold text-[var(--color-text)]">Slaks</a> · لوحة إدارة ثابتة متصلة بـ GitHub Contents API</footer>
-<script>
-(() => {
-  const OWNER='elazzouz-dotcom', REPO='elazzouz-dotcom.github.io', BRANCH='main';
-  const CLIENT_ID='Ov23liu35kgtgP1COSii', AUTH_BASE='https://github-oauth-proxy.elazzouz4.workers.dev';
-  const API='https://api.github.com';
-  const allowed=/\.(html?|css|js|json|md|txt|xml|svg)$/i;
-  const uploadable=/^[^/]+\.(png|jpe?g|gif|webp|ico|svg|pdf|txt|md|json|css|js|html?|woff2?|mp3|mp4)$/i;
-  const $=s=>document.querySelector(s), status=$('#status'), filesEl=$('#files'), editor=$('#editor'), preview=$('#preview');
-  let token=null, files=[], selected=null, original='';
-  const message=(text,kind='')=>{status.textContent=text;const dot=$('#auth-badge .status-dot');dot.className=`status-dot ${kind}`};
-  const api=async(url,options={})=>{const res=await fetch(url,{...options,headers:{Accept:'application/vnd.github+json',Authorization:`Bearer ${token}`,...(options.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.message||`HTTP ${res.status}`);return data};
-  const b64decode=s=>decodeURIComponent(Array.from(atob(s.replace(/\n/g,''))).map(c=>'%'+c.charCodeAt(0).toString(16).padStart(2,'0')).join(''));
-  const b64encode=s=>{const bytes=new TextEncoder().encode(s);let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary)};
-  const wait=ms=>new Promise(r=>setTimeout(r,ms));
-  async function device(){const r=await fetch(`${AUTH_BASE}/device/code`,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({client_id:CLIENT_ID,scope:'repo read:user user:email'})});const d=await r.json();if(!r.ok)throw new Error(d.error_description||d.message||'تعذر طلب رمز الدخول');return d}
-  async function login(){
-    const btn=$('#login');
-    btn.disabled=true;
-    message('جاري طلب رمز GitHub...');
-    try{
-      const d=await device();
-      $('#auth-user-code').textContent=d.user_code;
-      $('#auth-verify').href=d.verification_uri_complete||d.verification_uri||'https://github.com/login/device';
-      $('#auth-code-panel').classList.remove('hidden');
-      window.open($('#auth-verify').href,'_blank','noopener,noreferrer');
-      message('افتح GitHub وأدخل الرمز الظاهر في الصندوق، ثم اترك هذه الصفحة مفتوحة.');
-      const deadline=Date.now()+Number(d.expires_in||900)*1000;
-      while(Date.now()<deadline){
-        await wait(Math.max(Number(d.interval||5),5)*1000);
-        const r=await fetch(`${AUTH_BASE}/token`,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({client_id:CLIENT_ID,device_code:d.device_code,grant_type:'urn:ietf:params:oauth:grant-type:device_code'})});
-        const t=await r.json();
-        if(t.access_token){
-          token=t.access_token;
-          const user=await api(`${API}/user`);
-          $('#auth-badge').innerHTML=`<span class="status-dot good"></span>متصل: ${user.login}`;
-          $('#login').classList.add('hidden');
-          $('#logout').classList.remove('hidden');
-          $('#auth-code-panel').classList.add('hidden');
-          await loadFiles();
-          message('تم تسجيل الدخول وتحميل الملفات.','good');
-          return;
-        }
-        if(t.error==='authorization_pending')continue;
-        if(t.error==='slow_down'){await wait(5000);continue;}
-        throw new Error(t.error_description||t.error||'فشل تسجيل الدخول');
-      }
-      throw new Error('انتهت صلاحية رمز GitHub');
-    }catch(e){message(`تعذر تسجيل الدخول: ${e.message}`,'bad')}
-    finally{btn.disabled=false}
-  }
-  async function loadFiles(){filesEl.innerHTML='<p class="p-4 text-xs text-[var(--color-muted)]">جاري تحميل الملفات...</p>';const tree=await api(`${API}/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`);files=tree.tree.filter(x=>x.type==='blob'&&allowed.test(x.path)&&!x.path.startsWith('.github/')&&Number(x.size||0)<=1024*1024).sort((a,b)=>a.path.localeCompare(b.path));filesEl.innerHTML='';files.forEach(file=>{const b=document.createElement('button');b.type='button';b.className='file-button';b.textContent=file.path;b.dataset.path=file.path;b.onclick=()=>selectFile(file.path);filesEl.append(b)});$('#file-meta').textContent=`${files.length} ملفًا نصيًا · الفرع ${BRANCH}`;if(files.length)await selectFile(files.some(f=>f.path==='index.html')?'index.html':files[0].path)}
-  async function selectFile(path){if(selected&&editor.value!==original&&!confirm('لديك تعديلات غير محفوظة. هل تريد تبديل الملف؟'))return;const file=files.find(f=>f.path===path);if(!file)return;message(`جاري قراءة ${path}...`);const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}?ref=${BRANCH}`);selected={path,sha:data.sha};original=b64decode(data.content);editor.value=original;editor.disabled=false;$('#selected-file').textContent=path;$('#dirty').classList.add('hidden');document.querySelectorAll('.file-button').forEach(b=>b.classList.toggle('active',b.dataset.path===path));$('#refresh').disabled=false;$('#new-file').disabled=false;$('#upload-file').disabled=false;$('#preview-btn').disabled=false;$('#save').disabled=false;renderPreview();message(`تم تحميل ${path}.`,'good')}
-  function renderPreview(){if(!selected)return;let html=editor.value;if(selected.path.endsWith('.html')){const css=files.find(f=>f.path==='theme.css');if(css&&window._theme)html=html.replace(/<link[^>]+href=["']\/?theme\.css["'][^>]*>/i,`<style>${window._theme}</style>`);html=html.replace(/<script[^>]+src=["']https:\/\/cdn\.tailwindcss\.com[^>]*><\/script>/gi,'');}else html=`<pre style="white-space:pre-wrap;font:14px monospace;padding:20px;color:#111">${editor.value.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</pre>`;preview.srcdoc=html}
-  $('#upload-file').onclick=()=>$('#file-upload').click();
-  $('#file-upload').onchange=async()=>{const input=$('#file-upload');const file=input.files[0];input.value='';if(!file)return;if(file.size>10*1024*1024)return message('حجم الملف أكبر من 10 MB.','bad');if(!uploadable.test(file.name))return message('نوع الملف غير مسموح. استخدم صورة أو ملفًا نصيًا أو ملف PDF.','bad');const path=prompt('مسار الملف داخل GitHub:',`assets/${file.name}`);if(!path||path.includes('..')||path.startsWith('/')||path.startsWith('.github/')||path.length>180)return message('المسار غير مسموح.','bad');const commit=prompt('اكتب وصف الـ Commit:',`رفع ${file.name} من لوحة الإدارة`);if(!commit)return;$('#upload-file').disabled=true;message('جاري تحويل ورفع الملف إلى GitHub...');try{const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('تعذر قراءة الملف'));reader.readAsDataURL(file)});let sha;try{const existing=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}?ref=${BRANCH}`);sha=existing.sha}catch(e){if(!String(e.message).toLowerCase().includes('not found')&&!String(e.message).includes('404'))throw e}const payload={message:commit,content:String(dataUrl).split(',')[1],branch:BRANCH};if(sha)payload.sha=sha;const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});message(`تم رفع ${path} بنجاح إلى GitHub.`,'good');if(data.content?.html_url)window.open(data.content.html_url,'_blank','noopener,noreferrer')}catch(e){message(`فشل رفع الملف: ${e.message}`,'bad')}finally{$('#upload-file').disabled=false}};
-  $('#new-file').onclick=async()=>{const path=prompt('اكتب مسار الملف الجديد، مثل pages/about.html أو data/content.json:','new-page.html');if(!path)return;if(!allowed.test(path)||path.includes('..')||path.startsWith('/')||path.startsWith('.github/'))return message('المسار غير مسموح. استخدم ملفًا نصيًا داخل المستودع دون .. أو أسرار.','bad');if(files.some(f=>f.path===path))return message('هذا الملف موجود بالفعل. اختر مسارًا آخر.','bad');const content=prompt('اكتب محتوى الملف الأولي:','');if(content===null)return;const commit=prompt('اكتب وصف الـ Commit:','إضافة ملف جديد من لوحة الإدارة');if(!commit)return;$('#new-file').disabled=true;message('جاري إنشاء الملف...');try{const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(path)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:commit,content:b64encode(content),branch:BRANCH})});message(`تم إنشاء ${path} بنجاح.`,'good');await loadFiles();await selectFile(path)}catch(e){message(`فشل إنشاء الملف: ${e.message}`,'bad')}finally{$('#new-file').disabled=false}};
-  $('#editor').addEventListener('input',()=>$('#dirty').classList.toggle('hidden',editor.value===original));
-  $('#preview-btn').onclick=renderPreview;
-  $('#refresh').onclick=()=>loadFiles().catch(e=>message(`تعذر تحديث الملفات: ${e.message}`,'bad'));
-  $('#save').onclick=async()=>{if(!selected||editor.value===original)return message('لا توجد تعديلات لحفظها.');const commit=prompt('اكتب وصفًا واضحًا لهذا التعديل:','تحديث من لوحة إدارة الموقع');if(!commit)return;$('#save').disabled=true;message('جاري إنشاء Commit...');try{const data=await api(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(selected.path)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:commit,content:b64encode(editor.value),sha:selected.sha,branch:BRANCH})});selected.sha=data.content.sha;original=editor.value;$('#dirty').classList.add('hidden');message(`تم الحفظ بنجاح: ${data.commit.html_url||'Commit جديد'}`,'good');renderPreview()}catch(e){message(`فشل الحفظ: ${e.message}`,'bad')}finally{$('#save').disabled=false}};
-  $('#auth-copy').onclick=async()=>{await navigator.clipboard.writeText($('#auth-user-code').textContent);$('#auth-copy').textContent='تم النسخ';setTimeout(()=>$('#auth-copy').textContent='نسخ الرمز',1600)};
-  $('#logout').onclick=()=>{token=null;files=[];selected=null;original='';editor.value='';editor.disabled=true;filesEl.innerHTML='<p class="p-4 text-xs text-[var(--color-muted)]">ستظهر الملفات هنا بعد تسجيل الدخول.</p>';$('#login').classList.remove('hidden');$('#logout').classList.add('hidden');$('#auth-code-panel').classList.add('hidden');$('#auth-badge').innerHTML='<span class="status-dot"></span>غير مسجّل';$('#file-meta').textContent='سجّل الدخول لتحميل الملفات النصية.';message('تم تسجيل الخروج من هذه الجلسة.')};
-  $('#login').onclick=login;
-  fetch('/theme.css').then(r=>r.text()).then(css=>window._theme=css).catch(()=>{});
-})();
-</script><script src="/language.js"></script>
-</body>
-</html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="refresh" content="0; url=/hosting-studio/"><title>إدارة المواقع | Slaks</title><link rel="canonical" href="https://elazzouz-dotcom.github.io/hosting-studio/"><script>location.replace('/hosting-studio/');</script></head>
+<body><main><h1>إدارة المواقع</h1><p>تم توحيد تسجيل الدخول والمعاينة وتعديل الكود والنشر داخل Hosting Studio.</p><p><a href="/hosting-studio/">فتح Hosting Studio</a></p></main>  <footer class="site-license-footer" style="padding:1.25rem 1rem;text-align:center;">
+
+<div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية" style="box-sizing:border-box;flex-basis:100%;width:100%;max-width:72rem;margin:1rem auto 0;padding:1rem 1rem 0;border-top:1px solid rgba(148,163,184,.28);text-align:center;color:inherit;font-size:.84em;line-height:1.75;">
+      <p style="margin:0 0 .35rem;">باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license" style="color:inherit;text-underline-offset:.15em;">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+      <p style="margin:0 0 .4rem;">لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+      <span aria-hidden="true" style="display:inline-flex;align-items:center;gap:.12em;vertical-align:middle;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      </span>
+    </div>
+  </footer>
+</body></html>

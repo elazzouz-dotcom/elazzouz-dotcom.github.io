@@ -1,0 +1,44 @@
+name: Slaks site checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install CSS compiler
+        run: pnpm install --frozen-lockfile
+      - name: Build local Tailwind CSS
+        run: pnpm build:css
+      - name: Verify committed CSS bundle is current
+        run: git diff --exit-code -- assets/css/site-tailwind.min.css
+      - name: Validate mobile UX and local CSS contract
+        run: python3 scripts/check_mobile_contract.py
+      - name: Validate HTML links and IDs
+        run: python3 scripts/check_site.py
+      - name: Validate Restream launch page contract
+        run: python3 scripts/check_stream_contract.py
+      - name: Validate GitHub Apps launch directory
+        run: python3 scripts/check_github_apps_contract.py
+      - name: Test SemVer node graph and safe URL parsing
+        run: node --test semver-bnf/graph-model.test.mjs
+      - name: Validate fixed OneCompiler integration contract
+        run: python3 scripts/check_onecompiler_contract.py

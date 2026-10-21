@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="دليل التطبيقات المنشورة لمشاريع elazzouz-dotcom؛ شغّل التطبيق مباشرة واعرض مستودع المصدر عند الحاجة.">
+  <meta name="theme-color" content="#0b1020">
+  <title>تطبيقات الويب | elazzouz-dotcom</title>
+  <link rel="stylesheet" href="/assets/css/site-tailwind.min.css">
+  <style>
+    :root{color-scheme:dark;--bg:#0b1020;--panel:#101a2b;--panel2:#0d1627;--line:rgba(148,163,184,.2);--text:#e5edf7;--muted:#a8b5c6;--accent:#7dd3fc;--green:#34d399}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,rgba(34,211,238,.11),transparent 38%),var(--bg);color:var(--text);font-family:Arial,Tahoma,sans-serif;line-height:1.65}
+    a{color:inherit}.site-header{position:sticky;top:0;z-index:10;border-bottom:1px solid var(--line);background:rgba(7,12,24,.94);backdrop-filter:blur(14px)}
+    .header-inner{max-width:1120px;min-height:64px;margin:auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-weight:900;font-size:1.1rem;text-decoration:none;white-space:nowrap}.nav{display:flex;gap:18px;align-items:center;font-size:.9rem;font-weight:700}.nav a{min-height:44px;display:inline-flex;align-items:center;text-decoration:none;color:var(--muted)}.nav a[aria-current=page],.nav a:hover{color:var(--accent)}
+    main{width:min(100% - 32px,1080px);margin:auto;padding:42px 0 70px}.hero{margin-bottom:26px}.eyebrow{display:inline-flex;border:1px solid rgba(125,211,252,.3);border-radius:999px;background:rgba(125,211,252,.08);padding:4px 12px;color:var(--accent);font-size:.78rem;font-weight:800;letter-spacing:.04em}.hero h1{margin:14px 0 8px;font-size:clamp(2rem,5vw,3.4rem);line-height:1.15;letter-spacing:-.03em}.hero p{max-width:760px;margin:0;color:var(--muted);font-size:1.05rem}.live-count{margin-top:18px!important;color:#b7c5d6!important;font-size:.9rem!important}.live-count strong{color:var(--green)}
+    .section-title{margin:34px 0 14px;font-size:1.35rem}.apps-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.app-card{min-width:0;padding:22px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,rgba(16,26,43,.96),rgba(13,22,39,.92));box-shadow:0 12px 34px rgba(0,0,0,.18)}
+    .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.badge{display:inline-flex;align-items:center;border-radius:999px;background:rgba(52,211,153,.1);padding:4px 10px;color:#6ee7b7;font-size:.75rem;font-weight:800}.platform{color:var(--muted);font-size:.78rem}.app-card h3{margin:14px 0 5px;font-size:1.28rem;line-height:1.35}.app-card p{margin:0;color:var(--muted);font-size:.92rem}.app-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:20px}.launch{display:inline-flex;min-height:46px;align-items:center;justify-content:center;border-radius:12px;background:var(--accent);padding:9px 16px;color:#07111c;text-decoration:none;font-weight:900;transition:transform .18s ease,filter .18s ease}.launch:hover{transform:translateY(-2px);filter:brightness(1.06)}.source-link{min-height:44px;display:inline-flex;align-items:center;color:#a9c6da;text-decoration:underline;text-decoration-color:rgba(169,198,218,.45);text-underline-offset:4px;font-size:.84rem;font-weight:700}.note{margin-top:12px;color:#b8c6d5;font-size:.82rem}
+    details.projects{margin-top:36px;border:1px solid var(--line);border-radius:18px;background:rgba(13,22,39,.66);overflow:hidden}.projects summary{display:flex;min-height:58px;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;cursor:pointer;font-weight:850;list-style:none}.projects summary::-webkit-details-marker{display:none}.projects summary::after{content:"＋";color:var(--accent);font-size:1.2rem}.projects[open] summary::after{content:"−"}.projects-intro{margin:0;padding:0 18px 14px;color:var(--muted);font-size:.87rem}.source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 14px 16px}.source-item{min-width:0;padding:14px;border:1px solid rgba(148,163,184,.14);border-radius:13px;background:rgba(255,255,255,.02)}.source-item h3{margin:0 0 4px;font-size:.96rem;overflow-wrap:anywhere}.source-item p{margin:0 0 8px;color:var(--muted);font-size:.82rem}.source-item a{color:#a9c6da;font-size:.8rem;font-weight:700;text-underline-offset:3px}.verification{margin-top:20px;padding:13px 15px;border-inline-start:3px solid rgba(125,211,252,.65);border-radius:8px;background:rgba(125,211,252,.05);color:#b8c6d5;font-size:.84rem}
+    footer{border-top:1px solid var(--line);padding:24px 16px;text-align:center;color:var(--muted);font-size:.85rem}.license{max-width:900px;margin:14px auto 0;padding-top:14px;border-top:1px solid var(--line);font-size:.78rem}.license a{color:inherit;text-underline-offset:3px}.license-icons{display:inline-flex;align-items:center;gap:3px;margin-inline-start:5px;vertical-align:middle}.license-icons img{width:16px;height:16px}
+    a:focus-visible,summary:focus-visible{outline:3px solid #fbbf24;outline-offset:3px;border-radius:8px}
+    @media(max-width:680px){.header-inner{padding-inline:14px}.nav{gap:10px;font-size:.82rem}main{width:min(100% - 24px,1080px);padding-top:30px}.apps-grid,.source-grid{grid-template-columns:1fr}.app-card{padding:18px}.app-actions{align-items:stretch;flex-direction:column;gap:4px}.launch,.source-link{width:100%}.source-link{justify-content:center}}
+    @media(max-width:430px){.header-inner{align-items:stretch;flex-direction:column;gap:4px}.brand{align-self:center}.nav{justify-content:space-around}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/?locale=ar">elazzouz-dotcom</a>
+      <nav class="nav" aria-label="التنقل الرئيسي">
+        <a href="/?locale=ar">الرئيسية</a>
+        <a href="/tools/">الأدوات</a>
+        <a href="/github-apps/" aria-current="page">التطبيقات</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <span class="eyebrow">دليل التطبيقات المنشورة</span>
+      <h1 id="page-title">شغّل التطبيق، ثم افتح مصدره عند الحاجة</h1>
+      <p>هذه الصفحة تضع نسخ الويب المنشورة في المقدمة. زر التشغيل يفتح التطبيق نفسه، ورابط GitHub يبقى خيارًا ثانويًا لمراجعة الشيفرة.</p>
+      <p class="live-count"><strong>تطبيقان منشوران ومتحقق منهما</strong> على GitHub Pages.</p>
+    </section>
+
+    <section aria-labelledby="live-apps-title">
+      <h2 class="section-title" id="live-apps-title">التطبيقات المتاحة الآن</h2>
+      <div class="apps-grid">
+        <article class="app-card">
+          <div class="card-top"><span class="badge">متاح للتشغيل</span><span class="platform">GitHub Pages</span></div>
+          <h3>منصة elazzouz-dotcom</h3>
+          <p>الموقع الرئيسي الذي يجمع أدوات ومشاريع elazzouz-dotcom بواجهة عربية.</p>
+          <div class="app-actions">
+            <a class="launch" href="/?locale=ar">تشغيل المنصة</a>
+            <a class="source-link" href="https://github.com/elazzouz-dotcom/elazzouz-dotcom.github.io" target="_blank" rel="noopener noreferrer">مستودع المصدر</a>
+          </div>
+        </article>
+
+        <article class="app-card">
+          <div class="card-top"><span class="badge">متاح للتشغيل</span><span class="platform">GitHub Pages</span></div>
+          <h3>MX1 — مساحة النشر الذكية</h3>
+          <p>واجهة النشر والربط ومركز العمل. يتطلب تسجيل الدخول إلى Google للوصول إلى مساحة المستخدم.</p>
+          <div class="app-actions">
+            <a class="launch" href="https://elazzouz-dotcom.github.io/XM1/" target="_blank" rel="noopener noreferrer">تشغيل MX1</a>
+            <a class="source-link" href="https://github.com/elazzouz-dotcom/XM1" target="_blank" rel="noopener noreferrer">مستودع المصدر</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <p class="verification">لم أضع زر تشغيل لمستودع لا يملك نسخة ويب عامة موثقة. المشاريع التي تحتاج خادمًا أو قاعدة بيانات، أو ما زالت قالبًا أوليًا، تظهر أدناه كمصادر فقط حتى تصبح قابلة للتشغيل بأمان.</p>
+
+    <details class="projects">
+      <summary>مشاريع ومصادر غير منشورة كتطبيقات ويب (19)</summary>
+      <p class="projects-intro">تستطيع مراجعة الشيفرة، لكن لم يُعثر على تشغيل ويب صالح لهذه العناصر. لا يعني وجود المستودع وحده أن التطبيق جاهز للنشر.</p>
+      <div class="source-grid">
+        <article class="source-item"><h3>AI-Platform</h3><p>نسخة استقبال طلبات محلية تحفظ البيانات في ملف؛ تحتاج خدمة خلفية وحماية قبل أي نشر عام.</p><a href="https://github.com/elazzouz-dotcom/AI-Platform" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>azz</h3><p>عنوان النشر المسجل في GitHub يعيد 404 حاليًا؛ لا أضعه كزر تشغيل.</p><a href="https://github.com/elazzouz-dotcom/azz" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>azzouz</h3><p>صفحة إعادة توجيه إلى الموقع الرئيسي، وليست تطبيق ويب مستقلًا.</p><a href="https://github.com/elazzouz-dotcom/azzouz" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>c2</h3><p>مستودع مشروع؛ لا توجد نسخة تشغيل ويب عامة موثقة.</p><a href="https://github.com/elazzouz-dotcom/c2" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>cli</h3><p>أداة سطر أوامر للمطورين، وليست تطبيقًا يعمل داخل المتصفح.</p><a href="https://github.com/elazzouz-dotcom/cli" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>docs</h3><p>مستودع توثيق، وليس تطبيقًا تفاعليًا تابعًا لهذا الموقع.</p><a href="https://github.com/elazzouz-dotcom/docs" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>forge</h3><p>أداة لبناء تطبيقات سطح المكتب بـ Electron، وليست تطبيق ويب مستقلًا.</p><a href="https://github.com/elazzouz-dotcom/forge" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>Gobi</h3><p>مشروع شبكة اجتماعية يحتاج خادمًا وقاعدة بيانات؛ لا توجد نسخة ويب عامة موثقة.</p><a href="https://github.com/elazzouz-dotcom/Gobi" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>marketplace-social-platform</h3><p>مستودع مشروع تجارة وتواصل، بلا نسخة تشغيل عامة موثقة.</p><a href="https://github.com/elazzouz-dotcom/marketplace-social-platform" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>mohamed-azzouz</h3><p>مستودع ملف شخصي؛ لا توجد نسخة ويب عامة موثقة.</p><a href="https://github.com/elazzouz-dotcom/mohamed-azzouz" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>mohamedazzouz</h3><p>عنوان النشر المسجل في GitHub يعيد 404 حاليًا.</p><a href="https://github.com/elazzouz-dotcom/mohamedazzouz" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>nextjs</h3><p>النسخة المنشورة تعرض صفحة Next.js الافتراضية، وليست تطبيقًا مكتملًا.</p><a href="https://github.com/elazzouz-dotcom/nextjs" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>nvmok</h3><p>أداة لإدارة إصدارات Node.js عبر الطرفية؛ عنوان الويب المسجل يعيد 404 حاليًا.</p><a href="https://github.com/elazzouz-dotcom/nvmok" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>ok1</h3><p>مستودع عمل تجريبي؛ لا توجد نسخة تشغيل ويب عامة موثقة.</p><a href="https://github.com/elazzouz-dotcom/ok1" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>single-spa</h3><p>مستودع مرجعي لأنماط الواجهات المصغّرة، لا تطبيق ويب منشور.</p><a href="https://github.com/elazzouz-dotcom/single-spa" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>sooq-marketplace</h3><p>لا تتوفر ملفات تنفيذ مكتملة أو نسخة ويب عامة في الفرع الرئيسي.</p><a href="https://github.com/elazzouz-dotcom/sooq-marketplace" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>sooq-platform</h3><p>مستودع تخطيط لمنصة تجارة اجتماعية؛ لا توجد نسخة ويب عامة موثقة.</p><a href="https://github.com/elazzouz-dotcom/sooq-platform" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>sooq-smart-marketplace</h3><p>وصف مشروع سوق ذكي؛ لا توجد نسخة تشغيل ويب عامة موثقة.</p><a href="https://github.com/elazzouz-dotcom/sooq-smart-marketplace" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+        <article class="source-item"><h3>symmetrical-space-couscous</h3><p>قالب React/Vite أولي، وليس منتجًا تطبيقيًا مكتملًا.</p><a href="https://github.com/elazzouz-dotcom/symmetrical-space-couscous" target="_blank" rel="noopener noreferrer">عرض المصدر</a></article>
+      </div>
+    </details>
+  </main>
+
+  <footer>
+    <p>© 2026 elazzouz-dotcom</p>
+    <div class="license" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية">
+      <p>باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+      <p>لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+      <span class="license-icons" aria-hidden="true">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+      </span>
+    </div>
+  </footer>
+</body>
+</html>

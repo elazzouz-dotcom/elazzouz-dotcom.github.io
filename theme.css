@@ -44,7 +44,7 @@ body::before {
   display: block;
   padding: .65rem 1rem;
   background: var(--color-dark);
-  color: var(--color-primary-contrast);
+  color: var(--color-text);
   content: "Independent, unofficial learning resource — NOT an official VirusTotal site; not affiliated with or endorsed by VirusTotal.";
   font-size: .8rem;
   font-weight: 700;
@@ -178,6 +178,7 @@ header::after {
 
 .btn-primary {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: .5rem;
@@ -212,7 +213,7 @@ header::after {
   position: fixed;
   z-index: 100;
   top: .75rem;
-  left: .75rem;
+  inset-inline-start: .75rem;
   transform: translateY(-160%);
   border-radius: calc(var(--radius) * .55);
   background: var(--color-primary);

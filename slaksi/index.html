@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="أداة تعليمية محلية لتشفير ملف وإخفائه داخل صورة PNG باستخدام Web Crypto.">
   <title>SPECTRE ARCHIVE — الأرشيف الشبح</title>
+  <link rel="canonical" href="https://elazzouz-dotcom.github.io/slaksi/">
+  <meta property="og:title" content="SPECTRE ARCHIVE — الأرشيف الشبح">
+  <meta property="og:description" content="أداة تعليمية محلية لتشفير ملف وإخفائه داخل صورة PNG باستخدام Web Crypto.">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/slaksi/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="stylesheet" href="/theme.css">
   <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -866,7 +874,7 @@
         <div class="t">الوثيقة السرية<small>أي نوع ملف — تُفتح بالعبارة السرية نفسها</small></div>
       </div>
       <div class="drop" id="fileDrop" tabindex="0" role="button"><span class="ico">📦</span>اسحب الوثيقة هنا أو <b>اضغط للاختيار</b><small>لا وثيقة بعد</small></div>
-      <input type="file" id="fileInput" hidden>
+      <input type="file" id="fileInput" aria-label="الوثيقة السرية" hidden>
 
       <div class="step">
         <div class="n gold">03</div>
@@ -920,14 +928,14 @@
         اسحب الصورة الناقلة هنا أو <b>اضغط للاختيار</b>
         <small>لا صورة ناقلة بعد</small>
       </div>
-      <input type="file" id="stegoInput" accept="image/png" multiple hidden>
+      <input type="file" id="stegoInput" aria-label="الصورة الناقلة" accept="image/png" multiple hidden>
 
       <div class="step" style="margin-top:20px"><div class="n">02</div>
         <div class="t">العبارة السرية<small>حقيقية تفتح الحقيقية · وهمية تفتح التمويه · 3 محاولات خاطئة = PANIC WIPE</small></div>
       </div>
       <div class="row">
         <div class="f">
-          <input class="spectre-input" type="password" id="extPass" placeholder="العبارة السرية" autocomplete="off">
+          <input class="spectre-input" type="password" id="extPass" aria-label="العبارة السرية للاستخراج" placeholder="العبارة السرية" autocomplete="off">
           <div class="mrow"><span id="attemptTxt">المحاولات الفاشلة: 0/3</span><span id="slotTxt">—</span></div>
         </div>
         <button class="go" id="extBtn" type="button" disabled>🔓 استخراج الوثيقة</button>
@@ -1064,12 +1072,6 @@
       <textarea id="toolNotes" placeholder="اكتب ملاحظاتك محليًا دون مفاتيح أو أسرار..."></textarea>
       <p class="dim">تُستخدم هذه المساحة للملاحظات فقط، ولا تُحفظ تلقائيًا.</p>
     </div>
-      <h3>🧰 أدوات الميدان</h3>
-      <p class="dim">أدوات محلية للمراجعة والتنظيم. لا تُرسل الصور أو العبارات إلى أي خدمة.</p>
-      <hr class="sep">
-      <label for="toolNotes">ملاحظات العملية</label>
-      <textarea id="toolNotes" placeholder="اكتب ملاحظاتك محليًا دون مفاتيح أو أسرار..."></textarea>
-      <p class="dim">تُستخدم هذه المساحة للملاحظات فقط، ولا تُحفظ تلقائيًا.</p>
     </div>
   </div>
 
@@ -1086,7 +1088,7 @@
       </div>
       <div class="row" id="vaultLockView">
         <div class="f">
-          <input class="spectre-input" type="password" id="vaultPass" placeholder="عبارة الخلية الرئيسية" autocomplete="off">
+          <input class="spectre-input" type="password" id="vaultPass" aria-label="عبارة الخلية الرئيسية" placeholder="عبارة الخلية الرئيسية" autocomplete="off">
         </div>
         <button class="go" id="vaultOpenBtn" type="button">🔓 فتح / إنشاء الخلية</button>
       </div>
@@ -1095,7 +1097,7 @@
         <span class="vault-ico">🔐</span>
         <div class="row" style="margin-top:0">
           <div class="f">
-            <input class="spectre-input" type="text" id="vaultLabel" placeholder="تسمية الوثائق (اختياري)" autocomplete="off">
+            <input class="spectre-input" type="text" id="vaultLabel" aria-label="تسمية الوثائق" placeholder="تسمية الوثائق (اختياري)" autocomplete="off">
           </div>
         </div>
         <div class="drop" id="vaultDrop" tabindex="0" role="button">
@@ -1103,7 +1105,7 @@
           اسحب الوثائق هنا أو <b>اضغط للاختيار</b> — عدة ملفات معاً
           <small>الحد 100MB للوثيقة · كولشي كيتشفر قبل الخزن</small>
         </div>
-        <input type="file" id="vaultFileInput" multiple hidden>
+        <input type="file" id="vaultFileInput" aria-label="ملفات الخلية" multiple hidden>
         <div class="mrow">
           <span class="vcount" id="vaultCount">0 وثائق</span>
           <span class="vcount" id="vaultSize">—</span>
@@ -1114,8 +1116,6 @@
         <div class="mrow">
           <span class="vcount" id="vaultGaugeTxt">الخزنة: جاري حساب السعة...</span>
         </div>
-        <div class="vgauge"><i id="vaultGauge"></i></div>
-        <div class="mrow"><span class="vcount" id="vaultGaugeTxt">الخزنة: جاري حساب السعة...</span></div>
         <div id="vaultList" style="margin-top:12px"></div>
         <div class="row">
                 <button class="vbtn" id="vaultLockBtn" type="button">🔒 قفل الخلية</button>
@@ -1158,7 +1158,19 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <footer>SPECTRE ARCHIVE · معالجة محلية داخل المتصفح فقط · لا تُرسل الملفات إلى أي خدمة</footer>
+  <footer>SPECTRE ARCHIVE · معالجة محلية داخل المتصفح فقط · لا تُرسل الملفات إلى أي خدمة
+
+<div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية" style="box-sizing:border-box;flex-basis:100%;width:100%;max-width:72rem;margin:1rem auto 0;padding:1rem 1rem 0;border-top:1px solid rgba(148,163,184,.28);text-align:center;color:inherit;font-size:.84em;line-height:1.75;">
+    <p style="margin:0 0 .35rem;">باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license" style="color:inherit;text-underline-offset:.15em;">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+    <p style="margin:0 0 .4rem;">لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+    <span aria-hidden="true" style="display:inline-flex;align-items:center;gap:.12em;vertical-align:middle;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+    </span>
+  </div>
+  </footer>
 
   <script>
     /* Vault presentation layer: expandable document rows and real browser quota gauge. */
@@ -4418,6 +4430,7 @@ window.SpectreV4State = {
             };
 
             await saveCell(db, cell);
+            if (!cells) { message(`⚠️ تم حفظ ${file.name} لكن الخلية أُغلقت قبل تحديث القائمة.`, 'warn'); break; }
             cells.push(cell);
             added += 1;
           } catch (error) {
@@ -4471,18 +4484,23 @@ window.SpectreV4State = {
       });
       get('vaultWipeBtn').addEventListener('click', async () => {
         if (!window.confirm('حرق الخلية نهائياً؟ كولشي كيمسح وما كاين رجوع.')) return;
-        const db = await openDatabase();
-        await new Promise((resolve, reject) => {
-          const request = db.transaction(STORE, 'readwrite').objectStore(STORE).clear();
-          request.onsuccess = resolve;
-          request.onerror = () => reject(request.error);
-        });
-        cells = null;
-        passphrase = '';
-        get('vaultOpenView').style.display = 'none';
-        get('vault').classList.remove('unlocked');
-        get('vaultLockView').style.display = 'flex';
-        message('🔥 الخلية انحرقت نهائياً من IndexedDB.', 'err');
+        try {
+          const db = await openDatabase();
+          await new Promise((resolve, reject) => {
+            const request = db.transaction(STORE, 'readwrite').objectStore(STORE).clear();
+            request.onsuccess = resolve;
+            request.onerror = () => reject(request.error);
+            request.onabort = () => reject(request.error || new Error('تم إلغاء المعاملة'));
+          });
+          cells = null;
+          passphrase = '';
+          get('vaultOpenView').style.display = 'none';
+          get('vault').classList.remove('unlocked');
+          get('vaultLockView').style.display = 'flex';
+          message('🔥 الخلية انحرقت نهائياً من IndexedDB.', 'err');
+        } catch (error) {
+          message(`❌ تعذر حرق الخلية: ${error.message || 'خطأ في IndexedDB'}`, 'err');
+        }
       });
     })();
   </script>

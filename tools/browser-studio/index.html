@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Workflow Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #0b1020; color: #e2e8f0; }
+    .panel { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.2); }
+  </style>
+</head>
+<body class="min-h-screen">
+  <header class="border-b border-slate-800 bg-slate-950/90">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="text-xl font-black text-white">Browser Workflow Studio</a>
+      <nav class="hidden gap-5 text-sm font-semibold text-slate-300 md:flex">
+        <a href="/workspaces/">الأدوات</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+    <section class="mb-10 rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 to-blue-900/20 p-8">
+      <h1 class="text-4xl font-black">استوديو سير عمل المتصفح</h1>
+      <p class="mt-3 max-w-3xl text-lg text-slate-300">رتب خطوات المتصفح وولد كود Playwright أو Stagehand بدون الحاجة لإدخال بيانات حساسة.</p>
+    </section>
+
+    <div class="grid gap-6 md:grid-cols-2">
+      <div class="panel rounded-2xl p-6">
+        <h2 class="mb-4 text-2xl font-bold text-cyan-300">⌘ رتب الخطوات</h2>
+        <div class="space-y-3">
+          <div class="flex gap-2">
+            <input type="text" placeholder="وصف الخطوة" class="flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2" id="step-desc">
+            <button onclick="addStep()" class="rounded-lg bg-cyan-500 px-4 py-2 font-bold text-slate-950">أضف</button>
+          </div>
+          <div id="steps-list" class="space-y-2 text-sm">
+            <p class="text-slate-400">لا توجد خطوات بعد</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel rounded-2xl p-6">
+        <h2 class="mb-4 text-2xl font-bold text-cyan-300">📝 الكود المُولّد</h2>
+        <pre id="generated-code" class="overflow-auto rounded-lg border border-slate-700 bg-slate-950 p-4 text-xs text-cyan-300">// سيظهر الكود هنا</pre>
+        <button onclick="copyCode()" class="mt-4 rounded-lg border border-cyan-500 px-4 py-2 text-sm font-bold text-cyan-300">انسخ الكود</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-sm text-slate-400 mt-12">
+    <p>© 2026 elazzouz-dotcom</p>
+
+<div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية" style="box-sizing:border-box;flex-basis:100%;width:100%;max-width:72rem;margin:1rem auto 0;padding:1rem 1rem 0;border-top:1px solid rgba(148,163,184,.28);text-align:center;color:inherit;font-size:.84em;line-height:1.75;">
+    <p style="margin:0 0 .35rem;">باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license" style="color:inherit;text-underline-offset:.15em;">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+    <p style="margin:0 0 .4rem;">لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+    <span aria-hidden="true" style="display:inline-flex;align-items:center;gap:.12em;vertical-align:middle;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+    </span>
+  </div>
+  </footer>
+
+  <script>
+    let steps = [];
+
+    function addStep() {
+      const desc = document.getElementById('step-desc').value;
+      if (!desc) return;
+      steps.push(desc);
+      document.getElementById('step-desc').value = '';
+      renderSteps();
+      generateCode();
+    }
+
+    function renderSteps() {
+      const list = document.getElementById('steps-list');
+      if (!steps.length) {
+        list.innerHTML = '<p class="text-slate-400">لا توجد خطوات بعد</p>';
+        return;
+      }
+      list.innerHTML = steps.map((step, i) => `
+        <div class="flex items-center justify-between rounded-lg border border-slate-700 p-3">
+          <span>${i + 1}. ${step}</span>
+          <button onclick="removeStep(${i})" class="text-red-400">حذف</button>
+        </div>
+      `).join('');
+    }
+
+    function removeStep(i) {
+      steps.splice(i, 1);
+      renderSteps();
+      generateCode();
+    }
+
+    function generateCode() {
+      const code = `// Browser Workflow with Playwright
+import { chromium } from 'playwright';
+
+(async () => {
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  
+  ${steps.map(step => `// ${step}\n  // await page.goto('URL');\n  // await page.click('selector');`).join('\n\n  ')}
+  
+  await browser.close();
+})();`;
+      document.getElementById('generated-code').textContent = code;
+    }
+
+    function copyCode() {
+      const code = document.getElementById('generated-code').textContent;
+      navigator.clipboard.writeText(code).then(() => alert('تم نسخ الكود'));
+    }
+  </script>
+</body>
+</html>
