@@ -36,6 +36,8 @@ jobs:
         run: python3 scripts/check_site.py
       - name: Validate Restream launch page contract
         run: python3 scripts/check_stream_contract.py
+      - name: Validate GitHub Apps launch directory
+        run: python3 scripts/check_github_apps_contract.py
       - name: Test SemVer node graph and safe URL parsing
         run: node --test semver-bnf/graph-model.test.mjs
       - name: Validate fixed OneCompiler integration contract
