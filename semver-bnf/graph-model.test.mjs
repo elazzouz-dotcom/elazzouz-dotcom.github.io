@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { NODE_LEVELS, NODE_TOTAL, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
+import { NODE_LEVELS, NODE_TOTAL, getNodeChildren, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
 
 test('الشبكة تضم 601 عقدة موزعة على سبعة مستويات', () => {
   assert.deepEqual(NODE_LEVELS, [1, 3, 9, 27, 81, 243, 237]);
@@ -30,6 +30,15 @@ test('لكل عقدة غير الجذر أب سابق صالح ولا توجد �
     edges += 1;
   }
   assert.equal(edges, NODE_TOTAL - 1);
+});
+
+test('أبناء العقد تتبع البنية الثلاثية ولا تتجاوز 601 عقدة', () => {
+  assert.deepEqual(getNodeChildren(1), [2, 3, 4]);
+  assert.deepEqual(getNodeChildren(2), [5, 6, 7]);
+  assert.deepEqual(getNodeChildren(601), []);
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    for (const child of getNodeChildren(id)) assert.equal(getNodeParent(child), id);
+  }
 });
 
 test('تطبيع روابط الويب يقبل النطاقات والمسارات والمعلمات', () => {

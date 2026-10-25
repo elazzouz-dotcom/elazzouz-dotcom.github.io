@@ -79,6 +79,7 @@ body.semver-page a { color: inherit; }
 #node-lines, #node-network { position: absolute; inset: 0 auto auto 0; }
 #node-lines { overflow: visible; pointer-events: none; }
 .network-connection { fill: none; stroke: rgba(89, 224, 163, .28); stroke-width: 1.5; }
+.network-connection.path-active { stroke: var(--semver-gold); stroke-width: 3; opacity: .92; }
 .network-connection.flow-active { stroke: var(--semver-gold); stroke-width: 3.5; stroke-dasharray: 8 7; animation: connectionFlow .8s linear infinite; }
 @keyframes connectionFlow { to { stroke-dashoffset: -30; } }
 #node-network { direction: ltr; }
@@ -86,6 +87,7 @@ body.semver-page a { color: inherit; }
 .network-node { position: absolute; z-index: 2; display: grid; width: 44px; height: 44px; place-content: center; gap: 0; border: 1px solid rgba(89, 224, 163, .65); border-radius: 50%; padding: 0; color: #dfffee; background: radial-gradient(circle at 35% 25%, #183c31, #081411 75%); box-shadow: 0 0 14px rgba(89, 224, 163, .15); cursor: pointer; transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease; }
 .network-node:hover, .network-node:focus-visible { z-index: 4; transform: scale(1.12); border-color: var(--semver-gold); box-shadow: 0 0 20px rgba(244, 206, 114, .28); }
 .network-node[data-active="true"] { border-color: var(--semver-gold); background: radial-gradient(circle at 35% 25%, #574925, #17140b 75%); }
+.network-node.is-path { outline: 2px solid rgba(244, 206, 114, .78); outline-offset: 4px; }
 .network-node.is-highlighted { z-index: 5; outline: 2px solid var(--semver-gold); outline-offset: 3px; }
 .network-node.is-flowing { animation: nodeFlow .6s ease-in-out 3; }
 @keyframes nodeFlow { 50% { box-shadow: 0 0 24px rgba(244, 206, 114, .7); transform: scale(1.16); } }

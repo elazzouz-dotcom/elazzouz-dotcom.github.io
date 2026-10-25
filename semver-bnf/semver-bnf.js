@@ -257,6 +257,14 @@ function nodePath(id) {
   return path;
 }
 
+function highlightNodePath(id) {
+  const path = new Set(nodePath(id));
+  for (const button of nodeButtons.values()) button.classList.toggle('is-path', path.has(Number(button.dataset.id)));
+  for (const edge of lines.querySelectorAll('.network-connection')) {
+    edge.classList.toggle('path-active', path.has(Number(edge.dataset.from)) && path.has(Number(edge.dataset.to)));
+  }
+}
+
 function animatePipeFlow(id) {
   const path = nodePath(id);
   path.forEach((nodeId, index) => {
@@ -400,6 +408,7 @@ async function buildHub(silent = false) {
 function openHubNode(id, button) {
   focusReturn = button;
   activeHub = { id, node: button };
+  highlightNodePath(id);
   $('#hub-node-number').textContent = `#${String(id).padStart(3, '0')}`;
   const data = getHubData(id);
   hubUrl.value = data?.url || '';
@@ -503,7 +512,13 @@ function openExternally() {
   const raw = hubUrl.value.trim() || getHubData(activeHub.id)?.url || '';
   try {
     const link = parseNodeLink(raw);
-    window.open(link.url, '_blank', 'noopener,noreferrer');
+    const opened = window.open(link.url, '_blank', 'noopener,noreferrer');
+    if (!opened) {
+      setHubStatus('حجب المتصفح نافذة جديدة؛ اضغط مرة أخرى أو استخدم الرابط المباشر.', false);
+      return;
+    }
+    try { opened.opener = null; } catch { /* بعض المتصفحات تمنع تعديل النافذة الجديدة. */ }
+    setHubStatus('فُتح الرابط الخارجي في تبويب جديد.');
   } catch (error) {
     setHubStatus(error?.message || 'أدخل رابطًا صالحًا للفتح الخارجي.', false);
   }

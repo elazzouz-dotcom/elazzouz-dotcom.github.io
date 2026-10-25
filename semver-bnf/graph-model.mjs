@@ -19,6 +19,15 @@ export function getNodeParent(id) {
   return parentFirst + Math.floor(child.index / 3);
 }
 
+export function getNodeChildren(id) {
+  const parent = getNodeLevelInfo(id);
+  if (!parent || parent.level >= NODE_LEVELS.length - 1) return [];
+  const childFirst = parent.first + NODE_LEVELS[parent.level];
+  const firstChild = childFirst + parent.index * 3;
+  return [firstChild, firstChild + 1, firstChild + 2]
+    .filter((childId) => childId <= NODE_TOTAL);
+}
+
 function isPrivateIpv4(host) {
   const match = String(host).match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!match) return false;
