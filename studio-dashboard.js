@@ -15,8 +15,10 @@
   document.getElementById('studio-connection-github')?.addEventListener('click', () => document.getElementById('studio-top-connect')?.click());
   const status = document.getElementById('ghw-status'), topStatus = document.getElementById('studio-top-status'), topButton = document.getElementById('studio-top-connect');
   if (status && topStatus) {
-    const sync = () => { topStatus.textContent = status.textContent || 'غير متصل'; if (/متصل|تم ربط|connected/i.test(status.textContent)) { topStatus.style.color = '#6ee7a5'; if (topButton) topButton.textContent = 'تسجيل الدخول إلى GitHub'; } };
-    new MutationObserver(sync).observe(status, { childList: true, characterData: true, subtree: true }); sync();
+    const sync = () => { topStatus.textContent = status.textContent || 'غير متصل'; if (/متصل|تم ربط|جلسة GitHub|تسجيل الدخول|استعادة جلسة|connected/i.test(status.textContent)) { topStatus.style.color = '#6ee7a5'; if (topButton) { topButton.textContent = 'جلسة GitHub نشطة'; topButton.disabled = true; } } else if (topButton) { topButton.textContent = 'تسجيل الدخول إلى GitHub'; topButton.disabled = false; } };
+    new MutationObserver(sync).observe(status, { childList: true, characterData: true, subtree: true });
+    window.addEventListener('slaks-github-session', sync);
+    sync();
   }
 })();
 

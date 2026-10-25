@@ -11,7 +11,7 @@
   let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
   let currentUserCode = '';
   let currentVerificationUrl = '';
-  const STORAGE_KEY = 'hosting-studio.github.access-token';
+  const STORAGE_KEY = 'slaks.github.access-token';
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const setStatus = (message, good = false) => {
     status.textContent = message; window.studioLog?.(message, good ? 'success' : 'info');
@@ -43,7 +43,7 @@
   const saveToken = (value) => { try { sessionStorage.setItem(STORAGE_KEY, value); } catch {} };
   const readToken = () => { try { return sessionStorage.getItem(STORAGE_KEY); } catch { return null; } };
   const clearToken = () => { try { sessionStorage.removeItem(STORAGE_KEY); } catch {} };
-  const activateSession = (user, message) => { panel.classList.remove('hidden'); setEnabled(true); setLogoutVisible(true); connect.disabled = false; connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus(message, true); loadBranches(); };
+  const activateSession = (user, message) => { panel.classList.remove('hidden'); setEnabled(true); setLogoutVisible(true); connect.disabled = true; connect.textContent = 'جلسة GitHub نشطة'; setStatus(message, true); window.dispatchEvent(new CustomEvent('slaks-github-session', { detail: { connected: true, user } })); loadBranches(); };
 
   async function connectGitHub() {
     connect.disabled = true; setStatus('جاري طلب رمز آمن من GitHub...');
@@ -97,7 +97,7 @@
     if (topAuthButton) topAuthButton.hidden = true;
     if (copyCodeButton) copyCodeButton.hidden = true;
     if (topCopyCodeButton) topCopyCodeButton.hidden = true;
-    setStatus('تم تسجيل الخروج يدويًا.');
+    setStatus('تم تسجيل الخروج يدويًا.'); window.dispatchEvent(new CustomEvent('slaks-github-session', { detail: { connected: false } }));
   }
 
   async function copyGitHubCode() {
