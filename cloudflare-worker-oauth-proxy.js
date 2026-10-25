@@ -20,14 +20,14 @@ const GITHUB_AUTH_BASE = 'https://github.com';
 /**
  * Main request handler
  */
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
-});
+export default {
+  fetch(request, env) { return handleRequest(request, env); }
+};
 
 /**
  * Handle incoming requests
  */
-async function handleRequest(request) {
+async function handleRequest(request, env) {
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
     return handleCORS();
@@ -208,7 +208,8 @@ async function handleExternalPreview(requestUrl) {
 
 function isPublicHostname(hostname) {
   const host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
-  if (!host || host === 'localhost' || host.endsWith('.local') || host.endsWith('.localhost') || host.endsWith('.internal')) return false;
+  if (!host || host === 'localhost' || host.endsWith('.local') || host.endsWith('.localhost') || host.endsWith('.internal') || host === 'metadata.google.internal' || host === 'metadata') return false;
+  if (host.includes(':')) { const compact = host.replace(/:/g, ''); if (host === '::1' || host.startsWith('fc') || host.startsWith('fd') || host.startsWith('fe8') || host.startsWith('fe9') || host.startsWith('fea') || host.startsWith('feb') || compact.startsWith('ffff')) return false; }
   if (host === '::1' || host === '0.0.0.0' || host.startsWith('127.') || host.startsWith('10.') || host.startsWith('192.168.') || host.startsWith('169.254.')) return false;
   const octets = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
   if (octets) { const [a, b] = octets.slice(1, 3).map(Number); if (a === 0 || a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254)) return false; }
@@ -249,7 +250,7 @@ function handleCORS() {
  */
 function corsHeaders(additionalHeaders = {}) {
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://elazzouz-dotcom.github.io',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-GitHub-Api-Version',
     'Access-Control-Max-Age': '86400',
@@ -302,7 +303,7 @@ async function handleDeviceCode(request) {
 async function handleToken(request) {
   try {
     const body = await request.json();
-    const clientSecret = CLIENT_SECRET || '';
+    const clientSecret = env.CLIENT_SECRET || '';
 
     // Prepare the request body for GitHub
     const tokenRequest = {
@@ -344,7 +345,7 @@ async function handleToken(request) {
 async function handleTokenRefresh(request) {
   try {
     const body = await request.json();
-    const clientSecret = CLIENT_SECRET || '';
+    const clientSecret = env.CLIENT_SECRET || '';
 
     const response = await fetch(`${GITHUB_AUTH_BASE}/login/oauth/access_token`, {
       method: 'POST',
@@ -384,7 +385,7 @@ async function handleTokenRefresh(request) {
 async function handleTokenRevoke(request) {
   try {
     const body = await request.json();
-    const clientSecret = CLIENT_SECRET || '';
+    const clientSecret = env.CLIENT_SECRET || '';
 
     const response = await fetch(`${GITHUB_AUTH_BASE}/applications/${CLIENT_ID}/token`, {
       method: 'DELETE',
@@ -485,9 +486,9 @@ async function handleAIAnalysis(request) {
     const nodeId = Number(body.nodeId || 0);
     const source = String(body.text || body.html || '').slice(0, 12000);
     if (!nodeId || !source) return new Response(JSON.stringify({ error: 'nodeId and content are required' }), { status: 400, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
-    if (typeof AI === 'undefined' || !AI || typeof AI.run !== 'function') return new Response(JSON.stringify({ error: 'AI binding is not configured', hint: 'Deploy this Worker with an AI binding named AI.' }), { status: 503, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
+    if (!env.AI || typeof env.AI.run !== 'function') return new Response(JSON.stringify({ error: 'AI binding is not configured', hint: 'Deploy this Worker with an AI binding named AI.' }), { status: 503, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
     const prompt = `Analyze this SemVer Hub node and return JSON only. Fields: nodeId, status, title, summary, keywords, technologies, relations, riskFlags, confidence. Do not invent facts. Node ID: ${nodeId}. URL: ${String(body.url || '').slice(0, 500)}. Content: ${source}`;
-    const result = await AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [{ role: 'system', content: 'You are a careful technical data analyst. Return valid JSON only.' }, { role: 'user', content: prompt }] });
+    const result = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [{ role: 'system', content: 'You are a careful technical data analyst. Return valid JSON only.' }, { role: 'user', content: prompt }] });
     const raw = typeof result?.response === 'string' ? result.response : JSON.stringify(result);
     let analysis; try { analysis = JSON.parse(raw.replace(/^```json\s*|\s*```$/g, '').trim()); } catch { analysis = { summary: raw.slice(0, 2000), keywords: [], technologies: [], relations: [], riskFlags: ['model_returned_non_json'], confidence: 0.5 }; }
     return new Response(JSON.stringify({ nodeId, status: 'analyzed', ...analysis, analyzedAt: new Date().toISOString() }), { status: 200, headers: corsHeaders({ 'Content-Type': 'application/json' }) });

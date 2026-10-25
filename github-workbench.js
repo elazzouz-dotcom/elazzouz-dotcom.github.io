@@ -12,6 +12,7 @@
   let currentUserCode = '';
   let currentVerificationUrl = '';
   const STORAGE_KEY = 'hosting-studio.github.access-token';
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const setStatus = (message, good = false) => {
     status.textContent = message; window.studioLog?.(message, good ? 'success' : 'info');
     status.style.color = good ? '#16a34a' : 'var(--color-icon)';
@@ -39,9 +40,9 @@
   const filePath = () => `${repoPath()}/contents/${$('ghw-path').value.trim().split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent($('ghw-branch').value.trim())}`;
   const setEnabled = (enabled) => [loadButton, saveButton, publishButton, createRepoButton, branchButton, branchRefreshButton, visibleBranchCreateButton, mergeCheckButton, autoMergeButton, clefAnalyzeButton].forEach(button => { if (button) button.disabled = !enabled; });
   const setLogoutVisible = (visible) => [logoutButton, topLogoutButton].forEach(button => { if (button) { button.hidden = false; button.disabled = !visible; } });
-  const saveToken = (value) => { try { localStorage.setItem(STORAGE_KEY, value); } catch {} };
-  const readToken = () => { try { return localStorage.getItem(STORAGE_KEY); } catch { return null; } };
-  const clearToken = () => { try { localStorage.removeItem(STORAGE_KEY); } catch {} };
+  const saveToken = (value) => { try { sessionStorage.setItem(STORAGE_KEY, value); } catch {} };
+  const readToken = () => { try { return sessionStorage.getItem(STORAGE_KEY); } catch { return null; } };
+  const clearToken = () => { try { sessionStorage.removeItem(STORAGE_KEY); } catch {} };
   const activateSession = (user, message) => { panel.classList.remove('hidden'); setEnabled(true); setLogoutVisible(true); connect.disabled = false; connect.textContent = 'تسجيل الدخول إلى GitHub'; setStatus(message, true); loadBranches(); };
 
   async function connectGitHub() {
@@ -200,7 +201,7 @@
   }
   function renderMergeReport(title, details = [], kind = 'info') {
     if (!mergeReport) return;
-    mergeReport.innerHTML = `<div class="studio-merge-report-title ${kind}">${title}</div>` + (details.length ? `<ul>${details.map(item => `<li>${item}</li>`).join('')}</ul>` : '');
+    mergeReport.innerHTML = `<div class="studio-merge-report-title ${escapeHtml(kind)}">${escapeHtml(title)}</div>` + (details.length ? `<ul>${details.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '');
     if (mergeState) { mergeState.textContent = kind === 'success' ? 'تم الدمج' : kind === 'danger' ? 'تعارضات' : 'تم الفحص'; mergeState.className = `studio-merge-badge ${kind}`; }
   }
   function mergePair() { return { owner: $('ghw-owner').value.trim(), repo: $('ghw-repo').value.trim(), source: mergeSource?.value.trim(), target: mergeTarget?.value.trim() }; }

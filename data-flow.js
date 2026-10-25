@@ -58,7 +58,7 @@
   const codeRow = widget.querySelector('.github-code-row');
   const copy = widget.querySelector('#home-github-copy');
   const open = widget.querySelector('#home-github-open');
-  let token = localStorage.getItem(STORAGE_KEY);
+  let token = sessionStorage.getItem(STORAGE_KEY);
   let pollInterval = 5000;
 
   const setAuthStatus = (message, good = false) => { authStatus.textContent = message; authStatus.style.color = good ? '#9bf7cb' : ''; };
@@ -71,7 +71,7 @@
     return data;
   };
   copy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(code.textContent); copy.textContent = 'تم النسخ ✓'; } catch { copy.textContent = 'انسخه يدويًا'; } });
-  const restore = async () => { if (!token) return; try { await api('/user'); setAuthStatus('جلسة GitHub مستعادة على هذا المتصفح.', true); login.textContent = 'جلسة GitHub نشطة'; } catch { token = null; localStorage.removeItem(STORAGE_KEY); } };
+  const restore = async () => { if (!token) return; try { await api('/user'); setAuthStatus('جلسة GitHub مستعادة على هذا المتصفح.', true); login.textContent = 'جلسة GitHub نشطة'; } catch { token = null; sessionStorage.removeItem(STORAGE_KEY); } };
   login.addEventListener('click', async () => {
     login.disabled = true;
     setAuthStatus('جاري طلب كود آمن من GitHub...');
@@ -90,7 +90,7 @@
       while (Date.now() < deadline) {
         await sleep(pollInterval);
         const result = await api('/token', { method: 'POST', body: JSON.stringify({ client_id: clientId, clientId, device_code: device.device_code, deviceCode: device.device_code, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' }) });
-        if (result.access_token) { token = result.access_token; localStorage.setItem(STORAGE_KEY, token); await api('/user'); setAuthStatus('تم تسجيل الدخول وحفظ الجلسة محليًا حتى تسجيل الخروج أو انتهاء صلاحية GitHub.', true); login.textContent = 'جلسة GitHub نشطة'; break; }
+        if (result.access_token) { token = result.access_token; sessionStorage.setItem(STORAGE_KEY, token); await api('/user'); setAuthStatus('تم تسجيل الدخول وحفظ الجلسة محليًا حتى تسجيل الخروج أو انتهاء صلاحية GitHub.', true); login.textContent = 'جلسة GitHub نشطة'; break; }
         if (result.error === 'slow_down') pollInterval += 5000;
       }
     } catch (error) { setAuthStatus(`تعذر تسجيل الدخول: ${error.message}`); }
