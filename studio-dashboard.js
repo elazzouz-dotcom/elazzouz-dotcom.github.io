@@ -80,3 +80,49 @@
   setVerifyState(false);
   init();
 })();
+
+// Role management uses the same GitHub session as the workbench.
+(() => {
+  const API = 'https://github-oauth-proxy.elazzouz4.workers.dev';
+  const key = 'slaks.github.access-token';
+  const form = document.getElementById('studio-permission-form');
+  const login = document.getElementById('studio-permission-login');
+  const role = document.getElementById('studio-permission-role');
+  const status = document.getElementById('studio-permission-status');
+  const list = document.getElementById('studio-permission-list');
+  if (!form || !status || !list) return;
+  const token = () => { try { return sessionStorage.getItem(key); } catch { return null; } };
+  const request = async (path, options = {}) => {
+    const headers = { Accept: 'application/json', 'Content-Type': 'application/json' };
+    if (token()) headers.Authorization = `Bearer ${token()}`;
+    const response = await fetch(`${API}${path}`, { ...options, headers });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.message || data.error || `HTTP ${response.status}`);
+    return data;
+  };
+  const setStatus = (message, good = false) => { status.textContent = message; status.style.color = good ? '#8af0bf' : ''; };
+  const render = data => {
+    list.replaceChildren();
+    const rows = [[data.owner, 'owner'], ...Object.entries(data.roles || {})];
+    const seen = new Set();
+    rows.forEach(([user, access]) => {
+      if (!user || seen.has(user)) return; seen.add(user);
+      const row = document.createElement('div'); row.className = 'studio-permission-row';
+      const name = document.createElement('b'); name.textContent = `@${user}`;
+      const badge = document.createElement('span'); badge.textContent = access === 'owner' ? 'مالك' : access === 'admin' ? 'مدير' : access === 'editor' ? 'محرر' : 'مشاهد';
+      row.append(name, badge); list.appendChild(row);
+    });
+    setStatus(`الدور الحالي: ${data.currentRole === 'owner' ? 'مالك' : data.currentRole === 'admin' ? 'مدير' : data.currentRole === 'editor' ? 'محرر' : 'مشاهد'}`, true);
+    form.hidden = !['owner', 'admin'].includes(data.currentRole);
+  };
+  const refresh = async () => {
+    if (!token()) return setStatus('سجّل الدخول إلى GitHub أولًا.');
+    try { render(await request('/permissions')); } catch (error) { list.replaceChildren(); setStatus(error.message); form.hidden = true; }
+  };
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); const username = login.value.trim(); if (!username) return;
+    try { form.querySelector('button').disabled = true; setStatus('جاري حفظ الصلاحية...'); const data = await request('/permissions', { method: 'PUT', body: JSON.stringify({ login: username, role: role.value }) }); login.value = ''; render(data); }
+    catch (error) { setStatus(`تعذر حفظ الصلاحية: ${error.message}`); } finally { form.querySelector('button').disabled = false; }
+  });
+  window.addEventListener('slaks-github-session', refresh); refresh();
+})();
