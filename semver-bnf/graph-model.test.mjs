@@ -53,6 +53,14 @@ test('روابط mailto وtel تحفظ للفتح الخارجي فقط', () => 
   assert.throws(() => parseNodeLink('mailto:hello%ZZ@example.com'));
 });
 
+test('روابط التطبيقات الخارجية الآمنة تمررها للنظام أو المتصفح', () => {
+  assert.equal(parseNodeLink('sms:+12025550123').kind, 'app');
+  assert.equal(parseNodeLink('whatsapp://send?text=hello').kind, 'app');
+  assert.equal(parseNodeLink('tg://resolve?domain=slaks').kind, 'app');
+  assert.equal(parseNodeLink('itms-apps://itunes.apple.com/app/id535886823').kind, 'app');
+  assert.throws(() => parseNodeLink('javascript:alert(1)'));
+});
+
 test('تُقبل الروابط الطويلة ضمن الحد وتُرفض الروابط المفرطة الطول', () => {
   const accepted = `https://example.com/${'a'.repeat(4000)}`;
   const rejected = `https://example.com/${'a'.repeat(8200)}`;

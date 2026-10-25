@@ -119,7 +119,7 @@
           <div class="node-map-legend"><span><strong>أخضر</strong> عقدة غير مهيأة</span><span><strong>ذهبي</strong> عقدة تحتوي رابطًا أو محتوى</span><span>اختر العقدة لفتح إعداداتها</span></div>
         </div>
         <p id="node-status" class="node-status" aria-live="polite">جارٍ تجهيز شبكة العقد…</p>
-        <p class="semver-note">تُقبل روابط HTTP/HTTPS العامة وتُحفظ محليًا، لكن الصفحة لا تجلب محتوى المواقع الخارجية ولا تعرضها داخل المعاينة. افتح الرابط في تبويب مستقل. تعمل روابط mailto: وtel: للفتح الخارجي فقط. تُرفض مخططات JavaScript والملفات المحلية والعناوين الخاصة. يعرض الإطار HTML الذي تدخله أنت فقط، مع sandbox محدود الصلاحيات. التخزين في هذا المتصفح فقط وبسقف إجمالي تقريبي 650 كيلوبايت.</p>
+        <p class="semver-note">تُقبل روابط HTTP/HTTPS العامة وتُحفظ محليًا، ولا تجلب الصفحة محتوى المواقع الخارجية. عند الفتح يختار iOS أو Android التطبيق المرتبط برابط Universal/App Link إن كان مثبتًا، وإلا يفتح المتصفح. تُدعم روابط mailto: وtel: وsms: وwhatsapp: وtg: وspotify: وitms-apps: وgeo: وcomgooglemaps:. تُرفض مخططات JavaScript والملفات المحلية والعناوين الخاصة. يعرض الإطار HTML الذي تدخله أنت فقط، مع sandbox محدود الصلاحيات. التخزين في هذا المتصفح فقط وبسقف إجمالي تقريبي 650 كيلوبايت.</p>
       </div>
     </section>
 
@@ -183,7 +183,7 @@
   <div id="hub-modal" class="hub-modal" hidden>
     <section id="hub-dialog" class="hub-dialog" role="dialog" aria-modal="true" aria-labelledby="hub-title">
       <div class="hub-dialog-head">
-          <div><p class="semver-kicker">إعداد محلي لهذه العقدة</p><h2 id="hub-title">العقدة <span id="hub-node-number" class="hub-number"></span></h2><p>أضف رابطًا أو HTML محليًا. لا يتم جلب المواقع الخارجية.</p></div>
+          <div><p class="semver-kicker">إعداد محلي لهذه العقدة</p><h2 id="hub-title">العقدة <span id="hub-node-number" class="hub-number"></span></h2><p>أضف رابطًا أو HTML محليًا. الرابط الخارجي يفتح التطبيق المرتبط إن كان مثبتًا، وإلا يفتح في المتصفح.</p></div>
         <button id="hub-close" class="semver-button" type="button" aria-label="إغلاق نافذة العقدة">×</button>
       </div>
       <div class="hub-form-grid">
@@ -194,12 +194,12 @@
           <textarea id="hub-html" class="semver-textarea" spellcheck="false" placeholder="&lt;h1&gt;محتوى محلي&lt;/h1&gt;"></textarea>
         </label>
       </div>
-      <p class="hub-tip">تُقبل روابط HTTP/HTTPS مع المسارات والاستعلامات والمنافذ والنطاقات الدولية، وتُحفظ كروابط فقط دون جلب محتواها. تقبل mailto: وtel: للفتح الخارجي. لا تدخل كلمات مرور أو روابط خاصة. يمكنك إضافة HTML محلي محدود الحجم لمعاينته في إطار sandbox.</p>
+      <p class="hub-tip">تُقبل روابط HTTP/HTTPS مع المسارات والاستعلامات والمنافذ والنطاقات الدولية، وتُحفظ كروابط فقط دون جلب محتواها. يمكن أيضًا إدخال رابط تطبيق مثل whatsapp: أو tg: أو sms: أو itms-apps:؛ سيحاول الجهاز فتح التطبيق ثم يستخدم المتصفح أو المتجر عند عدم توفره. لا تدخل كلمات مرور أو روابط خاصة. يمكنك إضافة HTML محلي محدود الحجم لمعاينته في إطار sandbox.</p>
       <div class="hub-actions">
         <button id="hub-build" class="semver-button semver-button-primary" type="button">بناء المعاينة</button>
         <button id="hub-fetch" class="semver-button" type="button">حفظ الملخص في مسار العقد</button>
         <button id="hub-save" class="semver-button" type="button">حفظ العقدة</button>
-        <button id="hub-open" class="semver-button" type="button">فتح الرابط خارجيًا</button>
+        <button id="hub-open" class="semver-button" type="button">فتح في التطبيق أو المتصفح</button>
         <button id="hub-stop" class="semver-button" type="button">إيقاف المعاينة</button>
         <button id="hub-clear" class="semver-button semver-button-danger" type="button">مسح إعدادات العقدة</button>
         <button id="hub-fullscreen" class="semver-button" type="button">ملء الشاشة</button>

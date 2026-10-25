@@ -512,13 +512,9 @@ function openExternally() {
   const raw = hubUrl.value.trim() || getHubData(activeHub.id)?.url || '';
   try {
     const link = parseNodeLink(raw);
-    const opened = window.open(link.url, '_blank', 'noopener,noreferrer');
-    if (!opened) {
-      setHubStatus('حجب المتصفح نافذة جديدة؛ اضغط مرة أخرى أو استخدم الرابط المباشر.', false);
-      return;
-    }
-    try { opened.opener = null; } catch { /* بعض المتصفحات تمنع تعديل النافذة الجديدة. */ }
-    setHubStatus('فُتح الرابط الخارجي في تبويب جديد.');
+    // التنقل من تفاعل مباشر يسمح لـ iOS/Android باختيار التطبيق المرتبط
+    // برابط Universal/App Link، مع الرجوع إلى المتصفح إذا لم يكن التطبيق مثبتًا.
+    window.location.assign(link.url);
   } catch (error) {
     setHubStatus(error?.message || 'أدخل رابطًا صالحًا للفتح الخارجي.', false);
   }
