@@ -1,5 +1,5 @@
 {
-  "name": "elazzouz-dotcom-static-css",
+  "name": "slaks-static-site",
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "scripts": {
@@ -7,6 +7,6 @@
   },
   "devDependencies": {
     "lighthouse": "13.5.0",
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "3.4.17"
   }
 }

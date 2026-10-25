@@ -14,6 +14,9 @@
 const CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
 const LEGACY_CLIENT_ID = 'Ov23li9xlu3kRKACL6Tz';
 const DEFAULT_SCOPE = 'repo workflow admin:repo_hook read:user user:email';
+const DEFAULT_OWNER = 'elazzouz-dotcom';
+const ROLE_ORDER = { viewer: 1, editor: 2, admin: 3, owner: 4 };
+const VALID_ROLES = new Set(Object.keys(ROLE_ORDER));
 const GITHUB_API_BASE = 'https://api.github.com';
 const GITHUB_AUTH_BASE = 'https://github.com';
 
@@ -37,6 +40,12 @@ async function handleRequest(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+
+    if (path === '/permissions' && method === 'GET') return handlePermissions(request, env);
+    if (path === '/permissions' && method === 'PUT') return updatePermission(request, env);
+
+    const accessError = await authorizeGitHubRoute(request, path, method, env);
+    if (accessError) return accessError;
 
     // Route requests to appropriate handlers
     // Authentication endpoints
@@ -71,65 +80,65 @@ async function handleRequest(request, env) {
 
     // User endpoints
     if (path.startsWith('/user')) {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // Repository endpoints
     if (path === '/repos/create' && method === 'POST') {
-      return proxyToGitHub(request, '/user/repos', method);
+      return proxyToGitHub(request, '/user/repos', method, env);
     }
     
     if (path.startsWith('/repos/')) {
       // Convert /repos/:owner/:repo/* to GitHub API format
       const apiPath = path.replace(/^\/repos/, '/repos');
-      return proxyToGitHub(request, apiPath);
+      return proxyToGitHub(request, apiPath, null, env);
     }
 
     // Gists endpoints
     if (path.startsWith('/gists')) {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // Search endpoints
     if (path.startsWith('/search/')) {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // Notifications
     if (path.startsWith('/notifications')) {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // Meta endpoints
     if (['/meta', '/emojis', '/gitignore/templates', '/licenses', 
          '/rate-limit', '/zen', '/feeds', '/events'].includes(path)) {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // Markdown rendering
     if (path === '/markdown' || path === '/markdown/raw') {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // GraphQL
     if (path === '/graphql' && method === 'POST') {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // Generic proxy for any GitHub API request
     if (path.startsWith('/proxy/')) {
       const apiPath = path.replace(/^\/proxy/, '');
-      return proxyToGitHub(request, apiPath);
+      return proxyToGitHub(request, apiPath, null, env);
     }
 
     // Organization endpoints
     if (path.startsWith('/orgs/')) {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // User endpoints (public)
     if (path.startsWith('/users/')) {
-      return proxyToGitHub(request, path);
+      return proxyToGitHub(request, path, null, env);
     }
 
     // Root endpoint - return API info
@@ -256,6 +265,62 @@ function corsHeaders(additionalHeaders = {}) {
     'Access-Control-Max-Age': '86400',
     ...additionalHeaders
   };
+}
+
+/** Role-based access control for GitHub operations. */
+function jsonResponse(payload, status = 200, extra = {}) {
+  return new Response(JSON.stringify(payload), { status, headers: corsHeaders({ 'Content-Type': 'application/json', ...extra }) });
+}
+function isProtectedGitHubRoute(path) {
+  return path.startsWith('/user') || path.startsWith('/repos/') || path === '/repos/create' || path.startsWith('/gists') || path.startsWith('/notifications') || path === '/graphql' || path.startsWith('/proxy/');
+}
+function isWriteRequest(path, method) {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) || path === '/repos/create' || path.includes('/merges');
+}
+async function githubIdentity(request) {
+  const authorization = request.headers.get('Authorization');
+  if (!authorization || !/^Bearer\s+\S+$/i.test(authorization)) return null;
+  const response = await fetch(`${GITHUB_API_BASE}/user`, { headers: { Authorization: authorization, Accept: 'application/vnd.github+json', 'User-Agent': 'Slaks-OAuth-Proxy/5.0.0' } });
+  if (!response.ok) return null;
+  return await response.json();
+}
+async function loadPermissionMap(env) {
+  try { const raw = env.PERMISSIONS?.get ? await env.PERMISSIONS.get('roles') : null; return raw ? JSON.parse(raw) : {}; } catch { return {}; }
+}
+async function roleFor(login, env) {
+  if (String(login).toLowerCase() === String(env.OWNER_GITHUB_LOGIN || DEFAULT_OWNER).toLowerCase()) return 'owner';
+  const roles = await loadPermissionMap(env); return VALID_ROLES.has(roles[login]) ? roles[login] : 'viewer';
+}
+function permissionDenied(message, status = 403) { return jsonResponse({ error: 'permission_denied', message }, status); }
+async function authorizeGitHubRoute(request, path, method, env) {
+  if (!isProtectedGitHubRoute(path)) return null;
+  const user = await githubIdentity(request);
+  if (!user?.login) return jsonResponse({ error: 'authentication_required', message: 'سجّل الدخول إلى GitHub أولًا.' }, 401);
+  const role = await roleFor(user.login, env);
+  if (isWriteRequest(path, method) && ROLE_ORDER[role] < ROLE_ORDER.editor) return permissionDenied('دورك مشاهد ولا يملك صلاحية تعديل المستودعات.');
+  return null;
+}
+async function handlePermissions(request, env) {
+  const user = await githubIdentity(request);
+  if (!user?.login) return jsonResponse({ error: 'authentication_required', message: 'سجّل الدخول إلى GitHub أولًا.' }, 401);
+  const role = await roleFor(user.login, env);
+  if (ROLE_ORDER[role] < ROLE_ORDER.admin) return permissionDenied('إدارة الصلاحيات متاحة للمالك والمدير فقط.');
+  const roles = await loadPermissionMap(env);
+  return jsonResponse({ owner: env.OWNER_GITHUB_LOGIN || DEFAULT_OWNER, currentUser: user.login, currentRole: role, roles });
+}
+async function updatePermission(request, env) {
+  const user = await githubIdentity(request);
+  if (!user?.login) return jsonResponse({ error: 'authentication_required', message: 'سجّل الدخول إلى GitHub أولًا.' }, 401);
+  const actorRole = await roleFor(user.login, env);
+  if (ROLE_ORDER[actorRole] < ROLE_ORDER.admin) return permissionDenied('إدارة الصلاحيات متاحة للمالك والمدير فقط.');
+  const body = await request.json().catch(() => ({}));
+  const login = String(body.login || '').trim(); const role = String(body.role || '').trim();
+  if (!/^[A-Za-z0-9-]{1,39}$/.test(login) || !VALID_ROLES.has(role) || role === 'owner') return jsonResponse({ error: 'invalid_permission', message: 'أدخل اسم GitHub صحيحًا ودورًا صالحًا غير المالك.' }, 400);
+  if (actorRole !== 'owner' && role === 'admin') return permissionDenied('المدير لا يستطيع منح دور مدير آخر.');
+  const roles = await loadPermissionMap(env); roles[login] = role;
+  if (!env.PERMISSIONS?.put) return jsonResponse({ error: 'permissions_store_not_configured', message: 'أضف KV binding باسم PERMISSIONS إلى Worker.' }, 503);
+  await env.PERMISSIONS.put('roles', JSON.stringify(roles));
+  return jsonResponse({ ok: true, login, role, roles });
 }
 
 /**
@@ -498,7 +563,7 @@ async function handleAIAnalysis(request) {
 /**
  * Proxy request to GitHub API
  */
-async function proxyToGitHub(request, path, methodOverride = null) {
+async function proxyToGitHub(request, path, methodOverride = null, env = {}) {
   try {
     const url = new URL(request.url);
     const method = methodOverride || request.method;

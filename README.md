@@ -1,4 +1,4 @@
-# elazzouz-dotcom.github.io
+# Slaks
 
 المستودع الرسمي لموقع **Slaks** المنشور عبر GitHub Pages.
 

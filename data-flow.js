@@ -51,7 +51,7 @@
 
   const API = 'https://github-oauth-proxy.elazzouz4.workers.dev';
   const CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
-  const STORAGE_KEY = 'hosting-studio.github.access-token';
+  const STORAGE_KEY = 'slaks.github.access-token';
   const login = widget.querySelector('#home-github-login');
   const authStatus = widget.querySelector('#home-github-status');
   const code = widget.querySelector('#home-github-code');

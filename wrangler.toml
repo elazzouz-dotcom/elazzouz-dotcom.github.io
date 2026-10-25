@@ -17,4 +17,9 @@ compatibility_date = "2024-01-01"
 # Secrets (set via: wrangler secret put CLIENT_SECRET)
 # DO NOT add CLIENT_SECRET here - it must be set via wrangler secret
 # or in the Cloudflare dashboard under Settings > Variables
+OWNER_GITHUB_LOGIN = "elazzouz-dotcom"
 # CLIENT_SECRET = "your-secret-here" # NEVER commit this!
+
+[[kv_namespaces]]
+binding = "PERMISSIONS"
+id = "6569d9d462134a8893c6d28d9f92ddf6"
