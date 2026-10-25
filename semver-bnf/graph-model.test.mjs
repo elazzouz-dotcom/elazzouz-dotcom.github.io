@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { NODE_LEVELS, NODE_TOTAL, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
 
-test('الشبكة تضم 200 عقدة موزعة على المستويات الستة', () => {
-  assert.deepEqual(NODE_LEVELS, [1, 3, 9, 27, 81, 79]);
-  assert.equal(NODE_TOTAL, 200);
+test('الشبكة تضم 601 عقدة موزعة على سبعة مستويات', () => {
+  assert.deepEqual(NODE_LEVELS, [1, 3, 9, 27, 81, 243, 237]);
+  assert.equal(NODE_TOTAL, 601);
   assert.equal(getNodeLevelInfo(200).level, 5);
   assert.equal(getNodeLevelInfo(0), null);
 });

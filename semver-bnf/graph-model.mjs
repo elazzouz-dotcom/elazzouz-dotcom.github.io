@@ -1,4 +1,4 @@
-export const NODE_LEVELS = Object.freeze([1, 3, 9, 27, 81, 79]);
+export const NODE_LEVELS = Object.freeze([1, 3, 9, 27, 81, 243, 237]);
 export const NODE_TOTAL = NODE_LEVELS.reduce((sum, count) => sum + count, 0);
 
 export function getNodeLevelInfo(id) {
