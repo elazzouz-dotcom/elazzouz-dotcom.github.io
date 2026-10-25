@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Useful Workspaces - elazzouz-dotcom</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #0f172a;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #7dd3fc;
+      --border: rgba(148, 163, 184, 0.2);
+    }
+    body { background: var(--bg); color: var(--text); }
+    .workspace-card { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); }
+  </style>
+</head>
+<body class="min-h-screen">
+  <header class="border-b border-slate-800 bg-slate-950/90">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+      <a href="/" class="text-xl font-black text-white">Slaks</a>
+      <nav class="hidden gap-5 text-sm font-semibold text-slate-300 md:flex">
+        <a href="/">الرئيسية</a>
+        <a href="/workspaces/" class="text-cyan-300">الأدوات</a>
+        <a href="/apps/">التطبيقات</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-5 py-12 lg:px-8">
+    <section class="mb-10">
+      <p class="mb-3 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase text-cyan-300">مساحات العمل المفيدة</p>
+      <h1 class="text-4xl font-black sm:text-5xl">أدوات احترافية للمطورين والمستخدمين</h1>
+      <p class="mt-4 max-w-3xl text-lg text-slate-300">مجموعة متكاملة من المساحات والأدوات التي تعمل مباشرة في متصفحك دون الحاجة لتحميل أي بيانات خارجية.</p>
+    </section>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <!-- Developer Toolkit -->
+      <a href="/tools/developer-toolkit/" class="workspace-card rounded-2xl p-6 hover:border-cyan-400/60">
+        <div class="mb-4 text-4xl">⌨️</div>
+        <h2 class="mb-2 text-xl font-bold text-white">Developer Toolkit</h2>
+        <p class="text-sm text-slate-300">أدوات تطوير محلية: JSON، Encoding، Hashing، Regex، Markdown، الألوان، الوقت، UUID.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">JSON</span>
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Regex</span>
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">UUID</span>
+        </div>
+      </a>
+
+      <!-- Browser Workflow Studio -->
+      <a href="/tools/browser-studio/" class="workspace-card rounded-2xl p-6 hover:border-cyan-400/60">
+        <div class="mb-4 text-4xl">⌘</div>
+        <h2 class="mb-2 text-xl font-bold text-white">Browser Workflow Studio</h2>
+        <p class="text-sm text-slate-300">رتب خطوات المتصفح وولد كود Playwright أو Stagehand بدون إدخال بيانات حساسة.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Automation</span>
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Testing</span>
+        </div>
+      </a>
+
+      <!-- API Workbench -->
+      <a href="/tools/api-workbench/" class="workspace-card rounded-2xl p-6 hover:border-cyan-400/60">
+        <div class="mb-4 text-4xl">⌁</div>
+        <h2 class="mb-2 text-xl font-bold text-white">API Workbench</h2>
+        <p class="text-sm text-slate-300">فحص طلبات API مدعومة من المتصفح مع حفظ بيانات الاعتماد محليًا فقط.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">API</span>
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">REST</span>
+        </div>
+      </a>
+
+      <!-- Chat Studio -->
+      <a href="/chat-studio/" class="workspace-card rounded-2xl p-6 hover:border-cyan-400/60">
+        <div class="mb-4 text-4xl">💬</div>
+        <h2 class="mb-2 text-xl font-bold text-white">Chat Studio</h2>
+        <p class="text-sm text-slate-300">استعرض ردود المساعد، ابحث بين الرسائل، وانسخ النسخة المحلية من المحادثة.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Chat</span>
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Archive</span>
+        </div>
+      </a>
+
+      <!-- Community -->
+      <a href="/community/" class="workspace-card rounded-2xl p-6 hover:border-cyan-400/60">
+        <div class="mb-4 text-4xl">👥</div>
+        <h2 class="mb-2 text-xl font-bold text-white">Developer Community</h2>
+        <p class="text-sm text-slate-300">صيغ نقاشات وأدِر خلاصة مجتمع محلية على جهازك.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Social</span>
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Community</span>
+        </div>
+      </a>
+
+      <!-- Hosting Studio -->
+      <a href="/hosting-studio/" class="workspace-card rounded-2xl p-6 hover:border-cyan-400/60">
+        <div class="mb-4 text-4xl">🐺</div>
+        <h2 class="mb-2 text-xl font-bold text-white">Hosting Studio</h2>
+        <p class="text-sm text-slate-300">حضّر هذا الموقع للاستضافة بقائمة التحقق المحلية وملاحظات النشر.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Hosting</span>
+          <span class="rounded-full bg-cyan-400/20 px-2 py-1 text-xs text-cyan-300">Deploy</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Quick Access Buttons -->
+    <section class="mt-12 rounded-2xl border border-slate-800 bg-slate-950/50 p-8">
+      <h2 class="mb-6 text-2xl font-black">الوصول السريع</h2>
+      <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <a href="/tools/developer-toolkit/" class="flex items-center gap-3 rounded-lg border border-slate-800 px-4 py-3 hover:border-cyan-400/40">
+          <span class="text-2xl">⌨️</span>
+          <div>
+            <p class="font-bold text-white">أدوات التطوير</p>
+            <p class="text-xs text-slate-400">JSON، Regex، UUID</p>
+          </div>
+        </a>
+        <a href="/tools/browser-studio/" class="flex items-center gap-3 rounded-lg border border-slate-800 px-4 py-3 hover:border-cyan-400/40">
+          <span class="text-2xl">⌘</span>
+          <div>
+            <p class="font-bold text-white">Automation</p>
+            <p class="text-xs text-slate-400">Browser Workflows</p>
+          </div>
+        </a>
+        <a href="/tools/api-workbench/" class="flex items-center gap-3 rounded-lg border border-slate-800 px-4 py-3 hover:border-cyan-400/40">
+          <span class="text-2xl">⌁</span>
+          <div>
+            <p class="font-bold text-white">API Workbench</p>
+            <p class="text-xs text-slate-400">REST Testing</p>
+          </div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-800 bg-slate-950 py-8">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 text-sm text-slate-400 md:flex-row lg:px-8">
+      <p>© 2026 Slaks</p>
+      <div class="flex gap-5">
+        <a href="/">الرئيسية</a>
+        <a href="/workspaces/">الأدوات</a>
+        <a href="/apps/">التطبيقات</a>
+      </div>
+    </div>
+
+<div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية" style="box-sizing:border-box;flex-basis:100%;width:100%;max-width:72rem;margin:1rem auto 0;padding:1rem 1rem 0;border-top:1px solid rgba(148,163,184,.28);text-align:center;color:inherit;font-size:.84em;line-height:1.75;">
+    <p style="margin:0 0 .35rem;">باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license" style="color:inherit;text-underline-offset:.15em;">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+    <p style="margin:0 0 .4rem;">لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+    <span aria-hidden="true" style="display:inline-flex;align-items:center;gap:.12em;vertical-align:middle;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+    </span>
+  </div>
+  </footer>
+</body>
+</html>

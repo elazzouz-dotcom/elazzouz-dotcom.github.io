@@ -1,159 +1,17 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="حالة ربط الموقع بـ GitHub Pages ومعلومات إعداد تسجيل الدخول.">
-  <title>GitHub Login والحالة | Slaks</title>
-  <link rel="canonical" href="https://elazzouz-dotcom.github.io/github-login/">
-  <meta property="og:title" content="GitHub Login والحالة | Slaks">
-  <meta property="og:description" content="حالة ربط الموقع بـ GitHub Pages ومعلومات إعداد تسجيل الدخول.">
-  <meta property="og:url" content="https://elazzouz-dotcom.github.io/github-login/">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
-  <meta name="twitter:card" content="summary_large_image">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="refresh" content="0; url=/hosting-studio/"><title>إدارة المواقع | Slaks</title><link rel="canonical" href="https://elazzouz-dotcom.github.io/hosting-studio/"><script>location.replace('/hosting-studio/');</script></head>
+<body><main><h1>إدارة المواقع</h1><p>تم توحيد تسجيل الدخول والمعاينة وتعديل الكود والنشر داخل Hosting Studio.</p><p><a href="/hosting-studio/">فتح Hosting Studio</a></p></main>  <footer class="site-license-footer" style="padding:1.25rem 1rem;text-align:center;">
 
-  <link rel="stylesheet" href="/theme.css">
-  <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .hero{background:linear-gradient(120deg,var(--color-dark),var(--color-primary),var(--color-soft));color:var(--color-primary-contrast)}
-    .dot{display:inline-block;width:.65rem;height:.65rem;border-radius:50%;margin-inline-end:.4rem;background:#22c55e}.dot.warn{background:#f59e0b}
-    .status-card{border-inline-start:4px solid var(--color-primary)}
-    .code-box{direction:ltr;text-align:left;overflow:auto;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-dark);padding:1rem;font:500 .85rem/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--color-text)}
-  </style>
-</head>
-<body class="min-h-screen">
-<header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-5 lg:px-8"><a href="/" class="font-extrabold">Slaks</a><nav class="flex flex-wrap gap-2 text-sm"><a href="/github-studios" class="footer-link">GitHub Studios</a><a href="/integrations/" class="footer-link">التكاملات</a><a href="/github-login/" class="footer-link font-bold">GitHub Login</a></nav></div></header>
-<main class="mx-auto max-w-7xl px-5 py-12 lg:px-8"><section class="hero rounded-[var(--radius)] p-8 sm:p-12"><p class="mb-3 text-sm font-extrabold uppercase tracking-[.16em] text-[var(--color-primary)]">GitHub connection status</p><h1 class="mb-4 text-4xl font-black sm:text-6xl">حالة GitHub للموقع</h1><p class="mb-0 max-w-3xl text-lg leading-8 opacity-90">هناك نوعان مختلفان من الربط: نشر الموقع عبر GitHub Pages، وتسجيل دخول زوار الموقع إلى حساباتهم في GitHub. الأول مفعّل، والثاني يستخدم تطبيق OAuth ووسيط Cloudflare Worker آمن.</p></section>
-<section class="mt-8 grid gap-5 lg:grid-cols-2"><article class="status-card feature-card p-6"><h2 class="mb-4 text-2xl font-black"><span class="dot"></span>GitHub Pages — مربوط</h2><p class="leading-7 text-[var(--color-muted)]">الموقع المنشور مرتبط فعليًا بمستودع GitHub ويُبنى تلقائيًا من الفرع الرئيسي.</p><dl class="mt-5 space-y-3 text-sm"><div class="flex justify-between gap-4 border-b border-[var(--color-border)] pb-3"><dt class="font-bold">المستودع</dt><dd><a class="text-[var(--color-primary)]" href="https://github.com/elazzouz-dotcom/elazzouz-dotcom.github.io" target="_blank" rel="noreferrer">elazzouz-dotcom/elazzouz-dotcom.github.io ↗</a></dd></div><div class="flex justify-between gap-4 border-b border-[var(--color-border)] pb-3"><dt class="font-bold">الفرع</dt><dd><code>main</code></dd></div><div class="flex justify-between gap-4 border-b border-[var(--color-border)] pb-3"><dt class="font-bold">الحالة</dt><dd>Built / منشور</dd></div><div class="flex justify-between gap-4"><dt class="font-bold">HTTPS</dt><dd>مفعّل</dd></div></dl></article>
-<article class="status-card feature-card p-6"><h2 class="mb-4 text-2xl font-black"><span class="dot"></span>تسجيل دخول GitHub — Device Flow مفعّل</h2><p class="leading-7 text-[var(--color-muted)]">يمكنك الآن بدء تسجيل الدخول من خلال GitHub باستخدام رمز مؤقت. لا يتم إرسال كلمة المرور إلى هذا الموقع ولا يتم تخزين Client Secret.</p><div class="mt-5 flex flex-wrap gap-3"><a class="rounded-[var(--radius)] border border-[var(--color-border)] px-4 py-3 text-sm font-bold" href="/integrations/">صفحة التكاملات</a><a class="rounded-[var(--radius)] border border-[var(--color-border)] px-4 py-3 text-sm font-bold" href="https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps" target="_blank" rel="noreferrer">دليل GitHub OAuth ↗</a></div></article></section>
-<section class="feature-card mt-8 p-6"><h2 class="mb-3 text-2xl font-black">ما يلزم لتفعيل تسجيل الدخول</h2><ol class="list-inside list-decimal space-y-3 text-[var(--color-muted)]"><li>إنشاء OAuth App داخل GitHub Developer Settings.</li><li>وضع Client ID في إعدادات الواجهة، مع إبقاء Client Secret على خادم خلفي فقط.</li><li>إنشاء Callback على Cloudflare Worker أو n8n أو خادم Node.js باستخدام HTTPS.</li><li>تخزين access token بشكل مشفر وعدم إرساله إلى GitHub Pages أو localStorage.</li></ol><div class="code-box mt-5">https://YOUR-BACKEND.example.com/oauth/github/callback</div><p class="mt-4 mb-0 text-sm text-[var(--color-muted)]">لا يمكن تنفيذ تبادل Client Secret بأمان داخل موقع GitHub Pages ثابت؛ لذلك لم أضع زرًا وهميًا أو كودًا يوحي بأن الحساب مسجّل.</p></section>
-<section class="feature-card mt-8 p-6" id="device-flow-card">
-  <h2 class="mb-3 text-2xl font-black">تسجيل الدخول الآن</h2>
-  <p class="mb-5 text-[var(--color-muted)]">اضغط الزر، ثم أدخل الكود الظاهر في صفحة GitHub. يمر الاتصال عبر Cloudflare Worker ويبقى Access Token في ذاكرة هذه الصفحة فقط.</p>
-  <div class="flex flex-wrap gap-3">
-    <button id="github-start" class="btn-primary px-5 py-3 font-bold" type="button">بدء تسجيل الدخول عبر GitHub</button>
-    <button id="github-logout" class="hidden rounded-[var(--radius)] border border-[var(--color-border)] px-5 py-3 font-bold" type="button">تسجيل الخروج</button>
-  </div>
-  <div id="github-status" class="mt-5 min-h-7 text-sm font-bold" role="status" aria-live="polite"></div>
-  <div id="github-code-panel" class="mt-4 hidden rounded-[var(--radius)] border border-[var(--color-border)] p-5">
-    <p class="mb-2 text-sm text-[var(--color-muted)]">افتح صفحة التحقق وأدخل هذا الكود:</p>
-    <div class="flex flex-wrap items-center gap-3"><code id="github-user-code" class="rounded-[var(--radius)] bg-[var(--color-bg)] px-4 py-3 text-2xl font-black tracking-[.18em]">—</code><button id="github-copy" class="rounded-[var(--radius)] border border-[var(--color-border)] px-3 py-2 text-sm font-bold" type="button">نسخ الكود</button><a id="github-verify" class="btn-primary px-3 py-2 text-sm" target="_blank" rel="noreferrer">فتح GitHub للتحقق ↗</a></div>
-  </div>
-  <div id="github-account" class="mt-5 hidden rounded-[var(--radius)] bg-[var(--color-bg)] p-4"></div>
-</section>
-</main>
-<script>
-(() => {
-  const CLIENT_ID = 'Ov23liu35kgtgP1COSii';
-  const API_BASE = 'https://github-oauth-proxy.elazzouz4.workers.dev';
-  const startButton = document.querySelector('#github-start');
-  const logoutButton = document.querySelector('#github-logout');
-  const status = document.querySelector('#github-status');
-  const codePanel = document.querySelector('#github-code-panel');
-  const userCode = document.querySelector('#github-user-code');
-  const verifyLink = document.querySelector('#github-verify');
-  const copyButton = document.querySelector('#github-copy');
-  const account = document.querySelector('#github-account');
-  let accessToken = null;
-  let pollTimer = null;
-  const isSafeGitHubUrl = value => { try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'github.com'; } catch { return false; } };
-
-  const setStatus = (text, good = false) => {
-    status.textContent = text;
-    status.style.color = good ? '#16a34a' : 'var(--color-icon)';
-  };
-  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-  const json = async response => {
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error_description || data.message || 'request_failed');
-    return data;
-  };
-
-  async function requestDeviceCode() {
-    const response = await fetch(`${API_BASE}/device/code`, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: CLIENT_ID, scope: 'read:user user:email' })
-    });
-    return json(response);
-  }
-
-  async function exchangeDeviceCode(deviceCode) {
-    const response = await fetch(`${API_BASE}/token`, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: CLIENT_ID, device_code: deviceCode, grant_type: 'urn:ietf:params:oauth:grant-type:device_code' })
-    });
-    const data = await response.json().catch(() => ({}));
-    // GitHub returns HTTP 400 while the user has not approved the device yet.
-    // Keep that response in the polling loop instead of treating it as a fatal error.
-    if (!response.ok && !['authorization_pending', 'slow_down'].includes(data.error)) {
-      throw new Error(data.error_description || data.error || 'authorization_failed');
-    }
-    return data;
-  }
-
-  async function loadAccount(token) {
-    const response = await fetch(`${API_BASE}/user`, { headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}` } });
-    return json(response);
-  }
-
-  function showAccount(user) {
-    account.classList.remove('hidden');
-    account.replaceChildren(); const title=document.createElement('b'); title.textContent='تم تسجيل الدخول بنجاح'; const line=document.createElement('span'); line.className='text-sm text-[var(--color-muted)]'; line.textContent=`${user.name || user.login} (@${user.login})`; const link=document.createElement('a'); link.className='text-sm text-[var(--color-primary)]'; link.target='_blank'; link.rel='noreferrer'; link.textContent='فتح حساب GitHub ↗'; if(isSafeGitHubUrl(user.html_url)) link.href=user.html_url; account.append(title,document.createElement('br'),line,document.createElement('br'),link);
-    logoutButton.classList.remove('hidden');
-    startButton.classList.add('hidden');
-  }
-
-  async function startFlow() {
-    startButton.disabled = true;
-    codePanel.classList.add('hidden');
-    account.classList.add('hidden');
-    setStatus('جاري طلب رمز آمن من GitHub...');
-    try {
-      const device = await requestDeviceCode();
-      userCode.textContent = device.user_code;
-      const verifyUrl=device.verification_uri_complete||device.verification_uri;if(!isSafeGitHubUrl(verifyUrl))throw new Error('رابط التحقق غير موثوق');verifyLink.href=verifyUrl;
-      codePanel.classList.remove('hidden');
-      window.open(verifyLink.href, '_blank', 'noopener,noreferrer');
-      let interval = Math.max(Number(device.interval || 5), 5) * 1000;
-      const deadline = Date.now() + Number(device.expires_in || 900) * 1000;
-      setStatus('أدخل الكود في GitHub، وسأتحقق تلقائيًا من الموافقة...');
-      while (Date.now() < deadline) {
-        await wait(interval);
-        const token = await exchangeDeviceCode(device.device_code);
-        if (token.access_token) {
-          accessToken = token.access_token;
-          const user = await loadAccount(accessToken);
-          showAccount(user);
-          setStatus('✅ تم ربط حساب GitHub بهذه الجلسة.', true);
-          return;
-        }
-        if (token.error === 'authorization_pending') continue;
-        if (token.error === 'slow_down') { interval += 5000; continue; }
-        if (['access_denied', 'expired_token', 'invalid_grant'].includes(token.error)) throw new Error(token.error_description || 'تم رفض أو انتهاء جلسة GitHub.');
-        throw new Error(token.error_description || token.error || 'authorization_failed');
-      }
-      throw new Error('انتهت صلاحية الكود. ابدأ العملية من جديد.');
-    } catch (error) {
-      setStatus(`تعذر إكمال تسجيل الدخول: ${error.message}`);
-      codePanel.classList.add('hidden');
-    } finally {
-      startButton.disabled = false;
-    }
-  }
-
-  startButton.addEventListener('click', startFlow);
-  logoutButton.addEventListener('click', () => {
-    accessToken = null;
-    account.classList.add('hidden');
-    logoutButton.classList.add('hidden');
-    startButton.classList.remove('hidden');
-    codePanel.classList.add('hidden');
-    setStatus('تم تسجيل الخروج من هذه الجلسة.', true);
-  });
-  copyButton.addEventListener('click', async () => { try { await navigator.clipboard.writeText(userCode.textContent); copyButton.textContent = 'تم النسخ'; setTimeout(() => copyButton.textContent = 'نسخ الكود', 1600); } catch { setStatus('تعذر النسخ تلقائيًا؛ حدّد الكود وانسخه يدويًا.'); } });
-})();
-</script><script src="/language.js"></script></body></html>
+<div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية" style="box-sizing:border-box;flex-basis:100%;width:100%;max-width:72rem;margin:1rem auto 0;padding:1rem 1rem 0;border-top:1px solid rgba(148,163,184,.28);text-align:center;color:inherit;font-size:.84em;line-height:1.75;">
+      <p style="margin:0 0 .35rem;">باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license" style="color:inherit;text-underline-offset:.15em;">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+      <p style="margin:0 0 .4rem;">لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+      <span aria-hidden="true" style="display:inline-flex;align-items:center;gap:.12em;vertical-align:middle;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      </span>
+    </div>
+  </footer>
+</body></html>

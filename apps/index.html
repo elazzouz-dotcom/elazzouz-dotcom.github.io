@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="منصة متكاملة بجميع التطبيقات والمشاريع">
+  <title>Slaks | المنصة المتكاملة</title>
+  <link rel="stylesheet" href="/assets/css/site-tailwind.min.css">
+  <link rel="stylesheet" href="/theme.css">
+  <style>
+    :root {
+      --color-primary: #7dd3fc;
+      --color-dark: #0b1020;
+      --color-surface: #0f172a;
+      --color-border: #1e293b;
+      --color-text: #e5edf7;
+      --color-muted: #94a3b8;
+    }
+    body { background: var(--color-dark); color: var(--color-text); }
+    .app-card { 
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid var(--color-border);
+      transition: all 0.3s ease;
+    }
+    .app-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--color-primary);
+      box-shadow: 0 20px 50px rgba(125, 211, 252, 0.1);
+    }
+    button { min-height: 44px; }
+    .apps-header-inner { min-height: 64px; }
+    .apps-logo { min-width: 0; white-space: nowrap; }
+    .desktop-tabs button { min-height: 44px; flex: 0 0 auto; padding-inline: 4px; white-space: nowrap; }
+    .mobile-tabs { display: none; position: relative; z-index: 60; }
+    .mobile-tabs > summary {
+      display: flex; min-height: 44px; align-items: center; gap: 8px;
+      border: 1px solid var(--color-border); border-radius: 10px;
+      background: var(--color-surface); padding: 0 12px; color: var(--color-text);
+      font-weight: 800; cursor: pointer; list-style: none;
+    }
+    .mobile-tabs > summary::-webkit-details-marker { display: none; }
+    .mobile-tabs > summary::marker { content: ""; }
+    .mobile-tabs-panel {
+      position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 70;
+      display: grid; width: min(240px, calc(100vw - 24px)); gap: 4px;
+      border: 1px solid var(--color-border); border-radius: 12px;
+      background: var(--color-surface); padding: 8px; box-shadow: 0 18px 42px rgba(0,0,0,.42);
+    }
+    .mobile-tabs-panel button {
+      width: 100%; min-height: 44px; border: 0; border-radius: 8px;
+      background: transparent; padding: 8px 10px; color: var(--color-text);
+      font-weight: 700; text-align: right;
+    }
+    .mobile-tabs-panel button:hover, .mobile-tabs-panel button:focus-visible {
+      background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary);
+    }
+    @media (max-width: 767px) {
+      .apps-header-inner { gap: 8px; padding-inline: 12px; padding-block: 10px; }
+      .apps-logo { font-size: clamp(1rem, 4vw, 1.25rem); }
+      .desktop-tabs { display: none !important; }
+      .mobile-tabs { display: block; }
+    }
+    @media (min-width: 768px) { .mobile-tabs { display: none; } }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- Navigation -->
+<header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur">
+  <div class="apps-header-inner mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+    <div class="apps-logo text-2xl font-black text-white">🚀 elazzouz-dotcom</div>
+    <nav class="desktop-tabs flex gap-6" aria-label="أقسام المنصة">
+      <button onclick="showSection('dashboard')" class="nav-btn text-sm font-bold text-[var(--color-primary)]">لوحة التحكم</button>
+      <button onclick="showSection('apps')" class="nav-btn text-sm font-bold text-[var(--color-muted)] hover:text-[var(--color-primary)]">التطبيقات</button>
+      <button onclick="showSection('ai')" class="nav-btn text-sm font-bold text-[var(--color-muted)] hover:text-[var(--color-primary)]">الذكاء الاصطناعي</button>
+      <button onclick="showSection('marketplace')" class="nav-btn text-sm font-bold text-[var(--color-muted)] hover:text-[var(--color-primary)]">المتاجر</button>
+    </nav>
+    <details class="mobile-tabs" id="mobile-section-menu">
+      <summary aria-label="فتح قائمة أقسام المنصة"><span>الأقسام</span><span aria-hidden="true">⌄</span></summary>
+      <nav class="mobile-tabs-panel" aria-label="أقسام المنصة">
+        <button type="button" onclick="showSection('dashboard')">لوحة التحكم</button>
+        <button type="button" onclick="showSection('apps')">التطبيقات</button>
+        <button type="button" onclick="showSection('ai')">الذكاء الاصطناعي</button>
+        <button type="button" onclick="showSection('marketplace')">المتاجر</button>
+      </nav>
+    </details>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="mx-auto max-w-7xl px-4 py-8 sm:px-5 sm:py-12 lg:px-8">
+
+  <!-- Dashboard Section -->
+  <section id="dashboard-section" class="space-y-8">
+    <div class="rounded-2xl border border-[var(--color-border)] bg-gradient-to-r from-[var(--color-surface)] to-blue-900/20 p-5 sm:p-8">
+      <h1 class="mb-4 text-3xl font-black sm:text-4xl lg:text-5xl">مرحباً بك في المنصة المتكاملة</h1>
+      <p class="mb-6 max-w-3xl text-lg text-[var(--color-muted)]">
+        منصة شاملة تجمع بين الذكاء الاصطناعي والتجارة الاجتماعية والشبكات الاجتماعية في مساحة عمل واحدة
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <button onclick="showSection('apps')" class="w-full rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)] hover:opacity-90 sm:w-auto">استكشف التطبيقات →</button>
+        <button onclick="showSection('ai')" class="w-full rounded-lg border border-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 sm:w-auto">الذكاء الاصطناعي 🤖</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-4 sm:gap-5">
+      <div class="app-card rounded-xl p-6">
+        <div class="text-3xl font-black text-[var(--color-primary)]">20+</div>
+        <div class="text-sm text-[var(--color-muted)]">تطبيق وخدمة</div>
+      </div>
+      <div class="app-card rounded-xl p-6">
+        <div class="text-3xl font-black text-[var(--color-primary)]">2500+</div>
+        <div class="text-sm text-[var(--color-muted)]">نماذج ذكاء اصطناعي</div>
+      </div>
+      <div class="app-card rounded-xl p-6">
+        <div class="text-3xl font-black text-[var(--color-primary)]">AI</div>
+        <div class="text-sm text-[var(--color-muted)]">تجارة + محادثة</div>
+      </div>
+      <div class="app-card rounded-xl p-6">
+        <div class="text-3xl font-black text-[var(--color-primary)]">∞</div>
+        <div class="text-sm text-[var(--color-muted)]">احتمالات لا محدودة</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Applications Section -->
+  <section id="apps-section" class="hidden space-y-8">
+    <div>
+      <p class="mb-2 text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">📱 التطبيقات</p>
+      <h2 class="text-3xl font-black">كل التطبيقات في مكان واحد</h2>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <!-- AI Platform -->
+      <div class="app-card rounded-2xl p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="text-3xl">🤖</span>
+          <h3 class="text-xl font-bold">AI Platform</h3>
+        </div>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">منصة ذكاء اصطناعي متقدمة مع 2500+ نموذج</p>
+        <button onclick="loadApp('ai-platform')" class="w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح التطبيق →
+        </button>
+      </div>
+
+      <!-- SOOQ Platform -->
+      <div class="app-card rounded-2xl p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="text-3xl">🛍️</span>
+          <h3 class="text-xl font-bold">SOOQ</h3>
+        </div>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">منصة تجارة اجتماعية: متجر + محادثة + ذكاء اصطناعي</p>
+        <button onclick="loadApp('sooq')" class="w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح المنصة →
+        </button>
+      </div>
+
+      <!-- GOBI Social -->
+      <div class="app-card rounded-2xl p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="text-3xl">👥</span>
+          <h3 class="text-xl font-bold">GOBI</h3>
+        </div>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">شبكة اجتماعية متطورة للتواصل والمشاركة</p>
+        <button onclick="loadApp('gobi')" class="w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح الشبكة →
+        </button>
+      </div>
+
+      <!-- Marketplace Social -->
+      <div class="app-card rounded-2xl p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="text-3xl">🏪</span>
+          <h3 class="text-xl font-bold">Marketplace</h3>
+        </div>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">منصة تجارة إلكترونية + تواصل اجتماعي</p>
+        <button onclick="loadApp('marketplace')" class="w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح المتجر →
+        </button>
+      </div>
+
+      <!-- Developer Tools -->
+      <div class="app-card rounded-2xl p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="text-3xl">⚙️</span>
+          <h3 class="text-xl font-bold">Developer Tools</h3>
+        </div>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">أدوات تطوير احترافية للمبرمجين</p>
+        <button onclick="loadApp('dev-tools')" class="w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح الأدوات →
+        </button>
+      </div>
+
+      <!-- Chat Studio -->
+      <div class="app-card rounded-2xl p-6">
+        <div class="mb-4 flex items-center gap-3">
+          <span class="text-3xl">💬</span>
+          <h3 class="text-xl font-bold">Chat Studio</h3>
+        </div>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">استوديو الدردشة والمحادثات الذكية</p>
+        <button onclick="loadApp('chat')" class="w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح الدردشة →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Section -->
+  <section id="ai-section" class="hidden space-y-8">
+    <div>
+      <p class="mb-2 text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">🤖 الذكاء الاصطناعي</p>
+      <h2 class="text-3xl font-black">تقنيات ذكاء اصطناعي متقدمة</h2>
+      <p class="mt-3 max-w-3xl text-sm leading-7 text-[var(--color-muted)]">تريد تجربة أدوات جاهزة دون إنشاء حساب؟ افتح الدليل الخارجي واستخدمها من مواقعها الرسمية.</p>
+      <a href="/ai-tools/" class="mt-4 inline-flex rounded-xl bg-[var(--color-primary)] px-5 py-3 font-bold text-[var(--color-dark)]">تصفح أدوات AI دون حساب ↗</a>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-2">
+      <div class="app-card rounded-2xl p-8">
+        <h3 class="mb-4 text-2xl font-black">2500+ نماذج ذكاء اصطناعي</h3>
+        <ul class="space-y-3 text-sm text-[var(--color-muted)]">
+          <li>✅ نماذج اللغة الطبيعية (NLP)</li>
+          <li>✅ رؤية الحاسوب (Computer Vision)</li>
+          <li>✅ الكلام والصوت (Speech)</li>
+          <li>✅ التعرف على الصور (Image Recognition)</li>
+          <li>✅ معالجة النصوص (Text Processing)</li>
+          <li>✅ التنبؤ والتحليل (Prediction)</li>
+        </ul>
+        <button onclick="loadApp('ai-models')" class="mt-6 w-full rounded-lg bg-[var(--color-primary)] px-4 py-3 font-bold text-[var(--color-dark)] hover:opacity-90">
+          استكشف النماذج →
+        </button>
+      </div>
+
+      <div class="app-card rounded-2xl p-8">
+        <h3 class="mb-4 text-2xl font-black">RAG AI + البحث الذكي</h3>
+        <ul class="space-y-3 text-sm text-[var(--color-muted)]">
+          <li>✅ استرجاع وتوليد معلومات (RAG)</li>
+          <li>✅ محرك بحث ذكي</li>
+          <li>✅ الإكمال الذكي (Auto-complete)</li>
+          <li>✅ التصنيف الآلي (Classification)</li>
+          <li>✅ التحليل العاطفي (Sentiment)</li>
+          <li>✅ التوصيات الشخصية (Recommendations)</li>
+        </ul>
+        <button onclick="loadApp('rag-ai')" class="mt-6 w-full rounded-lg bg-[var(--color-primary)] px-4 py-3 font-bold text-[var(--color-dark)] hover:opacity-90">
+          جرب RAG AI →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marketplace Section -->
+  <section id="marketplace-section" class="hidden space-y-8">
+    <div>
+      <p class="mb-2 text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">🛍️ المتاجر والمنصات</p>
+      <h2 class="text-3xl font-black">منصات التجارة الاجتماعية</h2>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div class="app-card rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold">SOOQ Platform</h3>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">منصة تجارة اجتماعية متكاملة مع دردشة فورية وذكاء اصطناعي</p>
+        <div class="space-y-2 text-xs text-[var(--color-muted)]">
+          <p>💰 منتجات فيزيائية ورقمية</p>
+          <p>💬 دردشة فورية</p>
+          <p>🤖 توصيات ذكية</p>
+          <p>🔍 بحث متقدم</p>
+        </div>
+        <button onclick="loadApp('sooq')" class="mt-4 w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح SOOQ →
+        </button>
+      </div>
+
+      <div class="app-card rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold">Smart Marketplace</h3>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">متجر ذكي مع تحليل السلوك والتوصيات المخصصة</p>
+        <div class="space-y-2 text-xs text-[var(--color-muted)]">
+          <p>📊 تحليل السلوك</p>
+          <p>🎯 توصيات شخصية</p>
+          <p>📈 تحليلات متقدمة</p>
+          <p>🔐 آمان عالي</p>
+        </div>
+        <button onclick="loadApp('smart-market')" class="mt-4 w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح المتجر →
+        </button>
+      </div>
+
+      <div class="app-card rounded-2xl p-6">
+        <h3 class="mb-4 text-xl font-bold">Marketplace Social</h3>
+        <p class="mb-4 text-sm text-[var(--color-muted)]">منصة تجارة إلكترونية متطورة مع مميزات اجتماعية</p>
+        <div class="space-y-2 text-xs text-[var(--color-muted)]">
+          <p>👥 مشاركة اجتماعية</p>
+          <p>🎁 مسابقات وعروض</p>
+          <p>📱 تطبيق محمول</p>
+          <p>💳 دفع آمن</p>
+        </div>
+        <button onclick="loadApp('social-market')" class="mt-4 w-full rounded-lg bg-[var(--color-primary)]/20 px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30">
+          افتح المتجر →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- App Viewer -->
+  <section id="app-viewer" class="hidden space-y-6">
+    <div class="flex items-center gap-4">
+      <button onclick="backToDashboard()" class="rounded-lg border border-[var(--color-border)] px-4 py-2 font-bold text-[var(--color-primary)] hover:bg-[var(--color-border)]">← العودة</button>
+      <h2 id="app-title" class="text-3xl font-black"></h2>
+    </div>
+    <div id="app-content" class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8">
+      <!-- App content will load here -->
+    </div>
+  </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] py-8 text-center text-sm text-[var(--color-muted)]">
+  <p>© 2026 Slaks | جميع الحقوق محفوظة | منصة متكاملة</p>
+
+<div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية" style="box-sizing:border-box;flex-basis:100%;width:100%;max-width:72rem;margin:1rem auto 0;padding:1rem 1rem 0;border-top:1px solid rgba(148,163,184,.28);text-align:center;color:inherit;font-size:.84em;line-height:1.75;">
+  <p style="margin:0 0 .35rem;">باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license" style="color:inherit;text-underline-offset:.15em;">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+  <p style="margin:0 0 .4rem;">لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+  <span aria-hidden="true" style="display:inline-flex;align-items:center;gap:.12em;vertical-align:middle;">
+    <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+    <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+    <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+    <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+  </span>
+</div>
+</footer>
+
+<script>
+  const appsData = {
+    'ai-platform': {
+      title: '🤖 منصة الذكاء الاصطناعي',
+      content: `
+        <h3 class="mb-4 text-2xl font-bold">منصة ذكاء اصطناعي متقدمة</h3>
+        <p class="mb-6 text-[var(--color-muted)]">منصة شاملة مع 2500+ نموذج ذكاء اصطناعي متخصصة في:</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="font-bold">معالجة اللغة الطبيعية</p>
+            <p class="text-sm text-[var(--color-muted)]">ترجمة، تحليل النصوص، توليد المحتوى</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="font-bold">رؤية الحاسوب</p>
+            <p class="text-sm text-[var(--color-muted)]">تحليل الصور، التعرف على الأشكال</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="font-bold">معالجة الكلام</p>
+            <p class="text-sm text-[var(--color-muted)]">تحويل النص إلى كلام والعكس</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="font-bold">التنبؤ والتحليل</p>
+            <p class="text-sm text-[var(--color-muted)]">تحليلات متقدمة وتنبؤات دقيقة</p>
+          </div>
+        </div>
+        <button class="mt-6 rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)]">استكشف النماذج الآن →</button>
+      `
+    },
+    'sooq': {
+      title: '🛍️ منصة SOOQ التجارية',
+      content: `
+        <h3 class="mb-4 text-2xl font-bold">منصة تجارة اجتماعية متكاملة</h3>
+        <p class="mb-6 text-[var(--color-muted)]">SOOQ هي منصة تجارة اجتماعية حديثة تجمع بين:</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">🛒 متجر إلكتروني</p>
+            <p class="text-sm text-[var(--color-muted)]">منتجات فيزيائية ورقمية</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">💬 دردشة فورية</p>
+            <p class="text-sm text-[var(--color-muted)]">تواصل مباشر مع البائعين</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">🤖 ذكاء اصطناعي</p>
+            <p class="text-sm text-[var(--color-muted)]">توصيات ذكية وبحث متقدم</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">🔍 محرك بحث</p>
+            <p class="text-sm text-[var(--color-muted)]">بحث ذكي وسريع وفعال</p>
+          </div>
+        </div>
+        <button class="mt-6 rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)]">ادخل المتجر الآن →</button>
+      `
+    },
+    'gobi': {
+      title: '👥 شبكة GOBI الاجتماعية',
+      content: `
+        <h3 class="mb-4 text-2xl font-bold">شبكة اجتماعية متطورة</h3>
+        <p class="mb-6 text-[var(--color-muted)]">GOBI هي شبكة اجتماعية حديثة تقدم:</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">👤 ملفات شخصية</p>
+            <p class="text-sm text-[var(--color-muted)]">بناء هويتك الرقمية</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">📝 المشاركات</p>
+            <p class="text-sm text-[var(--color-muted)]">شارك أفكارك مع المجتمع</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">👁️ المتابعة</p>
+            <p class="text-sm text-[var(--color-muted)]">تابع أصدقاءك والمؤثرين</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">💬 التعليقات</p>
+            <p class="text-sm text-[var(--color-muted)]">حاوارات وتفاعلات حية</p>
+          </div>
+        </div>
+        <button class="mt-6 rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)]">انضم للشبكة الآن →</button>
+      `
+    },
+    'marketplace': {
+      title: '🏪 المتجر الاجتماعي',
+      content: `
+        <h3 class="mb-4 text-2xl font-bold">منصة تجارة إلكترونية + اجتماعي</h3>
+        <p class="mb-6 text-[var(--color-muted)]">منصة تجارة متطورة مع مميزات اجتماعية:</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">🏪 المتجر</p>
+            <p class="text-sm text-[var(--color-muted)]">تصفح وشراء المنتجات</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">⭐ التقييمات</p>
+            <p class="text-sm text-[var(--color-muted)]">آراء حقيقية من المشترين</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">👥 المشاركة</p>
+            <p class="text-sm text-[var(--color-muted)]">شارك تجاربك مع الآخرين</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">📊 عروض خاصة</p>
+            <p class="text-sm text-[var(--color-muted)]">خصومات وتنبيهات حصرية</p>
+          </div>
+        </div>
+        <button class="mt-6 rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)]">تسوق الآن →</button>
+      `
+    },
+    'dev-tools': {
+      title: '⚙️ أدوات التطوير',
+      content: `
+        <h3 class="mb-4 text-2xl font-bold">مجموعة أدوات احترافية للمطورين</h3>
+        <p class="mb-6 text-[var(--color-muted)]">أدوات قوية لتسريع عملية التطوير:</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">📐 منسق JSON</p>
+            <p class="text-sm text-[var(--color-muted)]">تنسيق وتحقق من JSON</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">🔐 التشفير</p>
+            <p class="text-sm text-[var(--color-muted)]">تشفير فك تشفير النصوص</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">🔍 محلل Regex</p>
+            <p class="text-sm text-[var(--color-muted)]">اختبر التعابير النمطية</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">📝 محرر Markdown</p>
+            <p class="text-sm text-[var(--color-muted)]">معاينة حية للـ Markdown</p>
+          </div>
+        </div>
+        <button class="mt-6 rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)]">افتح الأدوات →</button>
+      `
+    },
+    'chat': {
+      title: '💬 استوديو الدردشة',
+      content: `
+        <h3 class="mb-4 text-2xl font-bold">منصة محادثات ذكية</h3>
+        <p class="mb-6 text-[var(--color-muted)]">استوديو دردشة متقدم مع ميزات ذكية:</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">🤖 ذكاء اصطناعي</p>
+            <p class="text-sm text-[var(--color-muted)]">محادثات ذكية وفعالة</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">🌍 دعم اللغات</p>
+            <p class="text-sm text-[var(--color-muted)]">تحدث بلغتك المفضلة</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">💾 حفظ المحادثات</p>
+            <p class="text-sm text-[var(--color-muted)]">احفظ محادثاتك المهمة</p>
+          </div>
+          <div class="rounded-lg bg-[var(--color-dark)] p-4">
+            <p class="mb-2 font-bold">📊 التحليلات</p>
+            <p class="text-sm text-[var(--color-muted)]">احصائيات وتقارير</p>
+          </div>
+        </div>
+        <button class="mt-6 rounded-lg bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-dark)]">ابدأ الدردشة →</button>
+      `
+    }
+  };
+
+  function showSection(section) {
+    // Hide all sections
+    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+    document.getElementById('app-viewer').classList.add('hidden');
+
+    // Show selected section
+    const sectionId = `${section}-section`;
+    if (document.getElementById(sectionId)) {
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // Update nav buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.add('text-[var(--color-muted)]'));
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      if (btn.textContent.includes('لوحة') && section === 'dashboard') btn.classList.add('text-[var(--color-primary)]');
+      if (btn.textContent.includes('التطبيقات') && section === 'apps') btn.classList.add('text-[var(--color-primary)]');
+      if (btn.textContent.includes('الذكاء') && section === 'ai') btn.classList.add('text-[var(--color-primary)]');
+      if (btn.textContent.includes('المتاجر') && section === 'marketplace') btn.classList.add('text-[var(--color-primary)]');
+    });
+    const mobileMenu = document.getElementById('mobile-section-menu');
+    if (mobileMenu) mobileMenu.open = false;
+  }
+
+  function loadApp(appId) {
+    if (!appsData[appId]) return;
+    
+    const app = appsData[appId];
+    document.getElementById('app-title').textContent = app.title;
+    document.getElementById('app-content').innerHTML = app.content;
+    
+    // Hide all sections
+    document.querySelectorAll('section[id*="-section"]').forEach(s => s.classList.add('hidden'));
+    document.getElementById('app-viewer').classList.remove('hidden');
+  }
+
+  function backToDashboard() {
+    showSection('apps');
+  }
+
+  // Initialize
+  showSection('dashboard');
+</script>
+
+</body>
+</html>

@@ -1,126 +1,306 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Slaks — منصة التطبيقات والذكاء الاصطناعي والمتاجر والأدوات الرقمية." />
+    <title>Slaks — التطبيقات والذكاء الاصطناعي والأدوات الرقمية</title>
+    <meta property="og:title" content="Slaks — التطبيقات والذكاء الاصطناعي والأدوات الرقمية" />
+    <meta property="og:description" content="Slaks: منصة متكاملة للتطبيقات والذكاء الاصطناعي والمتاجر والأدوات الرقمية." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://elazzouz-dotcom.github.io/" />
+    <meta property="og:site_name" content="Slaks" />
+    <meta name="application-name" content="Slaks" />
+    <link rel="stylesheet" href="/assets/css/site-tailwind.min.css" />
+    <link rel="stylesheet" href="/data-flow.css">
+    <link rel="preload" as="image" href="/assets/videos/onecompiler-ai-cloudflare-poster.webp" type="image/webp" fetchpriority="high" />
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #111827;
+        --panel-2: #0f172a;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #7dd3fc;
+        --accent-2: #38bdf8;
+        --border: rgba(148, 163, 184, 0.2);
+      }
+      html { scroll-behavior: smooth; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: Arial, Tahoma, sans-serif;
+      }
+      .panel {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid var(--border);
+      }
+      .accent {
+        color: var(--accent);
+      }
+      a:hover { opacity: 0.9; }
+      .site-header-inner { min-height: 72px; }
+      .site-brand { min-width: 0; }
+      .site-brand-mark { flex: 0 0 auto; }
+      .site-brand-title { white-space: nowrap; }
+      .site-mobile-menu { position: relative; z-index: 60; }
+      .site-mobile-menu > summary {
+        display: flex; min-height: 44px; align-items: center; gap: 8px;
+        border: 1px solid rgba(148, 163, 184, .28); border-radius: 12px;
+        background: rgba(15, 23, 42, .9); padding: 0 11px; color: #e2e8f0;
+        font-size: .9rem; font-weight: 700; cursor: pointer; list-style: none;
+      }
+      .site-mobile-menu > summary::-webkit-details-marker { display: none; }
+      .site-mobile-menu > summary::marker { content: ""; }
+      .site-mobile-menu-panel {
+        position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 70;
+        display: grid; width: min(240px, calc(100vw - 24px)); gap: 4px;
+        border: 1px solid rgba(148, 163, 184, .24); border-radius: 14px;
+        background: #0f172a; padding: 8px; box-shadow: 0 18px 42px rgba(0, 0, 0, .42);
+      }
+      .site-mobile-menu-panel a {
+        display: flex; min-height: 44px; align-items: center; border-radius: 9px;
+        padding: 8px 10px; color: #dbe6f3; text-decoration: none;
+      }
+      .site-mobile-menu-panel a:hover, .site-mobile-menu-panel a:focus-visible { background: rgba(125, 211, 252, .12); color: #7dd3fc; }
+      .site-footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
+      .site-footer-links a { display: flex; min-height: 44px; align-items: center; padding-inline: 4px; }
+      @media (max-width: 767px) {
+        .site-header-inner { gap: 8px; padding-inline: 12px; padding-block: 10px; }
+        .site-brand { gap: 8px; }
+        .site-brand-title { font-size: clamp(1rem, 4vw, 1.2rem); }
+      }
+      @media (min-width: 768px) { .site-mobile-menu { display: none; } }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <header class="border-b border-slate-800 bg-slate-950/90">
+      <div class="site-header-inner mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+        <div class="site-brand flex items-center gap-3">
+          <div class="site-brand-mark flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15 text-xl font-black text-cyan-300">S</div>
+          <div>
+            <div class="site-brand-title text-xl font-black tracking-tight text-white">Slaks</div>
+          </div>
+        </div>
+        <nav class="hidden items-center gap-5 text-sm font-semibold text-slate-300 md:flex" aria-label="التنقل الرئيسي">
+          <a href="/?locale=ar">الرئيسية</a>
+          <a href="/apps/">التطبيقات</a>
+          <a href="/github-apps/">GitHub Apps</a>
+          <a href="/terminal/">الطرفية</a>
+          <a href="/admin/">الإدارة</a>
+        </nav>
+        <details class="site-mobile-menu">
+          <summary aria-label="فتح قائمة الموقع"><span aria-hidden="true">☰</span><span>القائمة</span></summary>
+          <nav class="site-mobile-menu-panel" aria-label="التنقل الرئيسي على الهاتف">
+            <a href="/?locale=ar">الرئيسية</a>
+            <a href="/apps/">التطبيقات</a>
+            <a href="/ai-tools/">أدوات الذكاء الاصطناعي</a>
+            <a href="/github-apps/">GitHub Apps</a>
+            <a href="/terminal/">الطرفية</a>
+            <a href="/admin/">الإدارة</a>
+          </nav>
+        </details>
+      </div>
+    </header>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="A practical collection of browser-based developer utilities, local builders, and API workbenches.">
-  <title>Slaks</title>
-  <link rel="canonical" href="https://elazzouz-dotcom.github.io/">
-  <meta property="og:title" content="Slaks">
-  <meta property="og:description" content="A practical collection of browser-based developer utilities, local builders, and API workbenches.">
-  <meta property="og:url" content="https://elazzouz-dotcom.github.io/">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <link rel="stylesheet" href="/theme.css">
-  <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
-  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="min-h-screen">
-  <header class="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 lg:px-8">
-      <a href="/" class="flex items-center gap-3" aria-label="Home">
-        <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[var(--radius)] bg-[var(--color-dark)] text-lg font-black text-[var(--color-primary-contrast)]"><img src="/assets/slaks-logo.jpg" alt="" class="h-full w-full object-cover"></span>
-        <span class="text-xl font-extrabold tracking-tight">Slaks</span>
-      </a>
-      <div class="flex flex-wrap items-center gap-3"><a href="/github-login/" class="rounded-[var(--radius)] border border-[var(--color-primary)] px-4 py-3 text-sm font-bold text-[var(--color-primary)]">GitHub login</a><a href="/tools" class="btn-primary px-5 py-3 text-sm">Open tool directory <span aria-hidden="true">→</span></a></div>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero-grid px-5 py-20 lg:px-8 lg:py-28">
-      <div class="mx-auto max-w-7xl">
-        <div class="mb-6 flex items-center gap-4"><img src="/assets/slaks-logo.jpg" alt="شعار Slaks" class="h-24 w-44 rounded-[var(--radius)] border border-[var(--color-border)] object-cover shadow-[var(--shadow-lifted)]"><div><p class="mb-1 text-3xl font-black tracking-tight text-[var(--color-primary)]">Slaks</p><p class="mb-0 text-sm text-[var(--color-muted)]">مساحة أدواتك الرقمية</p></div></div>
-        <p class="mb-5 inline-flex items-center gap-2 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--color-muted)]">
-          <span class="h-2 w-2 rounded-full bg-[var(--color-primary)]" aria-hidden="true"></span>
-          Local-first workspace
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-5 sm:py-12 lg:px-8">
+      <section class="panel mb-10 overflow-hidden rounded-3xl p-6 shadow-2xl shadow-cyan-500/5 md:p-10">
+        <p class="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+          Platform Suite
         </p>
-        <h1 class="mb-6 max-w-4xl text-5xl font-black leading-[1.05] sm:text-6xl lg:text-7xl">Tools that help you <span class="text-[var(--color-primary)]">finish the task.</span></h1>
-        <p class="mb-8 max-w-2xl text-lg leading-8 text-[var(--color-muted)]">Use focused browser utilities for code, data, automation planning, API inspection, and safe local transformations. No filler directories—just useful interfaces and generators.</p>
-        <div class="flex flex-wrap gap-3">
-          <a href="/tools" class="btn-primary px-6 py-4">Browse working tools <span aria-hidden="true">→</span></a>
-          <a href="/developer-tools" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">Open developer toolkit</a>
-          <a href="/hosting-studio" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">🐺 Hosting Studio</a>
-          <a href="/chat-studio" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">💬 Chat Studio</a>
-          <a href="/aip" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">◈ AIP Trading</a>
-          <a href="/aips-dashboard" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">📊 AIPS local dashboard</a>
-          <a href="/inference-providers" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">⚡ Inference Providers</a>
-          <a href="/contact" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">✉ Contact</a>
-          <a href="/integrations/" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">🔗 Integrations</a>
-          <a href="/project-requests" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">📋 Project requests</a>
-          <a href="/github-pages" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">🚀 GitHub Pages guide</a>
-          <a href="/project-files" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold"><span aria-hidden="true">🐘</span> Project files</a>
-          <a href="/github-studios" class="rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 font-bold">GitHub Studios <span aria-hidden="true">↗</span></a>
-          <a href="/admin" class="rounded-[var(--radius)] border border-[var(--color-primary)] bg-[var(--color-soft)] px-6 py-4 font-bold text-[var(--color-primary)]">🔐 لوحة الإدارة</a>
+        <h1 class="max-w-4xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+          جميع التطبيقات والأنظمة في موقع واحد
+        </h1>
+        <p class="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
+          منصة متكاملة تجمع بين الذكاء الاصطناعي، المتاجر الإلكترونية، الشبكات الاجتماعية، ومنصة GitHub Pages الرسمية.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/apps/" class="rounded-xl bg-cyan-400 px-6 py-3 font-bold text-slate-950">استكشف التطبيقات</a>
+          <a href="/ai-tools/" class="rounded-xl border border-cyan-300/40 bg-cyan-400/10 px-6 py-3 font-bold text-cyan-200">أدوات ذكاء اصطناعي مجانية ↗</a>
+          <a href="/github-apps/" class="rounded-xl border border-slate-700 px-6 py-3 font-bold text-cyan-300">مستودعات GitHub</a>
+          <a href="/terminal/" class="rounded-xl border border-emerald-300/40 bg-emerald-400/10 px-6 py-3 font-bold text-emerald-200">⌨️ افتح Terminal</a>
+          <a href="/hosting-studio/#github-workbench-heading" class="rounded-xl border border-violet-300/40 bg-violet-400/10 px-6 py-3 font-bold text-violet-200">◉ تسجيل الدخول عبر GitHub</a>
+          <a href="/?locale=en" class="rounded-xl border border-slate-700 px-6 py-3 font-bold text-slate-200">English</a>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="px-5 py-16 lg:px-8 lg:py-20" aria-labelledby="workspaces-heading">
+      <section class="panel mb-10 overflow-hidden rounded-3xl p-6 shadow-2xl shadow-cyan-500/5 md:p-10" aria-labelledby="onecompiler-video-heading">
+        <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
+          <div>
+            <p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-cyan-300">OneCompiler AI · Cloudflare Worker</p>
+            <h2 id="onecompiler-video-heading" class="mb-4 text-3xl font-black tracking-tight text-white sm:text-4xl">من الفكرة إلى موقع حيّ في خطوة واحدة</h2>
+            <p class="mb-6 max-w-2xl text-lg leading-8 text-slate-300">شاهد كيف ينتقل مشروعك من OneCompiler AI عبر Cloudflare Worker إلى GitHub Pages، مع الحفاظ على جلسة GitHub بعيدًا عن الواجهة.</p>
+            <a href="/onecompiler-publish-guide/" class="inline-flex rounded-xl bg-cyan-400 px-6 py-3 font-bold text-slate-950 transition hover:bg-cyan-300">افتح دليل النشر</a>
+          </div>
+          <div class="overflow-hidden rounded-2xl border border-cyan-300/20 bg-slate-950 shadow-xl shadow-cyan-500/10">
+            <video class="aspect-video w-full" controls preload="none" poster="/assets/videos/onecompiler-ai-cloudflare-poster.webp" aria-label="فيديو يشرح النشر من OneCompiler AI إلى GitHub Pages">
+              <source src="/assets/videos/onecompiler-ai-cloudflare-30s.mp4" type="video/mp4" />
+              متصفحك لا يدعم تشغيل الفيديو. <a class="text-cyan-300 underline" href="/assets/videos/onecompiler-ai-cloudflare-30s.mp4">تحميل الفيديو</a>
+            </video>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div class="panel rounded-2xl p-6">
+          <div class="text-3xl font-black text-cyan-300">20+</div>
+          <div class="mt-2 text-sm text-slate-300">تطبيقات ومشاريع</div>
+        </div>
+        <div class="panel rounded-2xl p-6">
+          <div class="text-3xl font-black text-cyan-300">AI</div>
+          <div class="mt-2 text-sm text-slate-300">نماذج ذكاء اصطناعي</div>
+        </div>
+        <div class="panel rounded-2xl p-6">
+          <div class="text-3xl font-black text-cyan-300">SOOQ</div>
+          <div class="mt-2 text-sm text-slate-300">منصة تجارة اجتماعية</div>
+        </div>
+        <div class="panel rounded-2xl p-6">
+          <div class="text-3xl font-black text-cyan-300">GOBI</div>
+          <div class="mt-2 text-sm text-slate-300">شبكة اجتماعية</div>
+        </div>
+      </section>
+
+      <section class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <a href="/apps/" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">📱</div>
+          <h2 class="mb-2 text-xl font-black text-white">التطبيقات</h2>
+          <p class="text-sm leading-6 text-slate-300">لوحة مركزية للتطبيقات والواجهات الرئيسية داخل المنصة.</p>
+        </a>
+
+        <a href="/github-apps/" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">🧩</div>
+          <h2 class="mb-2 text-xl font-black text-white">GitHub Apps</h2>
+          <p class="text-sm leading-6 text-slate-300">قائمة كاملة للمستودعات، المشاريع،وبرامج GitHub المرتبطة بالحساب.</p>
+        </a>
+
+        <a href="/terminal/" class="panel rounded-2xl p-6 ring-1 ring-emerald-400/20 transition hover:ring-emerald-300/60">
+          <div class="mb-3 text-3xl">⌨️</div>
+          <h2 class="mb-2 text-xl font-black text-white">الطرفية الآمنة</h2>
+          <p class="text-sm leading-6 text-slate-300">نفّذ أوامر GitHub الآمنة مثل الحالة والفروع والمقارنة من داخل Hosting Studio، دون تشغيل أوامر نظام على الخادم.</p>
+        </a>
+
+        <a href="/admin/" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">⚙️</div>
+          <h2 class="mb-2 text-xl font-black text-white">الإدارة</h2>
+          <p class="text-sm leading-6 text-slate-300">إدارة قواعد المشروع، المواقع، والتحكم داخل المنصة.</p>
+        </a>
+
+        <a href="https://github.com/elazzouz-dotcom/AI-Platform" target="_blank" rel="noreferrer" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">🤖</div>
+          <h2 class="mb-2 text-xl font-black text-white">AI Platform</h2>
+          <p class="text-sm leading-6 text-slate-300">منصة الذكاء الاصطناعي مع أكثر من 2500 نموذج.</p>
+        </a>
+
+        <a href="https://github.com/elazzouz-dotcom/sooq-platform" target="_blank" rel="noreferrer" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">🛍️</div>
+          <h2 class="mb-2 text-xl font-black text-white">SOOQ Platform</h2>
+          <p class="text-sm leading-6 text-slate-300">منصة تجارة اجتماعية عربية متكاملة مع بحث وذكاء اصطناعي.</p>
+        </a>
+
+        <a href="https://github.com/elazzouz-dotcom/Gobi" target="_blank" rel="noreferrer" class="panel rounded-2xl p-6">
+          <div class="mb-3 text-3xl">👥</div>
+          <h2 class="mb-2 text-xl font-black text-white">GOBI</h2>
+          <p class="text-sm leading-6 text-slate-300">منصة اجتماعية ومجتمعية للتواصل والمشاركة.</p>
+        </a>
+
+        <a href="/semver-bnf/" class="panel rounded-2xl p-6 ring-1 ring-emerald-400/20 transition hover:ring-emerald-300/60">
+          <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-400/15 text-3xl font-black text-emerald-300">⌬</div>
+          <h2 class="mb-2 text-xl font-black text-white">SemVer BNF · شبكة 601 عقدة</h2>
+          <p class="text-sm leading-6 text-slate-300">استكشف منظومة Semantic Versioning التفاعلية، وأضف رابطًا من علامة + داخل أي عقدة.</p>
+        </a>
+
+        <a href="/clef/" class="panel rounded-2xl p-6 ring-1 ring-cyan-400/20 transition hover:ring-cyan-300/60">
+          <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/15 text-2xl font-black text-cyan-300">✦</div>
+          <h2 class="mb-2 text-xl font-black text-white">Cloudflare Clef</h2>
+          <p class="text-sm leading-6 text-slate-300">واجهة قرارات متعددة الوسائط للحالة والأسئلة typed مع احتمالات قابلة للفحص.</p>
+        </a>
+
+        <a href="/hosting-studio/#github-workbench-heading" class="panel rounded-2xl p-6 ring-1 ring-violet-400/20 transition hover:ring-violet-300/60">
+          <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-400/15 text-2xl font-black text-violet-300">◉</div>
+          <h2 class="mb-2 text-xl font-black text-white">AI File Workspace</h2>
+          <p class="text-sm leading-6 text-slate-300">سجّل الدخول إلى GitHub، حمّل ملفًا، حلّله عبر Clef، ثم عدّله واحفظه كـ commit.</p>
+        </a>
+      </section>
+    <section class="px-5 py-16 lg:px-8 lg:py-20" aria-labelledby="external-preview-heading">
       <div class="mx-auto max-w-7xl">
-        <div class="mb-8">
-          <p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Start here</p>
-          <h2 id="workspaces-heading" class="mb-0 text-3xl font-black sm:text-4xl">Useful workspaces.</h2>
+        <div class="mb-8 max-w-3xl">
+          <p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">External preview · معاينة خارجية</p>
+          <h2 id="external-preview-heading" class="mb-4 text-3xl font-black sm:text-5xl">أضف رابطًا إلى عقدة، وشاهد الموقع يعمل.</h2>
+          <p class="mb-0 text-lg leading-8 text-[var(--color-muted)]">اكتب أي رابط ويب خارجي، حتى من استضافة أو نطاق مختلف، واضغط «+». ستظهر المعاينة داخل الواجهة، مع محاولة قراءة العنوان والوصف واللغة. إذا منع الموقع التضمين، يبقى رابط الفتح المباشر متاحًا بدل إخفاء الموقع أو ادعاء قراءة غير ممكنة.</p>
         </div>
-        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <a href="/developer-tools" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">⌨</span>
-            <h3 class="mb-2 text-xl font-extrabold">Developer toolkit</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Format JSON, encode text, hash files, test Regex, compare text, preview Markdown, inspect colors, convert time, and generate UUIDs.</p>
-          </a>
-          <a href="/browserbase-studio" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">⌘</span>
-            <h3 class="mb-2 text-xl font-extrabold">Browser workflow studio</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Arrange browser steps and generate reviewed Playwright or Stagehand starters without entering credentials.</p>
-          </a>
-          <a href="/api-tool" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">⌁</span>
-            <h3 class="mb-2 text-xl font-extrabold">API workbench</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Inspect supported API requests from the browser while keeping credentials in page memory only.</p>
-          </a>
-          <a href="/chat-studio" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">💬</span>
-            <h3 class="mb-2 text-xl font-extrabold">Chat Studio</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Browse assistant replies from this conversation, search them, and copy the local transcript.</p>
-          </a>
-          <a href="/slaksi" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">▣</span>
-            <h3 class="mb-2 text-xl font-extrabold">SLaksi image vault</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Explore local file encryption and image embedding tools in your browser.</p>
-          </a>
-          <a href="/community" class="feature-card p-6">
-            <span class="icon-box mb-5 text-xl" aria-hidden="true">✳</span>
-            <h3 class="mb-2 text-xl font-extrabold">Developer community</h3>
-            <p class="mb-0 leading-7 text-[var(--color-muted)]">Draft discussions and manage a local community feed on this device.</p>
-          </a>
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+          <div class="feature-card overflow-hidden p-4 sm:p-6">
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <label class="sr-only" for="external-preview-url">رابط الموقع الخارجي</label>
+              <input id="external-preview-url" class="tool-input min-w-0 flex-1 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="url" inputmode="url" placeholder="example.com أو https://example.com" autocomplete="url">
+              <button id="external-preview-add" class="btn-primary shrink-0 px-5 py-3" type="button" aria-label="إضافة الموقع إلى عقدة">+ إضافة إلى عقدة</button>
+            </div>
+            <div id="external-preview-empty" class="mt-5 rounded-[var(--radius)] border border-dashed border-[var(--color-border)] p-8 text-center text-sm text-[var(--color-muted)]">ستظهر المعاينة هنا بعد إضافة رابط.</div>
+            <div id="external-preview-stage" class="mt-5 hidden overflow-hidden rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-dark)]">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-3"><strong id="external-preview-title">معاينة الموقع</strong><a id="external-preview-open" class="footer-link text-sm font-bold" href="#" target="_blank" rel="noopener noreferrer">فتح في تبويب جديد ↗</a></div>
+              <iframe id="external-preview-frame" class="h-[72vh] min-h-[28rem] max-h-[56rem] w-full bg-white" title="معاينة موقع خارجي" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allow="fullscreen; picture-in-picture; clipboard-read; clipboard-write"></iframe>
+            </div>
+          </div>
+          <aside class="feature-card p-5" aria-live="polite">
+            <span class="data-node-badge">NODE + URL</span><h3 class="mt-4 text-xl font-black">ملخص العقدة</h3>
+            <dl id="external-preview-summary" class="mt-4 space-y-3 text-sm leading-6 text-[var(--color-muted)]"><div><dt class="font-bold text-[var(--color-text)]">الحالة</dt><dd>بانتظار رابط</dd></div></dl>
+          </aside>
         </div>
       </div>
     </section>
 
-    <section class="px-5 pb-20 lg:px-8 lg:pb-24">
-      <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 rounded-[var(--radius)] bg-[var(--color-dark)] p-8 text-[var(--color-text)] sm:p-12 lg:flex-row lg:items-center">
-        <div>
-          <p class="mb-3 text-sm font-bold uppercase tracking-[0.16em] text-[var(--color-primary)]">Focused collection</p>
-          <h2 class="mb-0 max-w-2xl text-3xl font-black sm:text-4xl">Find a tool, generate an output, move on.</h2>
+    <section class="data-flow-section px-5 py-16 lg:px-8 lg:py-20" aria-labelledby="data-flow-heading">
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-8 max-w-3xl"><p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">Data aggregation · شبكة المعلومات</p><h2 id="data-flow-heading" class="mb-4 text-3xl font-black sm:text-5xl">أرسل المعلومة من العقدة الأولى إلى GitHub.</h2><p class="mb-0 text-lg leading-8 text-[var(--color-muted)]">أنابيب مترابطة بصريًا تنقل حمولة تجريبية بين العقد. المسافة الواسعة تمنح كل عقدة مساحة واضحة على الهاتف والحاسوب، والعقدة الأخيرة هي بوابة GitHub الحقيقية.</p></div>
+        <div class="data-flow-shell" data-flow-widget>
+          <div class="data-flow-viewport" tabindex="0" aria-label="مسار نقل المعلومات بين العقد"><div class="data-flow-track">
+            <svg class="data-flow-link" data-link="0" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle" r="7"></circle></svg><article class="data-node source" data-node="0"><span class="data-node-badge">المصدر</span><div><span class="data-node-number">01</span><h3>ربط الموقع</h3><p>العقدة الأولى تستقبل الحمولة من الواجهة الحالية وتبدأ مسارها الآمن.</p></div></article>
+            <svg class="data-flow-link" data-link="1" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle alt" r="7"></circle></svg><article class="data-node" data-node="1"><span class="data-node-badge">تحقق</span><div><span class="data-node-number">02</span><h3>فحص الحمولة</h3><p>تُراجع المسارات والنصوص قبل السماح بمرور البيانات.</p></div></article>
+            <svg class="data-flow-link" data-link="2" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle" r="7"></circle></svg><article class="data-node" data-node="2"><span class="data-node-badge">تجهيز</span><div><span class="data-node-number">03</span><h3>تجميع الملفات</h3><p>تتحول التغييرات إلى كائن files بمسارات نسبية واضحة.</p></div></article>
+            <svg class="data-flow-link" data-link="3" aria-hidden="true"><path class="tube-shadow"></path><path class="tube"></path><path class="core"></path><circle class="data-flow-particle alt" r="7"></circle></svg><article class="data-node" data-node="3"><span class="data-node-badge">Worker</span><div><span class="data-node-number">04</span><h3>Cloudflare Worker</h3><p>ينقل الطلب عبر جلسة GitHub المشتركة دون وضع سر في الواجهة.</p></div></article>
+            <article class="data-node final" data-node="4"><span class="data-node-badge">الوجهة النهائية</span><div><span class="data-node-number">GH</span><h3>تسجيل الدخول إلى GitHub</h3><p>بوابة Device Flow حقيقية. يبقى الرمز محفوظًا محليًا حتى تنتهي الجلسة أو تختار تسجيل الخروج.</p><div class="github-login-box"><span id="home-github-status" class="github-login-status" role="status" aria-live="polite" aria-atomic="true">اضغط لطلب كود GitHub من Worker.</span><div class="github-code-row" hidden><output id="home-github-code" class="github-code" aria-label="كود GitHub"></output><button id="home-github-copy" class="github-copy" type="button">نسخ</button></div><a id="home-github-open" class="github-open" href="#" target="_blank" rel="noopener noreferrer" hidden>فتح GitHub وإدخال الكود ↗</a><button id="home-github-login" class="data-flow-button mt-2 w-full" type="button">تسجيل الدخول إلى GitHub</button></div></div></article>
+          </div></div>
+          <div class="data-flow-controls"><span id="data-flow-status" role="status">المسار جاهز. اضغط لنقل حمولة تجريبية عبر الأنابيب.</span><button id="data-flow-send" class="data-flow-button" type="button">نقل المعلومة الآن</button></div>
         </div>
-        <a href="/tools" class="btn-primary shrink-0 px-6 py-4">Open all tools <span aria-hidden="true">→</span></a>
       </div>
     </section>
-  </main>
 
-  <footer class="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-8 lg:px-8">
-    <div class="mx-auto flex max-w-7xl flex-wrap justify-between gap-4 text-sm text-[var(--color-muted)]">
-      <a href="/" class="font-extrabold text-[var(--color-text)]">Slaks</a>
-      <p class="mb-0">Working browser tools and local code generators.</p>
-      <a href="/chat-studio" class="footer-link font-semibold">Chat Studio</a>
-      <a href="/tools" class="footer-link font-semibold">Tool directory</a>
+    </main>
+
+    <footer class="border-t border-slate-800 bg-slate-950 py-8">
+      <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 text-sm text-slate-400 md:flex-row lg:px-8">
+        <p>© 2026 Slaks</p>
+        <div class="site-footer-links flex gap-5">
+          <a href="/?locale=ar">العربية</a>
+          <a href="/?locale=en">English</a>
+          <a href="/apps/">التطبيقات</a>
+          <a href="/ai-tools/">أدوات AI دون حساب</a>
+        </div>
+      </div>
+
+<div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية" style="box-sizing:border-box;flex-basis:100%;width:100%;max-width:72rem;margin:1rem auto 0;padding:1rem 1rem 0;border-top:1px solid rgba(148,163,184,.28);text-align:center;color:inherit;font-size:.84em;line-height:1.75;">
+      <p style="margin:0 0 .35rem;">باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license" style="color:inherit;text-underline-offset:.15em;">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+      <p style="margin:0 0 .4rem;">لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+      <span aria-hidden="true" style="display:inline-flex;align-items:center;gap:.12em;vertical-align:middle;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      </span>
     </div>
-  </footer>
-  <script src="/language.js"></script>
-</body>
+    </footer>
 
+    <script src="/external-preview.js"></script>
+    <script src="/data-flow.js"></script>
+    <script>
+      (function () {
+        const q = new URLSearchParams(window.location.search);
+        const locale = (q.get('locale') || 'ar').toLowerCase();
+        const html = document.documentElement;
+        const isArabic = locale === 'ar';
+        html.setAttribute('lang', isArabic ? 'ar' : 'en');
+        html.setAttribute('dir', isArabic ? 'rtl' : 'ltr');
+      })();
+    </script>
+  </body>
 </html>

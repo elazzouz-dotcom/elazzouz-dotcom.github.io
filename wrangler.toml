@@ -1,0 +1,20 @@
+# Cloudflare Worker Configuration for GitHub OAuth Proxy v4.0.0
+# 
+# Deployment Instructions:
+# 1. Install wrangler: npm install -g wrangler
+# 2. Login: wrangler login
+# 3. Set secret: wrangler secret put CLIENT_SECRET
+# 4. Deploy: wrangler deploy
+
+name = "github-oauth-proxy"
+main = "cloudflare-worker-oauth-proxy.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Public variables (safe to commit)
+# CLIENT_ID is already defined in the worker code
+
+# Secrets (set via: wrangler secret put CLIENT_SECRET)
+# DO NOT add CLIENT_SECRET here - it must be set via wrangler secret
+# or in the Cloudflare dashboard under Settings > Variables
+# CLIENT_SECRET = "your-secret-here" # NEVER commit this!

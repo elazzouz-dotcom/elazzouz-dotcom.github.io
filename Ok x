@@ -1,0 +1,216 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
+#define STEPS 300
+
+typedef struct SyndromeNode {
+    double *forward_state;
+    double *backward_syndrome_memory;
+    char syndrome_tag[64];
+    struct SyndromeNode *next;
+    struct SyndromeNode *prev;
+} SyndromeNode;
+
+typedef struct {
+    SyndromeNode *head;
+    SyndromeNode *tail;
+    int capacity;
+    int size;
+} ReversibleSyndromeMemory;
+
+typedef struct {
+    double *a_values;
+    double dx;
+    double *raw_potential;
+    double *wave_function;
+    char state_type[32];
+    double ai_weights[4];
+    ReversibleSyndromeMemory *memory;
+} QuantumStemCell;
+
+ReversibleSyndromeMemory* create_reversible_memory(int capacity) {
+    ReversibleSyndromeMemory *mem = (ReversibleSyndromeMemory*) malloc(sizeof(ReversibleSyndromeMemory));
+    if (!mem) exit(EXIT_FAILURE);
+    mem->head = NULL;
+    mem->tail = NULL;
+    mem->capacity = capacity;
+    mem->size = 0;
+    return mem;
+}
+
+void push_reversible_syndrome(ReversibleSyndromeMemory *mem, const double *state, const double *syndrome, const char *tag, int steps) {
+    SyndromeNode *node = (SyndromeNode*) malloc(sizeof(SyndromeNode));
+    if (!node) exit(EXIT_FAILURE);
+
+    node->forward_state = (double*) malloc(steps * sizeof(double));
+    node->backward_syndrome_memory = (double*) malloc(steps * sizeof(double));
+    
+    for (int i = 0; i < steps; i++) {
+        node->forward_state[i] = state[i];
+        node->backward_syndrome_memory[i] = syndrome[i];
+    }
+    strcpy(node->syndrome_tag, tag);
+    node->next = NULL;
+    node->prev = mem->tail;
+
+    if (mem->tail) {
+        mem->tail->next = node;
+    } else {
+        mem->head = node;
+    }
+    mem->tail = node;
+    mem->size++;
+
+    if (mem->size > mem->capacity) {
+        SyndromeNode *old = mem->head;
+        mem->head = mem->head->next;
+        if (mem->head) mem->head->prev = NULL;
+        else mem->tail = NULL;
+        free(old->forward_state);
+        free(old->backward_syndrome_memory);
+        free(old);
+        mem->size--;
+    }
+}
+
+int pop_reversible_syndrome(ReversibleSyndromeMemory *mem, double *state_out, double *syndrome_out, int steps) {
+    if (!mem->tail) return 0;
+    SyndromeNode *node = mem->tail;
+
+    for (int i = 0; i < steps; i++) {
+        state_out[i] = node->forward_state[i];
+        syndrome_out[i] = node->backward_syndrome_memory[i];
+    }
+
+    mem->tail = node->prev;
+    if (mem->tail) {
+        mem->tail->next = NULL;
+    } else {
+        mem->head = NULL;
+    }
+
+    free(node->forward_state);
+    free(node->backward_syndrome_memory);
+    free(node);
+    mem->size--;
+    return 1;
+}
+
+void free_reversible_memory(ReversibleSyndromeMemory *mem) {
+    while (mem->head) {
+        SyndromeNode *temp = mem->head;
+        mem->head = mem->head->next;
+        free(temp->forward_state);
+        free(temp->backward_syndrome_memory);
+        free(temp);
+    }
+    free(mem);
+}
+
+QuantumStemCell* stem_create(int steps) {
+    QuantumStemCell *cell = (QuantumStemCell*) malloc(sizeof(QuantumStemCell));
+    if (!cell) exit(EXIT_FAILURE);
+    
+    strcpy(cell->state_type, "Pluripotent");
+    double a_min = 0.01;
+    double a_max = 5.0;
+    cell->dx = (a_max - a_min) / (steps - 1);
+    
+    cell->a_values = (double*) malloc(steps * sizeof(double));
+    cell->raw_potential = (double*) malloc(steps * sizeof(double));
+    cell->wave_function = (double*) malloc(steps * sizeof(double));
+    cell->memory = create_reversible_memory(5);
+    
+    for (int i = 0; i < steps; i++) {
+        cell->a_values[i] = a_min + i * cell->dx;
+        cell->raw_potential[i] = 0.0;
+        cell->wave_function[i] = 0.0;
+    }
+    
+    for (int i = 0; i < 4; i++) {
+        cell->ai_weights[i] = ((double)rand() / RAND_MAX) * 0.2 - 0.1;
+    }
+    return cell;
+}
+
+void stem_free(QuantumStemCell *cell) {
+    if (cell) {
+        free(cell->a_values);
+        free(cell->raw_potential);
+        free(cell->wave_function);
+        free_reversible_memory(cell->memory);
+        free(cell);
+        printf("[stdlib memory] Fully deallocated with dynamic reversible syndrome memory.\n");
+    }
+}
+
+void solve_wave_function(QuantumStemCell *cell, int steps) {
+    double *psi = (double*) calloc(steps, sizeof(double));
+    psi[steps - 1] = 0.0;
+    psi[steps - 2] = 1e-5;
+    
+    for (int i = steps - 2; i > 0; i--) {
+        psi[i - 1] = 2.0 * psi[i] - psi[i + 1] + (cell->dx * cell->dx) * cell->raw_potential[i] * psi[i];
+    }
+    
+    double max_val = 0.0;
+    for (int i = 0; i < steps; i++) {
+        if (fabs(psi[i]) > max_val) max_val = fabs(psi[i]);
+    }
+    
+    if (max_val > 0.0) {
+        for (int i = 0; i < steps; i++) {
+            cell->wave_function[i] = psi[i] / max_val;
+        }
+    }
+    free(psi);
+}
+
+void stem_differentiate(QuantumStemCell *cell, int steps, const char *regime, double param) {
+    strcpy(cell->state_type, regime);
+    
+    if (strcmp(regime, "inflationary") == 0) {
+        double lambda_cosmo = param;
+        for (int i = 0; i < steps; i++) {
+            double a = cell->a_values[i];
+            cell->raw_potential[i] = (1.0 * a * a) - (lambda_cosmo * (a * a * a * a) / 3.0);
+        }
+    } else if (strcmp(regime, "cyclic") == 0) {
+        double frequency = param;
+        for (int i = 0; i < steps; i++) {
+            double a = cell->a_values[i];
+            cell->raw_potential[i] = sin(frequency * a) * a;
+        }
+    }
+    
+    solve_wave_function(cell, steps);
+
+    double *syndrome = (double*) malloc(steps * sizeof(double));
+    for(int i = 0; i < steps; i++) {
+        syndrome[i] = cell->wave_function[i] * cell->raw_potential[i];
+    }
+
+    push_reversible_syndrome(cell->memory, cell->wave_function, syndrome, regime, steps);
+    free(syndrome);
+    
+    printf("[StemCell] Differentiated into %s and stored in reversible dynamic memory.\n", regime);
+}
+
+int main() {
+    QuantumStemCell *cell = stem_create(STEPS);
+    
+    stem_differentiate(cell, STEPS, "inflationary", 3.0);
+    stem_differentiate(cell, STEPS, "cyclic", 2.0);
+
+    double rev_state[STEPS];
+    double rev_syndrome[STEPS];
+
+    if (pop_reversible_syndrome(cell->memory, rev_state, rev_syndrome, STEPS)) {
+        printf("[Reversible Memory] Successfully popped backward syndrome state.\n");
+    }
+
+    stem_free(cell);
+    return EXIT_SUCCESS;
+}

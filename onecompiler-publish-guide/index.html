@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="دليل ربط OneCompiler AI بالنشر المباشر إلى GitHub Pages عبر Cloudflare Worker.">
+  <title>دليل OneCompiler AI للنشر المباشر</title>
+  <link rel="stylesheet" href="/theme.css">
+  <style>
+    main{max-width:900px;margin:auto;padding:32px 20px 64px}section{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);padding:24px;margin:18px 0}h1{margin-bottom:10px}h2{margin-top:0;color:var(--color-primary)}p,li{line-height:1.9;color:var(--color-muted)}a{color:var(--color-primary);font-weight:700}pre{direction:ltr;text-align:left;overflow:auto;background:var(--color-dark);border-radius:10px;padding:16px;color:var(--color-text);line-height:1.65}code{direction:ltr}table{width:100%;border-collapse:collapse}th,td{border:1px solid var(--color-border);padding:10px;text-align:right;vertical-align:top}th{color:var(--color-primary)}
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="/hosting-studio/">← العودة إلى Hosting Studio</a></p>
+    <h1>OneCompiler AI → GitHub Pages</h1>
+    <p>بعد تسجيل الدخول إلى GitHub من Hosting Studio، يستطيع OneCompiler AI إرسال الملفات المعدلة إلى GitHub وإنشاء Commit مباشرةً عبر Cloudflare Worker، من دون نسخ الملفات يدويًا أو وضع Access Token داخل المشروع.</p>
+    <section>
+      <h2>الإعداد مرة واحدة</h2>
+      <ol>
+        <li>افتح <a href="/hosting-studio/">Hosting Studio</a> واضغط «ربط حساب GitHub» وأكمل Device Flow.</li>
+        <li>اترك Hosting Studio مفتوحًا في المتصفح نفسه؛ Worker يعتمد على الجلسة المشتركة.</li>
+        <li>افتح <a href="https://onecompiler.com/vibecode/4557bq5ht" target="_blank" rel="noopener noreferrer">مشروع OneCompiler</a>.</li>
+        <li>أضف ملف <a href="/onecompiler-publish-bridge.js">الجسر الجاهز</a> إلى المشروع:</li>
+      </ol>
+      <pre>&lt;script src="https://elazzouz-dotcom.github.io/onecompiler-publish-bridge.js"&gt;&lt;/script&gt;</pre>
+      <p><strong>ممنوع:</strong> لا تضف CLIENT_SECRET أو gho_... أو أي Access Token إلى ملفات OneCompiler.</p>
+    </section>
+    <section>
+      <h2>عقد ثابت لا يتغير</h2>
+      <p>الجسر يثبت Worker والوجهة داخليًا؛ لا يستطيع كود OneCompiler تغييرها. Worker هو <code>https://github-oauth-proxy.elazzouz4.workers.dev</code>، والمالك <code>Slaks</code>، والمستودع <code>elazzouz-dotcom.github.io</code>، والفرع <code>main</code>. يمكن تغيير رسالة الـ Commit والملفات المعدلة فقط.</p>
+    </section>
+    <section>
+      <h2>الاستدعاء الأساسي</h2>
+      <p>بعد انتهاء OneCompiler AI من التعديل والتحقق، اجمع الملفات المعدلة فقط ثم نفّذ:</p>
+      <pre>await OneCompilerGitHub.publishToGitHub({
+  owner: 'elazzouz-dotcom',
+  repo: 'elazzouz-dotcom.github.io',
+  branch: 'main',
+  message: 'Update site from OneCompiler AI',
+  files: {
+    'index.html': document.documentElement.outerHTML,
+    'theme.css': updatedThemeCss,
+  },
+});</pre>
+      <p>استخدم مسارات نسبية وقيمًا نصية للملفات. لا تستخدم مسارًا يبدأ بـ <code>/</code> أو يحتوي على <code>..</code>.</p>
+    </section>
+    <section>
+      <h2>Prompt جاهز لـ OneCompiler AI</h2>
+      <p>أضف ملف الجسر من <code>https://elazzouz-dotcom.github.io/onecompiler-publish-bridge.js</code> باستخدام script tag. بعد كل تعديل ناجح، اجمع الملفات النهائية المعدلة في كائن <code>files</code>، ثم استدعِ <code>await OneCompilerGitHub.publishToGitHub({ owner: 'elazzouz-dotcom', repo: 'elazzouz-dotcom.github.io', branch: 'main', message: 'Update site from OneCompiler AI', files })</code>. اعرض نتيجة الـ Commit للمستخدم. لا تنشئ Access Token ولا تضع أي سر داخل الكود، ولا تستدعِ النشر قبل اكتمال التعديل والتحقق من الملفات.</p>
+    </section>
+    <section>
+      <h2>زر نشر اختياري</h2>
+      <pre>OneCompilerGitHub.createPublishButton({
+  button: '#publish-button',
+  message: 'Publish reviewed OneCompiler changes',
+  getFiles: async () =&gt; ({
+    'index.html': document.documentElement.outerHTML,
+  }),
+});</pre>
+    </section>
+    <section>
+      <h2>استكشاف الأخطاء</h2>
+      <table><thead><tr><th>الرسالة</th><th>الإجراء</th></tr></thead><tbody>
+        <tr><td><code>GitHub session is not available</code></td><td>سجّل الدخول من Hosting Studio في المتصفح نفسه.</td></tr>
+        <tr><td><code>File paths must be relative</code></td><td>احذف / من بداية المسار ولا تستخدم ..</td></tr>
+        <tr><td><code>Publish failed (403)</code></td><td>تحقق من صلاحية الحساب في المستودع ومن OAuth scope.</td></tr>
+        <tr><td>نجح Commit ولم يتغير الموقع</td><td>انتظر GitHub Pages وافحص تبويب Actions.</td></tr>
+      </tbody></table>
+    </section>
+    <p><a href="https://github.com/elazzouz-dotcom/elazzouz-dotcom.github.io/blob/main/ONECOMPILER-PUBLISH-GUIDE.md" target="_blank" rel="noopener noreferrer">نسخة Markdown للمطورين</a> · <a href="https://elazzouz-dotcom.github.io/">الموقع المنشور</a></p>
+  </main>
+  <footer class="site-license-footer" style="padding:1.25rem 1rem;text-align:center;">
+
+<div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية" style="box-sizing:border-box;flex-basis:100%;width:100%;max-width:72rem;margin:1rem auto 0;padding:1rem 1rem 0;border-top:1px solid rgba(148,163,184,.28);text-align:center;color:inherit;font-size:.84em;line-height:1.75;">
+      <p style="margin:0 0 .35rem;">باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license" style="color:inherit;text-underline-offset:.15em;">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+      <p style="margin:0 0 .4rem;">لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+      <span aria-hidden="true" style="display:inline-flex;align-items:center;gap:.12em;vertical-align:middle;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="max-width:1em;max-height:1em;">
+      </span>
+    </div>
+  </footer>
+</body>
+</html>
