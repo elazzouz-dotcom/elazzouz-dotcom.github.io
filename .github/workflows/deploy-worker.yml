@@ -6,6 +6,7 @@ on:
     paths:
       - "cloudflare-worker-oauth-proxy.js"
       - "wrangler.toml"
+      - "satellite/**"
       - ".github/workflows/deploy-worker.yml"
   workflow_dispatch:
 

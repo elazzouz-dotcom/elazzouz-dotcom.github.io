@@ -23,3 +23,11 @@ OWNER_GITHUB_LOGIN = "elazzouz-dotcom"
 [[kv_namespaces]]
 binding = "PERMISSIONS"
 id = "6569d9d462134a8893c6d28d9f92ddf6"
+
+[[kv_namespaces]]
+# Uses the existing namespace with a separate key prefix for satellite telemetry.
+binding = "SATELLITE_STATUS"
+id = "6569d9d462134a8893c6d28d9f92ddf6"
+
+# Set with: wrangler secret put SATELLITE_INGEST_TOKEN
+# Never commit the gateway token or modem credentials.
