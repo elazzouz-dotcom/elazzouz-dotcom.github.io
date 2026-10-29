@@ -2,6 +2,15 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
+const BUILTIN_NODES = Object.freeze({
+  600: {
+    url: 'https://elazzouz-dotcom.github.io/satellite/',
+    html: '',
+    active: true,
+    builtIn: true,
+    label: 'VSAT Gateway'
+  }
+});
 const NODE_SIZE = 44;
 const ROW_GAP = 70;
 const LEVEL_GAP = 68;
@@ -63,7 +72,8 @@ function getHubData(id) {
   }
   const index = readJson(LINK_KEY, {});
   const legacy = index?.[id];
-  return typeof legacy === 'string' && /^https?:\/\//i.test(legacy) ? { url: legacy, html: '', active: true } : null;
+  if (typeof legacy === 'string' && /^https?:\/\//i.test(legacy)) return { url: legacy, html: '', active: true };
+  return BUILTIN_NODES[id] || null;
 }
 
 function isConfigured(data) {
@@ -88,7 +98,8 @@ function refreshNode(id) {
     return;
   }
   let label = 'HTML';
-  if (data.url) {
+  if (data.label) label = data.label;
+  else if (data.url) {
     try { label = parseNodeLink(data.url).display; }
     catch { label = 'رابط'; }
   }
@@ -380,10 +391,11 @@ async function buildHub(silent = false) {
         setHubStatus('الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
         return;
       }
-      clearPreview();
+      hubPreview.removeAttribute('srcdoc');
+      hubPreview.src = link.url;
       hubAddress.textContent = link.url;
-      renderExtraction({ title: link.host || link.display, text: 'تم التحقق من صيغة الرابط فقط. لا يجلب هذا الموقع محتوى الصفحات الخارجية؛ افتحها في تبويب مستقل.', source: 'رابط خارجي غير مجلوب', kind: 'web' });
-      setHubStatus('الرابط صالح. معاينة HTTP/HTTPS الخارجية غير مفعّلة؛ استخدم «فتح الرابط خارجيًا».');
+      renderExtraction({ title: link.host || link.display, text: 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر الفتح المباشر عند الحاجة.', source: 'معاينة HTTP/HTTPS خارجية', kind: 'web' });
+      setHubStatus('جارية معاينة الرابط الخارجي داخل إطار معزول. إذا رفض الموقع العرض، استخدم الفتح المباشر.');
       return;
     }
     if (localHtml.trim()) {

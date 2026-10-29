@@ -27,7 +27,8 @@
       <div id="gateway-status" class="mb-6 sat-card" role="status" aria-live="polite">جارٍ الاتصال بـ Cloudflare Worker…</div>
       <div id="provider-grid" class="sat-grid"></div>
       <section class="mt-8 sat-card"><h2 class="mb-3 text-2xl font-black">كيف يتم الربط الحقيقي؟</h2><p class="sat-muted leading-8">الجهاز أو المحطة الأرضية يرسل حالة الاتصال إلى بوابة تملكها أنت، ثم تحفظ Cloudflare KV آخر حالة وتعرضها هذه الصفحة. لا تضع مفاتيح المودم أو رموز المزود في GitHub Pages. مسار الإدخال المحمي هو <code>/satellite/ingest</code>، ويحتاج سرًا منفصلًا باسم <code>SATELLITE_INGEST_TOKEN</code>.</p><div class="mt-4 rounded-[var(--radius)] bg-[var(--color-dark)] p-4 text-left text-sm text-[var(--color-text)]" dir="ltr"><code>POST /satellite/ingest<br>Authorization: Bearer &lt;gateway-token&gt;<br>{"providers":[{"id":"starlink","status":"online","signal":86}]}</code></div></section>
-      <p class="mt-6 text-sm sat-muted">تنبيه: ظهور «تجريبي» يعني عدم وجود مودم فضائي متصل بعد. لا تعرض اللوحة سرعة أو إشارة وهمية.</p>
+      <p class="mt-6 text-sm sat-muted">تنبيه: ظهور «تجريبي» يعني عدم وجود مودم فضائي متصل بعد. لا تعرض اللوحة سرعة أو إشارة وهمية. هذه اللوحة منشورة داخل مختبر شبكة SemVer في العقدة N-600.</p>
+      <p class="mt-3 text-sm"><a class="footer-link" href="/satellite/vsat-status-bridge/README.md">قراءة تعليمات جسر VSAT ↗</a></p>
     </section>
   </main>
   <footer class="site-license-footer" style="padding:1.25rem 1rem;text-align:center;"><p class="text-sm sat-muted">Slaks · بوابة بيانات اختيارية لا تتطلب Google أو API من الزائر.</p></footer>
