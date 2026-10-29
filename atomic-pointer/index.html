@@ -317,9 +317,37 @@
           </div>
         </section>
 
+        <section class="lab-panel p-5 sm:p-7" aria-labelledby="atomic-data-heading">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٣ · قاعدة JSON محلية</p>
+              <h2 id="atomic-data-heading" class="mb-2 text-2xl font-black">قواعد الذرة والعناصر</h2>
+              <p class="mb-0 max-w-3xl text-sm leading-6 text-[var(--color-muted)]">تُحمّل البيانات من ملف JSON داخل الموقع، لذلك تعمل دون Google أو API خارجي. يمكنك استبدال الملف لاحقًا بنفس البنية لإضافة عناصر أو قواعد جديدة.</p>
+            </div>
+            <span id="atomic-data-status" class="rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] px-3 py-2 text-xs font-extrabold text-[var(--color-muted)]" role="status">جارٍ تحميل JSON…</span>
+          </div>
+          <div class="grid gap-4 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
+            <div class="space-y-4">
+              <label for="atomic-element-search" class="text-sm font-bold">ابحث عن عنصر
+                <input id="atomic-element-search" type="search" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]" placeholder="مثل: أكسجين أو O أو 8" autocomplete="off">
+              </label>
+              <label for="atomic-element-select" class="text-sm font-bold">اختر عنصرًا
+                <select id="atomic-element-select" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]"></select>
+              </label>
+              <div id="atomic-rules-list" class="space-y-2 text-sm text-[var(--color-muted)]"></div>
+            </div>
+            <article id="atomic-element-card" class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5" aria-live="polite">
+              <p class="mb-2 text-5xl font-black text-[var(--color-primary)]">⚛</p>
+              <h3 id="atomic-element-name" class="mb-1 text-2xl font-black">بانتظار قاعدة JSON</h3>
+              <p id="atomic-element-meta" class="mb-4 text-sm text-[var(--color-muted)]">سيظهر العنصر بعد تحميل البيانات.</p>
+              <dl id="atomic-element-facts" class="grid gap-3 sm:grid-cols-2"></dl>
+            </article>
+          </div>
+        </section>
+
         <section class="lab-panel p-5 sm:p-7" aria-labelledby="interface-heading">
           <div class="mb-5">
-            <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٣ · مولّد واجهات مربوط بالنتيجة</p>
+              <p class="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--color-primary)]">٤ · مولّد واجهات مربوط بالنتيجة</p>
             <h2 id="interface-heading" class="mb-2 text-2xl font-black">نسّق المكوّن وصدّره</h2>
             <p class="mb-0 text-sm leading-6 text-[var(--color-muted)]">لا تُحقن النتيجة إلا بعد إتمام المحاكاة والتحقق منها. تغيير الشكل لا يغيّر حالة المحاكاة.</p>
           </div>
@@ -1191,6 +1219,83 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
         $('delta-b').inputMode = 'numeric';
       });
 
+      const atomicData = {
+        elements: [],
+        rules: []
+      };
+
+      function renderAtomicElement(element) {
+        if (!element) return;
+        $('atomic-element-name').textContent = `${element.name} (${element.symbol})`;
+        $('atomic-element-meta').textContent = `${element.nameEn} · ${element.category} · العدد الذري ${element.number}`;
+        const facts = [
+          ['البروتونات', element.protons], ['الإلكترونات', element.electrons],
+          ['النيوترونات', element.neutrons], ['الكتلة الذرية', element.mass],
+          ['الدورة', element.period], ['المجموعة', element.group]
+        ];
+        $('atomic-element-facts').replaceChildren(...facts.map(([label, value]) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'rounded-[calc(var(--radius)*0.45)] bg-[var(--color-surface)] p-3';
+          const title = document.createElement('dt');
+          title.className = 'text-xs font-bold text-[var(--color-muted)]';
+          title.textContent = label;
+          const result = document.createElement('dd');
+          result.className = 'mb-0 mt-1 text-lg font-black';
+          result.textContent = String(value);
+          wrapper.append(title, result);
+          return wrapper;
+        }));
+      }
+
+      function renderAtomicOptions(query = '') {
+        const needle = query.trim().toLocaleLowerCase();
+        const filtered = atomicData.elements.filter((element) => [element.name, element.nameEn, element.symbol, element.number]
+          .some((value) => String(value).toLocaleLowerCase().includes(needle)));
+        const select = $('atomic-element-select');
+        select.replaceChildren(...filtered.map((element) => {
+          const option = document.createElement('option');
+          option.value = String(element.number);
+          option.textContent = `${element.number} · ${element.name} (${element.symbol})`;
+          return option;
+        }));
+        if (filtered[0]) renderAtomicElement(filtered[0]);
+        else {
+          $('atomic-element-name').textContent = 'لا توجد نتائج';
+          $('atomic-element-meta').textContent = 'جرّب اسمًا أو رمزًا أو عددًا ذريًا آخر.';
+          $('atomic-element-facts').replaceChildren();
+        }
+      }
+
+      async function loadAtomicDatabase() {
+        const status = $('atomic-data-status');
+        try {
+          const response = await fetch('/atomic-pointer/data/atomic-rules.json', { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          if (!Array.isArray(payload.elements) || !Array.isArray(payload.rules)) throw new Error('صيغة JSON غير صالحة');
+          atomicData.elements = payload.elements;
+          atomicData.rules = payload.rules;
+          $('atomic-rules-list').replaceChildren(...payload.rules.map((rule) => {
+            const item = document.createElement('div');
+            item.className = 'rounded-[calc(var(--radius)*0.45)] bg-[var(--color-bg)] p-3';
+            item.textContent = `${rule.name}: ${rule.formula}`;
+            return item;
+          }));
+          renderAtomicOptions();
+          status.textContent = `${payload.elements.length} عنصر · ${payload.rules.length} قواعد`;
+          status.dataset.kind = 'success';
+        } catch (error) {
+          status.textContent = 'تعذر تحميل قاعدة JSON';
+          status.dataset.kind = 'error';
+          $('atomic-rules-list').textContent = `تحقق من الملف المحلي: ${error.message}`;
+        }
+      }
+
+      $('atomic-element-search').addEventListener('input', (event) => renderAtomicOptions(event.target.value));
+      $('atomic-element-select').addEventListener('change', (event) => {
+        renderAtomicElement(atomicData.elements.find((element) => String(element.number) === event.target.value));
+      });
+
       function getCapability() {
         const missing = [];
         if (typeof SharedArrayBuffer === 'undefined') missing.push('SharedArrayBuffer');
@@ -1229,6 +1334,7 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
       });
 
       getCapability();
+      loadAtomicDatabase();
       updateEditor();
       updateInterface();
       $('cas-start').textContent = $('initial-value').value;
