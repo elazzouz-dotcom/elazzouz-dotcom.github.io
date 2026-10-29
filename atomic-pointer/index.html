@@ -965,15 +965,37 @@ fn add_with_retry(state: &AtomicI32, delta: i32) -> i32 {
         finishRun(run);
       }
 
+      function runSequentialFallback(type, initial, deltaA, deltaB) {
+        const expected = validateInput(type, initial, deltaA, deltaB);
+        const resultText = String(expected);
+        $('cas-start').textContent = String(initial);
+        $('cas-final').textContent = resultText;
+        $('cas-attempts').textContent = '2';
+        $('cas-retries').textContent = '0';
+        $('atomic-badge').textContent = 'نتيجة بديلة';
+        setStatus('cas-status', `اكتمل الحساب في الوضع البديل التسلسلي: ${String(initial)} + ${String(deltaA)} + ${String(deltaB)} = ${resultText}. هذا الوضع لا يدّعي التزامن الذري.`, 'warning');
+        appendLog('المضيف لا يدعم العزل المطلوب؛ استُخدم الحساب التسلسلي الآمن بدلًا من ترك الأداة بلا نتيجة.', 'warning');
+        setProgress(2);
+        validatedResult = Object.freeze({
+          value: resultText,
+          initial: String(initial),
+          deltaA: String(deltaA),
+          deltaB: String(deltaB),
+          attempts: 2,
+          retries: 0,
+          type,
+          mode: 'sequential-fallback',
+          checkedAt: new Date().toISOString()
+        });
+        updateInterface();
+        $('run-cas').disabled = true;
+        window.setTimeout(() => { $('run-cas').disabled = false; }, 250);
+      }
+
       $('run-cas').addEventListener('click', () => {
         if (activeRun) return;
         const type = $('atomic-type').value;
         const bigMode = type === 'bigint64';
-        if (typeof SharedArrayBuffer === 'undefined' || !window.crossOriginIsolated || typeof Worker === 'undefined' || typeof Atomics.wait !== 'function' || (bigMode && typeof BigInt64Array === 'undefined')) {
-          $('atomic-badge').textContent = 'غير متاح';
-          setStatus('cas-status', 'يلزم SharedArrayBuffer وcrossOriginIsolated وWeb Workers. قد تتطلب بعض المضيفات ترويسات COOP/COEP. لم تُنشأ نتيجة بديلة.', 'error');
-          return;
-        }
         let initial;
         let deltaA;
         let deltaB;
@@ -985,6 +1007,11 @@ fn add_with_retry(state: &AtomicI32, delta: i32) -> i32 {
           const expectedFinal = validateInput(type, initial, deltaA, deltaB);
           timeoutMs = Number($('timeout-ms').value);
           if (!Number.isInteger(timeoutMs) || timeoutMs < 1000 || timeoutMs > 30000) throw new Error('المهلة يجب أن تكون بين 1000 و30000 مللي ثانية.');
+          const atomicAvailable = typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated && typeof Worker !== 'undefined' && typeof Atomics.wait === 'function' && (!bigMode || typeof BigInt64Array !== 'undefined');
+          if (!atomicAvailable) {
+            runSequentialFallback(type, initial, deltaA, deltaB);
+            return;
+          }
           startAtomicRun({
             type,
             initial,
@@ -1413,7 +1440,7 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
         if (typeof Atomics?.wait !== 'function') missing.push('Atomics.wait');
         const label = $('runtime-capability');
         if (missing.length) {
-          label.textContent = `المحاكي غير متاح: ${missing.join(' · ')}`;
+          label.textContent = `العزل الذري غير متاح (${missing.join(' · ')}) · الوضع البديل جاهز`;
           label.dataset.kind = 'warning';
         } else {
           label.textContent = 'المتصفح يدعم الذاكرة المشتركة والعمال';
