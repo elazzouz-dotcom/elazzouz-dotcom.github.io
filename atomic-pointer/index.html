@@ -122,6 +122,73 @@
       padding: 1rem;
     }
 
+    .atomic-data-shell {
+      background: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 34%), var(--color-bg);
+    }
+
+    .atomic-stat {
+      border: 1px solid var(--color-border);
+      border-radius: calc(var(--radius) * 0.55);
+      background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+      padding: 0.8rem 1rem;
+    }
+
+    .atomic-chip[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+
+    .atom-visual {
+      position: relative;
+      display: grid;
+      min-height: 13rem;
+      place-items: center;
+      overflow: hidden;
+      border-radius: calc(var(--radius) * 0.55);
+      background: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 42%), var(--color-dark);
+    }
+
+    .atom-nucleus {
+      z-index: 2;
+      display: grid;
+      width: 4.5rem;
+      height: 4.5rem;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 70%, white);
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--color-primary) 75%, var(--color-dark));
+      color: var(--color-primary-contrast);
+      font-size: 1.8rem;
+      font-weight: 900;
+      box-shadow: 0 0 2rem color-mix(in srgb, var(--color-primary) 45%, transparent);
+    }
+
+    .atom-orbit {
+      position: absolute;
+      width: 10rem;
+      height: 4.5rem;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
+      border-radius: 50%;
+      transform: rotate(24deg);
+    }
+
+    .atom-orbit::after {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--color-primary);
+      box-shadow: 0 0 0.8rem var(--color-primary);
+      content: "";
+      transform: translate(-50%, -50%);
+    }
+
+    .atom-orbit-two { transform: rotate(-34deg) scale(0.82); }
+    .atom-orbit-three { transform: rotate(90deg) scale(0.66); }
+
     @media (prefers-reduced-motion: reduce) {
 
       *,
@@ -326,22 +393,41 @@
             </div>
             <span id="atomic-data-status" class="rounded-full border border-[var(--color-border)] bg-[var(--color-soft)] px-3 py-2 text-xs font-extrabold text-[var(--color-muted)]" role="status">جارٍ تحميل JSON…</span>
           </div>
+          <div class="atomic-data-shell rounded-[calc(var(--radius)*0.7)] border border-[var(--color-border)] p-4 sm:p-5">
+            <div class="mb-4 grid gap-3 sm:grid-cols-3">
+              <div class="atomic-stat"><p class="mb-1 text-xs font-bold text-[var(--color-muted)]">العناصر المتاحة</p><strong id="atomic-elements-count" class="text-2xl">—</strong></div>
+              <div class="atomic-stat"><p class="mb-1 text-xs font-bold text-[var(--color-muted)]">التصنيفات</p><strong id="atomic-categories-count" class="text-2xl">—</strong></div>
+              <div class="atomic-stat"><p class="mb-1 text-xs font-bold text-[var(--color-muted)]">نمط التشغيل</p><strong class="text-2xl">محلي مجاني</strong></div>
+            </div>
+            <div class="mb-4 flex flex-wrap gap-2" aria-label="عناصر مقترحة">
+              <button type="button" class="atomic-chip rounded-full border border-[var(--color-border)] px-3 py-2 text-xs font-bold" data-atomic-quick="8" aria-pressed="false">الأكسجين</button>
+              <button type="button" class="atomic-chip rounded-full border border-[var(--color-border)] px-3 py-2 text-xs font-bold" data-atomic-quick="6" aria-pressed="false">الكربون</button>
+              <button type="button" class="atomic-chip rounded-full border border-[var(--color-border)] px-3 py-2 text-xs font-bold" data-atomic-quick="26" aria-pressed="false">الحديد</button>
+              <button type="button" class="atomic-chip rounded-full border border-[var(--color-border)] px-3 py-2 text-xs font-bold" data-atomic-quick="79" aria-pressed="false">الذهب</button>
+            </div>
           <div class="grid gap-4 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
             <div class="space-y-4">
               <label for="atomic-element-search" class="text-sm font-bold">ابحث عن عنصر
                 <input id="atomic-element-search" type="search" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]" placeholder="مثل: أكسجين أو O أو 8" autocomplete="off">
+              </label>
+              <label for="atomic-category-filter" class="text-sm font-bold">تصفية حسب التصنيف
+                <select id="atomic-category-filter" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]"><option value="">كل التصنيفات</option></select>
               </label>
               <label for="atomic-element-select" class="text-sm font-bold">اختر عنصرًا
                 <select id="atomic-element-select" class="lab-input mt-2 w-full rounded-[calc(var(--radius)*0.55)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text)]"></select>
               </label>
               <div id="atomic-rules-list" class="space-y-2 text-sm text-[var(--color-muted)]"></div>
             </div>
-            <article id="atomic-element-card" class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5" aria-live="polite">
-              <p class="mb-2 text-5xl font-black text-[var(--color-primary)]">⚛</p>
-              <h3 id="atomic-element-name" class="mb-1 text-2xl font-black">بانتظار قاعدة JSON</h3>
-              <p id="atomic-element-meta" class="mb-4 text-sm text-[var(--color-muted)]">سيظهر العنصر بعد تحميل البيانات.</p>
-              <dl id="atomic-element-facts" class="grid gap-3 sm:grid-cols-2"></dl>
-            </article>
+            <div class="grid gap-4 md:grid-cols-[minmax(10rem,0.7fr)_minmax(0,1.3fr)]">
+              <div class="atom-visual" aria-label="تصوير مرئي مبسط للذرة"><div class="atom-orbit"></div><div class="atom-orbit atom-orbit-two"></div><div class="atom-orbit atom-orbit-three"></div><div id="atomic-nucleus" class="atom-nucleus">—</div></div>
+              <article id="atomic-element-card" class="rounded-[calc(var(--radius)*0.6)] bg-[var(--color-bg)] p-5" aria-live="polite">
+                <p class="mb-2 text-5xl font-black text-[var(--color-primary)]">⚛</p>
+                <h3 id="atomic-element-name" class="mb-1 text-2xl font-black">بانتظار قاعدة JSON</h3>
+                <p id="atomic-element-meta" class="mb-4 text-sm text-[var(--color-muted)]">سيظهر العنصر بعد تحميل البيانات.</p>
+                <dl id="atomic-element-facts" class="grid gap-3 sm:grid-cols-2"></dl>
+              </article>
+            </div>
+          </div>
           </div>
         </section>
 
@@ -1228,6 +1314,10 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
         if (!element) return;
         $('atomic-element-name').textContent = `${element.name} (${element.symbol})`;
         $('atomic-element-meta').textContent = `${element.nameEn} · ${element.category} · العدد الذري ${element.number}`;
+        $('atomic-nucleus').textContent = element.symbol;
+        document.querySelectorAll('[data-atomic-quick]').forEach((button) => {
+          button.setAttribute('aria-pressed', button.dataset.atomicQuick === String(element.number));
+        });
         const facts = [
           ['البروتونات', element.protons], ['الإلكترونات', element.electrons],
           ['النيوترونات', element.neutrons], ['الكتلة الذرية', element.mass],
@@ -1249,8 +1339,9 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
 
       function renderAtomicOptions(query = '') {
         const needle = query.trim().toLocaleLowerCase();
+        const category = $('atomic-category-filter').value;
         const filtered = atomicData.elements.filter((element) => [element.name, element.nameEn, element.symbol, element.number]
-          .some((value) => String(value).toLocaleLowerCase().includes(needle)));
+          .some((value) => String(value).toLocaleLowerCase().includes(needle)) && (!category || element.category === category));
         const select = $('atomic-element-select');
         select.replaceChildren(...filtered.map((element) => {
           const option = document.createElement('option');
@@ -1263,6 +1354,7 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
           $('atomic-element-name').textContent = 'لا توجد نتائج';
           $('atomic-element-meta').textContent = 'جرّب اسمًا أو رمزًا أو عددًا ذريًا آخر.';
           $('atomic-element-facts').replaceChildren();
+          $('atomic-nucleus').textContent = '—';
         }
       }
 
@@ -1275,6 +1367,15 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
           if (!Array.isArray(payload.elements) || !Array.isArray(payload.rules)) throw new Error('صيغة JSON غير صالحة');
           atomicData.elements = payload.elements;
           atomicData.rules = payload.rules;
+          $('atomic-elements-count').textContent = String(payload.elements.length);
+          $('atomic-categories-count').textContent = String(new Set(payload.elements.map((element) => element.category)).size);
+          const categories = [...new Set(payload.elements.map((element) => element.category))].sort((a, b) => a.localeCompare(b, 'ar'));
+          $('atomic-category-filter').append(...categories.map((category) => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            return option;
+          }));
           $('atomic-rules-list').replaceChildren(...payload.rules.map((rule) => {
             const item = document.createElement('div');
             item.className = 'rounded-[calc(var(--radius)*0.45)] bg-[var(--color-bg)] p-3';
@@ -1292,9 +1393,17 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
       }
 
       $('atomic-element-search').addEventListener('input', (event) => renderAtomicOptions(event.target.value));
+      $('atomic-category-filter').addEventListener('change', () => renderAtomicOptions($('atomic-element-search').value));
       $('atomic-element-select').addEventListener('change', (event) => {
         renderAtomicElement(atomicData.elements.find((element) => String(element.number) === event.target.value));
       });
+      document.querySelectorAll('[data-atomic-quick]').forEach((button) => button.addEventListener('click', () => {
+        const element = atomicData.elements.find((item) => String(item.number) === button.dataset.atomicQuick);
+        if (!element) return;
+        $('atomic-element-search').value = element.symbol;
+        $('atomic-category-filter').value = '';
+        renderAtomicOptions(element.symbol);
+      }));
 
       function getCapability() {
         const missing = [];
