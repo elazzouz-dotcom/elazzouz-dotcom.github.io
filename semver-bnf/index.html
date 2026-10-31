@@ -185,7 +185,7 @@
   <div id="hub-modal" class="hub-modal" hidden>
     <section id="hub-dialog" class="hub-dialog" role="dialog" aria-modal="true" aria-labelledby="hub-title">
       <div class="hub-dialog-head">
-          <div><p class="semver-kicker">إعداد محلي لهذه العقدة</p><h2 id="hub-title">العقدة <span id="hub-node-number" class="hub-number"></span></h2><p>أضف رابطًا أو HTML محليًا. الرابط الخارجي يفتح التطبيق المرتبط إن كان مثبتًا، وإلا يفتح في المتصفح.</p></div>
+        <div class="hub-title-block"><img class="hub-site-logo" src="/assets/slaks-logo.jpg" alt="شعار Slaks"><div><p class="semver-kicker">تحليل الموقع · عقدة تفاعلية</p><h2 id="hub-title">العقدة <span id="hub-node-number" class="hub-number"></span></h2><p>بطاقة معاينة وتحليل للرابط، مستوحاة من التصميم الأبيض الظاهر في الصورة، مع فتح الموقع الخارجي عند الطلب.</p></div></div>
         <button id="hub-close" class="semver-button" type="button" aria-label="إغلاق نافذة العقدة">×</button>
       </div>
       <div class="hub-form-grid">
@@ -207,6 +207,15 @@
         <button id="hub-fullscreen" class="semver-button" type="button">ملء الشاشة</button>
         <button id="hub-minimize" class="semver-button" type="button">تصغير</button>
       </div>
+      <section class="hub-analysis" aria-labelledby="hub-analysis-title">
+        <div class="hub-analysis-heading"><span class="hub-analysis-label">SITE ANALYSIS</span><h3 id="hub-analysis-title">ملخص العقدة وتحليل الموقع</h3></div>
+        <ol class="hub-analysis-list">
+          <li><strong>المصدر</strong><span>الرابط أو HTML الذي أدخلته لهذه العقدة.</span></li>
+          <li><strong>المعاينة</strong><span>تظهر داخل البطاقة عندما يسمح الموقع بالتضمين.</span></li>
+          <li><strong>التحليل</strong><span>العنوان والعناصر والروابط تُستخرج محليًا من HTML المضاف.</span></li>
+          <li><strong>الفتح الخارجي</strong><span>استخدم الزر لفتح الموقع الحقيقي في تبويب مستقل.</span></li>
+        </ol>
+      </section>
       <p id="hub-status" class="hub-status" aria-live="polite">لم تُحفظ إعدادات لهذه العقدة بعد.</p>
       <div class="browser-frame">
         <div class="browser-toolbar"><span class="browser-dot" aria-hidden="true"></span><span class="browser-dot" aria-hidden="true"></span><span class="browser-dot" aria-hidden="true"></span><span id="hub-address" class="browser-address">معاينة معزولة</span></div>

@@ -153,6 +153,37 @@ body.semver-page a { color: inherit; }
 .hub-extraction { margin-top: .75rem; border: 1px solid rgba(89, 224, 163, .2); border-radius: 12px; padding: .8rem; color: var(--semver-muted); background: rgba(7, 16, 20, .7); font-size: .78rem; line-height: 1.75; }
 .hub-extraction strong { color: var(--semver-gold); }
 .hub-extraction pre { max-height: 180px; overflow: auto; margin: .4rem 0 0; color: var(--semver-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* بطاقة العقدة مستوحاة من المعاينة البيضاء في الصورة المرجعية */
+.hub-dialog { color: #142b35; border-color: rgba(36, 153, 194, .28); background: #fff; box-shadow: 0 26px 90px rgba(2, 29, 39, .34); }
+.hub-dialog .semver-kicker { color: #1d9fc9; }
+.hub-dialog-head { padding-bottom: 1rem; border-bottom: 1px solid #dbe8eb; }
+.hub-title-block { display: flex; align-items: center; gap: .85rem; min-width: 0; }
+.hub-site-logo { width: 54px; height: 54px; flex: 0 0 auto; object-fit: cover; border: 1px solid #c7e4ed; border-radius: 16px; box-shadow: 0 7px 18px rgba(19, 120, 155, .12); }
+.hub-dialog-head h2 { color: #16343f; }
+.hub-dialog-head p, .hub-tip, .hub-status { color: #60767d; }
+.hub-number { color: #1c9bc5; }
+.hub-dialog .semver-button { border-color: #c9dde2; color: #1b4654; background: #f5fafb; }
+.hub-dialog .semver-button:hover { border-color: #1c9bc5; background: #eaf8fc; }
+.hub-dialog .semver-button-primary { color: #fff; border-color: transparent; background: linear-gradient(135deg, #26a9d2, #147ea4); }
+.hub-dialog .semver-button-danger { color: #a33d3d; border-color: #efcaca; background: #fff7f7; }
+.hub-dialog .semver-input, .hub-dialog .semver-textarea { color: #16343f; border-color: #cbdde1; background: #fbfdfd; }
+.hub-dialog .semver-input::placeholder, .hub-dialog .semver-textarea::placeholder { color: #8aa0a5; }
+.hub-dialog .semver-field-label { color: #52717a; }
+.hub-analysis { margin-top: 1rem; border: 1px solid #d5e8ed; border-radius: 16px; padding: 1rem; background: linear-gradient(145deg, #fff, #f2f9fb); }
+.hub-analysis-heading { display: flex; align-items: baseline; justify-content: space-between; gap: .7rem; border-bottom: 1px solid #dbe8eb; padding-bottom: .65rem; }
+.hub-analysis-label { color: #248eae; font-size: .66rem; font-weight: 900; letter-spacing: .12em; }
+.hub-analysis h3 { margin: 0; color: #173945; font-size: 1.05rem; }
+.hub-analysis-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem 1.4rem; margin: .85rem 0 0; padding: 0 1.35rem 0 0; color: #60767d; counter-reset: analysis; }
+.hub-analysis-list li { padding: .15rem 0 .15rem .15rem; line-height: 1.6; }
+.hub-analysis-list li::marker { color: #219fc7; font-weight: 900; }
+.hub-analysis-list strong { display: block; color: #1b4958; font-size: .82rem; }
+.hub-analysis-list span { display: block; font-size: .75rem; }
+.hub-dialog .browser-frame { border-color: #cbdde1; }
+.hub-dialog .browser-toolbar { color: #38606b; background: #f1f8f9; }
+.hub-dialog .hub-extraction { border-color: #cfe5ea; color: #60767d; background: #f7fbfc; }
+.hub-dialog .hub-extraction strong { color: #1885a6; }
+.hub-dialog .hub-extraction pre { color: #294c57; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 
 @media (max-width: 900px) {
@@ -182,6 +213,8 @@ body.semver-page a { color: inherit; }
   .validator-row { flex-direction: column; }
   .hub-form-grid { grid-template-columns: 1fr; }
   .hub-form-grid .full { grid-column: auto; }
+  .hub-analysis-list { grid-template-columns: 1fr; }
+  .hub-analysis-heading { align-items: flex-start; flex-direction: column; }
   .hub-dialog { max-height: 98vh; border-radius: 15px; }
   .hub-actions { position: static; }
   .hub-actions .semver-button { flex: 1 1 135px; }
