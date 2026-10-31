@@ -43,6 +43,8 @@ async function handleRequest(request, env) {
 
     if (path === '/permissions' && method === 'GET') return handlePermissions(request, env);
     if (path === '/permissions' && method === 'PUT') return updatePermission(request, env);
+    if (path === '/satellite/status' && method === 'GET') return handleSatelliteStatus(env);
+    if (path === '/satellite/ingest' && method === 'POST') return handleSatelliteIngest(request, env);
 
     const accessError = await authorizeGitHubRoute(request, path, method, env);
     if (accessError) return accessError;
@@ -166,7 +168,11 @@ async function handleRequest(request, env) {
           meta: 'GET /meta, /emojis, /markdown, etc.',
           graphql: 'POST /graphql',
           proxy: 'ANY /proxy/* - Forward any request to GitHub API',
-          preview: 'GET /preview?url=https://example.com - Fetch and sanitize a public web page'
+          preview: 'GET /preview?url=https://example.com - Fetch and sanitize a public web page',
+          satellite: {
+            status: 'GET /satellite/status - Unified satellite connectivity status',
+            ingest: 'POST /satellite/ingest - Authenticated gateway telemetry ingestion'
+          }
         }
       }), {
         status: 200,
@@ -243,6 +249,64 @@ function sanitizePreviewHtml(html, baseUrl) {
 
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character])); }
 function previewResponse(payload, status = 200) { return new Response(JSON.stringify(payload), { status, headers: corsHeaders({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) }); }
+
+const SATELLITE_PROVIDERS = [
+  { id: 'starlink', name: 'Starlink', type: 'internet', capabilities: ['internet', 'latency', 'throughput'] },
+  { id: 'vsat', name: 'VSAT', type: 'internet', capabilities: ['internet', 'signal', 'latency'] },
+  { id: 'iridium', name: 'Iridium', type: 'messaging', capabilities: ['messaging', 'telemetry', 'signal'] },
+  { id: 'thuraya-inmarsat', name: 'Thuraya / Inmarsat', type: 'messaging', capabilities: ['messaging', 'telemetry', 'signal'] }
+];
+
+function demoSatelliteStatus() {
+  return {
+    mode: 'demo',
+    connected: false,
+    generatedAt: new Date().toISOString(),
+    message: 'هذه بيانات تجريبية. لم يتم ربط مودم أو مزود فضائي بعد.',
+    providers: SATELLITE_PROVIDERS.map((provider, index) => ({
+      ...provider,
+      status: 'not-configured',
+      signal: null,
+      latencyMs: null,
+      downlinkMbps: null,
+      uplinkMbps: null,
+      lastSeen: null,
+      note: index < 2 ? 'أضف جهاز الإنترنت الفضائي وبوابة آمنة.' : 'أضف مودم الرسائل أو واجهة المزود الرسمية.'
+    }))
+  };
+}
+
+async function handleSatelliteStatus(env) {
+  let payload = null;
+  try { payload = env.SATELLITE_STATUS?.get ? JSON.parse(await env.SATELLITE_STATUS.get('latest') || 'null') : null; } catch { payload = null; }
+  if (!payload || !Array.isArray(payload.providers)) payload = demoSatelliteStatus();
+  return jsonResponse({ ...payload, service: 'slaks-satellite-gateway', fetchedAt: new Date().toISOString() }, 200, { 'Cache-Control': 'no-store' });
+}
+
+async function handleSatelliteIngest(request, env) {
+  const expected = String(env.SATELLITE_INGEST_TOKEN || '');
+  const supplied = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') || request.headers.get('X-Satellite-Ingest-Token') || '';
+  if (!expected || supplied.length < 16 || supplied !== expected) return jsonResponse({ error: 'satellite_ingest_unauthorized' }, 401);
+  if (!env.SATELLITE_STATUS?.put) return jsonResponse({ error: 'satellite_status_binding_not_configured', message: 'أضف KV binding باسم SATELLITE_STATUS إلى Worker.' }, 503);
+  const body = await request.json().catch(() => null);
+  if (!body || !Array.isArray(body.providers)) return jsonResponse({ error: 'invalid_satellite_payload', message: 'يجب إرسال providers كمصفوفة.' }, 400);
+  const allowed = new Set(SATELLITE_PROVIDERS.map(provider => provider.id));
+  const providers = body.providers.filter(item => allowed.has(String(item.id))).map(item => ({
+    id: String(item.id), name: SATELLITE_PROVIDERS.find(provider => provider.id === String(item.id)).name,
+    type: SATELLITE_PROVIDERS.find(provider => provider.id === String(item.id)).type,
+    capabilities: SATELLITE_PROVIDERS.find(provider => provider.id === String(item.id)).capabilities,
+    status: ['online', 'degraded', 'offline', 'not-configured'].includes(item.status) ? item.status : 'not-configured',
+    signal: Number.isFinite(Number(item.signal)) ? Math.max(0, Math.min(100, Number(item.signal))) : null,
+    latencyMs: Number.isFinite(Number(item.latencyMs)) ? Math.max(0, Math.min(60000, Number(item.latencyMs))) : null,
+    downlinkMbps: Number.isFinite(Number(item.downlinkMbps)) ? Math.max(0, Number(item.downlinkMbps)) : null,
+    uplinkMbps: Number.isFinite(Number(item.uplinkMbps)) ? Math.max(0, Number(item.uplinkMbps)) : null,
+    lastSeen: typeof item.lastSeen === 'string' ? item.lastSeen.slice(0, 64) : new Date().toISOString(),
+    note: typeof item.note === 'string' ? item.note.slice(0, 240) : ''
+  }));
+  const payload = { mode: 'live-gateway', connected: providers.some(provider => provider.status === 'online'), generatedAt: new Date().toISOString(), message: 'بيانات واردة من بوابة فضائية موثّقة.', providers };
+  await env.SATELLITE_STATUS.put('latest', JSON.stringify(payload), { expirationTtl: 86400 });
+  return jsonResponse({ ok: true, ...payload });
+}
 
 /**
  * Handle CORS preflight requests

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { NODE_LEVELS, NODE_TOTAL, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
+import { NODE_LEVELS, NODE_TOTAL, getNodeChildren, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
 
-test('الشبكة تضم 601 عقدة موزعة على سبعة مستويات', () => {
-  assert.deepEqual(NODE_LEVELS, [1, 3, 9, 27, 81, 243, 237]);
-  assert.equal(NODE_TOTAL, 601);
+test('الشبكة تضم 6600 عقدة موزعة على تسعة مستويات', () => {
+  assert.deepEqual(NODE_LEVELS, [1, 3, 9, 27, 81, 243, 729, 2187, 3320]);
+  assert.equal(NODE_TOTAL, 6600);
   assert.equal(getNodeLevelInfo(200).level, 5);
   assert.equal(getNodeLevelInfo(0), null);
 });
@@ -32,6 +32,15 @@ test('لكل عقدة غير الجذر أب سابق صالح ولا توجد �
   assert.equal(edges, NODE_TOTAL - 1);
 });
 
+test('أبناء العقد تتبع البنية الثلاثية ولا تتجاوز 6600 عقدة', () => {
+  assert.deepEqual(getNodeChildren(1), [2, 3, 4]);
+  assert.deepEqual(getNodeChildren(2), [5, 6, 7]);
+  assert.deepEqual(getNodeChildren(6600), []);
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    for (const child of getNodeChildren(id)) assert.equal(getNodeParent(child), id);
+  }
+});
+
 test('تطبيع روابط الويب يقبل النطاقات والمسارات والمعلمات', () => {
   assert.equal(parseNodeLink('example.com/a?q=1#top').url, 'https://example.com/a?q=1#top');
   assert.equal(parseNodeLink('http://example.org:8080/path').kind, 'web');
@@ -42,6 +51,14 @@ test('روابط mailto وtel تحفظ للفتح الخارجي فقط', () => 
   assert.equal(parseNodeLink('mailto:hello@example.com').kind, 'mailto');
   assert.equal(parseNodeLink('tel:+1 202 555 0123').kind, 'tel');
   assert.throws(() => parseNodeLink('mailto:hello%ZZ@example.com'));
+});
+
+test('روابط التطبيقات الخارجية الآمنة تمررها للنظام أو المتصفح', () => {
+  assert.equal(parseNodeLink('sms:+12025550123').kind, 'app');
+  assert.equal(parseNodeLink('whatsapp://send?text=hello').kind, 'app');
+  assert.equal(parseNodeLink('tg://resolve?domain=slaks').kind, 'app');
+  assert.equal(parseNodeLink('itms-apps://itunes.apple.com/app/id535886823').kind, 'app');
+  assert.throws(() => parseNodeLink('javascript:alert(1)'));
 });
 
 test('تُقبل الروابط الطويلة ضمن الحد وتُرفض الروابط المفرطة الطول', () => {

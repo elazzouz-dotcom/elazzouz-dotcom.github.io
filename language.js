@@ -338,13 +338,18 @@
   }
 
   function loadTranslator(language) {
+    if (!language || language === SOURCE_LANGUAGE) return;
     window.googleTranslateElementInit = () => {
-      new google.translate.TranslateElement({
-        pageLanguage: SOURCE_LANGUAGE,
-        includedLanguages: LANGUAGES.map(([code]) => code).join(','),
-        autoDisplay: false
-      }, 'google_translate_element');
-      window.setTimeout(() => translatePage(language), 400);
+      try {
+        new google.translate.TranslateElement({
+          pageLanguage: SOURCE_LANGUAGE,
+          includedLanguages: LANGUAGES.map(([code]) => code).join(','),
+          autoDisplay: false
+        }, 'google_translate_element');
+        window.setTimeout(() => translatePage(language), 400);
+      } catch {
+        // الترجمة الخارجية اختيارية؛ لا تمنع تشغيل الموقع عند غيابها.
+      }
     };
 
     if (!document.querySelector('#google-translate-script')) {
@@ -358,6 +363,10 @@
       script.id = 'google-translate-script';
       script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
       script.async = true;
+      script.onerror = () => {
+        script.remove();
+        delete window.googleTranslateElementInit;
+      };
       document.head.append(script);
     }
   }
@@ -506,9 +515,7 @@
       subtree: true
     });
 
-    // Keep page startup independent of the external translator. A visitor can
-    // still request translation explicitly from the language selector.
-    // This avoids background translation failures surfacing as unhandled rejections.
+    // الترجمة الخارجية اختيارية ولا تُستخدم كشرط لتشغيل الموقع أو أي تطبيق.
   }
 
   if (document.readyState === 'loading') {

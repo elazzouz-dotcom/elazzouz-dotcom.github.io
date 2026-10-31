@@ -1,4 +1,4 @@
-export const NODE_LEVELS = Object.freeze([1, 3, 9, 27, 81, 243, 237]);
+export const NODE_LEVELS = Object.freeze([1, 3, 9, 27, 81, 243, 729, 2187, 3320]);
 export const NODE_TOTAL = NODE_LEVELS.reduce((sum, count) => sum + count, 0);
 
 export function getNodeLevelInfo(id) {
@@ -17,6 +17,15 @@ export function getNodeParent(id) {
   if (!child || child.level === 0) return null;
   const parentFirst = child.first - NODE_LEVELS[child.level - 1];
   return parentFirst + Math.floor(child.index / 3);
+}
+
+export function getNodeChildren(id) {
+  const parent = getNodeLevelInfo(id);
+  if (!parent || parent.level >= NODE_LEVELS.length - 1) return [];
+  const childFirst = parent.first + NODE_LEVELS[parent.level];
+  const firstChild = childFirst + parent.index * 3;
+  return [firstChild, firstChild + 1, firstChild + 2]
+    .filter((childId) => childId <= NODE_TOTAL);
 }
 
 function isPrivateIpv4(host) {
@@ -52,6 +61,8 @@ export function parseNodeLink(value) {
   const schemeMatch = raw.match(/^([a-z][a-z\d+.-]*):/i);
   const scheme = schemeMatch?.[1]?.toLowerCase() || '';
 
+  const appSchemes = new Set(['mailto', 'tel', 'sms', 'whatsapp', 'tg', 'spotify', 'itms-apps', 'comgooglemaps', 'geo']);
+
   if (scheme === 'mailto') {
     let link;
     try { link = new URL(raw); } catch { throw new Error('صيغة بريد إلكتروني غير صالحة.'); }
@@ -65,6 +76,14 @@ export function parseNodeLink(value) {
     const number = raw.slice(raw.indexOf(':') + 1).split('?')[0].trim();
     if (!/^[+\d().\s-]+$/.test(number) || number.replace(/\D/g, '').length < 3) throw new Error('صيغة رقم الهاتف غير صالحة.');
     return { kind: 'tel', url: `tel:${number.replace(/\s+/g, '')}`, host: 'tel', display: 'اتصال هاتفي' };
+  }
+
+  if (appSchemes.has(scheme)) {
+    if (/[\u0000-\u001f\u007f\s]/.test(raw)) throw new Error('رابط التطبيق يحتوي على محارف غير صالحة.');
+    let appLink;
+    try { appLink = new URL(raw); } catch { throw new Error('صيغة رابط التطبيق غير صالحة.'); }
+    if (appLink.username || appLink.password) throw new Error('احذف بيانات الدخول من رابط التطبيق.');
+    return { kind: 'app', url: appLink.href, host: scheme, display: `تطبيق خارجي (${scheme})` };
   }
 
   if (scheme && scheme !== 'http' && scheme !== 'https') {
