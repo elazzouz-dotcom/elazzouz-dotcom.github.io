@@ -524,9 +524,15 @@ function openExternally() {
   const raw = hubUrl.value.trim() || getHubData(activeHub.id)?.url || '';
   try {
     const link = parseNodeLink(raw);
-    // التنقل من تفاعل مباشر يسمح لـ iOS/Android باختيار التطبيق المرتبط
-    // برابط Universal/App Link، مع الرجوع إلى المتصفح إذا لم يكن التطبيق مثبتًا.
-    window.location.assign(link.url);
+    // الروابط العامة تُفتح في تبويب مستقل حتى تبقى شبكة العقد والتحليل مفتوحين.
+    // روابط التطبيقات والبريد والهاتف تُسلّم للنظام مباشرة على الهاتف.
+    if (link.kind === 'web') {
+      const opened = window.open(link.url, '_blank', 'noopener,noreferrer');
+      if (!opened) window.location.assign(link.url);
+    } else {
+      window.location.assign(link.url);
+    }
+    setHubStatus('فُتح الرابط الخارجي. يمكنك العودة إلى شبكة العقد في التبويب الحالي.');
   } catch (error) {
     setHubStatus(error?.message || 'أدخل رابطًا صالحًا للفتح الخارجي.', false);
   }
