@@ -933,7 +933,7 @@ function classifySoftwareUrl(url) {
 function softwareDownloadPreview(link, info) {
   const safeUrl = link.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const safeHost = (info.host || link.host || 'مصدر خارجي').replace(/[&<>"']/g, '');
-  return `<main style="box-sizing:border-box;min-height:100vh;padding:clamp(24px,6vw,72px);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#e8f0ee;background:#071014;direction:rtl"><div style="max-width:720px;margin:auto;border:1px solid #315d57;border-radius:24px;padding:clamp(24px,5vw,48px);background:linear-gradient(145deg,#102127,#0b171b);box-shadow:0 20px 60px #0008"><div style="font-size:42px;color:#59e0a3">⌘</div><p style="color:#59e0a3;font-size:12px;font-weight:800;letter-spacing:.12em">SOFTWARE PREVIEW</p><h1 style="font-size:clamp(24px,5vw,42px);margin:.4em 0">${info.label}</h1><p style="color:#9cb0b2;line-height:1.8">هذا رابط ملف برمجي. يمكن عرض معلوماته داخل الموقع، لكن لا يمكن للمتصفح تشغيل ملف تنفيذي مباشرة لأسباب أمنية.</p><p style="color:#f4ce72;overflow-wrap:anywhere">المصدر: ${safeHost}</p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:16px;border-radius:12px;padding:12px 18px;color:#052117;background:#59e0a3;font-weight:800;text-decoration:none">فتح ملف البرنامج خارجيًا ↗</a></div></main>`;
+  return `<main style="box-sizing:border-box;min-height:100vh;padding:clamp(24px,6vw,72px);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#e8f0ee;background:#071014;direction:rtl"><div style="max-width:720px;margin:auto;border:1px solid #315d57;border-radius:24px;padding:clamp(24px,5vw,48px);background:linear-gradient(145deg,#102127,#0b171b);box-shadow:0 20px 60px #0008"><div style="font-size:42px;color:#59e0a3">⌘</div><p style="color:#59e0a3;font-size:12px;font-weight:800;letter-spacing:.12em">SOFTWARE PREVIEW</p><h1 style="font-size:clamp(24px,5vw,42px);margin:.4em 0">${info.label}</h1><p style="color:#9cb0b2;line-height:1.8">هذا رابط ملف برمجي. يمكن عرض معلوماته داخل الموقع، لكن لا يمكن للمتصفح تشغيل ملف تنفيذي مباشرة لأسباب أمنية.</p><p style="color:#f4ce72;overflow-wrap:anywhere">المصدر: ${safeHost}</p><a href="${safeUrl}" data-preview-url="${safeUrl}" style="display:inline-block;margin-top:16px;border-radius:12px;padding:12px 18px;color:#052117;background:#59e0a3;font-weight:800;text-decoration:none">فتح ملف البرنامج خارجيًا ↗</a></div></main>`;
 }
 function summarizeHtml(html, source = 'HTML محلي') {
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -1002,17 +1002,19 @@ const hubSearchQuery = $('#hub-search-query');
 const hubSearchEngine = $('#hub-search-engine');
 const hubPreview = $('#hub-preview');
 const hubAddress = $('#hub-address');
+const PREVIEW_WORKER = 'https://github-oauth-proxy.elazzouz4.workers.dev/preview';
 
 const SEARCH_ENGINES = Object.freeze({
   google: 'https://www.google.com/search?q=', bing: 'https://www.bing.com/search?q=', duckduckgo: 'https://duckduckgo.com/?q=', brave: 'https://search.brave.com/search?q=', yahoo: 'https://search.yahoo.com/search?p=', ecosia: 'https://www.ecosia.org/search?q=', startpage: 'https://www.startpage.com/sp/search?query=', qwant: 'https://www.qwant.com/?q=', kagi: 'https://kagi.com/search?q=', yandex: 'https://yandex.com/search/?text=', baidu: 'https://www.baidu.com/s?wd='
 });
-function searchWithSelectedEngine() {
+async function searchWithSelectedEngine() {
   const query = hubSearchQuery.value.trim();
   if (!query) { setHubStatus('اكتب عبارة بحث أولًا.', false); hubSearchQuery.focus(); return; }
   const base = SEARCH_ENGINES[hubSearchEngine.value] || SEARCH_ENGINES.google;
   const url = `${base}${encodeURIComponent(query)}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
-  setHubStatus(`تم فتح البحث عبر ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'}.`);
+  hubUrl.value = url;
+  await buildHub();
+  setHubStatus(`تظهر نتائج ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'} داخل Slaks دون مغادرة الصفحة.`);
 }
 
 const FEDERATED_SEARCH_ENGINES = Object.freeze([
@@ -1069,10 +1071,10 @@ async function searchNpm(query) {
 }
 
 function renderFederatedResults(query, reports) {
-  const engineCards = FEDERATED_SEARCH_ENGINES.map(([name, base]) => `<a class="federated-search-engine" href="${escapeXml(`${base}${encodeURIComponent(query)}`)}" target="_blank" rel="noopener noreferrer">${escapeXml(name)} ↗</a>`).join('');
-  const resultCards = reports.flatMap(report => (report.items || []).map(item => `<article class="federated-search-card"><span>${escapeXml(item.kind)}</span><h3><a href="${escapeXml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeXml(item.title || 'نتيجة بلا عنوان')}</a></h3><p>${escapeXml(item.text || '')}</p></article>`)).join('');
+  const engineCards = FEDERATED_SEARCH_ENGINES.map(([name, base]) => `<a class="federated-search-engine" href="${escapeXml(`${base}${encodeURIComponent(query)}`)}" data-preview-url="${escapeXml(`${base}${encodeURIComponent(query)}`)}">${escapeXml(name)} ↗</a>`).join('');
+  const resultCards = reports.flatMap(report => (report.items || []).map(item => `<article class="federated-search-card"><span>${escapeXml(item.kind)}</span><h3><a href="${escapeXml(item.url)}" data-preview-url="${escapeXml(item.url)}">${escapeXml(item.title || 'نتيجة بلا عنوان')}</a></h3><p>${escapeXml(item.text || '')}</p></article>`)).join('');
   const message = resultCards ? 'تم العثور على نتائج من مصادر المقالات والبرمجة. افتح أي نتيجة، أو انتقل إلى أحد محركات البحث.' : 'لم تُرجع المصادر المتخصصة نتيجة مباشرة؛ جرّب أحد محركات البحث العامة أدناه.';
-  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e7f2f0;background:#071014;line-height:1.7}h1{font-size:1.35rem;margin:0 0 8px}p{color:#9cb0b2}.federated-search-engines{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.federated-search-engine{display:inline-block;padding:7px 10px;border:1px solid #315d57;border-radius:999px;color:#59e0a3;text-decoration:none;font-size:.82rem}.federated-search-results{display:grid;gap:10px}.federated-search-card{border:1px solid #25443f;border-radius:14px;padding:14px;background:#102127}.federated-search-card span{color:#f4ce72;font-size:.75rem;font-weight:700}.federated-search-card h3{font-size:1rem;margin:4px 0}.federated-search-card h3 a{color:#e8f7f2}.federated-search-card p{margin:0;font-size:.86rem}</style></head><body><h1>بحث شامل: ${escapeXml(query)}</h1><p>${escapeXml(message)}</p><div class="federated-search-engines">${engineCards}</div><section class="federated-search-results">${resultCards || '<p>لم نجد نتيجة متخصصة بعد. استخدم روابط المحركات أعلاه لتوسيع البحث.</p>'}</section></body></html>`;
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e7f2f0;background:#071014;line-height:1.7}h1{font-size:1.35rem;margin:0 0 8px}p{color:#9cb0b2}.federated-search-engines{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.federated-search-engine{display:inline-block;padding:7px 10px;border:1px solid #315d57;border-radius:999px;color:#59e0a3;text-decoration:none;font-size:.82rem}.federated-search-results{display:grid;gap:10px}.federated-search-card{border:1px solid #25443f;border-radius:14px;padding:14px;background:#102127}.federated-search-card span{color:#f4ce72;font-size:.75rem;font-weight:700}.federated-search-card h3{font-size:1rem;margin:4px 0}.federated-search-card h3 a{color:#e8f7f2}.federated-search-card p{margin:0;font-size:.86rem}</style></head><body><h1>بحث شامل: ${escapeXml(query)}</h1><p>${escapeXml(message)}</p><div class="federated-search-engines">${engineCards}</div><section class="federated-search-results">${resultCards || '<p>لم نجد نتيجة متخصصة بعد. استخدم روابط المحركات أعلاه لتوسيع البحث.</p>'}</section><script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'hub-preview-url',url:link.getAttribute('data-preview-url')},'*');});</script></body></html>`;
 }
 
 async function searchEverywhere() {
@@ -1143,8 +1145,21 @@ async function buildHub(silent = false) {
       }
       hubPreview.removeAttribute('srcdoc');
       hubPreview.src = link.url;
-      renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر الفتح المباشر عند الحاجة.', source: software.label, kind: software.kind });
-      setHubStatus(`جارية معاينة ${software.label} داخل الموقع. إذا رفض الموقع العرض، استخدم الفتح الخارجي.`);
+      renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر العرض داخل Slaks عند الحاجة.', source: software.label, kind: software.kind });
+      setHubStatus(`جارية معاينة ${software.label} داخل Slaks عبر Relay عند توفره…`);
+      try {
+        const response = await fetch(`${PREVIEW_WORKER}?url=${encodeURIComponent(link.url)}`, { headers: { Accept: 'application/json' } });
+        const payload = await response.json();
+        if (response.ok && payload.html) {
+          hubPreview.removeAttribute('src');
+          hubPreview.srcdoc = payload.html;
+          hubAddress.textContent = `${software.label} · ${payload.finalUrl || link.url}`;
+          renderExtraction({ title: payload.title || link.host, text: payload.description || payload.text || 'تم جلب نسخة HTML عبر Relay داخل Slaks.', elements: payload.elements, links: payload.links?.length, source: 'Cloudflare Preview Relay', kind: software.kind });
+          setHubStatus('ظهرت نسخة الموقع داخل Slaks عبر Relay؛ يمكنك متابعة الروابط من نفس بطاقة المعاينة.');
+        }
+      } catch {
+        setHubStatus('تعذر استخدام Relay حاليًا؛ بقيت المعاينة المباشرة داخل Slaks مفعلة.', false);
+      }
       return;
     }
     if (localHtml.trim()) {
@@ -1279,21 +1294,22 @@ async function transferNodeData() {
   }
 }
 
-function openExternally() {
+async function openExternally() {
   const raw = hubUrl.value.trim() || getHubData(activeHub.id)?.url || '';
   try {
     const link = parseNodeLink(raw);
-    // الروابط العامة تُفتح في تبويب مستقل حتى تبقى شبكة العقد والتحليل مفتوحين.
-    // روابط التطبيقات والبريد والهاتف تُسلّم للنظام مباشرة على الهاتف.
     if (link.kind === 'web') {
-      const opened = window.open(link.url, '_blank', 'noopener,noreferrer');
-      if (!opened) window.location.assign(link.url);
-    } else {
-      window.location.assign(link.url);
+      hubUrl.value = link.url;
+      await buildHub();
+      setHubStatus('تم تحويل هذا الإجراء إلى معاينة داخل Slaks؛ لن تغادر الصفحة.');
+      return;
     }
-    setHubStatus('فُتح الرابط الخارجي. يمكنك العودة إلى شبكة العقد في التبويب الحالي.');
+    clearPreview();
+    hubAddress.textContent = link.url;
+    renderExtraction({ title: link.display, text: 'هذا رابط تطبيق أو اتصال. أبقيناه داخل Slaks بدل نقل المستخدم تلقائيًا خارج الصفحة. يمكن للجهاز تشغيله فقط عند اختيارك من نظام التشغيل.', source: 'معاينة رابط اتصال', kind: link.kind });
+    setHubStatus('الرابط محفوظ داخل العقدة، والمعاينة الخارجية التلقائية معطّلة حتى لا تغادر الصفحة.');
   } catch (error) {
-    setHubStatus(error?.message || 'أدخل رابطًا صالحًا للفتح الخارجي.', false);
+    setHubStatus(error?.message || 'أدخل رابطًا صالحًا للمعاينة.', false);
   }
 }
 
@@ -1788,6 +1804,16 @@ function setupHubModal() {
     }, 650);
   });
   $('#hub-fetch').addEventListener('click', transferNodeData);
+  window.addEventListener('message', (event) => {
+    if (event.source !== hubPreview.contentWindow || event.data?.type !== 'hub-preview-url') return;
+    const nextUrl = String(event.data.url || '');
+    try {
+      const parsed = parseNodeLink(nextUrl);
+      if (parsed.kind !== 'web') return;
+      hubUrl.value = parsed.url;
+      buildHub();
+    } catch { setHubStatus('تعذر فتح نتيجة المقال داخل المعاينة.', false); }
+  });
   $('#hub-open').addEventListener('click', openExternally);
   $('#hub-stop').addEventListener('click', stopHub);
   $('#hub-clear').addEventListener('click', clearHub);
