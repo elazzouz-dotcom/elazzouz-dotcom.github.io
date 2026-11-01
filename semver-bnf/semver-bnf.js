@@ -3,7 +3,7 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
-const VIEW_STATE_VERSION = 5;
+const VIEW_STATE_VERSION = 6;
 const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v3';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
@@ -424,9 +424,13 @@ function renderCanvasNetwork() {
     const visibleBottom = (offsetY + nodeViewport.clientHeight) / zoom + NODE_SIZE;
     if (Math.max(parent.x, child.x) < visibleLeft || Math.min(parent.x, child.x) > visibleRight || Math.max(parent.y, child.y) < visibleTop || Math.min(parent.y, child.y) > visibleBottom) continue;
     const type = relationType(parentId, id); canvasContext.strokeStyle = colors[type === 'software' ? 'software' : type === 'content' ? 'content' : 'hierarchy'];
+    const emphasized = parentButton.classList.contains('is-path') && childButton.classList.contains('is-path');
+    canvasContext.globalAlpha = emphasized ? .9 : .12;
     const style = readJson(RELATION_STYLE_KEY, {})[type === 'software' ? 'software' : type] || {};
-    canvasContext.setLineDash(style.style === 'dashed' ? [10, 7] : style.style === 'dotted' ? [2, 7] : []);
-    canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.quadraticCurveTo((parent.x + child.x) / 2, (parent.y + child.y) / 2, child.x, child.y); canvasContext.stroke();
+    canvasContext.setLineDash(style.style === 'dashed' ? [7, 6] : style.style === 'dotted' ? [2, 6] : []);
+    const midY = parent.y + (child.y - parent.y) * .5;
+    canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.lineTo(parent.x, midY); canvasContext.lineTo(child.x, midY); canvasContext.lineTo(child.x, child.y); canvasContext.stroke();
+    canvasContext.globalAlpha = 1;
   }
   canvasContext.setLineDash([]);
   const introLevels = NODE_LEVELS.slice(0, 6);

@@ -131,7 +131,7 @@ body.semver-page a { color: inherit; }
 .advanced-node-result-empty { grid-column: 1 / -1; margin: 0; color: var(--semver-muted); font-size: .75rem; }
 #zoom-level { min-width: 3.4rem; align-self: center; color: var(--semver-muted); text-align: center; font-size: .76rem; }
 .node-map-shell { border: 1px solid rgba(89, 224, 163, .28); border-radius: 18px; padding: .45rem; background: linear-gradient(145deg, rgba(7, 16, 20, .9), rgba(9, 27, 26, .8)); box-shadow: inset 0 0 38px rgba(89, 224, 163, .045); }
-.node-viewport { position: relative; height: min(72vh, 780px); min-height: 430px; overflow: auto; border-radius: 14px; background-image: radial-gradient(rgba(89, 224, 163, .11) 1px, transparent 1px); background-size: 22px 22px; overscroll-behavior: contain; scrollbar-color: #295445 #0a1418; }
+.node-viewport { position: relative; height: min(72vh, 780px); min-height: 430px; overflow: auto; touch-action: pan-x pan-y; border-radius: 14px; background-image: radial-gradient(rgba(89, 224, 163, .11) 1px, transparent 1px); background-size: 22px 22px; overscroll-behavior: contain; scrollbar-color: #295445 #0a1418; }
 .network-stage-wrap { position: relative; }
 .network-stage { position: absolute; inset: 0 auto auto 0; transform-origin: top left; direction: ltr; }
 #network-canvas { position: absolute; z-index: 3; display: block; cursor: grab; touch-action: none; pointer-events: auto; }
@@ -385,3 +385,8 @@ body.semver-page a { color: inherit; }
 .node-plan-stack-explicit span:nth-child(6) { border-color: var(--semver-gold); }
 .node-plan-stack-explicit small { margin-top: .2rem; color: var(--semver-muted); }
 .network-level-intro { border-color: rgba(244, 206, 114, .58); color: var(--semver-gold); box-shadow: 0 0 18px rgba(244, 206, 114, .08); }
+
+/* شبكة كاملة قابلة للتمرير: تبقى جميع العقد موجودة، وتبرز العلاقات عند اختيار عقدة. */
+.node-map-shell { overflow: hidden; }
+.node-viewport { cursor: grab; -webkit-overflow-scrolling: touch; }
+.node-viewport:active { cursor: grabbing; }
