@@ -3,6 +3,7 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
+const VIEW_STATE_VERSION = 2;
 const POSITIONS_KEY = 'semver-bnf-node-positions-10cm';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const BUILTIN_NODES = Object.freeze({
@@ -82,14 +83,16 @@ function persistUiSettings() {
 }
 function restoreUiSettings() {
   const settings = readJson(UI_SETTINGS_KEY, {});
+  const showAll = settings.viewVersion !== VIEW_STATE_VERSION;
   if (Number.isFinite(settings.zoom)) zoom = Math.min(1.5, Math.max(.6, Number(settings.zoom)));
   if ($('#node-search')) {
-    $('#node-search').value = String(settings.query || '');
-    if ($('#node-search-clear')) $('#node-search-clear').hidden = !settings.query;
+    $('#node-search').value = showAll ? '' : String(settings.query || '');
+    if ($('#node-search-clear')) $('#node-search-clear').hidden = !$('#node-search').value;
   }
-  if ($('#node-filter') && ['all', 'active', 'empty'].includes(settings.nodeFilter)) $('#node-filter').value = settings.nodeFilter;
-  if ($('#software-filter') && ['all', 'software', 'download', 'web', 'app', 'html'].includes(settings.softwareFilter)) $('#software-filter').value = settings.softwareFilter;
-  if ($('#level-filter') && (settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter)))) $('#level-filter').value = String(settings.levelFilter);
+  if ($('#node-filter')) $('#node-filter').value = showAll ? 'all' : (['all', 'active', 'empty'].includes(settings.nodeFilter) ? settings.nodeFilter : 'all');
+  if ($('#software-filter')) $('#software-filter').value = showAll ? 'all' : (['all', 'software', 'download', 'web', 'app', 'html'].includes(settings.softwareFilter) ? settings.softwareFilter : 'all');
+  if ($('#level-filter')) $('#level-filter').value = showAll ? 'all' : ((settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter))) ? String(settings.levelFilter) : 'all');
+  if (showAll) writeJson(UI_SETTINGS_KEY, { ...settings, viewVersion: VIEW_STATE_VERSION, query: '', nodeFilter: 'all', softwareFilter: 'all', levelFilter: 'all' });
 }
 function getHubData(id) {
   try {
@@ -1011,6 +1014,15 @@ function scheduleNodeFilters() {
   if (filterFrame) cancelAnimationFrame(filterFrame);
   filterFrame = requestAnimationFrame(() => { filterFrame = 0; applyNodeFilters(); });
 }
+function showAllNodes() {
+  $('#node-search').value = '';
+  $('#node-search-clear').hidden = true;
+  $('#node-filter').value = 'all';
+  $('#software-filter').value = 'all';
+  $('#level-filter').value = 'all';
+  applyNodeFilters();
+  setNodeStatus(`يعرض الآن جميع العقد الـ${NODE_TOTAL} في الشبكة.`);
+}
 function initializeNetwork() {
   restoreUiSettings();
   setupRelationCustomization();
@@ -1042,6 +1054,7 @@ function initializeNetwork() {
   $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); persistUiSettings(); });
   $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
   $('#map-layout-reset').addEventListener('click', resetNodeLayout);
+  $('#show-all-nodes').addEventListener('click', showAllNodes);
   $('#map-root').addEventListener('click', () => {
     const root = nodeButtons.get(1);
     if (!root) return;
