@@ -178,6 +178,13 @@
           <button id="relation-reset" class="semver-button" type="button">إعادة الألوان الافتراضية</button>
         </details>
         <div class="node-map-shell">
+          <div class="node-map-navigation" aria-label="أدوات التحرك داخل شبكة العقد">
+            <button type="button" class="node-map-nav-button node-map-nav-up" data-pan="up" aria-label="التحرك إلى أعلى الشبكة">↑<span>أعلى</span></button>
+            <button type="button" class="node-map-nav-button node-map-nav-left" data-pan="left" aria-label="التحرك إلى يسار الشبكة">←<span>يسار</span></button>
+            <span class="node-map-nav-center" aria-hidden="true">شبكة</span>
+            <button type="button" class="node-map-nav-button node-map-nav-right" data-pan="right" aria-label="التحرك إلى يمين الشبكة">→<span>يمين</span></button>
+            <button type="button" class="node-map-nav-button node-map-nav-down" data-pan="down" aria-label="النزول إلى أسفل الشبكة">↓<span>أسفل</span></button>
+          </div>
           <div id="node-viewport" class="node-viewport" role="region" aria-label="خريطة تفاعلية من 6600 عقدة" tabindex="0">
             <canvas id="network-canvas" aria-label="شبكة Canvas تفاعلية من 6600 عقدة"></canvas>
             <div id="network-stage-wrap" class="network-stage-wrap">

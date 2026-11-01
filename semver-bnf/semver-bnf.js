@@ -1879,12 +1879,38 @@ function setupOrbit() {
   sync();
 }
 
+function setupMapNavigation() {
+  const viewport = $('#node-viewport');
+  if (!viewport) return;
+  const pan = (direction) => {
+    const distanceX = Math.max(220, Math.round(viewport.clientWidth * .72));
+    const distanceY = Math.max(220, Math.round(viewport.clientHeight * .72));
+    const offsets = {
+      up: { left: 0, top: -distanceY },
+      down: { left: 0, top: distanceY },
+      left: { left: -distanceX, top: 0 },
+      right: { left: distanceX, top: 0 }
+    };
+    viewport.scrollBy({ ...offsets[direction], behavior: 'smooth' });
+  };
+  viewport.closest('.node-map-shell')?.querySelectorAll('[data-pan]').forEach((button) => {
+    button.addEventListener('click', () => pan(button.dataset.pan));
+  });
+  viewport.addEventListener('keydown', (event) => {
+    const directions = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+    const direction = directions[event.key];
+    if (!direction) return;
+    event.preventDefault();
+    pan(direction);
+  });
+}
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
   $('#clear-report-cache').addEventListener('click', clearReportCache);
   refreshReportCacheStatus();
   $('#export-report').addEventListener('click', exportReport);
   setupHubModal();
+  setupMapNavigation();
   setupValidator();
   setupMobileNavigation();
   setupExternalLinkModal();
