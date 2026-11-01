@@ -34,6 +34,19 @@
     const status = summary.querySelector('[data-preview-status]');
     if (status) status.textContent = message;
   };
+  const localFallback = (url, reason = 'تعذر جلب الصفحة عبر Worker') => {
+    const parsed = new URL(url);
+    const topic = decodeURIComponent(`${parsed.hostname} ${parsed.pathname}`).replace(/[/?#_=-]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const query = topic || parsed.hostname;
+    const links = Object.entries(SEARCH_ENGINES).map(([key, base]) => { const target = `${base}${encodeURIComponent(query)}`; return `<a href="${escape(target)}" data-preview-url="${escape(target)}">${escape(engine.querySelector(`option[value="${key}"]`)?.text || key)} ↗</a>`; }).join('');
+    const safeReason = escape(reason);
+    return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;background:#071014;color:#e7f2f0;line-height:1.8}main{max-width:760px;margin:auto}h1{font-size:1.35rem;margin:0 0 8px}h2{font-size:1rem;color:#f4ce72;margin:22px 0 6px}.badge{display:inline-block;border:1px solid #4a806f;border-radius:999px;padding:4px 10px;color:#59e0a3;font-size:.78rem}p{color:#b3c4c4}.card{border:1px solid #25443f;border-radius:16px;padding:16px;background:#102127}.links{display:flex;flex-wrap:wrap;gap:8px}.links a{border:1px solid #315d57;border-radius:999px;color:#59e0a3;text-decoration:none;padding:6px 10px;font-size:.82rem}.muted{font-size:.82rem;color:#8da4a5}.url{overflow-wrap:anywhere;color:#b6d8d0}</style></head><body><main><span class="badge">Fallback ذكاء اصطناعي محلي</span><h1>لم نتمكن من جلب الصفحة الأصلية</h1><p class="muted">${safeReason}. بقيت داخل الموقع، وهذه بطاقة بديلة آمنة بدل عرض صفحة فارغة أو رسالة not found.</p><section class="card"><h2>التحليل المحلي للطلب</h2><p>الموضوع المستنتج من الرابط: <strong>${escape(query)}</strong></p><p class="url">${escape(url)}</p><p>هذا تحليل مساعد مبني على عنوان الرابط ومساره فقط. لا ندّعي أنه نقل محتوى الصفحة الأصلية، ولا نختلق نصًا غير متاح.</p></section><h2>تابع البحث داخل الموقع</h2><p>استخدم الروابط التالية للعثور على مقال أو شرح أو كود متعلق بالموضوع دون مغادرة صفحة المعاينة:</p><nav class="links">${links}</nav></main><script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'preview-in-site',url:link.getAttribute('data-preview-url')},'*');});</script></body></html>`;
+  };
+  const showLocalFallback = (url, reason) => {
+    frame.removeAttribute('src');
+    frame.srcdoc = localFallback(url, reason);
+    describe(url, { title: 'مساعد البحث المحلي', status: 'تم عرض fallback محلي داخل المعاينة', description: 'تعذر جلب الصفحة الأصلية؛ تم إبقاء المستخدم داخل الموقع مع اقتراحات بحث بديلة.' });
+  };
   const describe = (url, metadata = {}) => {
     const parsed = new URL(url);
     title.textContent = metadata.title || parsed.hostname;
@@ -102,7 +115,11 @@
         headers: { Accept: 'application/json' }
       });
       const payload = await response.json();
-      if (run !== previewRun || !response.ok || !payload.html) return false;
+      if (run !== previewRun) return false;
+      if (!response.ok || !payload.html) {
+        showLocalFallback(url, payload.error || `استجابة Worker: ${response.status}`);
+        return true;
+      }
       frame.removeAttribute('src');
       frame.srcdoc = payload.html;
       describe(url, {
@@ -111,9 +128,9 @@
         status: `تم تجهيز نسخة المعاينة · استجابة ${payload.status}`
       });
       return true;
-    } catch {
-      // The Worker is an enhancement, not a requirement. Keep the direct preview visible.
-      return false;
+    } catch (error) {
+      if (run === previewRun) showLocalFallback(url, error?.message || 'تعذر الاتصال بخدمة المعاينة');
+      return true;
     }
   };
   const previewInsideSite = async (url) => {
