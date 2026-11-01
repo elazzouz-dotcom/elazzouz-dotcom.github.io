@@ -156,6 +156,15 @@
             <input id="node-import-file" class="node-import-file" type="file" accept="application/json,.json" hidden>
           </div>
         </div>
+        <details class="relation-customizer">
+          <summary>تخصيص ألوان وأشكال خطوط الربط</summary>
+          <div class="relation-control-grid">
+            <label>علاقة هرمية <span><input class="relation-color" data-relation="hierarchy" type="color" value="#59e0a3"><select class="relation-style" data-relation="hierarchy"><option value="solid">متصل</option><option value="dashed">متقطع</option><option value="dotted">منقط</option></select></span></label>
+            <label>علاقة بيانات <span><input class="relation-color" data-relation="content" type="color" value="#55b8e8"><select class="relation-style" data-relation="content"><option value="solid">متصل</option><option value="dashed" selected>متقطع</option><option value="dotted">منقط</option></select></span></label>
+            <label>علاقة برمجية <span><input class="relation-color" data-relation="software" type="color" value="#f4ce72"><select class="relation-style" data-relation="software"><option value="solid">متصل</option><option value="dashed">متقطع</option><option value="dotted" selected>منقط</option></select></span></label>
+          </div>
+          <button id="relation-reset" class="semver-button" type="button">إعادة الألوان الافتراضية</button>
+        </details>
         <div class="node-map-shell">
           <div id="node-viewport" class="node-viewport" role="region" aria-label="خريطة تفاعلية من 6600 عقدة" tabindex="0">
             <div id="network-stage-wrap" class="network-stage-wrap">
