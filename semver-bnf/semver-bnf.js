@@ -117,7 +117,7 @@ function restoreUiSettings() {
   }
   if ($('#node-filter')) $('#node-filter').value = showAll ? 'all' : (['all', 'active', 'empty'].includes(settings.nodeFilter) ? settings.nodeFilter : 'all');
   if ($('#software-filter')) $('#software-filter').value = showAll ? 'all' : (['all', 'software', 'download', 'web', 'app', 'matrix', 'html'].includes(settings.softwareFilter) ? settings.softwareFilter : 'all');
-  if ($('#level-filter')) $('#level-filter').value = showAll ? 'all' : ((settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter))) ? String(settings.levelFilter) : 'all');
+  if ($('#level-filter')) $('#level-filter').value = showAll ? 'all' : ((settings.levelFilter === 'all' || /^\d+$/.test(String(settings.levelFilter)) && Number(settings.levelFilter) < NODE_LEVELS.length) ? String(settings.levelFilter) : 'all');
   if ($('#node-search-mode')) $('#node-search-mode').value = showAll ? 'all' : (['all', 'any'].includes(settings.searchMode) ? settings.searchMode : 'all');
   if ($('#node-sort')) $('#node-sort').value = showAll ? 'id' : (['id', 'level', 'active'].includes(settings.sort) ? settings.sort : 'id');
   if ($('#node-result-limit')) $('#node-result-limit').value = showAll ? '16' : (['8', '16', '32'].includes(String(settings.resultLimit)) ? String(settings.resultLimit) : '16');
@@ -468,7 +468,7 @@ function setupCanvasInteraction() {
     if (Math.abs(dx) + Math.abs(dy) > 4) canvasPointer.moved = true;
     if (!canvasPointer.moved) return;
     position.x = Math.max(NODE_SIZE / 2, position.x + dx); position.y = Math.max(NODE_SIZE / 2, position.y + dy); canvasPointer.startX = point.x; canvasPointer.startY = point.y;
-    const button = nodeButtons.get(canvasPointer.id); button.style.left = `${position.x - NODE_SIZE / 2}px`; button.style.top = `${position.y - NODE_SIZE / 2}px`; fitMapToPositions(); drawEdges(); renderCanvasNetwork();
+    const button = nodeButtons.get(canvasPointer.id); button.style.left = `${position.x - NODE_SIZE / 2}px`; button.style.top = `${position.y - NODE_SIZE / 2}px`; fitMapToPositions(); updateEdgesForNode(canvasPointer.id); renderCanvasNetwork();
   });
   const end = (event) => { if (!canvasPointer) return; const id = canvasPointer.id; const moved = canvasPointer.moved; canvasPointer = null; if (!moved) openHubNode(id, nodeButtons.get(id)); else saveNodePositions(); networkCanvas.releasePointerCapture?.(event.pointerId); };
   networkCanvas.addEventListener('pointerup', end); networkCanvas.addEventListener('pointercancel', end);
@@ -501,6 +501,22 @@ function scheduleEdgeVisibilityUpdate() {
   };
   edgeVisibilityFrame = requestAnimationFrame(processBatch);
 }
+function updateEdgeGeometry(path, parentId, childId) {
+  const parent = nodePositions.get(parentId);
+  const child = nodePositions.get(childId);
+  if (!parent || !child) return;
+  const startY = parent.y + NODE_SIZE * .43;
+  const endY = child.y - NODE_SIZE * .43;
+  const curve = Math.max(18, Math.abs(endY - startY) * .38);
+  path.setAttribute('d', `M ${parent.x} ${startY} C ${parent.x} ${startY + curve}, ${child.x} ${endY - curve}, ${child.x} ${endY}`);
+}
+function updateEdgesForNode(id) {
+  const paths = new Set([
+    ...lines.querySelectorAll(`[data-from="${id}"]`),
+    ...lines.querySelectorAll(`[data-to="${id}"]`)
+  ]);
+  paths.forEach((path) => updateEdgeGeometry(path, Number(path.dataset.from), Number(path.dataset.to)));
+}
 function drawEdges() {
   const svgNamespace = 'http://www.w3.org/2000/svg';
   const fragment = document.createDocumentFragment();
@@ -510,9 +526,6 @@ function drawEdges() {
     const child = nodePositions.get(id);
     if (!parent || !child) continue;
     const path = document.createElementNS(svgNamespace, 'path');
-    const startY = parent.y + NODE_SIZE * .43;
-    const endY = child.y - NODE_SIZE * .43;
-    const curve = Math.max(18, Math.abs(endY - startY) * .38);
     const edgeType = relationType(parentId, id);
     path.setAttribute('class', `network-connection edge-${edgeType}`);
     path.dataset.relation = edgeType;
@@ -521,7 +534,7 @@ function drawEdges() {
     path.setAttribute('role', 'button');
     path.setAttribute('tabindex', '0');
     path.setAttribute('aria-label', `علاقة من ${nodeLabel(parentId)} إلى ${nodeLabel(id)}`);
-    path.setAttribute('d', `M ${parent.x} ${startY} C ${parent.x} ${startY + curve}, ${child.x} ${endY - curve}, ${child.x} ${endY}`);
+    updateEdgeGeometry(path, parentId, id);
     path.addEventListener('pointerenter', () => focusEdge(path, parentId, id));
     path.addEventListener('pointerleave', () => { if (focusedEdge?.path === path) clearEdgeFocus(); });
     path.addEventListener('focus', () => focusEdge(path, parentId, id));
@@ -1543,7 +1556,16 @@ function showAllNodes() {
   centerMapViewport('smooth');
   setNodeStatus(`يعرض الآن جميع العقد الـ${NODE_TOTAL} في الشبكة.`);
 }
+function populateLevelFilter() {
+  const select = $('#level-filter');
+  if (!select) return;
+  select.replaceChildren(new Option('كل المستويات', 'all'));
+  NODE_LEVELS.forEach((count, level) => {
+    select.appendChild(new Option(`المستوى ${level + 1} · ${count} عقدة`, String(level)));
+  });
+}
 function initializeNetwork() {
+  populateLevelFilter();
   restoreUiSettings();
   setupRelationCustomization();
   createNodeElements();

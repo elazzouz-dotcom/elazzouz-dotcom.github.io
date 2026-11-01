@@ -1,4 +1,11 @@
-export const NODE_LEVELS = Object.freeze([1, 3, 9, 27, 81, 243, 729, 2187, 3320]);
+const FULL_LEVEL_COUNT = 113;
+const TRIANGLE_TOTAL = FULL_LEVEL_COUNT * (FULL_LEVEL_COUNT + 1) / 2;
+const FINAL_LEVEL_COUNT = 6600 - TRIANGLE_TOTAL;
+// تدرج بصري واضح: 1، 2، 3، 4… مع مستوى أخير يكمل العدد الإجمالي إلى 6600.
+export const NODE_LEVELS = Object.freeze([
+  ...Array.from({ length: FULL_LEVEL_COUNT }, (_, index) => index + 1),
+  FINAL_LEVEL_COUNT
+]);
 export const NODE_TOTAL = NODE_LEVELS.reduce((sum, count) => sum + count, 0);
 
 export function getNodeLevelInfo(id) {
@@ -16,16 +23,21 @@ export function getNodeParent(id) {
   const child = getNodeLevelInfo(id);
   if (!child || child.level === 0) return null;
   const parentFirst = child.first - NODE_LEVELS[child.level - 1];
-  return parentFirst + Math.floor(child.index / 3);
+  const parentCount = NODE_LEVELS[child.level - 1];
+  return parentFirst + Math.min(parentCount - 1, Math.floor(child.index * parentCount / child.count));
 }
 
 export function getNodeChildren(id) {
   const parent = getNodeLevelInfo(id);
   if (!parent || parent.level >= NODE_LEVELS.length - 1) return [];
   const childFirst = parent.first + NODE_LEVELS[parent.level];
-  const firstChild = childFirst + parent.index * 3;
-  return [firstChild, firstChild + 1, firstChild + 2]
-    .filter((childId) => childId <= NODE_TOTAL);
+  const childCount = NODE_LEVELS[parent.level + 1];
+  const children = [];
+  for (let childIndex = 0; childIndex < childCount; childIndex += 1) {
+    const parentIndex = Math.min(parent.count - 1, Math.floor(childIndex * parent.count / childCount));
+    if (parentIndex === parent.index) children.push(childFirst + childIndex);
+  }
+  return children;
 }
 
 function isPrivateIpv4(host) {
