@@ -38,8 +38,11 @@ let canvasPointer = null;
 const nodeButtons = new Map();
 const nodeTypeCache = new Map();
 let filterFrame = 0;
+let filterDebounceTimer = 0;
+const FILTER_DEBOUNCE_MS = 100;
 const levelLabels = [];
 const nodePositions = new Map();
+const visibleNodeIds = new Set();
 const visibleEdgeIds = new Set();
 let edgeVisibilityFrame = 0;
 let edgeVisibilityToken = 0;
@@ -417,7 +420,7 @@ function renderCanvasNetwork() {
     canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.quadraticCurveTo((parent.x + child.x) / 2, (parent.y + child.y) / 2, child.x, child.y); canvasContext.stroke();
   }
   canvasContext.setLineDash([]);
-  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+  for (const id of visibleNodeIds) {
     const button = nodeButtons.get(id); const point = nodePositions.get(id); if (!button || button.hidden || !point) continue;
     const visibleLeft = offsetX / zoom - NODE_SIZE;
     const visibleTop = offsetY / zoom - NODE_SIZE;
@@ -673,6 +676,7 @@ function applyNodeFilters() {
   const softwareFilter = $('#software-filter').value;
   const levelFilter = $('#level-filter').value;
   const visibleIds = [];
+  visibleNodeIds.clear();
   for (let id = 1; id <= NODE_TOTAL; id += 1) {
     const button = nodeButtons.get(id);
     const data = getHubData(id);
@@ -686,16 +690,17 @@ function applyNodeFilters() {
     const show = levelMatches && stateMatches && typeMatches && queryMatches;
     button.hidden = !show;
     button.classList.toggle('is-highlighted', Boolean(terms.length && queryMatches && show));
-    if (show) visibleIds.push(id);
+    if (show) {
+      visibleIds.push(id);
+      visibleNodeIds.add(id);
+    }
   }
   if (sort === 'level') visibleIds.sort((a, b) => Number(nodeButtons.get(a).dataset.level) - Number(nodeButtons.get(b).dataset.level) || a - b);
   if (sort === 'active') visibleIds.sort((a, b) => Number(isConfigured(getHubData(b))) - Number(isConfigured(getHubData(a))) || a - b);
   renderAdvancedNodeResults(visibleIds, query);
   scheduleEdgeVisibilityUpdate();
-  levelLabels.forEach((label, level) => {
-    const anyVisible = [...nodeButtons.values()].some((button) => Number(button.dataset.level) === level && !button.hidden);
-    label.hidden = !anyVisible;
-  });
+  const visibleLevels = new Set(visibleIds.map((id) => Number(nodeButtons.get(id)?.dataset.level)));
+  levelLabels.forEach((label, level) => { label.hidden = !visibleLevels.has(level); });
   $('#node-status').textContent = `يعرض ${visibleIds.length} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
   renderCanvasNetwork();
   persistUiSettings();
@@ -1384,9 +1389,15 @@ function exportReport() {
   window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 }
 
-function scheduleNodeFilters() {
+function scheduleNodeFilters(immediate = false) {
+  if (filterDebounceTimer) window.clearTimeout(filterDebounceTimer);
   if (filterFrame) cancelAnimationFrame(filterFrame);
-  filterFrame = requestAnimationFrame(() => { filterFrame = 0; applyNodeFilters(); });
+  const run = () => {
+    filterDebounceTimer = 0;
+    filterFrame = requestAnimationFrame(() => { filterFrame = 0; applyNodeFilters(); });
+  };
+  if (immediate) run();
+  else filterDebounceTimer = window.setTimeout(run, FILTER_DEBOUNCE_MS);
 }
 function jumpToNodeFromSearch() {
   const raw = $('#node-search').value.trim();
