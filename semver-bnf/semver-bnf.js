@@ -2,6 +2,7 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
+const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
 const BUILTIN_NODES = Object.freeze({
   600: {
     url: 'https://elazzouz-dotcom.github.io/satellite/',
@@ -59,6 +60,23 @@ function semverStorageChars(excludeKey = '') {
   return total;
 }
 
+function persistUiSettings() {
+  writeJson(UI_SETTINGS_KEY, {
+    zoom,
+    query: $('#node-search')?.value || '',
+    nodeFilter: $('#node-filter')?.value || 'all',
+    softwareFilter: $('#software-filter')?.value || 'all',
+    levelFilter: $('#level-filter')?.value || 'all'
+  });
+}
+function restoreUiSettings() {
+  const settings = readJson(UI_SETTINGS_KEY, {});
+  if (Number.isFinite(settings.zoom)) zoom = Math.min(1.5, Math.max(.6, Number(settings.zoom)));
+  if ($('#node-search')) $('#node-search').value = String(settings.query || '');
+  if ($('#node-filter') && ['all', 'active', 'empty'].includes(settings.nodeFilter)) $('#node-filter').value = settings.nodeFilter;
+  if ($('#software-filter') && ['all', 'software', 'download', 'web', 'app', 'html'].includes(settings.softwareFilter)) $('#software-filter').value = settings.softwareFilter;
+  if ($('#level-filter') && (settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter)))) $('#level-filter').value = String(settings.levelFilter);
+}
 function getHubData(id) {
   try {
     const stored = localStorage.getItem(`${LINK_KEY}-${id}`);
@@ -267,6 +285,7 @@ function applyNodeFilters() {
     label.hidden = !anyVisible;
   });
   $('#node-status').textContent = `يعرض ${visible} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
+  persistUiSettings();
 }
 
 function nodePath(id) {
@@ -786,6 +805,7 @@ function exportReport() {
 }
 
 function initializeNetwork() {
+  restoreUiSettings();
   createNodeElements();
   layoutNodes();
   const observer = new ResizeObserver(scheduleLayout);
@@ -794,9 +814,9 @@ function initializeNetwork() {
   $('#node-filter').addEventListener('change', applyNodeFilters);
   $('#software-filter').addEventListener('change', applyNodeFilters);
   $('#level-filter').addEventListener('change', applyNodeFilters);
-  $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); });
-  $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); });
-  $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
+  $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); persistUiSettings(); });
+  $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); persistUiSettings(); });
+  $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
   $('#map-root').addEventListener('click', () => {
     const root = nodeButtons.get(1);
     if (!root) return;
