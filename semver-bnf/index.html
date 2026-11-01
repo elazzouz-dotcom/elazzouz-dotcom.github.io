@@ -266,6 +266,16 @@
     </section>
   </div>
 
+  <div id="external-link-modal" class="external-link-modal" hidden>
+    <section class="external-link-dialog" role="dialog" aria-modal="true" aria-labelledby="external-link-title">
+      <header class="external-link-header">
+        <div class="external-link-heading"><img src="/assets/slaks-logo.jpg" alt="شعار Slaks"><div><span class="external-link-kicker">IN-SITE PREVIEW</span><h2 id="external-link-title">معاينة الرابط الخارجي</h2><p id="external-link-address">جارٍ تجهيز الرابط…</p></div></div>
+        <button id="external-link-close" class="external-link-close" type="button" aria-label="إغلاق المعاينة">×</button>
+      </header>
+      <div class="external-link-actions"><span id="external-link-status">يتم عرض الرابط داخل الموقع.</span><a id="external-link-open" href="#" target="_blank" rel="noopener noreferrer">فتح خارجي ↗</a></div>
+      <iframe id="external-link-frame" title="معاينة رابط خارجي داخل الموقع" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allow="fullscreen; picture-in-picture; clipboard-read; clipboard-write"></iframe>
+    </section>
+  </div>
   <footer class="semver-footer">
     <div class="semver-container">
       <div class="semver-footer-row"><a href="/">Slaks</a><span>مختبر SemVer · معالجة محلية للعقد</span><a href="/tools">العودة إلى الأدوات</a></div>

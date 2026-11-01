@@ -771,6 +771,37 @@ function setupValidator() {
   validateVersion();
 }
 
+function setupExternalLinkModal() {
+  const modal = $('#external-link-modal');
+  const frame = $('#external-link-frame');
+  const title = $('#external-link-title');
+  const address = $('#external-link-address');
+  const open = $('#external-link-open');
+  const close = () => { modal.hidden = true; frame.removeAttribute('src'); };
+  const show = (url) => {
+    try {
+      const link = parseNodeLink(url);
+      if (link.kind !== 'web') return false;
+      title.textContent = link.host || 'رابط خارجي';
+      address.textContent = link.url;
+      open.href = link.url;
+      frame.src = link.url;
+      modal.hidden = false;
+      return true;
+    } catch { return false; }
+  };
+  $('#external-link-close').addEventListener('click', close);
+  modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
+  document.addEventListener('keydown', (event) => { if (!modal.hidden && event.key === 'Escape') close(); });
+  document.addEventListener('click', (event) => {
+    const anchor = event.target.closest('a[href]');
+    if (!anchor || modal.contains(anchor) || anchor.dataset.noInternalPreview !== undefined) return;
+    let url;
+    try { url = new URL(anchor.href, window.location.href); } catch { return; }
+    if (!['http:', 'https:'].includes(url.protocol) || url.origin === window.location.origin) return;
+    if (show(url.href)) event.preventDefault();
+  });
+}
 function setupMobileNavigation() {
   const toggle = $('#menu-toggle');
   const nav = $('#site-nav');
@@ -892,6 +923,7 @@ function setupActions() {
   setupHubModal();
   setupValidator();
   setupMobileNavigation();
+  setupExternalLinkModal();
   setupOrbit();
   // تشغيل نفق المعلومات تلقائيًا عند وجود عقد مهيأة، دون طلب إضافي من المستخدم.
   window.setTimeout(() => collectReport(), 250);
