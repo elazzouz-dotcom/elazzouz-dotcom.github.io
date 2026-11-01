@@ -1891,7 +1891,12 @@ function setupMapNavigation() {
       left: { left: -distanceX, top: 0 },
       right: { left: distanceX, top: 0 }
     };
-    viewport.scrollBy({ ...offsets[direction], behavior: 'smooth' });
+    const offset = offsets[direction];
+    const maxLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    const maxTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+    const targetLeft = Math.max(0, Math.min(maxLeft, viewport.scrollLeft + offset.left));
+    const targetTop = Math.max(0, Math.min(maxTop, viewport.scrollTop + offset.top));
+    viewport.scrollTo({ left: targetLeft, top: targetTop, behavior: 'smooth' });
   };
   viewport.closest('.node-map-shell')?.querySelectorAll('[data-pan]').forEach((button) => {
     button.addEventListener('click', () => pan(button.dataset.pan));
