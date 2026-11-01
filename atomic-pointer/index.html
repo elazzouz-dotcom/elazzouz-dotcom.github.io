@@ -122,6 +122,31 @@
       padding: 1rem;
     }
 
+    .atomic-value-pop {
+      animation: atomic-value-pop 520ms cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .atomic-card-pulse {
+      animation: atomic-card-pulse 520ms ease-out;
+    }
+
+    @keyframes atomic-value-pop {
+      0% { opacity: .35; transform: translateY(.35rem) scale(.82); }
+      55% { opacity: 1; transform: translateY(-.12rem) scale(1.12); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes atomic-card-pulse {
+      0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 0%, transparent); }
+      45% { box-shadow: 0 0 0 .55rem color-mix(in srgb, var(--color-primary) 18%, transparent); }
+      100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 0%, transparent); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .atomic-value-pop,
+      .atomic-card-pulse { animation: none; }
+    }
+
     .atomic-data-shell {
       background: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 34%), var(--color-bg);
     }
@@ -546,6 +571,7 @@ fn add_with_retry(state: &AtomicI32, delta: i32) -> i32 {
 
       let activeRun = null;
       let validatedResult = null;
+      let previousPreviewValue = null;
       const undoStack = [];
       const redoStack = [];
       let previousEditorValue = '';
@@ -1151,6 +1177,12 @@ fn add_with_retry(state: &AtomicI32, delta: i32) -> i32 {
         if (framework === 'html') {
           const safe = JSON.stringify(viewModel);
           return `<!-- مكوّن عرض فقط. أرسل نتيجة موثوقة من منطق تطبيقك. -->
+<style>
+.atomic-card { border: 1px solid #d0d7de; border-radius: 1rem; padding: 1rem; }
+.atomic-value-pop { animation: atomic-value-pop 520ms cubic-bezier(.2,.8,.2,1); }
+@keyframes atomic-value-pop { 0% { opacity: .35; transform: translateY(.35rem) scale(.82); } 55% { opacity: 1; transform: translateY(-.12rem) scale(1.12); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .atomic-value-pop { animation: none; } }
+</style>
 <article class="atomic-card">
   <p class="accent" id="atomic-symbol"></p>
   <h2 id="atomic-heading"></h2>
@@ -1159,15 +1191,18 @@ fn add_with_retry(state: &AtomicI32, delta: i32) -> i32 {
 </article>
 <script>
 const model = ${safe};
-const values = {
-  "atomic-symbol": model.symbol,
-  "atomic-heading": model.heading,
-  "atomic-description": model.description,
-  "atomic-value": model.value === null ? "بانتظار نتيجة متحقق منها" : String(model.value)
-};
-for (const [id, value] of Object.entries(values)) {
-  document.getElementById(id).textContent = value;
+function updateAtomicValue(nextValue) {
+  const value = nextValue === null || nextValue === undefined ? "بانتظار نتيجة متحقق منها" : String(nextValue);
+  const output = document.getElementById("atomic-value");
+  output.textContent = value;
+  output.classList.remove("atomic-value-pop");
+  void output.offsetWidth;
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) output.classList.add("atomic-value-pop");
 }
+document.getElementById("atomic-symbol").textContent = model.symbol;
+document.getElementById("atomic-heading").textContent = model.heading;
+document.getElementById("atomic-description").textContent = model.description;
+updateAtomicValue(model.value);
 <\\/script>`;
         }
         if (framework === 'react') return `const model = ${json};
@@ -1211,6 +1246,7 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
 
       function updateInterface() {
         const design = getDesign();
+        const nextPreviewValue = design.result ? String(design.result.value) : null;
         $('preview-title').textContent = design.heading;
         $('preview-accent').textContent = design.symbol;
         $('preview-detail').textContent = design.result ?
@@ -1221,6 +1257,19 @@ const displayValue = computed(() => model.value === null ? "بانتظار نت�
           `نتيجة متحقق منها · ${design.result.retries} إعادة · ${design.result.type}` :
           'بانتظار نتيجة متحقق منها';
         $('preview-state').classList.toggle('text-[var(--color-primary)]', Boolean(design.result));
+        if (nextPreviewValue !== previousPreviewValue && nextPreviewValue !== null) {
+          const value = $('preview-value');
+          const card = value.closest('.result-card');
+          value.classList.remove('atomic-value-pop');
+          card?.classList.remove('atomic-card-pulse');
+          void value.offsetWidth;
+          void card?.offsetWidth;
+          if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            value.classList.add('atomic-value-pop');
+            card?.classList.add('atomic-card-pulse');
+          }
+        }
+        previousPreviewValue = nextPreviewValue;
         $('ui-output').textContent = makeComponentSource($('ui-framework').value, design);
         setStatus('ui-status', design.result ?
           `المكوّن متصل بنتيجة متحقق منها ${design.result.value}. تغيير التصميم لا يغيّر المحاكاة.` :
