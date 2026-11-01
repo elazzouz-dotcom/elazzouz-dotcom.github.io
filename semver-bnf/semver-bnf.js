@@ -40,6 +40,9 @@ const nodeTypeCache = new Map();
 let filterFrame = 0;
 const levelLabels = [];
 const nodePositions = new Map();
+const visibleEdgeIds = new Set();
+let edgeVisibilityFrame = 0;
+let edgeVisibilityToken = 0;
 let mapWidth = 0;
 let mapHeight = 0;
 let zoom = 1;
@@ -396,8 +399,11 @@ function renderCanvasNetwork() {
   canvasContext.scale(zoom, zoom);
   canvasContext.translate(-offsetX / zoom, -offsetY / zoom);
   canvasContext.lineWidth = 2.5 / zoom;
-  for (let id = 2; id <= NODE_TOTAL; id += 1) {
-    const parentId = getNodeParent(id); const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
+  for (const edgeKey of visibleEdgeIds) {
+    const [parentRaw, childRaw] = edgeKey.split(':');
+    const id = Number(childRaw);
+    const parentId = Number(parentRaw);
+    const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
     const parentButton = nodeButtons.get(parentId); const childButton = nodeButtons.get(id);
     if (!parent || !child || parentButton?.hidden || childButton?.hidden) continue;
     const visibleLeft = offsetX / zoom - NODE_SIZE;
@@ -455,6 +461,34 @@ function setupCanvasInteraction() {
   const end = (event) => { if (!canvasPointer) return; const id = canvasPointer.id; const moved = canvasPointer.moved; canvasPointer = null; if (!moved) openHubNode(id, nodeButtons.get(id)); else saveNodePositions(); networkCanvas.releasePointerCapture?.(event.pointerId); };
   networkCanvas.addEventListener('pointerup', end); networkCanvas.addEventListener('pointercancel', end);
 }
+function scheduleEdgeVisibilityUpdate() {
+  const token = ++edgeVisibilityToken;
+  if (edgeVisibilityFrame) cancelAnimationFrame(edgeVisibilityFrame);
+  visibleEdgeIds.clear();
+  const paths = [...lines.querySelectorAll('.network-connection')];
+  let cursor = 0;
+  const processBatch = () => {
+    if (token !== edgeVisibilityToken) return;
+    const startedAt = performance.now();
+    const batchEnd = Math.min(paths.length, cursor + 240);
+    while (cursor < batchEnd && performance.now() - startedAt < 6) {
+      const path = paths[cursor];
+      const from = nodeButtons.get(Number(path.dataset.from));
+      const to = nodeButtons.get(Number(path.dataset.to));
+      const visible = !from?.hidden && !to?.hidden;
+      path.hidden = !visible;
+      if (visible) visibleEdgeIds.add(`${path.dataset.from}:${path.dataset.to}`);
+      cursor += 1;
+    }
+    if (cursor < paths.length) {
+      edgeVisibilityFrame = requestAnimationFrame(processBatch);
+      return;
+    }
+    edgeVisibilityFrame = 0;
+    renderCanvasNetwork();
+  };
+  edgeVisibilityFrame = requestAnimationFrame(processBatch);
+}
 function drawEdges() {
   const svgNamespace = 'http://www.w3.org/2000/svg';
   const fragment = document.createDocumentFragment();
@@ -491,6 +525,8 @@ function drawEdges() {
   lines.setAttribute('height', String(mapHeight));
   lines.style.width = `${mapWidth}px`;
   lines.style.height = `${mapHeight}px`;
+  visibleEdgeIds.clear();
+  scheduleEdgeVisibilityUpdate();
   renderCanvasNetwork();
 }
 
@@ -655,9 +691,7 @@ function applyNodeFilters() {
   if (sort === 'level') visibleIds.sort((a, b) => Number(nodeButtons.get(a).dataset.level) - Number(nodeButtons.get(b).dataset.level) || a - b);
   if (sort === 'active') visibleIds.sort((a, b) => Number(isConfigured(getHubData(b))) - Number(isConfigured(getHubData(a))) || a - b);
   renderAdvancedNodeResults(visibleIds, query);
-  for (const path of lines.querySelectorAll('.network-connection')) {
-    path.hidden = Boolean(nodeButtons.get(Number(path.dataset.from))?.hidden || nodeButtons.get(Number(path.dataset.to))?.hidden);
-  }
+  scheduleEdgeVisibilityUpdate();
   levelLabels.forEach((label, level) => {
     const anyVisible = [...nodeButtons.values()].some((button) => Number(button.dataset.level) === level && !button.hidden);
     label.hidden = !anyVisible;
