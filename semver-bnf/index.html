@@ -288,6 +288,16 @@
     </section>
   </div>
 
+  <button id="slaks-chat-toggle" class="slaks-chat-toggle" type="button" aria-expanded="false" aria-controls="slaks-node-chat">
+    <img src="/assets/slaks-logo.jpg" alt="شعار Slaks"><span class="slaks-chat-label">دردشة العقد</span><b id="slaks-chat-badge">6600</b>
+  </button>
+  <aside id="slaks-node-chat" class="slaks-node-chat" hidden role="dialog" aria-labelledby="slaks-chat-title">
+    <header class="slaks-chat-header"><div><span class="info-chat-kicker">SLAKS NODE CHAT</span><h2 id="slaks-chat-title">معلومات كل العقد</h2></div><button id="slaks-chat-close" type="button" aria-label="إغلاق دردشة العقد">×</button></header>
+    <p class="slaks-chat-intro">كل عقدة مرتبطة بهذه الدردشة. ابحث برقم العقدة أو الرابط لعرض معلوماتها.</p>
+    <label class="slaks-chat-search"><span>بحث داخل معلومات العقد</span><input id="slaks-chat-search-input" type="search" placeholder="N-042 أو example.com" autocomplete="off"></label>
+    <div id="slaks-node-chat-log" class="slaks-node-chat-log" role="log" aria-live="polite"></div>
+    <footer id="slaks-chat-footer" class="slaks-chat-footer">6600 عقدة مرتبطة · البيانات محلية</footer>
+  </aside>
   <div id="external-link-modal" class="external-link-modal" hidden>
     <section class="external-link-dialog" role="dialog" aria-modal="true" aria-labelledby="external-link-title">
       <header class="external-link-header">
