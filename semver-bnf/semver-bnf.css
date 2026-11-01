@@ -306,3 +306,8 @@ body.semver-page a { color: inherit; }
 .external-link-actions { color: var(--semver-muted); background: #0a1519; }
 .external-link-actions a { border-color: rgba(89, 224, 163, .35); color: var(--semver-green); background: rgba(89, 224, 163, .06); }
 .external-link-frame { background: #0a1519; }
+/* Dark input area for adding node links and local HTML */
+.hub-dialog .hub-form-grid { padding: .85rem; border: 1px solid rgba(89, 224, 163, .18); border-radius: 14px; background: #0a1519; }
+.hub-dialog .semver-input, .hub-dialog .semver-textarea { color: #e8f0ee; border-color: rgba(89, 224, 163, .28); background: #071014; caret-color: var(--semver-green); }
+.hub-dialog .semver-input:focus, .hub-dialog .semver-textarea:focus { border-color: var(--semver-green); box-shadow: 0 0 0 3px rgba(89, 224, 163, .12); }
+.hub-dialog .semver-input::placeholder, .hub-dialog .semver-textarea::placeholder { color: #789296; }
