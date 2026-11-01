@@ -227,7 +227,11 @@ function renderNodeChatRoom() {
   visible.forEach((record) => {
     const message = document.createElement('article');
     message.className = `node-chat-message ${record.id === nodeChatRoomSelected ? 'is-selected' : ''}`;
-    message.innerHTML = `<strong>${nodeLabel(record.id)} · المستوى ${record.level}</strong><span>${record.configured ? `${record.type === 'html' ? 'HTML محلي' : record.url || 'بيانات محلية'} · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}` : `عقدة فارغة · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}`}</span>`;
+    const title = document.createElement('strong');
+    title.textContent = `${nodeLabel(record.id)} · المستوى ${record.level}`;
+    const details = document.createElement('span');
+    details.textContent = record.configured ? `${record.type === 'html' ? 'HTML محلي' : record.url || 'بيانات محلية'} · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}` : `عقدة فارغة · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}`;
+    message.append(title, details);
     message.addEventListener('click', () => { nodeChatRoomSelected = record.id; const button = nodeButtons.get(record.id); if (button) { button.scrollIntoView({ block: 'center', inline: 'center' }); openHubNode(record.id, button); } renderNodeChatRoom(); });
     log.appendChild(message);
   });
