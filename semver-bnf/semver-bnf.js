@@ -639,9 +639,11 @@ function searchWithSelectedEngine() {
 function clearPreview() {
   hubPreview.removeAttribute('srcdoc');
   hubPreview.src = 'about:blank';
+  hubPreview.hidden = true;
 }
 
 async function buildHub(silent = false) {
+  hubPreview.hidden = false;
   const urlText = hubUrl.value.trim();
   const localHtml = hubHtml.value;
   try {
