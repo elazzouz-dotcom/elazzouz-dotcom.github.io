@@ -985,6 +985,15 @@ function updateNodeStatsAndFilters(id) {
   applyNodeFilters();
 }
 
+window.addEventListener('knowledge-nodes-synced', () => {
+  nodeButtons.forEach((_, id) => refreshNode(id));
+  updateStats();
+  sendNodeFilterIndex();
+  applyNodeFilters();
+  nodeChatRoomRecords.forEach((_, id) => updateNodeChatRoomRecord(id));
+  renderNodeChatRoom();
+});
+
 const hubModal = $('#hub-modal');
 const hubDialog = $('#hub-dialog');
 const hubUrl = $('#hub-url');

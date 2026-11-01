@@ -2,6 +2,7 @@ const JSON_HEADERS = { 'Content-Type': 'application/json; charset=utf-8' };
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_QUERY_CHARS = 500;
 const MAX_RESULTS = 20;
+const MAX_NODE_LIST_RESULTS = 6600;
 
 function cors(request, env) {
   const origin = request.headers.get('Origin') || '';
@@ -30,9 +31,9 @@ function nodeKey(id) {
   return `N-${String(id).padStart(3, '0')}`;
 }
 
-function parseLimit(value) {
+function parseLimit(value, maximum = MAX_RESULTS) {
   const number = Number.parseInt(value, 10);
-  return Number.isFinite(number) ? Math.min(MAX_RESULTS, Math.max(1, number)) : 10;
+  return Number.isFinite(number) ? Math.min(maximum, Math.max(1, number)) : 10;
 }
 
 function normalizeNode(row) {
@@ -75,7 +76,7 @@ async function health(request, env) {
 }
 
 async function listNodes(request, env, url) {
-  const limit = parseLimit(url.searchParams.get('limit'));
+  const limit = parseLimit(url.searchParams.get('limit'), MAX_NODE_LIST_RESULTS);
   const offset = Math.max(0, Number.parseInt(url.searchParams.get('offset') || '0', 10) || 0);
   const domain = cleanText(url.searchParams.get('domain'), 80);
   const language = cleanText(url.searchParams.get('language'), 20);
