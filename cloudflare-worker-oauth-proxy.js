@@ -1,696 +1,499 @@
-/**
- * GitHub OAuth Proxy v4.0.0
- * Ultimate full-featured GitHub OAuth proxy with complete API coverage
- * 
- * Deployment: Cloudflare Workers
- * Required Environment Variables:
- *   - CLIENT_SECRET: Your GitHub OAuth App client secret
- * 
- * Configuration:
- *   - CLIENT_ID: Ov23liCSQUsIFcULd37T (can be public)
- *   - Default Scope: repo workflow admin:repo_hook read:user user:email
- */
-
-const CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
-const LEGACY_CLIENT_ID = 'Ov23li9xlu3kRKACL6Tz';
-const DEFAULT_SCOPE = 'repo workflow admin:repo_hook read:user user:email';
-const DEFAULT_OWNER = 'elazzouz-dotcom';
-const ROLE_ORDER = { viewer: 1, editor: 2, admin: 3, owner: 4 };
-const VALID_ROLES = new Set(Object.keys(ROLE_ORDER));
-const GITHUB_API_BASE = 'https://api.github.com';
-const GITHUB_AUTH_BASE = 'https://github.com';
-
-/**
- * Main request handler
- */
-export default {
-  fetch(request, env) { return handleRequest(request, env); }
-};
-
-/**
- * Handle incoming requests
- */
-async function handleRequest(request, env) {
-  // Handle CORS preflight
-  if (request.method === 'OPTIONS') {
-    return handleCORS();
-  }
-
-  try {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    const method = request.method;
-
-    if (path === '/permissions' && method === 'GET') return handlePermissions(request, env);
-    if (path === '/permissions' && method === 'PUT') return updatePermission(request, env);
-    if (path === '/satellite/status' && method === 'GET') return handleSatelliteStatus(env);
-    if (path === '/satellite/ingest' && method === 'POST') return handleSatelliteIngest(request, env);
-
-    const accessError = await authorizeGitHubRoute(request, path, method, env);
-    if (accessError) return accessError;
-
-    // Route requests to appropriate handlers
-    // Authentication endpoints
-    if (path === '/device/code' && method === 'POST') {
-      return handleDeviceCode(request);
-    }
-    
-    if (path === '/token' && method === 'POST') {
-      return handleToken(request);
-    }
-    
-    if (path === '/token/refresh' && method === 'POST') {
-      return handleTokenRefresh(request);
-    }
-    
-    if (path === '/token/revoke' && method === 'POST') {
-      return handleTokenRevoke(request);
-    }
-    
-    if (path === '/token/check' && method === 'GET') {
-      return handleTokenCheck(request);
-    }
-
-    if (path === '/analyze' && method === 'POST') {
-      return handleAIAnalysis(request);
-    }
-
-    // Public external-site preview: fetch, sanitize, summarize, and return embeddable HTML.
-    if (path === '/preview' && method === 'GET') {
-      return handleExternalPreview(url);
-    }
-
-    // User endpoints
-    if (path.startsWith('/user')) {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // Repository endpoints
-    if (path === '/repos/create' && method === 'POST') {
-      return proxyToGitHub(request, '/user/repos', method, env);
-    }
-    
-    if (path.startsWith('/repos/')) {
-      // Convert /repos/:owner/:repo/* to GitHub API format
-      const apiPath = path.replace(/^\/repos/, '/repos');
-      return proxyToGitHub(request, apiPath, null, env);
-    }
-
-    // Gists endpoints
-    if (path.startsWith('/gists')) {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // Search endpoints
-    if (path.startsWith('/search/')) {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // Notifications
-    if (path.startsWith('/notifications')) {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // Meta endpoints
-    if (['/meta', '/emojis', '/gitignore/templates', '/licenses', 
-         '/rate-limit', '/zen', '/feeds', '/events'].includes(path)) {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // Markdown rendering
-    if (path === '/markdown' || path === '/markdown/raw') {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // GraphQL
-    if (path === '/graphql' && method === 'POST') {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // Generic proxy for any GitHub API request
-    if (path.startsWith('/proxy/')) {
-      const apiPath = path.replace(/^\/proxy/, '');
-      return proxyToGitHub(request, apiPath, null, env);
-    }
-
-    // Organization endpoints
-    if (path.startsWith('/orgs/')) {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // User endpoints (public)
-    if (path.startsWith('/users/')) {
-      return proxyToGitHub(request, path, null, env);
-    }
-
-    // Root endpoint - return API info
-    if (path === '/' || path === '') {
-      return new Response(JSON.stringify({
-        name: 'GitHub OAuth Proxy',
-        version: '4.0.0',
-        description: 'Ultimate full-featured GitHub OAuth proxy with complete API coverage',
-        client_id: CLIENT_ID,
-        default_scope: DEFAULT_SCOPE,
-        endpoints: {
-          auth: {
-            'POST /device/code': 'Initiate Device Flow',
-            'POST /token': 'Exchange code for token',
-            'POST /token/refresh': 'Refresh token',
-            'POST /token/revoke': 'Revoke token',
-            'GET /token/check': 'Check token validity',
-            'POST /analyze': 'Analyze node data with Cloudflare Workers AI'
-          },
-          user: 'GET /user/*',
-          repos: 'ANY /repos/*',
-          gists: 'ANY /gists/*',
-          search: 'GET /search/*',
-          notifications: 'ANY /notifications/*',
-          meta: 'GET /meta, /emojis, /markdown, etc.',
-          graphql: 'POST /graphql',
-          proxy: 'ANY /proxy/* - Forward any request to GitHub API',
-          preview: 'GET /preview?url=https://example.com - Fetch and sanitize a public web page',
-          satellite: {
-            status: 'GET /satellite/status - Unified satellite connectivity status',
-            ingest: 'POST /satellite/ingest - Authenticated gateway telemetry ingestion'
-          }
-        }
-      }), {
-        status: 200,
-        headers: corsHeaders({ 'Content-Type': 'application/json' })
-      });
-    }
-
-    // Not found
-    return new Response(JSON.stringify({ error: 'Endpoint not found' }), {
-      status: 404,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-
-  } catch (error) {
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error', 
-      message: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  }
-}
-
-
-async function handleExternalPreview(requestUrl) {
-  const raw = requestUrl.searchParams.get('url');
-  let target;
-  try {
-    target = new URL(raw || '');
-    if (!['http:', 'https:'].includes(target.protocol) || !isPublicHostname(target.hostname)) throw new Error('Only public HTTP/HTTPS URLs are allowed.');
-  } catch (error) {
-    return previewResponse({ error: error.message || 'Invalid public URL.' }, 400);
-  }
-  try {
-    const upstream = await fetch(target.href, { redirect: 'follow', headers: { 'User-Agent': 'Slaks-Cloudflare-Preview/1.0', Accept: 'text/html,application/xhtml+xml' } });
-    const finalUrl = new URL(upstream.url || target.href);
-    if (!isPublicHostname(finalUrl.hostname)) throw new Error('The destination redirected to a private or local host.');
-    const contentType = upstream.headers.get('content-type') || '';
-    const rawBody = await upstream.text();
-    const html = sanitizePreviewHtml(rawBody.slice(0, 1500000), finalUrl.href);
-    const metadata = extractPreviewMetadata(rawBody, finalUrl.href);
-    return previewResponse({ ok: upstream.ok, status: upstream.status, target: target.href, finalUrl: finalUrl.href, contentType, ...metadata, html, text: metadata.text.slice(0, 1200) }, upstream.ok ? 200 : 502);
-  } catch (error) {
-    return previewResponse({ error: 'Unable to fetch the public URL.', message: error.message, target: target.href }, 502);
-  }
-}
-
-function isPublicHostname(hostname) {
-  const host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
-  if (!host || host === 'localhost' || host.endsWith('.local') || host.endsWith('.localhost') || host.endsWith('.internal') || host === 'metadata.google.internal' || host === 'metadata') return false;
-  if (host.includes(':')) { const compact = host.replace(/:/g, ''); if (host === '::1' || host.startsWith('fc') || host.startsWith('fd') || host.startsWith('fe8') || host.startsWith('fe9') || host.startsWith('fea') || host.startsWith('feb') || compact.startsWith('ffff')) return false; }
-  if (host === '::1' || host === '0.0.0.0' || host.startsWith('127.') || host.startsWith('10.') || host.startsWith('192.168.') || host.startsWith('169.254.')) return false;
-  const octets = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
-  if (octets) { const [a, b] = octets.slice(1, 3).map(Number); if (a === 0 || a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254)) return false; }
-  return true;
-}
-
-function extractPreviewMetadata(html, sourceUrl) {
-  const pick = pattern => (html.match(pattern)?.[1] || '').replace(/\s+/g, ' ').trim();
-  const title = pick(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["']/i) || pick(/<title[^>]*>([\s\S]*?)<\/title>/i) || new URL(sourceUrl).hostname;
-  const description = pick(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"']*)["']/i);
-  const text = html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  const links = [...html.matchAll(/<a\b[^>]+href=["']([^"']+)["']/gi)].slice(0, 100).map(match => match[1]);
-  return { title, description, text, links };
-}
-
-function sanitizePreviewHtml(html, baseUrl) {
-  let safe = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '').replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, '').replace(/<embed\b[^>]*>/gi, '');
-  safe = safe.replace(/\s+on[a-z]+\s*=\s*(["'])[^"']*\1/gi, '').replace(/\s+(?:href|src|action)\s*=\s*(["'])\s*javascript:[^"']*\1/gi, '');
-  const base = `<base href="${escapeHtml(baseUrl)}">`;
-  return /<head[^>]*>/i.test(safe) ? safe.replace(/<head[^>]*>/i, match => `${match}${base}`) : `<!doctype html><html><head>${base}<meta charset="utf-8"></head><body>${safe}</body></html>`;
-}
-
-function escapeHtml(value) { return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character])); }
-function previewResponse(payload, status = 200) { return new Response(JSON.stringify(payload), { status, headers: corsHeaders({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }) }); }
-
-const SATELLITE_PROVIDERS = [
-  { id: 'starlink', name: 'Starlink', type: 'internet', capabilities: ['internet', 'latency', 'throughput'] },
-  { id: 'vsat', name: 'VSAT', type: 'internet', capabilities: ['internet', 'signal', 'latency'] },
-  { id: 'iridium', name: 'Iridium', type: 'messaging', capabilities: ['messaging', 'telemetry', 'signal'] },
-  { id: 'thuraya-inmarsat', name: 'Thuraya / Inmarsat', type: 'messaging', capabilities: ['messaging', 'telemetry', 'signal'] }
+// ===== GitHub OAuth Proxy v4.0 — Ultimate Full-Featured =====
+const ALLOWED_ORIGINS = [
+  'https://elazzouz-dotcom.github.io',
+  'https://onecompiler.com',
+  'https://elazzouz4.workers.dev',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173'
 ];
+const GITHUB_CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
+const LEGACY_CLIENT_ID = 'Ov23li9xlu3kRKACL6Tz';
+const GITHUB_CLIENT_IDS = [GITHUB_CLIENT_ID, LEGACY_CLIENT_ID];
+const PROXY_VERSION = '4.1.0';
+const DEFAULT_SCOPE = 'repo workflow admin:repo_hook read:user user:email';
+const USER_AGENT = 'Practical-Tools-GitHub-Login';
+const GITHUB_API = 'https://api.github.com';
+const OTP_ADMIN_EMAIL = 'elazzouz4@gmail.com';
+const OTP_TTL = 600;
+const OTP_MAX_ATTEMPTS = 5;
+function binding(name) { try { if (name === 'GMAIL_CLIENT_ID') return GMAIL_CLIENT_ID; } catch {} try { if (name === 'GMAIL_CLIENT_SECRET') return GMAIL_CLIENT_SECRET; } catch {} try { if (name === 'GMAIL_REFRESH_TOKEN') return GMAIL_REFRESH_TOKEN; } catch {} try { if (name === 'OTP_SIGNING_SECRET') return OTP_SIGNING_SECRET; } catch {} try { if (name === 'GMAIL_SENDER') return GMAIL_SENDER; } catch {} return ''; }
+function b64url(bytes) { let s=''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function utf8b64url(text) { return b64url(new TextEncoder().encode(text)); }
+async function otpSign(value) { const key=await crypto.subtle.importKey('raw', new TextEncoder().encode(binding('OTP_SIGNING_SECRET') || binding('GMAIL_CLIENT_SECRET')), {name:'HMAC',hash:'SHA-256'}, false, ['sign']); return b64url(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))); }
+function getCookie(request,name) { const raw=request.headers.get('Cookie') || ''; const item=raw.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'=')); return item ? decodeURIComponent(item.slice(name.length+1)) : ''; }
+async function otpCookie(payload) { const value=utf8b64url(JSON.stringify(payload)); return value+'.'+await otpSign(value); }
+async function otpRead(request,name) { const raw=getCookie(request,name); const i=raw.lastIndexOf('.'); if(i<1)return null; const value=raw.slice(0,i), sig=raw.slice(i+1); if(sig !== await otpSign(value))return null; try{return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')+'=='),c=>c.charCodeAt(0))))}catch{return null} }
+function otpSet(name,value,maxAge) { return name+'='+encodeURIComponent(value)+'; Max-Age='+maxAge+'; Path=/otp; HttpOnly; Secure; SameSite=Strict'; }
+async function gmailSendOtp(code) { const clientId=binding('GMAIL_CLIENT_ID'), secret=binding('GMAIL_CLIENT_SECRET'), refresh=binding('GMAIL_REFRESH_TOKEN'); if(!clientId || !secret || !refresh || !binding('OTP_SIGNING_SECRET')) throw new Error('gmail_otp_not_configured'); const tokenRes=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:clientId,client_secret:secret,refresh_token:refresh,grant_type:'refresh_token'})}); const token=await tokenRes.json(); if(!token.access_token) throw new Error('gmail_token_exchange_failed'); const text='رمز الدخول إلى Hosting Studio هو: '+code+'\n\nهذا الرمز صالح لمدة 10 دقائق ويُستخدم مرة واحدة.'; const raw=['From: '+(binding('GMAIL_SENDER') || OTP_ADMIN_EMAIL),'To: '+OTP_ADMIN_EMAIL,'Subject: Hosting Studio verification code','Content-Type: text/plain; charset=UTF-8','',text].join('\r\n'); const send=await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{method:'POST',headers:{Authorization:'Bearer '+token.access_token,'Content-Type':'application/json'},body:JSON.stringify({raw:utf8b64url(raw)})}); if(!send.ok) throw new Error('gmail_send_failed'); }
 
-function demoSatelliteStatus() {
+
+// ===== CORS & Security Headers =====
+function corsHeaders(origin) {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin);
   return {
-    mode: 'demo',
-    connected: false,
-    generatedAt: new Date().toISOString(),
-    message: 'هذه بيانات تجريبية. لم يتم ربط مودم أو مزود فضائي بعد.',
-    providers: SATELLITE_PROVIDERS.map((provider, index) => ({
-      ...provider,
-      status: 'not-configured',
-      signal: null,
-      latencyMs: null,
-      downlinkMbps: null,
-      uplinkMbps: null,
-      lastSeen: null,
-      note: index < 2 ? 'أضف جهاز الإنترنت الفضائي وبوابة آمنة.' : 'أضف مودم الرسائل أو واجهة المزود الرسمية.'
-    }))
+    'Access-Control-Allow-Origin': allowed ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-GitHub-Api-Version, X-GitHub-Next-Global-ID',
+    'Access-Control-Expose-Headers': 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Used, X-RateLimit-Resource, Link, X-OAuth-Scopes, X-Accepted-OAuth-Scopes',
+    'Access-Control-Max-Age': '86400',
+    'Access-Control-Allow-Credentials': 'true',
+    'Vary': 'Origin'
+  };
+}
+function securityHeaders() {
+  return {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'no-referrer',
+    'Cache-Control': 'no-store'
   };
 }
 
-async function handleSatelliteStatus(env) {
-  let payload = null;
-  try { payload = env.SATELLITE_STATUS?.get ? JSON.parse(await env.SATELLITE_STATUS.get('latest') || 'null') : null; } catch { payload = null; }
-  if (!payload || !Array.isArray(payload.providers)) payload = demoSatelliteStatus();
-  return jsonResponse({ ...payload, service: 'slaks-satellite-gateway', fetchedAt: new Date().toISOString() }, 200, { 'Cache-Control': 'no-store' });
-}
-
-async function handleSatelliteIngest(request, env) {
-  const expected = String(env.SATELLITE_INGEST_TOKEN || '');
-  const supplied = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') || request.headers.get('X-Satellite-Ingest-Token') || '';
-  if (!expected || supplied.length < 16 || supplied !== expected) return jsonResponse({ error: 'satellite_ingest_unauthorized' }, 401);
-  if (!env.SATELLITE_STATUS?.put) return jsonResponse({ error: 'satellite_status_binding_not_configured', message: 'أضف KV binding باسم SATELLITE_STATUS إلى Worker.' }, 503);
-  const body = await request.json().catch(() => null);
-  if (!body || !Array.isArray(body.providers)) return jsonResponse({ error: 'invalid_satellite_payload', message: 'يجب إرسال providers كمصفوفة.' }, 400);
-  const allowed = new Set(SATELLITE_PROVIDERS.map(provider => provider.id));
-  const providers = body.providers.filter(item => allowed.has(String(item.id))).map(item => ({
-    id: String(item.id), name: SATELLITE_PROVIDERS.find(provider => provider.id === String(item.id)).name,
-    type: SATELLITE_PROVIDERS.find(provider => provider.id === String(item.id)).type,
-    capabilities: SATELLITE_PROVIDERS.find(provider => provider.id === String(item.id)).capabilities,
-    status: ['online', 'degraded', 'offline', 'not-configured'].includes(item.status) ? item.status : 'not-configured',
-    signal: Number.isFinite(Number(item.signal)) ? Math.max(0, Math.min(100, Number(item.signal))) : null,
-    latencyMs: Number.isFinite(Number(item.latencyMs)) ? Math.max(0, Math.min(60000, Number(item.latencyMs))) : null,
-    downlinkMbps: Number.isFinite(Number(item.downlinkMbps)) ? Math.max(0, Number(item.downlinkMbps)) : null,
-    uplinkMbps: Number.isFinite(Number(item.uplinkMbps)) ? Math.max(0, Number(item.uplinkMbps)) : null,
-    lastSeen: typeof item.lastSeen === 'string' ? item.lastSeen.slice(0, 64) : new Date().toISOString(),
-    note: typeof item.note === 'string' ? item.note.slice(0, 240) : ''
-  }));
-  const payload = { mode: 'live-gateway', connected: providers.some(provider => provider.status === 'online'), generatedAt: new Date().toISOString(), message: 'بيانات واردة من بوابة فضائية موثّقة.', providers };
-  await env.SATELLITE_STATUS.put('latest', JSON.stringify(payload), { expirationTtl: 86400 });
-  return jsonResponse({ ok: true, ...payload });
-}
-
-/**
- * Handle CORS preflight requests
- */
-function handleCORS() {
-  return new Response(null, {
-    status: 204,
-    headers: corsHeaders()
+// ===== Response Helpers =====
+function json(data, status, origin) {
+  return new Response(JSON.stringify(data, null, 2), {
+    status: status || 200,
+    headers: { ...corsHeaders(origin), ...securityHeaders(), 'Content-Type': 'application/json; charset=utf-8' }
   });
 }
 
-/**
- * Get CORS headers
- */
-function corsHeaders(additionalHeaders = {}) {
-  return {
-    'Access-Control-Allow-Origin': 'https://elazzouz-dotcom.github.io',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-GitHub-Api-Version',
-    'Access-Control-Max-Age': '86400',
-    ...additionalHeaders
-  };
+async function githubJson(url, init, origin) {
+  init = init || {};
+  const response = await fetch(url, { ...init, headers: { Accept: 'application/json', ...(init.headers || {}) } });
+  const text = await response.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = { error: 'github_invalid_response', detail: text.slice(0, 500) }; }
+  const hdrs = { ...corsHeaders(origin), ...securityHeaders(), 'Content-Type': 'application/json; charset=utf-8' };
+  const h = response.headers;
+  ['X-RateLimit-Limit','X-RateLimit-Remaining','X-RateLimit-Reset','X-RateLimit-Used','X-RateLimit-Resource','X-OAuth-Scopes','X-Accepted-OAuth-Scopes'].forEach(k => {
+    const v = h.get(k); if (v) hdrs[k] = v;
+  });
+  const link = h.get('Link'); if (link) hdrs['Link'] = link;
+  return new Response(JSON.stringify(data, null, 2), { status: response.status, headers: hdrs });
 }
 
-/** Role-based access control for GitHub operations. */
-function jsonResponse(payload, status = 200, extra = {}) {
-  return new Response(JSON.stringify(payload), { status, headers: corsHeaders({ 'Content-Type': 'application/json', ...extra }) });
+// ===== Auth Helpers =====
+function sessionCookie(token, maxAge) { return 'gh_session='+encodeURIComponent(token)+'; Max-Age='+maxAge+'; Path=/; HttpOnly; Secure; SameSite=None'; }
+function withSessionCookie(response, token, clear=false) { const headers=new Headers(response.headers); headers.append('Set-Cookie', sessionCookie(clear?'':token, clear?0:60*60*24*30)); return new Response(response.body, {status:response.status, statusText:response.statusText, headers}); }
+function getBearer(request) {
+  const auth = request.headers.get('Authorization');
+  if (auth && /^Bearer\s+\S+$/i.test(auth)) return auth;
+  const cookie = getCookie(request, 'gh_session');
+  return cookie ? 'Bearer '+decodeURIComponent(cookie) : null;
 }
-function isProtectedGitHubRoute(path) {
-  return path.startsWith('/user') || path.startsWith('/repos/') || path === '/repos/create' || path.startsWith('/gists') || path.startsWith('/notifications') || path === '/graphql' || path.startsWith('/proxy/');
+function clientSecret() {
+  try { return typeof D !== 'undefined' ? D : null; } catch { return null; }
 }
-function isWriteRequest(path, method) {
-  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) || path === '/repos/create' || path.includes('/merges');
-}
-async function githubIdentity(request) {
-  const authorization = request.headers.get('Authorization');
-  if (!authorization || !/^Bearer\s+\S+$/i.test(authorization)) return null;
-  const response = await fetch(`${GITHUB_API_BASE}/user`, { headers: { Authorization: authorization, Accept: 'application/vnd.github+json', 'User-Agent': 'Slaks-OAuth-Proxy/5.0.0' } });
-  if (!response.ok) return null;
-  return await response.json();
-}
-async function loadPermissionMap(env) {
-  try { const raw = env.PERMISSIONS?.get ? await env.PERMISSIONS.get('roles') : null; return raw ? JSON.parse(raw) : {}; } catch { return {}; }
-}
-async function roleFor(login, env) {
-  if (String(login).toLowerCase() === String(env.OWNER_GITHUB_LOGIN || DEFAULT_OWNER).toLowerCase()) return 'owner';
-  const roles = await loadPermissionMap(env); return VALID_ROLES.has(roles[login]) ? roles[login] : 'viewer';
-}
-function permissionDenied(message, status = 403) { return jsonResponse({ error: 'permission_denied', message }, status); }
-async function authorizeGitHubRoute(request, path, method, env) {
-  if (!isProtectedGitHubRoute(path)) return null;
-  const user = await githubIdentity(request);
-  if (!user?.login) return jsonResponse({ error: 'authentication_required', message: 'سجّل الدخول إلى GitHub أولًا.' }, 401);
-  const role = await roleFor(user.login, env);
-  if (isWriteRequest(path, method) && ROLE_ORDER[role] < ROLE_ORDER.editor) return permissionDenied('دورك مشاهد ولا يملك صلاحية تعديل المستودعات.');
-  return null;
-}
-async function handlePermissions(request, env) {
-  const user = await githubIdentity(request);
-  if (!user?.login) return jsonResponse({ error: 'authentication_required', message: 'سجّل الدخول إلى GitHub أولًا.' }, 401);
-  const role = await roleFor(user.login, env);
-  if (ROLE_ORDER[role] < ROLE_ORDER.admin) return permissionDenied('إدارة الصلاحيات متاحة للمالك والمدير فقط.');
-  const roles = await loadPermissionMap(env);
-  return jsonResponse({ owner: env.OWNER_GITHUB_LOGIN || DEFAULT_OWNER, currentUser: user.login, currentRole: role, roles });
-}
-async function updatePermission(request, env) {
-  const user = await githubIdentity(request);
-  if (!user?.login) return jsonResponse({ error: 'authentication_required', message: 'سجّل الدخول إلى GitHub أولًا.' }, 401);
-  const actorRole = await roleFor(user.login, env);
-  if (ROLE_ORDER[actorRole] < ROLE_ORDER.admin) return permissionDenied('إدارة الصلاحيات متاحة للمالك والمدير فقط.');
-  const body = await request.json().catch(() => ({}));
-  const login = String(body.login || '').trim(); const role = String(body.role || '').trim();
-  if (!/^[A-Za-z0-9-]{1,39}$/.test(login) || !VALID_ROLES.has(role) || role === 'owner') return jsonResponse({ error: 'invalid_permission', message: 'أدخل اسم GitHub صحيحًا ودورًا صالحًا غير المالك.' }, 400);
-  if (actorRole !== 'owner' && role === 'admin') return permissionDenied('المدير لا يستطيع منح دور مدير آخر.');
-  const roles = await loadPermissionMap(env); roles[login] = role;
-  if (!env.PERMISSIONS?.put) return jsonResponse({ error: 'permissions_store_not_configured', message: 'أضف KV binding باسم PERMISSIONS إلى Worker.' }, 503);
-  await env.PERMISSIONS.put('roles', JSON.stringify(roles));
-  return jsonResponse({ ok: true, login, role, roles });
+function basicAuthHeader() {
+  const secret = clientSecret();
+  return 'Basic ' + btoa(GITHUB_CLIENT_ID + ':' + (secret || ''));
 }
 
-/**
- * Handle Device Code request (Device Flow step 1)
- * POST /device/code
- */
-async function handleDeviceCode(request) {
-  try {
-    const body = await request.json();
-    const scope = body.scope || DEFAULT_SCOPE;
-
-    const response = await fetch(`${GITHUB_AUTH_BASE}/login/device/code`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        client_id: CLIENT_ID,
-        scope: scope
-      })
-    });
-
-    const data = await response.json();
-    
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ 
-      error: 'Failed to initiate device flow',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  }
-}
-
-/**
- * Handle Token request (Device Flow step 2 or OAuth code exchange)
- * POST /token
- */
-async function handleToken(request) {
-  try {
-    const body = await request.json();
-    const clientSecret = env.CLIENT_SECRET || '';
-
-    // Prepare the request body for GitHub
-    const tokenRequest = {
-      client_id: CLIENT_ID,
-      client_secret: clientSecret,
-      ...body
-    };
-
-    const response = await fetch(`${GITHUB_AUTH_BASE}/login/oauth/access_token`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(tokenRequest)
-    });
-
-    const data = await response.json();
-    
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ 
-      error: 'Failed to exchange token',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  }
-}
-
-/**
- * Handle Token Refresh
- * POST /token/refresh
- */
-async function handleTokenRefresh(request) {
-  try {
-    const body = await request.json();
-    const clientSecret = env.CLIENT_SECRET || '';
-
-    const response = await fetch(`${GITHUB_AUTH_BASE}/login/oauth/access_token`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        client_id: CLIENT_ID,
-        client_secret: clientSecret,
-        refresh_token: body.refresh_token,
-        grant_type: 'refresh_token'
-      })
-    });
-
-    const data = await response.json();
-    
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ 
-      error: 'Failed to refresh token',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  }
-}
-
-/**
- * Handle Token Revocation
- * POST /token/revoke
- */
-async function handleTokenRevoke(request) {
-  try {
-    const body = await request.json();
-    const clientSecret = env.CLIENT_SECRET || '';
-
-    const response = await fetch(`${GITHUB_AUTH_BASE}/applications/${CLIENT_ID}/token`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${btoa(`${CLIENT_ID}:${clientSecret}`)}`
-      },
-      body: JSON.stringify({
-        access_token: body.access_token
-      })
-    });
-
-    if (response.status === 204) {
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: corsHeaders({ 'Content-Type': 'application/json' })
-      });
-    }
-
-    const data = await response.json().catch(() => ({}));
-    
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ 
-      error: 'Failed to revoke token',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  }
-}
-
-/**
- * Handle Token Check
- * GET /token/check
- */
-async function handleTokenCheck(request) {
-  try {
-    const authHeader = request.headers.get('Authorization');
-    
-    if (!authHeader) {
-      return new Response(JSON.stringify({ 
-        error: 'No authorization header provided' 
-      }), {
-        status: 401,
-        headers: corsHeaders({ 'Content-Type': 'application/json' })
-      });
-    }
-
-    // Check token by calling GitHub user API
-    const response = await fetch(`${GITHUB_API_BASE}/user`, {
-      headers: {
-        'Authorization': authHeader,
-        'Accept': 'application/vnd.github+json',
-        'User-Agent': 'GitHub-OAuth-Proxy/4.0.0'
-      }
-    });
-
-    if (response.ok) {
-      const userData = await response.json();
-      return new Response(JSON.stringify({ 
-        valid: true,
-        user: userData.login,
-        scopes: response.headers.get('X-OAuth-Scopes')
-      }), {
-        status: 200,
-        headers: corsHeaders({ 'Content-Type': 'application/json' })
-      });
-    }
-
-    return new Response(JSON.stringify({ valid: false }), {
-      status: 401,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ 
-      error: 'Failed to check token',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
-  }
-}
-
-/**
- * Analyze a node using a Cloudflare Workers AI binding named AI.
- * The binding is attached at deploy time; no model key is exposed to the site.
- */
-async function handleAIAnalysis(request) {
-  try {
-    const body = await request.json();
-    const nodeId = Number(body.nodeId || 0);
-    const source = String(body.text || body.html || '').slice(0, 12000);
-    if (!nodeId || !source) return new Response(JSON.stringify({ error: 'nodeId and content are required' }), { status: 400, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
-    if (!env.AI || typeof env.AI.run !== 'function') return new Response(JSON.stringify({ error: 'AI binding is not configured', hint: 'Deploy this Worker with an AI binding named AI.' }), { status: 503, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
-    const prompt = `Analyze this SemVer Hub node and return JSON only. Fields: nodeId, status, title, summary, keywords, technologies, relations, riskFlags, confidence. Do not invent facts. Node ID: ${nodeId}. URL: ${String(body.url || '').slice(0, 500)}. Content: ${source}`;
-    const result = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages: [{ role: 'system', content: 'You are a careful technical data analyst. Return valid JSON only.' }, { role: 'user', content: prompt }] });
-    const raw = typeof result?.response === 'string' ? result.response : JSON.stringify(result);
-    let analysis; try { analysis = JSON.parse(raw.replace(/^```json\s*|\s*```$/g, '').trim()); } catch { analysis = { summary: raw.slice(0, 2000), keywords: [], technologies: [], relations: [], riskFlags: ['model_returned_non_json'], confidence: 0.5 }; }
-    return new Response(JSON.stringify({ nodeId, status: 'analyzed', ...analysis, analyzedAt: new Date().toISOString() }), { status: 200, headers: corsHeaders({ 'Content-Type': 'application/json' }) });
-  } catch (error) { return new Response(JSON.stringify({ error: 'AI analysis failed', message: error.message }), { status: 500, headers: corsHeaders({ 'Content-Type': 'application/json' }) }); }
-}
-
-/**
- * Proxy request to GitHub API
- */
-async function proxyToGitHub(request, path, methodOverride = null, env = {}) {
-  try {
-    const url = new URL(request.url);
-    const method = methodOverride || request.method;
-    
-    // Build GitHub API URL
-    const githubUrl = `${GITHUB_API_BASE}${path}${url.search}`;
-
-    // Prepare headers
-    const headers = {
-      'Accept': request.headers.get('Accept') || 'application/vnd.github+json',
-      'User-Agent': 'GitHub-OAuth-Proxy/4.0.0',
-      'X-GitHub-Api-Version': '2022-11-28'
-    };
-
-    // Forward authorization header
-    const authHeader = request.headers.get('Authorization');
-    if (authHeader) {
-      headers['Authorization'] = authHeader;
-    }
-
-    // Forward content type for POST/PUT/PATCH
-    if (['POST', 'PUT', 'PATCH'].includes(method)) {
-      const contentType = request.headers.get('Content-Type');
-      if (contentType) {
-        headers['Content-Type'] = contentType;
+// ===== Pagination Helper =====
+function buildUrl(baseUrl, searchParams) {
+  const finalUrl = new URL(baseUrl);
+  if (searchParams) {
+    for (const [k, v] of searchParams.entries()) {
+      if (['per_page','page','sort','direction','type','visibility','affiliation','since','before','state','labels','milestone','assignee','creator','environment','sha','ref','path','q','order','in','filter','base','head'].includes(k)) {
+        finalUrl.searchParams.set(k, v);
       }
     }
+  }
+  return finalUrl.toString();
+}
 
-    // Prepare request options
-    const requestOptions = {
-      method: method,
-      headers: headers
-    };
 
-    // Add body for POST/PUT/PATCH
-    if (['POST', 'PUT', 'PATCH'].includes(method) && request.body) {
-      requestOptions.body = await request.text();
+// ===== Slaks External Preview Relay =====
+function previewPublicHost(hostname) {
+  const host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
+  if (!host || host === 'localhost' || host.endsWith('.local') || host.endsWith('.localhost') || host.endsWith('.internal') || host === 'metadata' || host === 'metadata.google.internal') return false;
+  if (host === '::1' || host === '0.0.0.0' || host.startsWith('127.') || host.startsWith('10.') || host.startsWith('192.168.') || host.startsWith('169.254.')) return false;
+  const ip = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (ip) { const a = Number(ip[1]); const b = Number(ip[2]); if (a === 0 || a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254)) return false; }
+  return true;
+}
+function previewCleanHtml(html, baseUrl) {
+  let safe = String(html || '').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '').replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, '').replace(/<embed\b[^>]*>/gi, '');
+  safe = safe.replace(/\s+on[a-z]+\s*=\s*(["'])[^"']*\1/gi, '').replace(/\s+(?:href|src|action)\s*=\s*(["'])\s*javascript:[^"']*\1/gi, '');
+  const base = '<base href="' + String(baseUrl).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) + '">';
+  return /<head[^>]*>/i.test(safe) ? safe.replace(/<head[^>]*>/i, match => match + base) : '<!doctype html><html><head>' + base + '<meta charset="utf-8"></head><body>' + safe + '</body></html>';
+}
+function previewMeta(html, sourceUrl) {
+  const pick = pattern => (String(html || '').match(pattern)?.[1] || '').replace(/\s+/g, ' ').trim();
+  const title = pick(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["']/i) || pick(/<title[^>]*>([\s\S]*?)<\/title>/i) || new URL(sourceUrl).hostname;
+  const description = pick(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"']*)["']/i);
+  const text = String(html || '').replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const links = [...String(html || '').matchAll(/<a\b[^>]+href=["']([^"']+)["']/gi)].slice(0, 100).map(match => match[1]);
+  return { title, description, text, links };
+}
+async function slaksPreview(searchParams, origin) {
+  let target;
+  try { target = new URL(searchParams.get('url') || ''); if (!['http:', 'https:'].includes(target.protocol) || !previewPublicHost(target.hostname)) throw new Error('Only public HTTP/HTTPS URLs are allowed.'); }
+  catch (error) { return json({ error: error.message || 'Invalid public URL.' }, 400, origin); }
+  try {
+    const upstream = await fetch(target.href, { redirect: 'follow', headers: { 'User-Agent': 'Slaks-Cloudflare-Preview/1.0', Accept: 'text/html,application/xhtml+xml' } });
+    const finalUrl = new URL(upstream.url || target.href);
+    if (!previewPublicHost(finalUrl.hostname)) throw new Error('The destination redirected to a private or local host.');
+    const raw = await upstream.text();
+    const metadata = previewMeta(raw, finalUrl.href);
+    return json({ ok: upstream.ok, status: upstream.status, target: target.href, finalUrl: finalUrl.href, contentType: upstream.headers.get('content-type') || '', ...metadata, html: previewCleanHtml(raw.slice(0, 1500000), finalUrl.href), text: metadata.text.slice(0, 1200) }, upstream.ok ? 200 : 502, origin);
+  } catch (error) { return json({ error: 'Unable to fetch the public URL.', message: error.message, target: target.href }, 502, origin); }
+}
+
+// ===== Main Handler =====
+async function handle(request) {
+  const origin = request.headers.get('Origin');
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(origin) });
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) return json({ error: 'origin_not_allowed' }, 403, origin);
+
+  const url = new URL(request.url);
+  const path = url.pathname.replace(/\/+$/, '');
+  const method = request.method;
+  const sp = url.searchParams;
+
+  if (path === '/preview' && method === 'GET') return slaksPreview(sp, origin);
+
+  try {
+    // --- Health Check ---
+    if (path === '/health' && method === 'GET')
+      return json({ status: 'ok', version: PROXY_VERSION, timestamp: new Date().toISOString(), client_id: GITHUB_CLIENT_ID, client_ids: GITHUB_CLIENT_IDS, features: ['device-flow','token','refresh','revoke','check','user','repos','gists','search','actions','notifications','interactions','meta','graphql','proxy','orgs','users','events','feeds','migrations','webhooks','git-data'] }, 200, origin);
+
+    // --- API Info ---
+    if ((path === '' || path === '/') && method === 'GET')
+      return json({
+        name: 'GitHub OAuth Proxy', version: PROXY_VERSION,
+        description: 'Ultimate full-featured GitHub OAuth proxy with complete API coverage',
+        client_id: GITHUB_CLIENT_ID, client_ids: GITHUB_CLIENT_IDS, default_scope: DEFAULT_SCOPE,
+        endpoints: {
+          auth: { 'POST /device/code': 'Initiate Device Flow', 'POST /token': 'Exchange code for token', 'POST /token/refresh': 'Refresh token', 'POST /token/revoke': 'Revoke token', 'GET /token/check': 'Check token validity' },
+          user: { 'GET /user': 'Profile', 'GET /user/emails': 'Emails', 'GET /user/orgs': 'Orgs', 'GET /user/repos': 'Repos', 'GET /user/followers': 'Followers', 'GET /user/following': 'Following', 'GET /user/starred': 'Starred', 'GET /user/subscriptions': 'Subscriptions', 'GET /user/installations': 'Installations', 'GET /user/blocks': 'Blocked users', 'GET /user/gpg_keys': 'GPG keys', 'GET /user/ssh_signing_keys': 'SSH signing keys', 'GET /user/keys': 'SSH keys', 'GET /user/social_accounts': 'Social accounts', 'GET /user/packages': 'Packages', 'GET /user/migrations': 'Migrations' },
+          repos: { 'POST /repos/create': 'Create repo', 'ANY /repos/:owner/:repo/*': 'Full repo API (branches, commits, issues, pulls, releases, contents, languages, contributors, readme, stargazers, forks, tags, topics, traffic, actions, webhooks, git-data)' },
+          gists: { 'GET /gists': 'List gists', 'POST /gists': 'Create gist', 'ANY /gists/:id/*': 'Gist operations (get/update/delete/fork/star/comments)' },
+          search: { 'GET /search/repositories': 'Search repos', 'GET /search/code': 'Search code', 'GET /search/users': 'Search users', 'GET /search/issues': 'Search issues/PRs', 'GET /search/commits': 'Search commits', 'GET /search/labels': 'Search labels', 'GET /search/topics': 'Search topics', 'GET /search/discussions': 'Search discussions' },
+          actions: { 'ANY /repos/:owner/:repo/actions/*': 'Workflows, runs, artifacts, dispatch, rerun, cancel, logs' },
+          notifications: { 'GET /notifications': 'List notifications', 'PUT /notifications': 'Mark all read', 'ANY /notifications/threads/:id/*': 'Thread operations' },
+          interactions: { 'PUT/DELETE /user/starred/:owner/:repo': 'Star/unstar', 'PUT/DELETE /user/following/:username': 'Follow/unfollow' },
+          meta: { 'GET /meta': 'GitHub meta', 'GET /emojis': 'Emojis', 'POST /markdown': 'Render markdown', 'POST /markdown/raw': 'Raw markdown', 'GET /gitignore/templates': 'Gitignore templates', 'GET /licenses': 'Licenses', 'GET /rate-limit': 'Rate limit', 'GET /zen': 'Zen', 'GET /feeds': 'Feeds', 'GET /events': 'Public events' },
+          graphql: { 'POST /graphql': 'Forward GraphQL query' },
+          proxy: { 'ANY /proxy/*': 'Forward any request to GitHub API' },
+          misc: { 'ANY /orgs/:org/*': 'Organization API', 'ANY /users/:username/*': 'Any user API' }
+        }
+      }, 200, origin);
+
+
+    // ========== ADMIN EMAIL OTP ==========
+    if (path === '/otp/session' && method === 'GET') { const state=await otpRead(request,'otp_state'); const admin=await otpRead(request,'admin_session'); const configured=Boolean(binding('GMAIL_CLIENT_ID') && binding('GMAIL_CLIENT_SECRET') && binding('GMAIL_REFRESH_TOKEN') && binding('OTP_SIGNING_SECRET')); return json({ configured, authenticated:Boolean(admin && admin.email===OTP_ADMIN_EMAIL && admin.exp>Date.now()/1000), email:OTP_ADMIN_EMAIL },200,origin); }
+    if (path === '/otp/request' && method === 'POST') { const input=await request.json().catch(()=>({})); if(String(input.email||'').toLowerCase()!==OTP_ADMIN_EMAIL.toLowerCase()) return json({error:'email_not_allowed'},403,origin); if(!binding('GMAIL_CLIENT_ID') || !binding('GMAIL_CLIENT_SECRET') || !binding('GMAIL_REFRESH_TOKEN') || !binding('OTP_SIGNING_SECRET')) return json({error:'gmail_otp_not_configured'},503,origin); const code=String(Math.floor(Math.random()*1000000)).padStart(6,'0'); const state=await otpCookie({email:OTP_ADMIN_EMAIL,code,exp:Math.floor(Date.now()/1000)+OTP_TTL,attempts:0}); try { await gmailSendOtp(code); return new Response(JSON.stringify({ok:true,message:'otp_sent'}),{status:200,headers:{...corsHeaders(origin),...securityHeaders(),'Access-Control-Allow-Credentials':'true','Set-Cookie':otpSet('otp_state',state,OTP_TTL),'Content-Type':'application/json'}}); } catch(e) { return json({error:e.message==='gmail_otp_not_configured'?'gmail_otp_not_configured':'gmail_send_failed'},502,origin); } }
+    if (path === '/otp/verify' && method === 'POST') { const input=await request.json().catch(()=>({})); const state=await otpRead(request,'otp_state'); if(!state || state.exp<Math.floor(Date.now()/1000)) return json({error:'otp_expired'},401,origin); if(state.attempts>=OTP_MAX_ATTEMPTS) return json({error:'otp_locked'},429,origin); if(String(input.code||'')!==String(state.code)) { state.attempts++; const next=await otpCookie(state); return new Response(JSON.stringify({error:'otp_invalid',attempts_left:Math.max(0,OTP_MAX_ATTEMPTS-state.attempts)}),{status:401,headers:{...corsHeaders(origin),...securityHeaders(),'Access-Control-Allow-Credentials':'true','Set-Cookie':otpSet('otp_state',next,Math.max(1,state.exp-Math.floor(Date.now()/1000))),'Content-Type':'application/json'}}); } const admin=await otpCookie({email:OTP_ADMIN_EMAIL,exp:Math.floor(Date.now()/1000)+86400}); return new Response(JSON.stringify({ok:true,authenticated:true}),{status:200,headers:{...corsHeaders(origin),...securityHeaders(),'Access-Control-Allow-Credentials':'true','Set-Cookie':[otpSet('admin_session',admin,86400),otpSet('otp_state','',0)].join(', '),'Content-Type':'application/json'}}); }
+    if (path === '/otp/logout' && method === 'POST') return new Response(JSON.stringify({ok:true}),{status:200,headers:{...corsHeaders(origin),...securityHeaders(),'Access-Control-Allow-Credentials':'true','Set-Cookie':[otpSet('admin_session','',0),otpSet('otp_state','',0)].join(', '),'Content-Type':'application/json'}});
+
+    // ========== AUTH ENDPOINTS ==========
+    if (path === '/device/code' && method === 'POST') {
+      const input = await request.json().catch(() => ({}));
+      const clientId = input.client_id || input.clientId;
+      if (!GITHUB_CLIENT_IDS.includes(clientId)) return json({ error: 'invalid_client_id' }, 400, origin);
+      return githubJson('https://github.com/login/device/code', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: clientId, scope: input.scope || DEFAULT_SCOPE })
+      }, origin);
     }
 
-    // Make request to GitHub
-    const response = await fetch(githubUrl, requestOptions);
+    if (path === '/token' && method === 'POST') {
+      const input = await request.json().catch(() => ({}));
+      const clientId = input.client_id || input.clientId;
+      const deviceCode = input.device_code || input.deviceCode || input.code;
+      if (![GITHUB_CLIENT_ID, LEGACY_CLIENT_ID].includes(clientId) || !deviceCode)
+        return json({ error: 'invalid_request', message: 'client_id and device_code are required' }, 400, origin);
+      const body = { client_id: clientId, device_code: deviceCode, grant_type: input.grant_type || 'urn:ietf:params:oauth:grant-type:device_code' };
+      const secret = clientSecret(); if (secret) body.client_secret = secret;
+      const response = await githubJson('https://github.com/login/oauth/access_token', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      }, origin);
+      const data = await response.clone().json().catch(() => ({}));
+      return data.access_token ? withSessionCookie(response, data.access_token) : response;
+    }
+    if (path === '/token/refresh' && method === 'POST') {
+      const input = await request.json().catch(() => ({}));
+      if (input.client_id !== GITHUB_CLIENT_ID || !input.refresh_token)
+        return json({ error: 'invalid_request', message: 'client_id and refresh_token are required' }, 400, origin);
+      const body = { client_id: GITHUB_CLIENT_ID, refresh_token: input.refresh_token, grant_type: 'refresh_token' };
+      const secret = clientSecret(); if (secret) body.client_secret = secret;
+      return githubJson('https://github.com/login/oauth/access_token', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      }, origin);
+    }
 
-    // Get response body
-    const responseBody = await response.text();
+    if (path === '/token/revoke' && method === 'POST') {
+      const input = await request.json().catch(() => ({}));
+      const revokeToken = input.token || input.access_token || (getCookie(request, 'gh_session') || '');
+      if (!revokeToken) return withSessionCookie(json({ ok: true, logged_out: true }, 200, origin), '', true);
+      const response = await githubJson(GITHUB_API + '/applications/' + GITHUB_CLIENT_ID + '/token', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: basicAuthHeader(), 'User-Agent': USER_AGENT },
+        body: JSON.stringify({ access_token: revokeToken })
+      }, origin);
+      return withSessionCookie(response, '', true);
+    }
 
-    // Return proxied response with CORS headers
-    return new Response(responseBody, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: corsHeaders({
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
-        'X-RateLimit-Limit': response.headers.get('X-RateLimit-Limit') || '',
-        'X-RateLimit-Remaining': response.headers.get('X-RateLimit-Remaining') || '',
-        'X-RateLimit-Reset': response.headers.get('X-RateLimit-Reset') || ''
-      })
-    });
+    if (path === '/token/check' && method === 'GET') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      return githubJson(GITHUB_API + '/applications/' + GITHUB_CLIENT_ID + '/token', {
+        headers: { Authorization: basicAuthHeader(), 'User-Agent': USER_AGENT }
+      }, origin);
+    }
+
+    // ========== GRAPHQL PROXY ==========
+    if (path === '/graphql' && method === 'POST') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const body = await request.text();
+      return githubJson(GITHUB_API + '/graphql', {
+        method: 'POST', headers: { Authorization: bearer, 'Content-Type': 'application/json', 'User-Agent': USER_AGENT }, body
+      }, origin);
+    }
+
+    // ========== GENERIC PROXY ==========
+    if (path.startsWith('/proxy/') || path === '/proxy') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const apiPath = path.replace(/^\/proxy/, '');
+      const targetUrl = buildUrl(GITHUB_API + apiPath, sp);
+      const headers = { Authorization: bearer, 'User-Agent': USER_AGENT };
+      if (method !== 'GET' && method !== 'HEAD') headers['Content-Type'] = 'application/json';
+      const init = { method, headers };
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') init.body = await request.text();
+      return githubJson(targetUrl, init, origin);
+    }
+
+    // ========== AUTHENTICATED USER ENDPOINTS ==========
+    const authedRoutes = {
+      '/user': GITHUB_API + '/user',
+      '/user/emails': GITHUB_API + '/user/emails',
+      '/user/orgs': GITHUB_API + '/user/orgs',
+      '/user/repos': GITHUB_API + '/user/repos',
+      '/user/followers': GITHUB_API + '/user/followers',
+      '/user/following': GITHUB_API + '/user/following',
+      '/user/starred': GITHUB_API + '/user/starred',
+      '/user/subscriptions': GITHUB_API + '/user/subscriptions',
+      '/user/installations': GITHUB_API + '/user/installations',
+      '/user/blocks': GITHUB_API + '/user/blocks',
+      '/user/gpg_keys': GITHUB_API + '/user/gpg_keys',
+      '/user/ssh_signing_keys': GITHUB_API + '/user/ssh_signing_keys',
+      '/user/keys': GITHUB_API + '/user/keys',
+      '/user/social_accounts': GITHUB_API + '/user/social_accounts',
+      '/user/packages': GITHUB_API + '/user/packages',
+      '/user/migrations': GITHUB_API + '/user/migrations',
+      '/rate-limit': GITHUB_API + '/rate_limit',
+      '/notifications': GITHUB_API + '/notifications',
+      '/gists': GITHUB_API + '/gists',
+      '/gists/public': GITHUB_API + '/gists/public',
+      '/gists/starred': GITHUB_API + '/gists/starred'
+    };
+
+    if (authedRoutes[path] && method === 'GET') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      return githubJson(buildUrl(authedRoutes[path], sp), { headers: { Authorization: bearer, 'User-Agent': USER_AGENT } }, origin);
+    }
+
+    if (path === '/notifications' && method === 'PUT') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      return githubJson(GITHUB_API + '/notifications', { method: 'PUT', headers: { Authorization: bearer, 'User-Agent': USER_AGENT } }, origin);
+    }
+
+    if (path === '/gists' && method === 'POST') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const body = await request.text();
+      return githubJson(GITHUB_API + '/gists', { method: 'POST', headers: { Authorization: bearer, 'Content-Type': 'application/json', 'User-Agent': USER_AGENT }, body }, origin);
+    }
+
+    // ========== SEARCH ==========
+    const searchRoutes = {
+      '/search/repositories': GITHUB_API + '/search/repositories',
+      '/search/code': GITHUB_API + '/search/code',
+      '/search/users': GITHUB_API + '/search/users',
+      '/search/issues': GITHUB_API + '/search/issues',
+      '/search/commits': GITHUB_API + '/search/commits',
+      '/search/labels': GITHUB_API + '/search/labels',
+      '/search/topics': GITHUB_API + '/search/topics',
+      '/search/discussions': GITHUB_API + '/search/discussions'
+    };
+    if (searchRoutes[path] && method === 'GET') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      if (!sp.get('q')) return json({ error: 'missing_query', message: 'q parameter is required' }, 400, origin);
+      return githubJson(buildUrl(searchRoutes[path], sp), { headers: { Authorization: bearer, 'User-Agent': USER_AGENT } }, origin);
+    }
+
+    // ========== META ENDPOINTS ==========
+    const metaRoutes = { '/meta': GITHUB_API + '/meta', '/emojis': GITHUB_API + '/emojis', '/zen': GITHUB_API + '/zen', '/gitignore/templates': GITHUB_API + '/gitignore/templates', '/licenses': GITHUB_API + '/licenses', '/feeds': GITHUB_API + '/feeds', '/events': GITHUB_API + '/events' };
+    if (metaRoutes[path] && method === 'GET') {
+      const bearer = getBearer(request);
+      const headers = { 'User-Agent': USER_AGENT };
+      if (bearer) headers.Authorization = bearer;
+      return githubJson(metaRoutes[path], { headers }, origin);
+    }
+
+    if (path === '/markdown' && method === 'POST') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const body = await request.text();
+      return githubJson(GITHUB_API + '/markdown', { method: 'POST', headers: { Authorization: bearer, 'Content-Type': 'application/json', 'User-Agent': USER_AGENT }, body }, origin);
+    }
+    if (path === '/markdown/raw' && method === 'POST') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const body = await request.text();
+      return githubJson(GITHUB_API + '/markdown/raw', { method: 'POST', headers: { Authorization: bearer, 'Content-Type': 'text/plain', 'User-Agent': USER_AGENT }, body }, origin);
+    }
+
+    const gitignoreMatch = path.match(/^\/gitignore\/templates\/([\w.-]+)$/);
+    if (gitignoreMatch && method === 'GET') {
+      const bearer = getBearer(request);
+      const headers = { 'User-Agent': USER_AGENT };
+      if (bearer) headers.Authorization = bearer;
+      return githubJson(GITHUB_API + '/gitignore/templates/' + gitignoreMatch[1], { headers }, origin);
+    }
+
+    const licenseMatch = path.match(/^\/licenses\/([\w.-]+)$/);
+    if (licenseMatch && method === 'GET') {
+      const bearer = getBearer(request);
+      const headers = { 'User-Agent': USER_AGENT };
+      if (bearer) headers.Authorization = bearer;
+      return githubJson(GITHUB_API + '/licenses/' + licenseMatch[1], { headers }, origin);
+    }
+
+    // ========== REPOSITORY CREATION ==========
+    if (path === '/repos/create' && method === 'POST') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const body = await request.text();
+      const input = JSON.parse(body);
+      const endpoint = input.org ? GITHUB_API + '/orgs/' + input.org + '/repos' : GITHUB_API + '/user/repos';
+      return githubJson(endpoint, { method: 'POST', headers: { Authorization: bearer, 'Content-Type': 'application/json', 'User-Agent': USER_AGENT }, body }, origin);
+    }
+
+    // ========== DYNAMIC ROUTES ==========
+
+    // /repos/:owner/:repo/*
+    const repoMatch = path.match(/^\/repos\/([^/]+)\/([^/]+)(.*)$/);
+    if (repoMatch) {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const target = buildUrl(GITHUB_API + '/repos/' + repoMatch[1] + '/' + repoMatch[2] + (repoMatch[3] || ''), sp);
+      const headers = { Authorization: bearer, 'User-Agent': USER_AGENT };
+      const init = { method, headers };
+      if (method !== 'GET' && method !== 'HEAD') { headers['Content-Type'] = 'application/json'; init.body = await request.text(); }
+      return githubJson(target, init, origin);
+    }
+
+    // /user/starred/:owner/:repo
+    const starMatch = path.match(/^\/user\/starred\/([^/]+)\/([^/]+)$/);
+    if (starMatch) {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const target = GITHUB_API + '/user/starred/' + starMatch[1] + '/' + starMatch[2];
+      if (method === 'PUT') return githubJson(target, { method: 'PUT', headers: { Authorization: bearer, 'User-Agent': USER_AGENT, 'Content-Length': '0' } }, origin);
+      if (method === 'DELETE') return githubJson(target, { method: 'DELETE', headers: { Authorization: bearer, 'User-Agent': USER_AGENT } }, origin);
+      if (method === 'GET') return githubJson(target, { headers: { Authorization: bearer, 'User-Agent': USER_AGENT } }, origin);
+    }
+
+    // /user/following/:username
+    const followMatch = path.match(/^\/user\/following\/([^/]+)$/);
+    if (followMatch) {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const target = GITHUB_API + '/user/following/' + followMatch[1];
+      if (method === 'PUT') return githubJson(target, { method: 'PUT', headers: { Authorization: bearer, 'User-Agent': USER_AGENT, 'Content-Length': '0' } }, origin);
+      if (method === 'DELETE') return githubJson(target, { method: 'DELETE', headers: { Authorization: bearer, 'User-Agent': USER_AGENT } }, origin);
+      if (method === 'GET') return githubJson(target, { headers: { Authorization: bearer, 'User-Agent': USER_AGENT } }, origin);
+    }
+
+    // /notifications/threads/:id/*
+    const threadMatch = path.match(/^\/notifications\/threads\/([\w-]+)(.*)$/);
+    if (threadMatch) {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const target = GITHUB_API + '/notifications/threads/' + threadMatch[1] + (threadMatch[2] || '');
+      const headers = { Authorization: bearer, 'User-Agent': USER_AGENT };
+      const init = { method, headers };
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'DELETE') { headers['Content-Type'] = 'application/json'; init.body = await request.text(); }
+      return githubJson(target, init, origin);
+    }
+
+    // /gists/:id/*
+    const gistMatch = path.match(/^\/gists\/([a-f0-9]+)(.*)$/);
+    if (gistMatch && !['public','starred'].includes(gistMatch[1])) {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const target = GITHUB_API + '/gists/' + gistMatch[1] + (gistMatch[2] || '');
+      const headers = { Authorization: bearer, 'User-Agent': USER_AGENT };
+      const init = { method, headers };
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'DELETE') { headers['Content-Type'] = 'application/json'; init.body = await request.text(); }
+      return githubJson(target, init, origin);
+    }
+
+    // /orgs/:org/*
+    const orgMatch = path.match(/^\/orgs\/([^/]+)(.*)$/);
+    if (orgMatch) {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const target = buildUrl(GITHUB_API + '/orgs/' + orgMatch[1] + (orgMatch[2] || ''), sp);
+      const headers = { Authorization: bearer, 'User-Agent': USER_AGENT };
+      const init = { method, headers };
+      if (method !== 'GET' && method !== 'HEAD') { headers['Content-Type'] = 'application/json'; init.body = await request.text(); }
+      return githubJson(target, init, origin);
+    }
+
+    // /users/:username/*
+    const userMatch = path.match(/^\/users\/([^/]+)(.*)$/);
+    if (userMatch) {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token' }, 401, origin);
+      const target = buildUrl(GITHUB_API + '/users/' + userMatch[1] + (userMatch[2] || ''), sp);
+      return githubJson(target, { headers: { Authorization: bearer, 'User-Agent': USER_AGENT } }, origin);
+    }
+
+    // ========== ONECOMPILER DIRECT PUBLISH ==========
+    if (path === '/publish' && method === 'POST') {
+      const bearer = getBearer(request);
+      if (!bearer) return json({ error: 'missing_token', message: 'Sign in on Hosting Studio first.' }, 401, origin);
+      const input = await request.json().catch(() => ({}));
+      const owner = String(input.owner || '').trim();
+      const repo = String(input.repo || '').trim();
+      const branch = String(input.branch || 'main').trim();
+      const message = String(input.message || 'Publish from OneCompiler').trim();
+      const rawFiles = Array.isArray(input.files) ? input.files : Object.entries(input.files || {}).map(([path, content]) => ({path, content}));
+      if (!/^[A-Za-z0-9_.-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(repo) || !/^[A-Za-z0-9_.\/-]+$/.test(branch) || !rawFiles.length) return json({ error: 'invalid_publish_request', message: 'owner, repo, branch and files are required' }, 400, origin);
+      const results=[];
+      for (const file of rawFiles) {
+        const filePath=String(file.path || '').replace(/^\/+/, '');
+        if (!filePath || filePath.includes('..')) return json({error:'invalid_file_path',path:filePath},400,origin);
+        const target=GITHUB_API+'/repos/'+encodeURIComponent(owner)+'/'+encodeURIComponent(repo)+'/contents/'+filePath.split('/').map(encodeURIComponent).join('/');
+        let sha;
+        const existing=await fetch(target+'?ref='+encodeURIComponent(branch),{headers:{Accept:'application/vnd.github+json',Authorization:bearer,'User-Agent':USER_AGENT}});
+        if(existing.ok){const old=await existing.json(); sha=old.sha;}
+        const content=String(file.content ?? '');
+        const bytes=new TextEncoder().encode(content); let binary=''; for(const b of bytes) binary+=String.fromCharCode(b);
+        const payload={message,content:btoa(binary),branch}; if(sha) payload.sha=sha;
+        const saved=await githubJson(target,{method:'PUT',headers:{Authorization:bearer,'User-Agent':USER_AGENT,'Content-Type':'application/json'},body:JSON.stringify(payload)},origin);
+        if(!saved.ok) return saved;
+        results.push({path:filePath,sha:(await saved.clone().json().catch(()=>({}))).content?.sha || null});
+      }
+      return json({ok:true,published:true,owner,repo,branch,files:results},200,origin);
+    }
+
+    // --- 404 ---
+    return json({ error: 'not_found', message: 'Route ' + method + ' ' + path + ' not found', hint: 'GET / for full API listing, or use /proxy/* for any GitHub API endpoint', version: PROXY_VERSION }, 404, origin);
+
   } catch (error) {
-    return new Response(JSON.stringify({ 
-      error: 'Failed to proxy request to GitHub',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: corsHeaders({ 'Content-Type': 'application/json' })
-    });
+    return json({ error: 'proxy_error', message: error.message, version: PROXY_VERSION }, 500, origin);
   }
 }
+
+addEventListener('fetch', event => event.respondWith(handle(event.request)));
