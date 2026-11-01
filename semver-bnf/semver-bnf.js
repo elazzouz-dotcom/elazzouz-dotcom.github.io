@@ -155,6 +155,8 @@ function refreshNode(id) {
   const data = getHubData(id);
   const configured = isConfigured(data);
   button.dataset.active = String(configured);
+  button.dataset.linkUrl = data?.url || '';
+  button.dataset.linkKind = data?.kind || (data?.html ? 'html' : '');
   button.setAttribute('aria-pressed', String(configured));
   const badge = button.querySelector('.node-badge');
   if (!configured) {
@@ -1065,7 +1067,8 @@ function openHubNode(id, button) {
   activeHub = { id, node: button };
   highlightNodePath(id);
   $('#hub-node-number').textContent = `#${String(id).padStart(3, '0')}`;
-  const data = getHubData(id);
+  const storedData = getHubData(id);
+  const data = storedData || (button?.dataset.linkUrl ? { url: button.dataset.linkUrl, kind: button.dataset.linkKind || '' } : null);
   hubUrl.value = data?.url || '';
   hubHtml.value = data?.html || '';
   hubSearchQuery.value = data?.searchQuery || '';
