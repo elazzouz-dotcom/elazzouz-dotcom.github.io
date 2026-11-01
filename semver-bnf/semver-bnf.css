@@ -124,7 +124,8 @@ body.semver-page a { color: inherit; }
 .node-viewport { height: min(72vh, 780px); min-height: 430px; overflow: auto; border-radius: 14px; background-image: radial-gradient(rgba(89, 224, 163, .11) 1px, transparent 1px); background-size: 22px 22px; overscroll-behavior: contain; scrollbar-color: #295445 #0a1418; }
 .network-stage-wrap { position: relative; }
 .network-stage { position: absolute; inset: 0 auto auto 0; transform-origin: top left; direction: ltr; }
-#node-lines, #node-network { position: absolute; inset: 0 auto auto 0; }
+#network-canvas { position: absolute; inset: 0 auto auto 0; z-index: 3; display: block; cursor: crosshair; touch-action: none; }
+#node-lines, #node-network { position: absolute; inset: 0 auto auto 0; visibility: hidden; pointer-events: none; }
 #node-lines { overflow: visible; pointer-events: none; }
 .network-connection { fill: none; stroke: var(--edge-hierarchy); stroke-dasharray: var(--edge-hierarchy-dash); stroke-width: 2.5; pointer-events: stroke; cursor: pointer; transition: stroke .16s ease, stroke-width .16s ease, filter .16s ease; }
 .network-connection.edge-content { stroke: var(--edge-content); stroke-dasharray: var(--edge-content-dash); }

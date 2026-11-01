@@ -29,6 +29,9 @@ const stageWrap = $('#network-stage-wrap');
 const stage = $('#network-stage');
 const nodeNetwork = $('#node-network');
 const lines = $('#node-lines');
+const networkCanvas = $('#network-canvas');
+const canvasContext = networkCanvas.getContext('2d');
+let canvasPointer = null;
 const nodeButtons = new Map();
 const nodeTypeCache = new Map();
 let filterFrame = 0;
@@ -346,6 +349,70 @@ function focusEdge(path, parentId, childId, persist = false) {
   nodeButtons.get(childId)?.classList.add('edge-node-focused');
   if (persist) setNodeStatus(`العلاقة المحددة: ${nodeLabel(parentId)} ← ${nodeLabel(childId)}.`);
 }
+function canvasPointFromEvent(event) {
+  const rect = networkCanvas.getBoundingClientRect();
+  return { x: (event.clientX - rect.left) / zoom, y: (event.clientY - rect.top) / zoom };
+}
+function canvasNodeAt(point) {
+  let hit = null;
+  for (let id = NODE_TOTAL; id >= 1; id -= 1) {
+    const button = nodeButtons.get(id); const position = nodePositions.get(id);
+    if (!button || button.hidden || !position) continue;
+    const dx = point.x - position.x; const dy = point.y - position.y;
+    if (dx * dx + dy * dy <= (NODE_SIZE / 2 + 5) ** 2) { hit = id; break; }
+  }
+  return hit;
+}
+function resizeNetworkCanvas() {
+  const ratio = window.devicePixelRatio || 1;
+  networkCanvas.width = Math.max(1, Math.ceil(mapWidth * ratio));
+  networkCanvas.height = Math.max(1, Math.ceil(mapHeight * ratio));
+  networkCanvas.style.width = `${mapWidth}px`;
+  networkCanvas.style.height = `${mapHeight}px`;
+  canvasContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+}
+function renderCanvasNetwork() {
+  if (!networkCanvas || !canvasContext) return;
+  resizeNetworkCanvas();
+  const root = getComputedStyle(document.documentElement);
+  const colors = { hierarchy: root.getPropertyValue('--edge-hierarchy').trim() || '#59e0a3', content: root.getPropertyValue('--edge-content').trim() || '#55b8e8', software: root.getPropertyValue('--edge-software').trim() || '#f4ce72' };
+  canvasContext.clearRect(0, 0, mapWidth, mapHeight);
+  canvasContext.lineWidth = 2.5;
+  for (let id = 2; id <= NODE_TOTAL; id += 1) {
+    const parentId = getNodeParent(id); const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
+    const parentButton = nodeButtons.get(parentId); const childButton = nodeButtons.get(id);
+    if (!parent || !child || parentButton?.hidden || childButton?.hidden) continue;
+    const type = relationType(parentId, id); canvasContext.strokeStyle = colors[type === 'software' ? 'software' : type === 'content' ? 'content' : 'hierarchy'];
+    const style = readJson(RELATION_STYLE_KEY, {})[type === 'software' ? 'software' : type] || {};
+    canvasContext.setLineDash(style.style === 'dashed' ? [10, 7] : style.style === 'dotted' ? [2, 7] : []);
+    canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.quadraticCurveTo((parent.x + child.x) / 2, (parent.y + child.y) / 2, child.x, child.y); canvasContext.stroke();
+  }
+  canvasContext.setLineDash([]);
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const button = nodeButtons.get(id); const point = nodePositions.get(id); if (!button || button.hidden || !point) continue;
+    const active = button.dataset.active === 'true'; const highlighted = button.classList.contains('is-highlighted') || button.classList.contains('is-path');
+    canvasContext.beginPath(); canvasContext.arc(point.x, point.y, NODE_SIZE / 2, 0, Math.PI * 2);
+    canvasContext.fillStyle = active ? '#17140b' : '#081411'; canvasContext.fill(); canvasContext.lineWidth = highlighted ? 4 : 2; canvasContext.strokeStyle = active ? '#f4ce72' : highlighted ? '#f4ce72' : '#59e0a3'; canvasContext.stroke();
+    canvasContext.fillStyle = '#59e0a3'; canvasContext.font = '900 16px system-ui,sans-serif'; canvasContext.textAlign = 'center'; canvasContext.textBaseline = 'middle'; canvasContext.fillText('+', point.x, point.y - 4);
+    canvasContext.fillStyle = '#e5fff3'; canvasContext.font = '900 7px system-ui,sans-serif'; canvasContext.fillText(nodeLabel(id), point.x, point.y + 10);
+  }
+}
+function setupCanvasInteraction() {
+  networkCanvas.addEventListener('pointerdown', (event) => {
+    const point = canvasPointFromEvent(event); const id = canvasNodeAt(point); if (!id) return;
+    canvasPointer = { id, startX: point.x, startY: point.y, moved: false }; networkCanvas.setPointerCapture?.(event.pointerId); event.preventDefault();
+  });
+  networkCanvas.addEventListener('pointermove', (event) => {
+    if (!canvasPointer) return; const point = canvasPointFromEvent(event); const position = nodePositions.get(canvasPointer.id); if (!position) return;
+    const dx = point.x - canvasPointer.startX; const dy = point.y - canvasPointer.startY;
+    if (Math.abs(dx) + Math.abs(dy) > 4) canvasPointer.moved = true;
+    if (!canvasPointer.moved) return;
+    position.x = Math.max(NODE_SIZE / 2, position.x + dx); position.y = Math.max(NODE_SIZE / 2, position.y + dy); canvasPointer.startX = point.x; canvasPointer.startY = point.y;
+    const button = nodeButtons.get(canvasPointer.id); button.style.left = `${position.x - NODE_SIZE / 2}px`; button.style.top = `${position.y - NODE_SIZE / 2}px`; fitMapToPositions(); drawEdges(); renderCanvasNetwork();
+  });
+  const end = (event) => { if (!canvasPointer) return; const id = canvasPointer.id; const moved = canvasPointer.moved; canvasPointer = null; if (!moved) openHubNode(id, nodeButtons.get(id)); else saveNodePositions(); networkCanvas.releasePointerCapture?.(event.pointerId); };
+  networkCanvas.addEventListener('pointerup', end); networkCanvas.addEventListener('pointercancel', end);
+}
 function drawEdges() {
   const svgNamespace = 'http://www.w3.org/2000/svg';
   const fragment = document.createDocumentFragment();
@@ -382,6 +449,7 @@ function drawEdges() {
   lines.setAttribute('height', String(mapHeight));
   lines.style.width = `${mapWidth}px`;
   lines.style.height = `${mapHeight}px`;
+  renderCanvasNetwork();
 }
 
 function applyZoom() {
@@ -391,6 +459,7 @@ function applyZoom() {
   stageWrap.style.width = `${mapWidth * zoom}px`;
   stageWrap.style.height = `${mapHeight * zoom}px`;
   $('#zoom-level').textContent = `${Math.round(zoom * 100)}%`;
+  renderCanvasNetwork();
 }
 
 function centerMapViewport(behavior = 'auto') {
@@ -488,6 +557,7 @@ function applyNodeFilters() {
     label.hidden = !anyVisible;
   });
   $('#node-status').textContent = `يعرض ${visible} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
+  renderCanvasNetwork();
   persistUiSettings();
 }
 
@@ -1164,6 +1234,7 @@ function initializeNetwork() {
   restoreUiSettings();
   setupRelationCustomization();
   createNodeElements();
+  setupCanvasInteraction();
   setupNodeChatRoom();
   layoutNodes();
   centerMapViewport();
