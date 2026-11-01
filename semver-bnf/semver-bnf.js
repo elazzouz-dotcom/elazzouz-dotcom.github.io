@@ -6,6 +6,8 @@ const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
 const VIEW_STATE_VERSION = 4;
 const POSITIONS_KEY = 'semver-bnf-node-positions-radial-10cm-v2';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
+const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
+const REPORT_CACHE_TTL = 10 * 60 * 1000;
 const BUILTIN_NODES = Object.freeze({
   600: {
     url: 'https://elazzouz-dotcom.github.io/satellite/',
@@ -928,6 +930,21 @@ function renderReport(results) {
   output.appendChild(cards);
 }
 
+function reportConcurrency() {
+  const cores = Number(navigator.hardwareConcurrency) || 4;
+  return Math.min(8, Math.max(2, Math.floor(cores / 2)));
+}
+function reportSignature(item) {
+  return `${item.url || ''}|${item.html || ''}|${item.savedAt || ''}`;
+}
+function readReportCache() {
+  const cache = readJson(REPORT_CACHE_KEY, {});
+  return cache && typeof cache === 'object' ? cache : {};
+}
+function writeReportCache(cache) {
+  const entries = Object.entries(cache).sort((a, b) => Number(b[1]?.cachedAt || 0) - Number(a[1]?.cachedAt || 0)).slice(0, 80);
+  writeJson(REPORT_CACHE_KEY, Object.fromEntries(entries));
+}
 async function collectReport() {
   const status = $('#report-status');
   const button = $('#collect-report');
@@ -941,25 +958,41 @@ async function collectReport() {
   }
   button.disabled = true;
   exportButton.disabled = true;
-  status.textContent = `جارٍ إعداد ملخص محلي لـ ${active.length} عقدة…`;
-  const results = await mapConcurrent(active, 4, async (item) => {
-    try { return await fetchNodePayload(item.id) || { id: item.id, error: 'لا توجد بيانات.' }; }
-    catch (error) { return { id: item.id, url: item.url || '', error: error?.message || 'تعذر إعداد الملخص المحلي.', source: 'فحص محلي' }; }
+  const concurrency = reportConcurrency();
+  const cache = readReportCache();
+  let cacheHits = 0;
+  status.textContent = `جارٍ إعداد ملخص محلي لـ ${active.length} عقدة عبر ${concurrency} مسارات…`;
+  const results = await mapConcurrent(active, concurrency, async (item) => {
+    const signature = reportSignature(item);
+    const cached = cache[item.id];
+    if (cached && cached.signature === signature && Date.now() - Number(cached.cachedAt || 0) < REPORT_CACHE_TTL) {
+      cacheHits += 1;
+      return { ...cached.payload, cached: true };
+    }
+    try {
+      const payload = await fetchNodePayload(item.id) || { id: item.id, error: 'لا توجد بيانات.' };
+      cache[item.id] = { signature, cachedAt: Date.now(), payload };
+      return payload;
+    } catch (error) {
+      return { id: item.id, url: item.url || '', error: error?.message || 'تعذر إعداد الملخص المحلي.', source: 'فحص محلي' };
+    }
   }, (completed, total) => {
-    status.textContent = `إعداد الملخص المحلي: ${completed} من ${total} عقدة…`;
+    status.textContent = `إعداد الملخص المحلي: ${completed} من ${total} عقدة · دفعات متزامنة: ${concurrency}…`;
   });
+  writeReportCache(cache);
   latestReport = {
     generatedAt: new Date().toISOString(),
     totalNodes: NODE_TOTAL,
     activeNodes: results.length,
-    maxConcurrency: 4,
+    cacheHits,
+    maxConcurrency: concurrency,
     results: results.map((item) => {
       const { html, ...summary } = item || {};
       return summary;
     })
   };
   renderReport(latestReport.results);
-  status.textContent = `اكتمل التقرير · ${new Date().toLocaleString('ar')}`;
+  status.textContent = `اكتمل التقرير · ${cacheHits} من الذاكرة المؤقتة · تزامن ${concurrency} · ${new Date().toLocaleString('ar')}`;
   exportButton.disabled = !latestReport.results.length;
   button.disabled = false;
 }
