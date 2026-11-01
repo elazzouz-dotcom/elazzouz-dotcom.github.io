@@ -1080,6 +1080,29 @@ function scheduleNodeFilters() {
   if (filterFrame) cancelAnimationFrame(filterFrame);
   filterFrame = requestAnimationFrame(() => { filterFrame = 0; applyNodeFilters(); });
 }
+function jumpToNodeFromSearch() {
+  const raw = $('#node-search').value.trim();
+  const match = raw.match(/^N[-\s#]*(\d{1,4})$/i) || raw.match(/^(\d{1,4})$/);
+  const id = Number(match?.[1]);
+  if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL) {
+    setNodeStatus(`اكتب رقم عقدة صحيحًا بين N-001 وN-${NODE_TOTAL}.`, false);
+    return;
+  }
+  $('#node-search').value = '';
+  $('#node-search-clear').hidden = true;
+  $('#node-filter').value = 'all';
+  $('#software-filter').value = 'all';
+  $('#level-filter').value = 'all';
+  applyNodeFilters();
+  const point = nodePositions.get(id);
+  const button = nodeButtons.get(id);
+  if (!point || !button) return;
+  nodeViewport.scrollTo({ left: Math.max(0, point.x * zoom - nodeViewport.clientWidth / 2), top: Math.max(0, point.y * zoom - nodeViewport.clientHeight / 2), behavior: 'smooth' });
+  button.classList.add('is-highlighted');
+  button.focus({ preventScroll: true });
+  window.setTimeout(() => button.classList.remove('is-highlighted'), 1800);
+  setNodeStatus(`تم تحديد العقدة ${nodeLabel(id)} ومركزها على الشبكة.`);
+}
 function showAllNodes() {
   $('#node-search').value = '';
   $('#node-search-clear').hidden = true;
@@ -1103,6 +1126,8 @@ function initializeNetwork() {
     $('#node-search-clear').hidden = !$('#node-search').value;
     scheduleNodeFilters();
   });
+  $('#node-search-jump').addEventListener('click', jumpToNodeFromSearch);
+  $('#node-search').addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); jumpToNodeFromSearch(); } });
   $('#node-search-clear').addEventListener('click', () => {
     $('#node-search').value = '';
     $('#node-search-clear').hidden = true;

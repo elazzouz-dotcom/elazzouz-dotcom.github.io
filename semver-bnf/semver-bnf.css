@@ -108,6 +108,8 @@ body.semver-page a { color: inherit; }
 .search-control .semver-input { padding-inline: 2rem 2.25rem; transition: border-color .18s ease, box-shadow .18s ease; }
 .search-control .semver-input:focus { border-color: var(--semver-green); box-shadow: 0 0 0 3px rgba(89, 224, 163, .12); }
 .search-icon { position: absolute; inset-inline-start: .7rem; z-index: 1; color: var(--semver-green); font-size: 1.2rem; pointer-events: none; }
+.search-jump { width: 28px; border: 0; border-inline-start: 1px solid var(--semver-line); color: var(--semver-green); background: transparent; font-size: 1rem; font-weight: 900; cursor: pointer; }
+.search-jump:hover, .search-jump:focus-visible { color: var(--semver-gold); background: rgba(89,224,163,.08); outline: none; }
 .search-clear { position: absolute; inset-inline-end: .45rem; z-index: 1; width: 28px; height: 28px; border: 0; border-radius: 50%; color: var(--semver-muted); background: transparent; font: inherit; font-size: 1.15rem; line-height: 1; cursor: pointer; }
 .search-clear:hover, .search-clear:focus-visible { color: var(--semver-text); background: rgba(89, 224, 163, .12); }
 .node-toolbar .semver-select { transition: border-color .18s ease, background .18s ease; }
