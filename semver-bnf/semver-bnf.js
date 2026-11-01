@@ -1022,7 +1022,7 @@ const FEDERATED_SEARCH_ENGINES = Object.freeze([
   ['Yandex', SEARCH_ENGINES.yandex], ['Baidu', SEARCH_ENGINES.baidu]
 ]);
 
-async function fetchSearchJson(url, timeoutMs = 6500) {
+async function fetchSearchJson(url, timeoutMs = 4500) {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -1053,13 +1053,14 @@ async function searchMdn(query) {
 }
 
 async function searchGithub(query) {
-  try {
-    const data = await fetchSearchJson(`https://api.github.com/search/code?q=${encodeURIComponent(query)}&per_page=5`);
-    return (data.items || []).map(item => ({ title: item.name, url: item.html_url, text: `ملف برمجي في ${item.repository?.full_name || 'GitHub'}`, kind: 'GitHub Code' }));
-  } catch {
-    const data = await fetchSearchJson(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=5`);
-    return (data.items || []).map(item => ({ title: item.full_name, url: item.html_url, text: item.description || 'مستودع برمجي.', kind: 'GitHub Repository' }));
-  }
+  const [codeResult, repositoryResult] = await Promise.allSettled([
+    fetchSearchJson(`https://api.github.com/search/code?q=${encodeURIComponent(query)}&per_page=5`),
+    fetchSearchJson(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=5`)
+  ]);
+  const codeItems = codeResult.status === 'fulfilled' ? (codeResult.value.items || []) : [];
+  if (codeItems.length) return codeItems.map(item => ({ title: item.name, url: item.html_url, text: `ملف برمجي في ${item.repository?.full_name || 'GitHub'}`, kind: 'GitHub Code' }));
+  const repositoryItems = repositoryResult.status === 'fulfilled' ? (repositoryResult.value.items || []) : [];
+  return repositoryItems.map(item => ({ title: item.full_name, url: item.html_url, text: item.description || 'مستودع برمجي.', kind: 'GitHub Repository' }));
 }
 
 async function searchNpm(query) {
@@ -1082,14 +1083,29 @@ async function searchEverywhere() {
   button.textContent = 'جارٍ البحث في كل المصادر…';
   hubPreview.hidden = false;
   hubAddress.textContent = `بحث شامل · ${query}`;
-  setHubStatus('جارٍ البحث بالتوازي في محركات البحث ومصادر المقالات والبرمجة…');
+  hubPreview.removeAttribute('src');
+  hubPreview.srcdoc = renderFederatedResults(query, []);
+  renderExtraction({ title: `بحث شامل: ${query}`, text: 'بدأ البحث المتوازي. ستظهر النتائج تدريجيًا عند وصول كل مصدر دون انتظار بقية المصادر.', source: 'البحث متعدد المصادر', kind: 'search' });
+  setHubStatus('بدأ البحث بالتوازي؛ تظهر النتائج تدريجيًا…');
   const tasks = [
     ['Wikipedia', searchWikipedia], ['Stack Overflow', searchStackOverflow], ['MDN', searchMdn], ['GitHub', searchGithub], ['npm', searchNpm]
   ];
-  const settled = await Promise.allSettled(tasks.map(([, search]) => search(query)));
-  const reports = settled.map((result, index) => ({ source: tasks[index][0], items: result.status === 'fulfilled' ? result.value : [] }));
+  const reports = [];
+  let completed = 0;
+  const settled = await Promise.allSettled(tasks.map(([source, search], index) => search(query).then(items => {
+    reports[index] = { source, items };
+    completed += 1;
+    hubPreview.srcdoc = renderFederatedResults(query, reports.filter(Boolean));
+    setHubStatus(`وصلت نتائج ${completed} من ${tasks.length} مصادر…`);
+    return items;
+  }).catch(() => {
+    reports[index] = { source, items: [] };
+    completed += 1;
+    hubPreview.srcdoc = renderFederatedResults(query, reports.filter(Boolean));
+    setHubStatus(`اكتمل مصدر ${completed} من ${tasks.length}؛ ما زال البحث مستمرًا…`);
+    return [];
+  })));
   const total = reports.reduce((sum, report) => sum + report.items.length, 0);
-  hubPreview.removeAttribute('src');
   hubPreview.srcdoc = renderFederatedResults(query, reports);
   renderExtraction({ title: `بحث شامل: ${query}`, text: `تم فحص ${tasks.length} مصادر متخصصة وإعداد روابط ${FEDERATED_SEARCH_ENGINES.length} محرك بحث. عدد النتائج المباشرة: ${total}.`, source: 'البحث متعدد المصادر', kind: 'search' });
   setHubStatus(total ? `اكتمل البحث الشامل؛ عُثر على ${total} نتيجة مباشرة مع روابط كل المحركات.` : 'اكتمل البحث الشامل؛ لم تُرجع المصادر المتخصصة نتيجة مباشرة، وجميع المحركات العامة متاحة للتجربة.');
