@@ -143,7 +143,7 @@ body.semver-page a { color: inherit; }
 @keyframes nodeFlow { 50% { box-shadow: 0 0 24px rgba(244, 206, 114, .7); transform: scale(1.16); } }
 .network-node[hidden], .network-connection[hidden], .network-level-label[hidden] { display: none !important; }
 .node-plus { color: var(--semver-green); font-size: 1.05rem; line-height: .9; }
-.node-id { color: #adc5bb; font-size: .48rem; font-weight: 800; }
+.node-id { color: #e5fff3; font-size: .58rem; font-weight: 900; letter-spacing: -.02em; }
 .node-badge { position: absolute; top: -8px; inset-inline-start: 27px; max-width: 92px; overflow: hidden; border: 1px solid rgba(244, 206, 114, .6); border-radius: 999px; padding: .12rem .3rem; color: #ffefbd; background: #221d0e; font-size: .48rem; text-overflow: ellipsis; white-space: nowrap; }
 .node-badge[hidden] { display: none; }
 

@@ -3,7 +3,7 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
-const VIEW_STATE_VERSION = 2;
+const VIEW_STATE_VERSION = 3;
 const POSITIONS_KEY = 'semver-bnf-node-positions-radial-10cm';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const BUILTIN_NODES = Object.freeze({
@@ -391,10 +391,14 @@ function applyZoom() {
   $('#zoom-level').textContent = `${Math.round(zoom * 100)}%`;
 }
 
+function centerMapViewport(behavior = 'auto') {
+  nodeViewport.scrollTo({ left: Math.max(0, (mapWidth - nodeViewport.clientWidth) / 2), top: Math.max(0, (mapHeight - nodeViewport.clientHeight) / 2), behavior });
+}
 function resetNodeLayout() {
   localStorage.removeItem(POSITIONS_KEY);
   nodePositions.clear();
   layoutNodes();
+  centerMapViewport('smooth');
   setNodeStatus('تمت استعادة ترتيب 6600 عقدة بمسافة 10 سم ومسارات متماسكة.');
 }
 function layoutNodes() {
@@ -1083,6 +1087,7 @@ function showAllNodes() {
   $('#software-filter').value = 'all';
   $('#level-filter').value = 'all';
   applyNodeFilters();
+  centerMapViewport('smooth');
   setNodeStatus(`يعرض الآن جميع العقد الـ${NODE_TOTAL} في الشبكة.`);
 }
 function initializeNetwork() {
