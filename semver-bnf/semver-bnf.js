@@ -716,6 +716,21 @@ function setupHubModal() {
   $('#hub-close').addEventListener('click', closeHub);
   $('#hub-build').addEventListener('click', () => buildHub());
   $('#hub-save').addEventListener('click', saveHub);
+  let autoSaveTimer = 0;
+  hubUrl.addEventListener('input', () => {
+    window.clearTimeout(autoSaveTimer);
+    autoSaveTimer = window.setTimeout(() => {
+      const value = hubUrl.value.trim();
+      if (!value) return;
+      try {
+        parseNodeLink(value);
+        saveHub();
+        setHubStatus('حُفظ الرابط تلقائيًا في استضافة العقدة وعُرض داخل الموقع.');
+      } catch {
+        setHubStatus('اكتب رابطًا صالحًا لإضافته تلقائيًا إلى الاستضافة.', false);
+      }
+    }, 650);
+  });
   $('#hub-fetch').addEventListener('click', transferNodeData);
   $('#hub-open').addEventListener('click', openExternally);
   $('#hub-stop').addEventListener('click', stopHub);
