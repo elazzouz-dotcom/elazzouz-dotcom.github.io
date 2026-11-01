@@ -3,6 +3,7 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
+const POSITIONS_KEY = 'semver-bnf-node-positions';
 const BUILTIN_NODES = Object.freeze({
   600: {
     url: 'https://elazzouz-dotcom.github.io/satellite/',
@@ -35,6 +36,8 @@ let zoom = 1;
 let latestReport = null;
 let activeHub = { id: null, node: null };
 let focusReturn = null;
+let draggedNode = null;
+let suppressNodeClick = false;
 
 function readJson(key, fallback) {
   try {
@@ -143,6 +146,63 @@ function updateStats() {
   $('#relation-count').textContent = String(NODE_TOTAL - 1);
 }
 
+function readNodePositions() {
+  const stored = readJson(POSITIONS_KEY, {});
+  return stored && typeof stored === 'object' ? stored : {};
+}
+function saveNodePositions() {
+  const positions = {};
+  nodePositions.forEach((position, id) => { positions[id] = { x: Math.round(position.x), y: Math.round(position.y) }; });
+  if (writeJson(POSITIONS_KEY, positions)) setNodeStatus('تم حفظ ترتيب العقد محليًا تلقائيًا.');
+}
+function fitMapToPositions() {
+  let maxX = mapWidth;
+  let maxY = mapHeight;
+  nodePositions.forEach(({ x, y }) => {
+    maxX = Math.max(maxX, x + NODE_SIZE / 2 + 40);
+    maxY = Math.max(maxY, y + NODE_SIZE / 2 + 40);
+  });
+  mapWidth = Math.ceil(maxX);
+  mapHeight = Math.ceil(maxY);
+  nodeNetwork.style.width = `${mapWidth}px`;
+  nodeNetwork.style.height = `${mapHeight}px`;
+}
+function beginNodeDrag(event, id, button) {
+  if (event.button !== 0) return;
+  const position = nodePositions.get(id);
+  if (!position) return;
+  draggedNode = { id, button, startX: event.clientX, startY: event.clientY, originX: position.x, originY: position.y, moved: false };
+  button.setPointerCapture?.(event.pointerId);
+}
+function moveNodeDrag(event) {
+  if (!draggedNode) return;
+  const drag = draggedNode;
+  const deltaX = (event.clientX - drag.startX) / zoom;
+  const deltaY = (event.clientY - drag.startY) / zoom;
+  if (!drag.moved && Math.hypot(deltaX, deltaY) < 5) return;
+  drag.moved = true;
+  suppressNodeClick = true;
+  const next = nodePositions.get(drag.id);
+  next.x = Math.max(NODE_SIZE / 2, drag.originX + deltaX);
+  next.y = Math.max(NODE_SIZE / 2, drag.originY + deltaY);
+  drag.button.classList.add('is-dragging');
+  drag.button.style.left = `${next.x - NODE_SIZE / 2}px`;
+  drag.button.style.top = `${next.y - NODE_SIZE / 2}px`;
+  fitMapToPositions();
+  drawEdges();
+  applyZoom();
+}
+function endNodeDrag(event) {
+  if (!draggedNode) return;
+  const drag = draggedNode;
+  drag.button.releasePointerCapture?.(event.pointerId);
+  drag.button.classList.remove('is-dragging');
+  draggedNode = null;
+  if (drag.moved) {
+    saveNodePositions();
+    window.setTimeout(() => { suppressNodeClick = false; }, 0);
+  }
+}
 function createNodeElements() {
   let id = 1;
   NODE_LEVELS.forEach((count, level) => {
@@ -172,7 +232,14 @@ function createNodeElements() {
       badge.className = 'node-badge';
       badge.hidden = true;
       button.append(plus, number, badge);
-      button.addEventListener('click', () => openHubNode(currentId, button));
+      button.addEventListener('click', () => {
+        if (suppressNodeClick) return;
+        openHubNode(currentId, button);
+      });
+      button.addEventListener('pointerdown', (event) => beginNodeDrag(event, currentId, button));
+      button.addEventListener('pointermove', moveNodeDrag);
+      button.addEventListener('pointerup', endNodeDrag);
+      button.addEventListener('pointercancel', endNodeDrag);
       nodeNetwork.appendChild(button);
       nodeButtons.set(currentId, button);
       refreshNode(currentId);
@@ -221,6 +288,7 @@ function layoutNodes() {
   mapWidth = viewportWidth;
   const columns = Math.max(3, Math.min(12, Math.floor((mapWidth - 16) / (NODE_SIZE + 14))));
   const cellWidth = mapWidth / columns;
+  const storedPositions = readNodePositions();
   let cursor = 1;
   let top = 52;
   nodePositions.clear();
@@ -234,7 +302,11 @@ function layoutNodes() {
       const row = Math.floor(position / columns);
       const x = cellWidth * (col + .5);
       const y = top + row * ROW_GAP + 25;
-      nodePositions.set(cursor, { x, y, level, row, col });
+      const saved = storedPositions[cursor];
+      const position = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)
+        ? { x: Math.max(NODE_SIZE / 2, saved.x), y: Math.max(NODE_SIZE / 2, saved.y), level, row, col }
+        : { x, y, level, row, col };
+      nodePositions.set(cursor, position);
       const button = nodeButtons.get(cursor);
       button.style.left = `${x - NODE_SIZE / 2}px`;
       button.style.top = `${y - NODE_SIZE / 2}px`;
@@ -242,7 +314,7 @@ function layoutNodes() {
     top += rows * ROW_GAP + LEVEL_GAP;
   });
   mapHeight = top + 24;
-  nodeNetwork.style.width = `${mapWidth}px`;
+  fitMapToPositions();
   nodeNetwork.style.height = `${mapHeight}px`;
   drawEdges();
   applyZoom();

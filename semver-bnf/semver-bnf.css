@@ -322,3 +322,6 @@ body.semver-page a { color: inherit; }
 
 .node-import-file { display: none; }
 @media (max-width: 640px) { .node-toolbar-controls .semver-button { flex: 1 1 135px; } }
+
+.network-node { touch-action: none; user-select: none; }
+.network-node.is-dragging { z-index: 8; cursor: grabbing; border-color: var(--semver-gold); box-shadow: 0 0 26px rgba(244, 206, 114, .45); }
