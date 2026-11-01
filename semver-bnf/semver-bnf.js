@@ -2,6 +2,15 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
+const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
+const VIEW_STATE_VERSION = 4;
+const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v3';
+const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
+const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
+const REPORT_CACHE_TTL = 10 * 60 * 1000;
+const LINK_CACHE_DB = 'slaks-link-cache-db';
+const LINK_CACHE_STORE = 'payloads';
+const pendingLinkLoads = new Map();
 const BUILTIN_NODES = Object.freeze({
   600: {
     url: 'https://elazzouz-dotcom.github.io/satellite/',
@@ -12,8 +21,10 @@ const BUILTIN_NODES = Object.freeze({
   }
 });
 const NODE_SIZE = 44;
-const ROW_GAP = 70;
-const LEVEL_GAP = 68;
+const NODE_SPACING_CM = 10;
+const NODE_SPACING_PX = NODE_SPACING_CM * 37.7952755906;
+const ROW_GAP = NODE_SPACING_PX;
+const LEVEL_GAP = NODE_SPACING_PX;
 const MAX_HTML_CHARS = 300_000;
 const MAX_STORAGE_CHARS = 650_000;
 const nodeViewport = $('#node-viewport');
@@ -21,7 +32,12 @@ const stageWrap = $('#network-stage-wrap');
 const stage = $('#network-stage');
 const nodeNetwork = $('#node-network');
 const lines = $('#node-lines');
+const networkCanvas = $('#network-canvas');
+const canvasContext = networkCanvas.getContext('2d');
+let canvasPointer = null;
 const nodeButtons = new Map();
+const nodeTypeCache = new Map();
+let filterFrame = 0;
 const levelLabels = [];
 const nodePositions = new Map();
 let mapWidth = 0;
@@ -30,6 +46,11 @@ let zoom = 1;
 let latestReport = null;
 let activeHub = { id: null, node: null };
 let focusReturn = null;
+const nodeChatRoomRecords = new Map();
+let nodeChatRoomSelected = null;
+let draggedNode = null;
+let suppressNodeClick = false;
+let focusedEdge = null;
 
 function readJson(key, fallback) {
   try {
@@ -59,6 +80,28 @@ function semverStorageChars(excludeKey = '') {
   return total;
 }
 
+function persistUiSettings() {
+  writeJson(UI_SETTINGS_KEY, {
+    zoom,
+    query: $('#node-search')?.value || '',
+    nodeFilter: $('#node-filter')?.value || 'all',
+    softwareFilter: $('#software-filter')?.value || 'all',
+    levelFilter: $('#level-filter')?.value || 'all'
+  });
+}
+function restoreUiSettings() {
+  const settings = readJson(UI_SETTINGS_KEY, {});
+  const showAll = settings.viewVersion !== VIEW_STATE_VERSION;
+  if (Number.isFinite(settings.zoom)) zoom = Math.min(1.5, Math.max(.6, Number(settings.zoom)));
+  if ($('#node-search')) {
+    $('#node-search').value = showAll ? '' : String(settings.query || '');
+    if ($('#node-search-clear')) $('#node-search-clear').hidden = !$('#node-search').value;
+  }
+  if ($('#node-filter')) $('#node-filter').value = showAll ? 'all' : (['all', 'active', 'empty'].includes(settings.nodeFilter) ? settings.nodeFilter : 'all');
+  if ($('#software-filter')) $('#software-filter').value = showAll ? 'all' : (['all', 'software', 'download', 'web', 'app', 'matrix', 'html'].includes(settings.softwareFilter) ? settings.softwareFilter : 'all');
+  if ($('#level-filter')) $('#level-filter').value = showAll ? 'all' : ((settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter))) ? String(settings.levelFilter) : 'all');
+  if (showAll) writeJson(UI_SETTINGS_KEY, { ...settings, viewVersion: VIEW_STATE_VERSION, query: '', nodeFilter: 'all', softwareFilter: 'all', levelFilter: 'all' });
+}
 function getHubData(id) {
   try {
     const stored = localStorage.getItem(`${LINK_KEY}-${id}`);
@@ -85,6 +128,7 @@ function nodeLabel(id) {
 }
 
 function refreshNode(id) {
+  nodeTypeCache.delete(id);
   const button = nodeButtons.get(id);
   if (!button) return;
   const data = getHubData(id);
@@ -117,6 +161,99 @@ function updateStats() {
   $('#relation-count').textContent = String(NODE_TOTAL - 1);
 }
 
+function readNodePositions() {
+  const stored = readJson(POSITIONS_KEY, {});
+  return stored && typeof stored === 'object' ? stored : {};
+}
+function saveNodePositions() {
+  const positions = {};
+  nodePositions.forEach((position, id) => { positions[id] = { x: Math.round(position.x), y: Math.round(position.y) }; });
+  if (writeJson(POSITIONS_KEY, positions)) setNodeStatus('تم حفظ ترتيب العقد محليًا تلقائيًا.');
+}
+function fitMapToPositions() {
+  let maxX = mapWidth;
+  let maxY = mapHeight;
+  nodePositions.forEach(({ x, y }) => {
+    maxX = Math.max(maxX, x + NODE_SIZE / 2 + 40);
+    maxY = Math.max(maxY, y + NODE_SIZE / 2 + 40);
+  });
+  mapWidth = Math.ceil(maxX);
+  mapHeight = Math.ceil(maxY);
+  nodeNetwork.style.width = `${mapWidth}px`;
+  nodeNetwork.style.height = `${mapHeight}px`;
+}
+function beginNodeDrag(event, id, button) {
+  if (event.pointerType === 'mouse' && event.button !== 0) return;
+  if (draggedNode || event.isPrimary === false) return;
+  const position = nodePositions.get(id);
+  if (!position) return;
+  event.preventDefault();
+  draggedNode = { id, button, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: position.x, originY: position.y, moved: false };
+  button.setPointerCapture?.(event.pointerId);
+}
+function moveNodeDrag(event) {
+  if (!draggedNode || event.pointerId !== draggedNode.pointerId) return;
+  const drag = draggedNode;
+  event.preventDefault();
+  const deltaX = (event.clientX - drag.startX) / zoom;
+  const deltaY = (event.clientY - drag.startY) / zoom;
+  if (!drag.moved && Math.hypot(deltaX, deltaY) < 5) return;
+  drag.moved = true;
+  suppressNodeClick = true;
+  const next = nodePositions.get(drag.id);
+  next.x = Math.max(NODE_SIZE / 2, drag.originX + deltaX);
+  next.y = Math.max(NODE_SIZE / 2, drag.originY + deltaY);
+  drag.button.classList.add('is-dragging');
+  drag.button.style.left = `${next.x - NODE_SIZE / 2}px`;
+  drag.button.style.top = `${next.y - NODE_SIZE / 2}px`;
+  fitMapToPositions();
+  drawEdges();
+  applyZoom();
+}
+function endNodeDrag(event) {
+  if (!draggedNode || (event.pointerId && event.pointerId !== draggedNode.pointerId)) return;
+  const drag = draggedNode;
+  event.preventDefault();
+  drag.button.releasePointerCapture?.(drag.pointerId);
+  drag.button.classList.remove('is-dragging');
+  draggedNode = null;
+  if (drag.moved) {
+    saveNodePositions();
+    window.setTimeout(() => { suppressNodeClick = false; }, 0);
+  }
+}
+function updateNodeChatRoomRecord(id) {
+  const data = getHubData(id);
+  const type = nodeContentType(data, id);
+  const level = NODE_LEVELS.findIndex((count, levelIndex) => { const start = NODE_LEVELS.slice(0, levelIndex).reduce((sum, value) => sum + value, 0) + 1; return id >= start && id < start + count; }) + 1;
+  nodeChatRoomRecords.set(id, { id, type, level, configured: isConfigured(data), url: data?.url || '', html: data?.html || '', parent: id > 1 ? getNodeParent(id) : null });
+}
+function renderNodeChatRoom() {
+  const log = $('#node-chat-room-log');
+  if (!log) return;
+  const query = ($('#node-chat-room-search')?.value || '').trim().toLowerCase();
+  const records = [...nodeChatRoomRecords.values()].filter((record) => !query || `${nodeLabel(record.id)} ${record.url} ${record.type} ${record.html ? 'html' : ''}`.toLowerCase().includes(query));
+  const visible = records.slice(0, 160);
+  log.replaceChildren();
+  visible.forEach((record) => {
+    const message = document.createElement('article');
+    message.className = `node-chat-message ${record.id === nodeChatRoomSelected ? 'is-selected' : ''}`;
+    const title = document.createElement('strong');
+    title.textContent = `${nodeLabel(record.id)} · المستوى ${record.level}`;
+    const details = document.createElement('span');
+    details.textContent = record.configured ? `${record.type === 'html' ? 'HTML محلي' : record.url || 'بيانات محلية'} · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}` : `عقدة فارغة · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}`;
+    message.append(title, details);
+    message.addEventListener('click', () => { nodeChatRoomSelected = record.id; const button = nodeButtons.get(record.id); if (button) { button.scrollIntoView({ block: 'center', inline: 'center' }); openHubNode(record.id, button); } renderNodeChatRoom(); });
+    log.appendChild(message);
+  });
+  const active = [...nodeChatRoomRecords.values()].filter((record) => record.configured).length;
+  $('#node-chat-room-status').textContent = `تم ربط ${nodeChatRoomRecords.size} عقدة · ${active} مهيأة · يعرض ${visible.length}${records.length > visible.length ? ` من ${records.length}` : ''} · البيانات محلية`;
+}
+function setupNodeChatRoom() {
+  for (let id = 1; id <= NODE_TOTAL; id += 1) updateNodeChatRoomRecord(id);
+  $('#node-chat-room-search').addEventListener('input', renderNodeChatRoom);
+  renderNodeChatRoom();
+}
 function createNodeElements() {
   let id = 1;
   NODE_LEVELS.forEach((count, level) => {
@@ -146,7 +283,15 @@ function createNodeElements() {
       badge.className = 'node-badge';
       badge.hidden = true;
       button.append(plus, number, badge);
-      button.addEventListener('click', () => openHubNode(currentId, button));
+      button.addEventListener('click', () => {
+        if (suppressNodeClick) return;
+        openHubNode(currentId, button);
+      });
+      button.addEventListener('pointerdown', (event) => beginNodeDrag(event, currentId, button));
+      button.addEventListener('pointermove', moveNodeDrag);
+      button.addEventListener('pointerup', endNodeDrag);
+      button.addEventListener('pointercancel', endNodeDrag);
+      button.addEventListener('lostpointercapture', endNodeDrag);
       nodeNetwork.appendChild(button);
       nodeButtons.set(currentId, button);
       refreshNode(currentId);
@@ -155,6 +300,155 @@ function createNodeElements() {
   updateStats();
 }
 
+const DEFAULT_RELATION_STYLES = Object.freeze({ hierarchy: { color: '#59e0a3', style: 'solid' }, content: { color: '#55b8e8', style: 'dashed' }, software: { color: '#f4ce72', style: 'dotted' } });
+function relationType(parentId, childId) {
+  const childType = nodeContentType(getHubData(childId), childId);
+  const parentType = nodeContentType(getHubData(parentId), parentId);
+  if (['software', 'download', 'app', 'matrix'].includes(childType) || ['software', 'download', 'app', 'matrix'].includes(parentType)) return 'software';
+  if (childType !== 'empty' || parentType !== 'empty') return 'content';
+  return 'hierarchy';
+}
+function applyRelationCustomization() {
+  const saved = readJson(RELATION_STYLE_KEY, {});
+  Object.keys(DEFAULT_RELATION_STYLES).forEach((type) => {
+    const config = { ...DEFAULT_RELATION_STYLES[type], ...(saved[type] || {}) };
+    document.documentElement.style.setProperty(`--edge-${type}`, config.color);
+    document.documentElement.style.setProperty(`--edge-${type}-dash`, config.style === 'dashed' ? '10 7' : config.style === 'dotted' ? '2 7' : 'none');
+    const color = document.querySelector(`.relation-color[data-relation="${type}"]`);
+    const style = document.querySelector(`.relation-style[data-relation="${type}"]`);
+    if (color) color.value = config.color;
+    if (style) style.value = config.style;
+  });
+}
+function saveRelationCustomization() {
+  const styles = {};
+  document.querySelectorAll('.relation-color').forEach((input) => {
+    const type = input.dataset.relation;
+    const style = document.querySelector(`.relation-style[data-relation="${type}"]`);
+    styles[type] = { color: input.value, style: style?.value || 'solid' };
+  });
+  writeJson(RELATION_STYLE_KEY, styles);
+  applyRelationCustomization();
+  drawEdges();
+}
+function setupRelationCustomization() {
+  applyRelationCustomization();
+  document.querySelectorAll('.relation-color, .relation-style').forEach((control) => control.addEventListener('input', saveRelationCustomization));
+  $('#relation-reset').addEventListener('click', () => { writeJson(RELATION_STYLE_KEY, DEFAULT_RELATION_STYLES); applyRelationCustomization(); drawEdges(); });
+}
+function clearEdgeFocus() {
+  if (!focusedEdge) return;
+  const previous = focusedEdge;
+  previous.path?.classList.remove('edge-focused');
+  nodeButtons.get(previous.parentId)?.classList.remove('edge-node-focused');
+  nodeButtons.get(previous.childId)?.classList.remove('edge-node-focused');
+  focusedEdge = null;
+}
+function focusEdge(path, parentId, childId, persist = false) {
+  clearEdgeFocus();
+  focusedEdge = { path, parentId, childId };
+  path.classList.add('edge-focused');
+  nodeButtons.get(parentId)?.classList.add('edge-node-focused');
+  nodeButtons.get(childId)?.classList.add('edge-node-focused');
+  if (persist) setNodeStatus(`العلاقة المحددة: ${nodeLabel(parentId)} ← ${nodeLabel(childId)}.`);
+}
+function canvasPointFromEvent(event) {
+  const rect = networkCanvas.getBoundingClientRect();
+  return { x: (event.clientX - rect.left + nodeViewport.scrollLeft) / zoom, y: (event.clientY - rect.top + nodeViewport.scrollTop) / zoom };
+}
+function canvasNodeAt(point) {
+  let hit = null;
+  for (let id = NODE_TOTAL; id >= 1; id -= 1) {
+    const button = nodeButtons.get(id); const position = nodePositions.get(id);
+    if (!button || button.hidden || !position) continue;
+    const dx = point.x - position.x; const dy = point.y - position.y;
+    if (dx * dx + dy * dy <= (NODE_SIZE / 2 + 5) ** 2) { hit = id; break; }
+  }
+  return hit;
+}
+function resizeNetworkCanvas() {
+  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const width = Math.max(1, nodeViewport.clientWidth);
+  const height = Math.max(1, nodeViewport.clientHeight);
+  networkCanvas.width = Math.ceil(width * ratio);
+  networkCanvas.height = Math.ceil(height * ratio);
+  networkCanvas.style.width = `${width}px`;
+  networkCanvas.style.height = `${height}px`;
+  networkCanvas.style.left = `${nodeViewport.scrollLeft}px`;
+  networkCanvas.style.top = `${nodeViewport.scrollTop}px`;
+  canvasContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+}
+function renderCanvasNetwork() {
+  if (!networkCanvas || !canvasContext) return;
+  resizeNetworkCanvas();
+  const root = getComputedStyle(document.documentElement);
+  const colors = { hierarchy: root.getPropertyValue('--edge-hierarchy').trim() || '#59e0a3', content: root.getPropertyValue('--edge-content').trim() || '#55b8e8', software: root.getPropertyValue('--edge-software').trim() || '#f4ce72' };
+  const offsetX = nodeViewport.scrollLeft;
+  const offsetY = nodeViewport.scrollTop;
+  canvasContext.clearRect(0, 0, nodeViewport.clientWidth, nodeViewport.clientHeight);
+  canvasContext.save();
+  canvasContext.scale(zoom, zoom);
+  canvasContext.translate(-offsetX / zoom, -offsetY / zoom);
+  canvasContext.lineWidth = 2.5 / zoom;
+  for (let id = 2; id <= NODE_TOTAL; id += 1) {
+    const parentId = getNodeParent(id); const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
+    const parentButton = nodeButtons.get(parentId); const childButton = nodeButtons.get(id);
+    if (!parent || !child || parentButton?.hidden || childButton?.hidden) continue;
+    const visibleLeft = offsetX / zoom - NODE_SIZE;
+    const visibleTop = offsetY / zoom - NODE_SIZE;
+    const visibleRight = (offsetX + nodeViewport.clientWidth) / zoom + NODE_SIZE;
+    const visibleBottom = (offsetY + nodeViewport.clientHeight) / zoom + NODE_SIZE;
+    if (Math.max(parent.x, child.x) < visibleLeft || Math.min(parent.x, child.x) > visibleRight || Math.max(parent.y, child.y) < visibleTop || Math.min(parent.y, child.y) > visibleBottom) continue;
+    const type = relationType(parentId, id); canvasContext.strokeStyle = colors[type === 'software' ? 'software' : type === 'content' ? 'content' : 'hierarchy'];
+    const style = readJson(RELATION_STYLE_KEY, {})[type === 'software' ? 'software' : type] || {};
+    canvasContext.setLineDash(style.style === 'dashed' ? [10, 7] : style.style === 'dotted' ? [2, 7] : []);
+    canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.quadraticCurveTo((parent.x + child.x) / 2, (parent.y + child.y) / 2, child.x, child.y); canvasContext.stroke();
+  }
+  canvasContext.setLineDash([]);
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const button = nodeButtons.get(id); const point = nodePositions.get(id); if (!button || button.hidden || !point) continue;
+    const visibleLeft = offsetX / zoom - NODE_SIZE;
+    const visibleTop = offsetY / zoom - NODE_SIZE;
+    const visibleRight = (offsetX + nodeViewport.clientWidth) / zoom + NODE_SIZE;
+    const visibleBottom = (offsetY + nodeViewport.clientHeight) / zoom + NODE_SIZE;
+    if (point.x < visibleLeft || point.x > visibleRight || point.y < visibleTop || point.y > visibleBottom) continue;
+    const active = button.dataset.active === 'true'; const highlighted = button.classList.contains('is-highlighted') || button.classList.contains('is-path');
+    canvasContext.beginPath(); canvasContext.arc(point.x, point.y, NODE_SIZE / 2, 0, Math.PI * 2);
+    canvasContext.fillStyle = active ? '#17140b' : '#081411'; canvasContext.fill(); canvasContext.lineWidth = highlighted ? 4 : 2; canvasContext.strokeStyle = active ? '#f4ce72' : highlighted ? '#f4ce72' : '#59e0a3'; canvasContext.stroke();
+    canvasContext.fillStyle = '#59e0a3'; canvasContext.font = '900 16px system-ui,sans-serif'; canvasContext.textAlign = 'center'; canvasContext.textBaseline = 'middle'; canvasContext.fillText('+', point.x, point.y - 4);
+    canvasContext.fillStyle = '#e5fff3'; canvasContext.font = '900 7px system-ui,sans-serif'; canvasContext.fillText(nodeLabel(id), point.x, point.y + 10);
+  }
+}
+function setupCanvasInteraction() {
+  networkCanvas.addEventListener('wheel', (event) => {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+    const rect = networkCanvas.getBoundingClientRect();
+    const pointerX = event.clientX - rect.left;
+    const pointerY = event.clientY - rect.top;
+    const worldX = (pointerX + nodeViewport.scrollLeft) / zoom;
+    const worldY = (pointerY + nodeViewport.scrollTop) / zoom;
+    zoom = Math.max(.35, Math.min(1.5, Math.round((zoom + (event.deltaY < 0 ? .1 : -.1)) * 10) / 10));
+    applyZoom();
+    nodeViewport.scrollLeft = Math.max(0, worldX * zoom - pointerX);
+    nodeViewport.scrollTop = Math.max(0, worldY * zoom - pointerY);
+    renderCanvasNetwork();
+  }, { passive: false });
+  networkCanvas.addEventListener('pointerdown', (event) => {
+    const point = canvasPointFromEvent(event); const id = canvasNodeAt(point); if (!id) return;
+    canvasPointer = { id, startX: point.x, startY: point.y, moved: false }; networkCanvas.setPointerCapture?.(event.pointerId); event.preventDefault();
+  });
+  networkCanvas.addEventListener('pointermove', (event) => {
+    if (!canvasPointer) return; const point = canvasPointFromEvent(event); const position = nodePositions.get(canvasPointer.id); if (!position) return;
+    const dx = point.x - canvasPointer.startX; const dy = point.y - canvasPointer.startY;
+    if (Math.abs(dx) + Math.abs(dy) > 4) canvasPointer.moved = true;
+    if (!canvasPointer.moved) return;
+    position.x = Math.max(NODE_SIZE / 2, position.x + dx); position.y = Math.max(NODE_SIZE / 2, position.y + dy); canvasPointer.startX = point.x; canvasPointer.startY = point.y;
+    const button = nodeButtons.get(canvasPointer.id); button.style.left = `${position.x - NODE_SIZE / 2}px`; button.style.top = `${position.y - NODE_SIZE / 2}px`; fitMapToPositions(); drawEdges(); renderCanvasNetwork();
+  });
+  const end = (event) => { if (!canvasPointer) return; const id = canvasPointer.id; const moved = canvasPointer.moved; canvasPointer = null; if (!moved) openHubNode(id, nodeButtons.get(id)); else saveNodePositions(); networkCanvas.releasePointerCapture?.(event.pointerId); };
+  networkCanvas.addEventListener('pointerup', end); networkCanvas.addEventListener('pointercancel', end);
+}
 function drawEdges() {
   const svgNamespace = 'http://www.w3.org/2000/svg';
   const fragment = document.createDocumentFragment();
@@ -167,18 +461,31 @@ function drawEdges() {
     const startY = parent.y + NODE_SIZE * .43;
     const endY = child.y - NODE_SIZE * .43;
     const curve = Math.max(18, Math.abs(endY - startY) * .38);
-    path.setAttribute('class', 'network-connection');
+    const edgeType = relationType(parentId, id);
+    path.setAttribute('class', `network-connection edge-${edgeType}`);
+    path.dataset.relation = edgeType;
     path.dataset.from = String(parentId);
     path.dataset.to = String(id);
+    path.setAttribute('role', 'button');
+    path.setAttribute('tabindex', '0');
+    path.setAttribute('aria-label', `علاقة من ${nodeLabel(parentId)} إلى ${nodeLabel(id)}`);
     path.setAttribute('d', `M ${parent.x} ${startY} C ${parent.x} ${startY + curve}, ${child.x} ${endY - curve}, ${child.x} ${endY}`);
+    path.addEventListener('pointerenter', () => focusEdge(path, parentId, id));
+    path.addEventListener('pointerleave', () => { if (focusedEdge?.path === path) clearEdgeFocus(); });
+    path.addEventListener('focus', () => focusEdge(path, parentId, id));
+    path.addEventListener('blur', () => { if (focusedEdge?.path === path) clearEdgeFocus(); });
+    path.addEventListener('click', () => focusEdge(path, parentId, id, true));
+    path.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); focusEdge(path, parentId, id, true); } });
     fragment.appendChild(path);
   }
   lines.replaceChildren(fragment);
+  focusedEdge = null;
   lines.setAttribute('viewBox', `0 0 ${mapWidth} ${mapHeight}`);
   lines.setAttribute('width', String(mapWidth));
   lines.setAttribute('height', String(mapHeight));
   lines.style.width = `${mapWidth}px`;
   lines.style.height = `${mapHeight}px`;
+  renderCanvasNetwork();
 }
 
 function applyZoom() {
@@ -188,49 +495,84 @@ function applyZoom() {
   stageWrap.style.width = `${mapWidth * zoom}px`;
   stageWrap.style.height = `${mapHeight * zoom}px`;
   $('#zoom-level').textContent = `${Math.round(zoom * 100)}%`;
+  renderCanvasNetwork();
 }
 
+function centerMapViewport(behavior = 'auto') {
+  nodeViewport.scrollTo({ left: Math.max(0, (mapWidth - nodeViewport.clientWidth) / 2), top: Math.max(0, (mapHeight - nodeViewport.clientHeight) / 2), behavior });
+}
+function resetNodeLayout() {
+  localStorage.removeItem(POSITIONS_KEY);
+  nodePositions.clear();
+  layoutNodes();
+  centerMapViewport('smooth');
+  setNodeStatus('تمت استعادة ترتيب 6600 عقدة بمسافة 10 سم ومسارات متماسكة.');
+}
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));
-  mapWidth = viewportWidth;
-  const columns = Math.max(3, Math.min(12, Math.floor((mapWidth - 16) / (NODE_SIZE + 14))));
-  const cellWidth = mapWidth / columns;
+  const gridCell = 86;
+  const columns = 72;
+  const sidePadding = 60;
+  const storedPositions = readNodePositions();
+  const rowsByLevel = NODE_LEVELS.map((count) => Math.max(1, Math.ceil(count / columns)));
+  const totalRows = rowsByLevel.reduce((sum, rows) => sum + rows, 0) + NODE_LEVELS.length + 1;
+  mapWidth = Math.max(viewportWidth, columns * gridCell + sidePadding * 2);
+  mapHeight = Math.max(nodeViewport.clientHeight, totalRows * gridCell + sidePadding * 2);
   let cursor = 1;
-  let top = 52;
+  let rowCursor = 1;
   nodePositions.clear();
   NODE_LEVELS.forEach((count, level) => {
-    const rows = Math.ceil(count / columns);
+    const rows = rowsByLevel[level];
+    const levelWidth = Math.min(columns, count) * gridCell;
+    const startX = Math.max(sidePadding, (mapWidth - levelWidth) / 2 + gridCell / 2);
     const label = levelLabels[level];
-    label.style.top = `${top - 30}px`;
-    label.style.insetInlineStart = '12px';
+    label.style.top = `${sidePadding + rowCursor * gridCell - 28}px`;
+    label.style.insetInlineStart = `${Math.max(12, startX - gridCell / 2)}px`;
     for (let position = 0; position < count; position += 1, cursor += 1) {
       const col = position % columns;
       const row = Math.floor(position / columns);
-      const x = cellWidth * (col + .5);
-      const y = top + row * ROW_GAP + 25;
-      nodePositions.set(cursor, { x, y, level, row, col });
+      const gridX = startX + col * gridCell;
+      const gridY = sidePadding + (rowCursor + row) * gridCell;
+      const saved = storedPositions[cursor];
+      const point = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y) && saved.x <= mapWidth && saved.y <= mapHeight
+        ? { x: Math.max(NODE_SIZE / 2, saved.x), y: Math.max(NODE_SIZE / 2, saved.y), level, row, col }
+        : { x: gridX, y: gridY, level, row, col };
+      nodePositions.set(cursor, point);
       const button = nodeButtons.get(cursor);
-      button.style.left = `${x - NODE_SIZE / 2}px`;
-      button.style.top = `${y - NODE_SIZE / 2}px`;
+      button.style.left = `${point.x - NODE_SIZE / 2}px`;
+      button.style.top = `${point.y - NODE_SIZE / 2}px`;
     }
-    top += rows * ROW_GAP + LEVEL_GAP;
+    rowCursor += rows + 1;
   });
-  mapHeight = top + 24;
-  nodeNetwork.style.width = `${mapWidth}px`;
-  nodeNetwork.style.height = `${mapHeight}px`;
+  fitMapToPositions();
   drawEdges();
   applyZoom();
   applyNodeFilters();
 }
-
 function scheduleLayout() {
   if (scheduleLayout.frame) cancelAnimationFrame(scheduleLayout.frame);
   scheduleLayout.frame = requestAnimationFrame(layoutNodes);
 }
 
+function nodeContentType(data, id = null) {
+  if (id !== null && nodeTypeCache.has(id)) return nodeTypeCache.get(id);
+  let type = 'empty';
+  if (data && isConfigured(data)) {
+    if (data.html && !data.url) type = 'html';
+    else if (data.url) {
+      try {
+        const link = parseNodeLink(data.url);
+        type = link.kind !== 'web' ? 'app' : classifySoftwareUrl(link.url).kind;
+      } catch { type = 'web'; }
+    }
+  }
+  if (id !== null) nodeTypeCache.set(id, type);
+  return type;
+}
 function applyNodeFilters() {
   const query = $('#node-search').value.trim().toLowerCase();
   const activeFilter = $('#node-filter').value;
+  const softwareFilter = $('#software-filter').value;
   const levelFilter = $('#level-filter').value;
   let visible = 0;
   for (let id = 1; id <= NODE_TOTAL; id += 1) {
@@ -239,9 +581,11 @@ function applyNodeFilters() {
     const configured = isConfigured(data);
     const levelMatches = levelFilter === 'all' || button.dataset.level === levelFilter;
     const stateMatches = activeFilter === 'all' || (activeFilter === 'active' ? configured : !configured);
-    const haystack = `${nodeLabel(id)} ${data?.url || ''} ${data?.html ? 'html' : ''}`.toLowerCase();
+    const typeLabel = nodeContentType(data, id);
+    const typeMatches = softwareFilter === 'all' || typeLabel === softwareFilter;
+    const haystack = `${nodeLabel(id)} ${data?.url || ''} ${data?.html ? 'html' : ''} ${typeLabel}`.toLowerCase();
     const queryMatches = !query || haystack.includes(query);
-    const show = levelMatches && stateMatches && queryMatches;
+    const show = levelMatches && stateMatches && typeMatches && queryMatches;
     button.hidden = !show;
     button.classList.toggle('is-highlighted', Boolean(query && queryMatches && show));
     if (show) visible += 1;
@@ -254,6 +598,8 @@ function applyNodeFilters() {
     label.hidden = !anyVisible;
   });
   $('#node-status').textContent = `يعرض ${visible} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
+  renderCanvasNetwork();
+  persistUiSettings();
 }
 
 function nodePath(id) {
@@ -294,6 +640,11 @@ function animatePipeFlow(id) {
   });
 }
 
+function setNodeStatus(message, good = true) {
+  const status = $('#node-status');
+  status.textContent = message;
+  status.style.color = good ? 'var(--semver-muted)' : 'var(--semver-danger)';
+}
 function setHubStatus(message, good = true) {
   const status = $('#hub-status');
   status.textContent = message;
@@ -317,6 +668,22 @@ function renderExtraction(payload) {
   container.append(title, detail, text);
 }
 
+function classifySoftwareUrl(url) {
+  let parsed;
+  try { parsed = new URL(url); } catch { return { kind: 'web', label: 'صفحة ويب' }; }
+  const path = parsed.pathname.toLowerCase();
+  const downloadExt = /\.(exe|msi|dmg|pkg|deb|rpm|appimage|apk|ipa|zip|tar|gz|7z|pdf|apk)(?:$|\?)/i;
+  if (downloadExt.test(path)) return { kind: 'download', label: 'ملف برنامج قابل للتنزيل', host: parsed.hostname };
+  if (/github\.com|gitlab\.com|npmjs\.com|pypi\.org|crates\.io|rubygems\.org|apps\.apple\.com|play\.google\.com|microsoft\.com/i.test(parsed.hostname)) {
+    return { kind: 'software', label: 'صفحة برمجية أو متجر تطبيقات', host: parsed.hostname };
+  }
+  return { kind: 'web', label: 'تطبيق ويب أو صفحة خارجية', host: parsed.hostname };
+}
+function softwareDownloadPreview(link, info) {
+  const safeUrl = link.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeHost = (info.host || link.host || 'مصدر خارجي').replace(/[&<>"']/g, '');
+  return `<main style="box-sizing:border-box;min-height:100vh;padding:clamp(24px,6vw,72px);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#e8f0ee;background:#071014;direction:rtl"><div style="max-width:720px;margin:auto;border:1px solid #315d57;border-radius:24px;padding:clamp(24px,5vw,48px);background:linear-gradient(145deg,#102127,#0b171b);box-shadow:0 20px 60px #0008"><div style="font-size:42px;color:#59e0a3">⌘</div><p style="color:#59e0a3;font-size:12px;font-weight:800;letter-spacing:.12em">SOFTWARE PREVIEW</p><h1 style="font-size:clamp(24px,5vw,42px);margin:.4em 0">${info.label}</h1><p style="color:#9cb0b2;line-height:1.8">هذا رابط ملف برمجي. يمكن عرض معلوماته داخل الموقع، لكن لا يمكن للمتصفح تشغيل ملف تنفيذي مباشرة لأسباب أمنية.</p><p style="color:#f4ce72;overflow-wrap:anywhere">المصدر: ${safeHost}</p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:16px;border-radius:12px;padding:12px 18px;color:#052117;background:#59e0a3;font-weight:800;text-decoration:none">فتح ملف البرنامج خارجيًا ↗</a></div></main>`;
+}
 function summarizeHtml(html, source = 'HTML محلي') {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   doc.querySelectorAll('script,style,template').forEach((element) => element.remove());
@@ -370,15 +737,30 @@ const hubModal = $('#hub-modal');
 const hubDialog = $('#hub-dialog');
 const hubUrl = $('#hub-url');
 const hubHtml = $('#hub-html');
+const hubSearchQuery = $('#hub-search-query');
+const hubSearchEngine = $('#hub-search-engine');
 const hubPreview = $('#hub-preview');
 const hubAddress = $('#hub-address');
 
+const SEARCH_ENGINES = Object.freeze({
+  google: 'https://www.google.com/search?q=', bing: 'https://www.bing.com/search?q=', duckduckgo: 'https://duckduckgo.com/?q=', brave: 'https://search.brave.com/search?q=', yahoo: 'https://search.yahoo.com/search?p=', ecosia: 'https://www.ecosia.org/search?q=', startpage: 'https://www.startpage.com/sp/search?query=', qwant: 'https://www.qwant.com/?q=', kagi: 'https://kagi.com/search?q=', yandex: 'https://yandex.com/search/?text=', baidu: 'https://www.baidu.com/s?wd='
+});
+function searchWithSelectedEngine() {
+  const query = hubSearchQuery.value.trim();
+  if (!query) { setHubStatus('اكتب عبارة بحث أولًا.', false); hubSearchQuery.focus(); return; }
+  const base = SEARCH_ENGINES[hubSearchEngine.value] || SEARCH_ENGINES.google;
+  const url = `${base}${encodeURIComponent(query)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+  setHubStatus(`تم فتح البحث عبر ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'}.`);
+}
 function clearPreview() {
   hubPreview.removeAttribute('srcdoc');
   hubPreview.src = 'about:blank';
+  hubPreview.hidden = true;
 }
 
 async function buildHub(silent = false) {
+  hubPreview.hidden = false;
   const urlText = hubUrl.value.trim();
   const localHtml = hubHtml.value;
   try {
@@ -386,16 +768,24 @@ async function buildHub(silent = false) {
       const link = parseNodeLink(urlText);
       if (link.kind !== 'web') {
         clearPreview();
-        hubAddress.textContent = link.url;
-        renderExtraction({ title: link.display, text: 'هذا الرابط يفتح في تطبيق خارجي ولا يمكن معاينته أو جلب محتواه داخل الشبكة.', source: 'فتح خارجي فقط', kind: link.kind });
-        setHubStatus('الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
+        hubAddress.textContent = link.kind === 'matrix' ? `Matrix.org · ${link.display}` : link.url;
+        renderExtraction({ title: link.display, text: link.kind === 'matrix' ? 'تم التعرف على غرفة Matrix. استخدم زر الفتح لفتحها في matrix.to أو عميل Matrix المثبت على جهازك.' : 'هذا الرابط يفتح في تطبيق خارجي ولا يمكن معاينته أو جلب محتواه داخل الشبكة.', source: link.kind === 'matrix' ? 'Matrix.org' : 'فتح خارجي فقط', kind: link.kind });
+        setHubStatus(link.kind === 'matrix' ? 'غرفة Matrix جاهزة للفتح عبر matrix.to.' : 'الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
+        return;
+      }
+      const software = classifySoftwareUrl(link.url);
+      hubAddress.textContent = `${software.label} · ${link.url}`;
+      if (software.kind === 'download') {
+        hubPreview.removeAttribute('src');
+        hubPreview.srcdoc = softwareDownloadPreview(link, software);
+        renderExtraction({ title: software.label, text: 'تم التعرف على ملف برمجي وعرض بطاقة آمنة داخل المعاينة. لا يتم تشغيل الملفات التنفيذية داخل المتصفح.', source: 'معاينة برمجية آمنة', kind: 'software' });
+        setHubStatus('عُرضت معلومات البرنامج داخل الموقع. استخدم زر الفتح الخارجي لتنزيل الملف.');
         return;
       }
       hubPreview.removeAttribute('srcdoc');
       hubPreview.src = link.url;
-      hubAddress.textContent = link.url;
-      renderExtraction({ title: link.host || link.display, text: 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر الفتح المباشر عند الحاجة.', source: 'معاينة HTTP/HTTPS خارجية', kind: 'web' });
-      setHubStatus('جارية معاينة الرابط الخارجي داخل إطار معزول. إذا رفض الموقع العرض، استخدم الفتح المباشر.');
+      renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر الفتح المباشر عند الحاجة.', source: software.label, kind: software.kind });
+      setHubStatus(`جارية معاينة ${software.label} داخل الموقع. إذا رفض الموقع العرض، استخدم الفتح الخارجي.`);
       return;
     }
     if (localHtml.trim()) {
@@ -418,6 +808,9 @@ async function buildHub(silent = false) {
 }
 
 function openHubNode(id, button) {
+  nodeChatRoomSelected = id;
+  updateNodeChatRoomRecord(id);
+  renderNodeChatRoom();
   focusReturn = button;
   activeHub = { id, node: button };
   highlightNodePath(id);
@@ -425,6 +818,8 @@ function openHubNode(id, button) {
   const data = getHubData(id);
   hubUrl.value = data?.url || '';
   hubHtml.value = data?.html || '';
+  hubSearchQuery.value = data?.searchQuery || '';
+  hubSearchEngine.value = data?.searchEngine || 'google';
   hubDialog.classList.remove('is-minimized', 'is-fullscreen');
   $('#hub-minimize').textContent = 'تصغير';
   hubModal.hidden = false;
@@ -453,7 +848,7 @@ function saveHub() {
       clearHub();
       return;
     }
-    const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, active: true, savedAt: new Date().toISOString() };
+    const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, searchQuery: hubSearchQuery.value.trim(), searchEngine: hubSearchEngine.value, active: true, savedAt: new Date().toISOString() };
     const storageKey = `${LINK_KEY}-${activeHub.id}`;
     const serialized = JSON.stringify(data);
     if (semverStorageChars(storageKey) + storageKey.length + serialized.length > MAX_STORAGE_CHARS) throw new Error('وصلت بيانات مختبر العقد إلى سقف التخزين المحلي (نحو 650 كيلوبايت). امسح بعض العقد أو صغّر HTML.');
@@ -462,6 +857,8 @@ function saveHub() {
     index[activeHub.id] = data.url || `#node-${String(activeHub.id).padStart(3, '0')}`;
     if (!writeJson(LINK_KEY, index)) throw new Error('تعذر تحديث فهرس الروابط المحلي.');
     updateNodeStatsAndFilters(activeHub.id);
+    updateNodeChatRoomRecord(activeHub.id);
+    renderNodeChatRoom();
     setHubStatus('حُفظت إعدادات العقدة في هذا المتصفح فقط.');
     buildHub(true);
   } catch (error) {
@@ -480,6 +877,8 @@ function clearHub() {
     delete central[activeHub.id];
     writeJson('semver-hub-stem-data', central);
     updateNodeStatsAndFilters(activeHub.id);
+    updateNodeChatRoomRecord(activeHub.id);
+    renderNodeChatRoom();
     hubUrl.value = '';
     hubHtml.value = '';
     clearPreview();
@@ -560,7 +959,45 @@ function appendReportText(parent, tag, text, className = '') {
   return element;
 }
 
+function openReportInside(id) {
+  const button = nodeButtons.get(Number(id));
+  if (button) {
+    openHubNode(Number(id), button);
+    setHubStatus('تُعرض هذه الصفحة داخل الموقع. قد تمنع بعض المواقع التضمين، لكنك لن تغادر الصفحة تلقائيًا.');
+    return;
+  }
+  setHubStatus('تعذر العثور على العقدة المطلوبة.', false);
+}
+function renderInfoChat(results) {
+  const log = $('#info-chat-log');
+  if (!log) return;
+  log.replaceChildren();
+  const intro = document.createElement('div');
+  intro.className = 'info-chat-message info-chat-system';
+  intro.textContent = `تم ضخ ${results.length} ملخصًا إلى نفق المعلومات من أصل ${NODE_TOTAL} عقدة.`;
+  log.appendChild(intro);
+  results.forEach((item) => {
+    const message = document.createElement('article');
+    message.className = 'info-chat-message';
+    const title = document.createElement('strong');
+    title.textContent = `${nodeLabel(item.id)} · ${item.title || item.url || 'معلومة عقدة'}`;
+    const detail = document.createElement('p');
+    detail.textContent = item.error || (item.status === 'external-only' ? 'رابط خارجي جاهز للعرض داخل الموقع.' : item.text || 'اكتمل التحليل المحلي.');
+    const actions = document.createElement('div');
+    actions.className = 'info-chat-actions';
+    const preview = document.createElement('button');
+    preview.type = 'button';
+    preview.className = 'info-chat-preview';
+    preview.textContent = '◉ عرض الرابط داخل الموقع';
+    preview.addEventListener('click', () => openReportInside(item.id));
+    actions.appendChild(preview);
+    message.append(title, detail, actions);
+    log.appendChild(message);
+  });
+  log.scrollTop = log.scrollHeight;
+}
 function renderReport(results) {
+  renderInfoChat(results);
   const output = $('#network-report');
   output.replaceChildren();
   const successCount = results.filter((item) => !item.error && item.status !== 'external-only').length;
@@ -591,11 +1028,101 @@ function renderReport(results) {
     if (item.title) appendReportText(card, 'small', item.title);
     if (item.contentType) appendReportText(card, 'small', `نوع المحتوى: ${item.contentType}`);
     appendReportText(card, 'p', item.error || item.text || 'لا يوجد نص قابل للعرض.');
+    if (item.url) {
+      const previewButton = document.createElement('button');
+      previewButton.type = 'button';
+      previewButton.className = 'report-preview-button';
+      previewButton.textContent = '◉ عرض الرابط داخل الموقع';
+      previewButton.addEventListener('click', () => openReportInside(item.id));
+      card.appendChild(previewButton);
+    }
     cards.appendChild(card);
   });
   output.appendChild(cards);
 }
 
+function reportConcurrency() {
+  const cores = Number(navigator.hardwareConcurrency) || 4;
+  return Math.min(8, Math.max(2, Math.floor(cores / 2)));
+}
+function reportSignature(item) {
+  return `${item.url || ''}|${item.html || ''}|${item.savedAt || ''}`;
+}
+let linkCacheDbPromise;
+function openLinkCacheDb() {
+  if (!('indexedDB' in window)) return Promise.resolve(null);
+  if (linkCacheDbPromise) return linkCacheDbPromise;
+  linkCacheDbPromise = new Promise((resolve) => {
+    const request = indexedDB.open(LINK_CACHE_DB, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(LINK_CACHE_STORE, { keyPath: 'key' });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+  });
+  return linkCacheDbPromise;
+}
+async function idbReadCache(key) {
+  const db = await openLinkCacheDb();
+  if (!db) return null;
+  return new Promise((resolve) => { const tx = db.transaction(LINK_CACHE_STORE, 'readonly'); const request = tx.objectStore(LINK_CACHE_STORE).get(key); request.onsuccess = () => resolve(request.result || null); request.onerror = () => resolve(null); });
+}
+async function idbWriteCache(entry) {
+  const db = await openLinkCacheDb();
+  if (!db) return;
+  await new Promise((resolve) => { const tx = db.transaction(LINK_CACHE_STORE, 'readwrite'); tx.objectStore(LINK_CACHE_STORE).put(entry); tx.oncomplete = resolve; tx.onerror = resolve; });
+}
+async function idbClearCache() {
+  const db = await openLinkCacheDb();
+  if (!db) return;
+  await new Promise((resolve) => { const tx = db.transaction(LINK_CACHE_STORE, 'readwrite'); tx.objectStore(LINK_CACHE_STORE).clear(); tx.oncomplete = resolve; tx.onerror = resolve; });
+}
+function linkCacheKey(item) { return `node:${item.id}:${reportSignature(item)}`; }
+async function loadNodePayloadCached(item, allowStale = true) {
+  const key = linkCacheKey(item);
+  const cached = await idbReadCache(key);
+  const fresh = cached && Date.now() - Number(cached.cachedAt || 0) < REPORT_CACHE_TTL;
+  if (fresh) return { ...cached.payload, cached: true, cacheState: 'fresh' };
+  if (pendingLinkLoads.has(key)) {
+    const payload = await pendingLinkLoads.get(key);
+    return { ...payload, cached: false, cacheState: 'shared-request' };
+  }
+  const refresh = (async () => {
+    try {
+      const payload = await fetchNodePayload(item.id) || { id: item.id, error: 'لا توجد بيانات.' };
+      await idbWriteCache({ key, cachedAt: Date.now(), payload });
+      return payload;
+    } finally {
+      pendingLinkLoads.delete(key);
+    }
+  })();
+  pendingLinkLoads.set(key, refresh);
+  if (cached && allowStale) {
+    refresh.catch(() => {});
+    return { ...cached.payload, cached: true, cacheState: 'stale-refreshing' };
+  }
+  return { ...(await refresh), cached: false, cacheState: 'fresh' };
+}
+function refreshReportCacheStatus() {
+  const status = $('#report-cache-status');
+  if (!status) return;
+  const cache = readReportCache();
+  const count = Object.keys(cache).length;
+  const size = JSON.stringify(cache).length;
+  status.textContent = count ? `ذاكرة الروابط: ${count} نتيجة محفوظة محليًا · ${Math.round(size / 1024)} كيلوبايت · صلاحية 10 دقائق.` : 'ذاكرة الروابط فارغة؛ ستُحفظ النتائج محليًا بعد جمع التقرير.';
+}
+async function clearReportCache() {
+  localStorage.removeItem(REPORT_CACHE_KEY);
+  await idbClearCache();
+  refreshReportCacheStatus();
+  $('#report-status').textContent = 'تم مسح ذاكرة الروابط المحلية. لن تُحذف بيانات العقد.';
+}
+function readReportCache() {
+  const cache = readJson(REPORT_CACHE_KEY, {});
+  return cache && typeof cache === 'object' ? cache : {};
+}
+function writeReportCache(cache) {
+  const entries = Object.entries(cache).sort((a, b) => Number(b[1]?.cachedAt || 0) - Number(a[1]?.cachedAt || 0)).slice(0, 80);
+  writeJson(REPORT_CACHE_KEY, Object.fromEntries(entries));
+}
 async function collectReport() {
   const status = $('#report-status');
   const button = $('#collect-report');
@@ -609,29 +1136,144 @@ async function collectReport() {
   }
   button.disabled = true;
   exportButton.disabled = true;
-  status.textContent = `جارٍ إعداد ملخص محلي لـ ${active.length} عقدة…`;
-  const results = await mapConcurrent(active, 4, async (item) => {
-    try { return await fetchNodePayload(item.id) || { id: item.id, error: 'لا توجد بيانات.' }; }
-    catch (error) { return { id: item.id, url: item.url || '', error: error?.message || 'تعذر إعداد الملخص المحلي.', source: 'فحص محلي' }; }
+  const concurrency = reportConcurrency();
+  const cache = readReportCache();
+  let cacheHits = 0;
+  status.textContent = `جارٍ إعداد ملخص محلي لـ ${active.length} عقدة عبر ${concurrency} مسارات…`;
+  const results = await mapConcurrent(active, concurrency, async (item) => {
+    const signature = reportSignature(item);
+    const cached = cache[item.id];
+    try {
+      const payload = await loadNodePayloadCached(item);
+      if (payload.cached) cacheHits += 1;
+      cache[item.id] = { signature, cachedAt: Date.now(), payload };
+      return payload;
+    } catch (error) {
+      return { id: item.id, url: item.url || '', error: error?.message || 'تعذر إعداد الملخص المحلي.', source: 'فحص محلي' };
+    }
   }, (completed, total) => {
-    status.textContent = `إعداد الملخص المحلي: ${completed} من ${total} عقدة…`;
+    status.textContent = `إعداد الملخص المحلي: ${completed} من ${total} عقدة · دفعات متزامنة: ${concurrency}…`;
   });
+  writeReportCache(cache);
+  refreshReportCacheStatus();
   latestReport = {
     generatedAt: new Date().toISOString(),
     totalNodes: NODE_TOTAL,
     activeNodes: results.length,
-    maxConcurrency: 4,
+    cacheHits,
+    maxConcurrency: concurrency,
     results: results.map((item) => {
       const { html, ...summary } = item || {};
       return summary;
     })
   };
   renderReport(latestReport.results);
-  status.textContent = `اكتمل التقرير · ${new Date().toLocaleString('ar')}`;
+  status.textContent = `اكتمل التقرير · ${cacheHits} من الذاكرة المؤقتة · تزامن ${concurrency} · ${new Date().toLocaleString('ar')}`;
   exportButton.disabled = !latestReport.results.length;
   button.disabled = false;
 }
 
+function configuredNodeData() {
+  const nodes = {};
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const data = getHubData(id);
+    if (isConfigured(data)) nodes[id] = { url: data.url || '', html: data.html || '', kind: data.kind || '', active: true };
+  }
+  return nodes;
+}
+function downloadBlob(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function escapeXml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[character]));
+}
+function exportNetworkMapJson() {
+  const nodes = [];
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const position = nodePositions.get(id);
+    const data = getHubData(id);
+    nodes.push({ id, label: nodeLabel(id), x: Math.round(position?.x || 0), y: Math.round(position?.y || 0), level: position?.level ?? null, parent: connectedNodeParent(id), type: nodeContentType(data, id), configured: isConfigured(data), url: data?.url || '', html: data?.html || '' });
+  }
+  const edges = nodes.filter((node) => node.parent).map((node) => ({ from: node.parent, to: node.id, relation: relationType(node.parent, node.id) }));
+  const payload = { format: 'slaks-semver-network-map', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, spacingCm: NODE_SPACING_CM, width: mapWidth, height: mapHeight, nodes, edges };
+  downloadBlob(JSON.stringify(payload, null, 2), 'slaks-network-map.json', 'application/json');
+  setNodeStatus(`تم تصدير الخريطة كاملة: ${nodes.length} عقدة و${edges.length} علاقة.`);
+}
+function exportNetworkMapSvg() {
+  const root = getComputedStyle(document.documentElement);
+  const hierarchyColor = root.getPropertyValue('--edge-hierarchy').trim() || '#59e0a3';
+  const contentColor = root.getPropertyValue('--edge-content').trim() || '#55b8e8';
+  const softwareColor = root.getPropertyValue('--edge-software').trim() || '#f4ce72';
+  const edgeLines = [];
+  for (let id = 2; id <= NODE_TOTAL; id += 1) {
+    const parentId = connectedNodeParent(id); const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
+    if (!parent || !child) continue;
+    const relation = relationType(parentId, id); const color = relation === 'software' ? softwareColor : relation === 'content' ? contentColor : hierarchyColor;
+    const startY = parent.y; const endY = child.y; const midX = (parent.x + child.x) / 2; const midY = (parent.y + child.y) / 2;
+    edgeLines.push(`<path d="M ${parent.x} ${startY} Q ${midX} ${midY} ${child.x} ${endY}" fill="none" stroke="${escapeXml(color)}" stroke-width="2.5"/>`);
+  }
+  const nodeShapes = [];
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const point = nodePositions.get(id); if (!point) continue;
+    const data = getHubData(id); const active = isConfigured(data); const color = active ? '#f4ce72' : '#59e0a3';
+    nodeShapes.push(`<g><circle cx="${point.x}" cy="${point.y}" r="22" fill="#081411" stroke="${color}" stroke-width="2"/><text x="${point.x}" y="${point.y + 5}" fill="#dfffee" font-family="system-ui,sans-serif" font-size="12" font-weight="800" text-anchor="middle">+</text><text x="${point.x}" y="${point.y + 36}" fill="#adc5bb" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">${escapeXml(nodeLabel(id))}</text></g>`);
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${mapWidth}" height="${mapHeight}" viewBox="0 0 ${mapWidth} ${mapHeight}"><title>Slaks network map · ${NODE_TOTAL} nodes</title><rect width="100%" height="100%" fill="#071014"/>${edgeLines.join('')}${nodeShapes.join('')}</svg>`;
+  downloadBlob(svg, 'slaks-network-map.svg', 'image/svg+xml');
+  setNodeStatus(`تم تصدير صورة SVG عالية الدقة: ${NODE_TOTAL} عقدة.`);
+}
+function exportNodes() {
+  const payload = { format: 'slaks-semver-node-data', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, nodes: configuredNodeData() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'semver-node-data.json';
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setNodeStatus(`تم تصدير ${Object.keys(payload.nodes).length} عقدة إلى ملف JSON.`);
+}
+function importNodes(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const payload = JSON.parse(String(reader.result || ''));
+      if (!payload || payload.format !== 'slaks-semver-node-data' || !payload.nodes || typeof payload.nodes !== 'object') throw new Error('ملف JSON ليس ملف عقد صالحًا.');
+      const imported = [];
+      for (const [rawId, rawData] of Object.entries(payload.nodes)) {
+        const id = Number(rawId);
+        if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL || !rawData || typeof rawData !== 'object') continue;
+        const rawUrl = String(rawData.url || '').trim();
+        const html = String(rawData.html || '');
+        let link = null;
+        if (rawUrl) link = parseNodeLink(rawUrl);
+        if (html.length > MAX_HTML_CHARS) throw new Error(`HTML العقدة ${id} يتجاوز الحد المسموح.`);
+        if (!rawUrl && !html.trim()) continue;
+        const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, searchQuery: hubSearchQuery.value.trim(), searchEngine: hubSearchEngine.value, active: true, savedAt: new Date().toISOString() };
+        const storageKey = `${LINK_KEY}-${id}`;
+        if (semverStorageChars(storageKey) + storageKey.length + JSON.stringify(data).length > MAX_STORAGE_CHARS) throw new Error('تجاوزت بيانات العقد سقف التخزين المحلي.');
+        if (!writeJson(storageKey, data)) throw new Error('تعذر حفظ بيانات العقد في المتصفح.');
+        imported.push(id);
+      }
+      const index = readJson(LINK_KEY, {});
+      imported.forEach((id) => { const data = getHubData(id); index[id] = data?.url || `#node-${String(id).padStart(3, '0')}`; });
+      if (!writeJson(LINK_KEY, index)) throw new Error('تعذر تحديث فهرس العقد.');
+      nodeButtons.forEach((_, id) => refreshNode(id));
+      updateStats();
+      applyNodeFilters();
+      setNodeStatus(`تم استيراد ${imported.length} عقدة بنجاح.`);
+    } catch (error) { setNodeStatus(error?.message || 'تعذر استيراد ملف JSON.', false); }
+  };
+  reader.onerror = () => setNodeStatus('تعذر قراءة ملف JSON.', false);
+  reader.readAsText(file);
+}
 function exportReport() {
   if (!latestReport) return;
   const blob = new Blob([JSON.stringify(latestReport, null, 2)], { type: 'application/json' });
@@ -643,33 +1285,123 @@ function exportReport() {
   window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 }
 
+function scheduleNodeFilters() {
+  if (filterFrame) cancelAnimationFrame(filterFrame);
+  filterFrame = requestAnimationFrame(() => { filterFrame = 0; applyNodeFilters(); });
+}
+function jumpToNodeFromSearch() {
+  const raw = $('#node-search').value.trim();
+  const match = raw.match(/^N[-\s#]*(\d{1,4})$/i) || raw.match(/^(\d{1,4})$/);
+  const id = Number(match?.[1]);
+  if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL) {
+    setNodeStatus(`اكتب رقم عقدة صحيحًا بين N-001 وN-${NODE_TOTAL}.`, false);
+    return;
+  }
+  $('#node-search').value = '';
+  $('#node-search-clear').hidden = true;
+  $('#node-filter').value = 'all';
+  $('#software-filter').value = 'all';
+  $('#level-filter').value = 'all';
+  applyNodeFilters();
+  const point = nodePositions.get(id);
+  const button = nodeButtons.get(id);
+  if (!point || !button) return;
+  nodeViewport.scrollTo({ left: Math.max(0, point.x * zoom - nodeViewport.clientWidth / 2), top: Math.max(0, point.y * zoom - nodeViewport.clientHeight / 2), behavior: 'smooth' });
+  button.classList.add('is-highlighted');
+  button.focus({ preventScroll: true });
+  window.setTimeout(() => button.classList.remove('is-highlighted'), 1800);
+  setNodeStatus(`تم تحديد العقدة ${nodeLabel(id)} ومركزها على الشبكة.`);
+}
+function showAllNodes() {
+  $('#node-search').value = '';
+  $('#node-search-clear').hidden = true;
+  $('#node-filter').value = 'all';
+  $('#software-filter').value = 'all';
+  $('#level-filter').value = 'all';
+  applyNodeFilters();
+  centerMapViewport('smooth');
+  setNodeStatus(`يعرض الآن جميع العقد الـ${NODE_TOTAL} في الشبكة.`);
+}
 function initializeNetwork() {
+  restoreUiSettings();
+  setupRelationCustomization();
   createNodeElements();
+  setupCanvasInteraction();
+  nodeViewport.addEventListener('scroll', renderCanvasNetwork, { passive: true });
+  setupNodeChatRoom();
   layoutNodes();
+  centerMapViewport();
   const observer = new ResizeObserver(scheduleLayout);
   observer.observe(nodeViewport);
-  $('#node-search').addEventListener('input', applyNodeFilters);
+  $('#node-search').addEventListener('input', () => {
+    $('#node-search-clear').hidden = !$('#node-search').value;
+    scheduleNodeFilters();
+  });
+  $('#node-search-jump').addEventListener('click', jumpToNodeFromSearch);
+  $('#node-search').addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); jumpToNodeFromSearch(); } });
+  $('#node-search-clear').addEventListener('click', () => {
+    $('#node-search').value = '';
+    $('#node-search-clear').hidden = true;
+    scheduleNodeFilters();
+    $('#node-search').focus();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === '/' && !/input|textarea|select/i.test(document.activeElement?.tagName || '')) {
+      event.preventDefault();
+      $('#node-search').focus();
+    }
+  });
   $('#node-filter').addEventListener('change', applyNodeFilters);
+  $('#software-filter').addEventListener('change', applyNodeFilters);
   $('#level-filter').addEventListener('change', applyNodeFilters);
-  $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); });
-  $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); });
-  $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
+  $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); persistUiSettings(); });
+  $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); persistUiSettings(); });
+  $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
+  $('#map-fit').addEventListener('click', () => { zoom = Math.max(.35, Math.min(1, Math.round(Math.min((nodeViewport.clientWidth - 24) / mapWidth, (nodeViewport.clientHeight - 24) / mapHeight) * 10) / 10)); applyZoom(); centerMapViewport('smooth'); persistUiSettings(); });
+  $('#map-layout-reset').addEventListener('click', resetNodeLayout);
+  $('#show-all-nodes').addEventListener('click', showAllNodes);
   $('#map-root').addEventListener('click', () => {
     const root = nodeButtons.get(1);
     if (!root) return;
     $('#node-search').value = '';
     $('#node-filter').value = 'all';
+    $('#software-filter').value = 'all';
     $('#level-filter').value = 'all';
     applyNodeFilters();
     nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     root.focus({ preventScroll: true });
   });
+  $('#export-nodes').addEventListener('click', exportNodes);
+  $('#export-map-json').addEventListener('click', exportNetworkMapJson);
+  $('#export-map-svg').addEventListener('click', exportNetworkMapSvg);
+  $('#import-nodes').addEventListener('click', () => $('#node-import-file').click());
+  $('#node-import-file').addEventListener('change', (event) => {
+    importNodes(event.target.files?.[0]);
+    event.target.value = '';
+  });
+  showAllNodes();
 }
 
 function setupHubModal() {
   $('#hub-close').addEventListener('click', closeHub);
   $('#hub-build').addEventListener('click', () => buildHub());
+  $('#hub-search').addEventListener('click', searchWithSelectedEngine);
   $('#hub-save').addEventListener('click', saveHub);
+  let autoSaveTimer = 0;
+  hubUrl.addEventListener('input', () => {
+    window.clearTimeout(autoSaveTimer);
+    autoSaveTimer = window.setTimeout(() => {
+      const value = hubUrl.value.trim();
+      if (!value) return;
+      try {
+        parseNodeLink(value);
+        saveHub();
+        setHubStatus('حُفظ الرابط تلقائيًا في استضافة العقدة وعُرض داخل الموقع.');
+      } catch {
+        setHubStatus('اكتب رابطًا صالحًا لإضافته تلقائيًا إلى الاستضافة.', false);
+      }
+    }, 650);
+  });
   $('#hub-fetch').addEventListener('click', transferNodeData);
   $('#hub-open').addEventListener('click', openExternally);
   $('#hub-stop').addEventListener('click', stopHub);
@@ -725,6 +1457,37 @@ function setupValidator() {
   validateVersion();
 }
 
+function setupExternalLinkModal() {
+  const modal = $('#external-link-modal');
+  const frame = $('#external-link-frame');
+  const title = $('#external-link-title');
+  const address = $('#external-link-address');
+  const open = $('#external-link-open');
+  const close = () => { modal.hidden = true; frame.removeAttribute('src'); };
+  const show = (url) => {
+    try {
+      const link = parseNodeLink(url);
+      if (link.kind !== 'web') return false;
+      title.textContent = link.host || 'رابط خارجي';
+      address.textContent = link.url;
+      open.href = link.url;
+      frame.src = link.url;
+      modal.hidden = false;
+      return true;
+    } catch { return false; }
+  };
+  $('#external-link-close').addEventListener('click', close);
+  modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
+  document.addEventListener('keydown', (event) => { if (!modal.hidden && event.key === 'Escape') close(); });
+  document.addEventListener('click', (event) => {
+    const anchor = event.target.closest('a[href]');
+    if (!anchor || modal.contains(anchor) || anchor.dataset.noInternalPreview !== undefined) return;
+    let url;
+    try { url = new URL(anchor.href, window.location.href); } catch { return; }
+    if (!['http:', 'https:'].includes(url.protocol) || url.origin === window.location.origin) return;
+    if (show(url.href)) event.preventDefault();
+  });
+}
 function setupMobileNavigation() {
   const toggle = $('#menu-toggle');
   const nav = $('#site-nav');
@@ -842,11 +1605,16 @@ function setupOrbit() {
 
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
+  $('#clear-report-cache').addEventListener('click', clearReportCache);
+  refreshReportCacheStatus();
   $('#export-report').addEventListener('click', exportReport);
   setupHubModal();
   setupValidator();
   setupMobileNavigation();
+  setupExternalLinkModal();
   setupOrbit();
+  // تشغيل نفق المعلومات تلقائيًا عند وجود عقد مهيأة، دون طلب إضافي من المستخدم.
+  window.setTimeout(() => collectReport(), 250);
 }
 
 initializeNetwork();

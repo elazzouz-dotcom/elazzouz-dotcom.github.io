@@ -53,6 +53,13 @@ test('روابط mailto وtel تحفظ للفتح الخارجي فقط', () => 
   assert.throws(() => parseNodeLink('mailto:hello%ZZ@example.com'));
 });
 
+test('روابط غرف Matrix تتحول إلى matrix.to بأمان', () => {
+  const room = parseNodeLink('#codeberg-space:matrix.org');
+  assert.equal(room.kind, 'matrix');
+  assert.equal(room.url, 'https://matrix.to/#/#codeberg-space:matrix.org');
+  assert.throws(() => parseNodeLink('#room with spaces:matrix.org'));
+});
+
 test('روابط التطبيقات الخارجية الآمنة تمررها للنظام أو المتصفح', () => {
   assert.equal(parseNodeLink('sms:+12025550123').kind, 'app');
   assert.equal(parseNodeLink('whatsapp://send?text=hello').kind, 'app');
@@ -78,6 +85,7 @@ test('ترفض الروابط الخطرة أو عناوين الشبكة الخ
   assert.equal(isPrivateHost('10.0.0.1'), true);
   assert.equal(isPrivateHost('256.0.0.1'), false);
   assert.throws(() => parseNodeLink('http://256.0.0.1'));
+  assert.throws(() => parseNodeLink('https://hhhh/'));
 });
 
 test('جمع التقرير يحد عدد المهام المتزامنة', async () => {
