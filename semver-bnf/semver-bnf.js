@@ -4,7 +4,7 @@ const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
 const VIEW_STATE_VERSION = 2;
-const POSITIONS_KEY = 'semver-bnf-node-positions-10cm';
+const POSITIONS_KEY = 'semver-bnf-node-positions-radial-10cm';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const BUILTIN_NODES = Object.freeze({
   600: {
@@ -399,42 +399,40 @@ function resetNodeLayout() {
 }
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));
-  mapWidth = viewportWidth;
-  const columns = Math.max(3, Math.min(12, Math.floor((mapWidth - 16) / (NODE_SIZE + 14))));
-  const cellWidth = mapWidth / columns;
+  const ringGap = NODE_SPACING_PX + NODE_SIZE;
+  const ringRadii = NODE_LEVELS.map((count, level) => level === 0 ? 0 : Math.max(level * ringGap, (count * NODE_SPACING_PX) / (Math.PI * 2)));
+  const maxRadius = Math.max(...ringRadii, NODE_SIZE * 2);
+  mapWidth = Math.max(viewportWidth, Math.ceil(maxRadius * 2 + NODE_SIZE * 2 + 80));
+  mapHeight = mapWidth;
+  const centerX = mapWidth / 2;
+  const centerY = mapHeight / 2;
   const storedPositions = readNodePositions();
   let cursor = 1;
-  let top = 52;
   nodePositions.clear();
   NODE_LEVELS.forEach((count, level) => {
-    const rows = Math.ceil(count / columns);
+    const radius = ringRadii[level];
     const label = levelLabels[level];
-    label.style.top = `${top - 30}px`;
-    label.style.insetInlineStart = '12px';
+    label.style.top = `${centerY - radius - 28}px`;
+    label.style.insetInlineStart = `${centerX + 12}px`;
     for (let position = 0; position < count; position += 1, cursor += 1) {
-      const col = position % columns;
-      const row = Math.floor(position / columns);
-      const x = cellWidth * (col + .5);
-      const y = top + row * ROW_GAP + 25;
+      const angle = level === 0 ? -Math.PI / 2 : -Math.PI / 2 + (position / count) * Math.PI * 2;
+      const radialX = centerX + Math.cos(angle) * radius;
+      const radialY = centerY + Math.sin(angle) * radius;
       const saved = storedPositions[cursor];
-      const position = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)
-        ? { x: Math.max(NODE_SIZE / 2, saved.x), y: Math.max(NODE_SIZE / 2, saved.y), level, row, col }
-        : { x, y, level, row, col };
-      nodePositions.set(cursor, position);
+      const point = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)
+        ? { x: Math.max(NODE_SIZE / 2, saved.x), y: Math.max(NODE_SIZE / 2, saved.y), level, row: 0, col: position }
+        : { x: radialX, y: radialY, level, row: 0, col: position };
+      nodePositions.set(cursor, point);
       const button = nodeButtons.get(cursor);
-      button.style.left = `${x - NODE_SIZE / 2}px`;
-      button.style.top = `${y - NODE_SIZE / 2}px`;
+      button.style.left = `${point.x - NODE_SIZE / 2}px`;
+      button.style.top = `${point.y - NODE_SIZE / 2}px`;
     }
-    top += rows * ROW_GAP + LEVEL_GAP;
   });
-  mapHeight = top + 24;
   fitMapToPositions();
-  nodeNetwork.style.height = `${mapHeight}px`;
   drawEdges();
   applyZoom();
   applyNodeFilters();
 }
-
 function scheduleLayout() {
   if (scheduleLayout.frame) cancelAnimationFrame(scheduleLayout.frame);
   scheduleLayout.frame = requestAnimationFrame(layoutNodes);
