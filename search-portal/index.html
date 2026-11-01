@@ -534,7 +534,13 @@
       }
 
       function renderRecentSearches() {
-        const items = JSON.parse(localStorage.getItem('searchPortalRecent') || '[]');
+        let items = [];
+        try {
+          items = JSON.parse(localStorage.getItem('searchPortalRecent') || '[]');
+        } catch (e) {
+          items = [];
+        }
+
         recentSearchesEl.innerHTML = '';
         if (!items.length) {
           recentSearchesEl.innerHTML = '<span class="tiny">لا توجد عمليات بحث سابقة</span>';
@@ -557,7 +563,13 @@
       function saveRecentQuery(q) {
         const term = q.trim();
         if (!term) return;
-        let items = JSON.parse(localStorage.getItem('searchPortalRecent') || '[]');
+        let items = [];
+        try {
+          items = JSON.parse(localStorage.getItem('searchPortalRecent') || '[]');
+        } catch (e) {
+          items = [];
+        }
+
         items = items.filter(item => item !== term);
         items.unshift(term);
         items = items.slice(0, 8);
@@ -586,10 +598,11 @@
         selected.forEach((engine) => {
           const item = document.createElement('div');
           item.className = 'result-item';
+          const url = engine.url(query);
           item.innerHTML = `
             <div><strong>${engine.label}</strong></div>
-            <div class="tiny">${engine.url(query)}</div>
-            <a class="result-link" href="${engine.url(query)}" target="_blank" rel="noopener noreferrer">فتح النتائج</a>
+            <div class="tiny">${url}</div>
+            <a class="result-link" href="${url}" target="_blank" rel="noopener noreferrer">فتح النتائج</a>
           `;
           resultsEl.appendChild(item);
         });
