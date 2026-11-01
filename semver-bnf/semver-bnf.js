@@ -3,7 +3,7 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
-const VIEW_STATE_VERSION = 4;
+const VIEW_STATE_VERSION = 5;
 const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v3';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
@@ -86,7 +86,10 @@ function persistUiSettings() {
     query: $('#node-search')?.value || '',
     nodeFilter: $('#node-filter')?.value || 'all',
     softwareFilter: $('#software-filter')?.value || 'all',
-    levelFilter: $('#level-filter')?.value || 'all'
+    levelFilter: $('#level-filter')?.value || 'all',
+    searchMode: $('#node-search-mode')?.value || 'all',
+    sort: $('#node-sort')?.value || 'id',
+    resultLimit: $('#node-result-limit')?.value || '16'
   });
 }
 function restoreUiSettings() {
@@ -100,7 +103,10 @@ function restoreUiSettings() {
   if ($('#node-filter')) $('#node-filter').value = showAll ? 'all' : (['all', 'active', 'empty'].includes(settings.nodeFilter) ? settings.nodeFilter : 'all');
   if ($('#software-filter')) $('#software-filter').value = showAll ? 'all' : (['all', 'software', 'download', 'web', 'app', 'matrix', 'html'].includes(settings.softwareFilter) ? settings.softwareFilter : 'all');
   if ($('#level-filter')) $('#level-filter').value = showAll ? 'all' : ((settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter))) ? String(settings.levelFilter) : 'all');
-  if (showAll) writeJson(UI_SETTINGS_KEY, { ...settings, viewVersion: VIEW_STATE_VERSION, query: '', nodeFilter: 'all', softwareFilter: 'all', levelFilter: 'all' });
+  if ($('#node-search-mode')) $('#node-search-mode').value = showAll ? 'all' : (['all', 'any'].includes(settings.searchMode) ? settings.searchMode : 'all');
+  if ($('#node-sort')) $('#node-sort').value = showAll ? 'id' : (['id', 'level', 'active'].includes(settings.sort) ? settings.sort : 'id');
+  if ($('#node-result-limit')) $('#node-result-limit').value = showAll ? '16' : (['8', '16', '32'].includes(String(settings.resultLimit)) ? String(settings.resultLimit) : '16');
+  if (showAll) writeJson(UI_SETTINGS_KEY, { ...settings, viewVersion: VIEW_STATE_VERSION, query: '', nodeFilter: 'all', softwareFilter: 'all', levelFilter: 'all', searchMode: 'all', sort: 'id', resultLimit: '16' });
 }
 function getHubData(id) {
   try {
@@ -569,12 +575,68 @@ function nodeContentType(data, id = null) {
   if (id !== null) nodeTypeCache.set(id, type);
   return type;
 }
+function getNodeSearchTerms(query) {
+  const terms = [];
+  const matcher = /"([^"]+)"|(\S+)/g;
+  let match;
+  while ((match = matcher.exec(query.toLocaleLowerCase()))) terms.push((match[1] || match[2]).trim());
+  return terms.filter(Boolean);
+}
+function nodeSearchText(id, data, typeLabel) {
+  return `${nodeLabel(id)} ${id} ${data?.label || ''} ${data?.url || ''} ${data?.html ? 'html محلي' : ''} ${typeLabel}`.toLocaleLowerCase();
+}
+function renderAdvancedNodeResults(ids, query) {
+  const container = $('#advanced-node-results');
+  if (!container) return;
+  const limit = Number($('#node-result-limit')?.value || 16);
+  const shown = ids.slice(0, limit);
+  container.replaceChildren();
+  if (!query.trim() && ids.length === NODE_TOTAL) {
+    const hint = document.createElement('p');
+    hint.className = 'advanced-node-result-empty';
+    hint.textContent = `اكتب كلمات البحث لعرض بطاقات مطابقة من أصل ${NODE_TOTAL} عقدة.`;
+    container.appendChild(hint);
+    return;
+  }
+  if (!shown.length) {
+    const empty = document.createElement('p');
+    empty.className = 'advanced-node-result-empty';
+    empty.textContent = 'لا توجد عقد مطابقة لهذه الشروط.';
+    container.appendChild(empty);
+    return;
+  }
+  shown.forEach((id) => {
+    const data = getHubData(id);
+    const type = nodeContentType(data, id);
+    const result = document.createElement('button');
+    result.type = 'button';
+    result.className = 'advanced-node-result';
+    const title = document.createElement('strong');
+    title.textContent = `${nodeLabel(id)} · المستوى ${Number(nodeButtons.get(id)?.dataset.level || 0) + 1}`;
+    const detail = document.createElement('span');
+    detail.textContent = data?.label || data?.url || (data?.html ? 'HTML محلي' : `عقدة ${type}`);
+    result.append(title, detail);
+    result.addEventListener('click', () => {
+      const button = nodeButtons.get(id);
+      if (!button) return;
+      nodeViewport.scrollTo({ left: Math.max(0, (nodePositions.get(id)?.x || 0) * zoom - nodeViewport.clientWidth / 2), top: Math.max(0, (nodePositions.get(id)?.y || 0) * zoom - nodeViewport.clientHeight / 2), behavior: 'smooth' });
+      button.focus({ preventScroll: true });
+      button.classList.add('is-highlighted');
+      window.setTimeout(() => button.classList.remove('is-highlighted'), 1800);
+      openHubNode(id, button);
+    });
+    container.appendChild(result);
+  });
+}
 function applyNodeFilters() {
-  const query = $('#node-search').value.trim().toLowerCase();
+  const query = $('#node-search').value.trim();
+  const terms = getNodeSearchTerms(query);
+  const searchMode = $('#node-search-mode')?.value || 'all';
+  const sort = $('#node-sort')?.value || 'id';
   const activeFilter = $('#node-filter').value;
   const softwareFilter = $('#software-filter').value;
   const levelFilter = $('#level-filter').value;
-  let visible = 0;
+  const visibleIds = [];
   for (let id = 1; id <= NODE_TOTAL; id += 1) {
     const button = nodeButtons.get(id);
     const data = getHubData(id);
@@ -583,13 +645,16 @@ function applyNodeFilters() {
     const stateMatches = activeFilter === 'all' || (activeFilter === 'active' ? configured : !configured);
     const typeLabel = nodeContentType(data, id);
     const typeMatches = softwareFilter === 'all' || typeLabel === softwareFilter;
-    const haystack = `${nodeLabel(id)} ${data?.url || ''} ${data?.html ? 'html' : ''} ${typeLabel}`.toLowerCase();
-    const queryMatches = !query || haystack.includes(query);
+    const haystack = nodeSearchText(id, data, typeLabel);
+    const queryMatches = !terms.length || (searchMode === 'any' ? terms.some((term) => haystack.includes(term)) : terms.every((term) => haystack.includes(term)));
     const show = levelMatches && stateMatches && typeMatches && queryMatches;
     button.hidden = !show;
-    button.classList.toggle('is-highlighted', Boolean(query && queryMatches && show));
-    if (show) visible += 1;
+    button.classList.toggle('is-highlighted', Boolean(terms.length && queryMatches && show));
+    if (show) visibleIds.push(id);
   }
+  if (sort === 'level') visibleIds.sort((a, b) => Number(nodeButtons.get(a).dataset.level) - Number(nodeButtons.get(b).dataset.level) || a - b);
+  if (sort === 'active') visibleIds.sort((a, b) => Number(isConfigured(getHubData(b))) - Number(isConfigured(getHubData(a))) || a - b);
+  renderAdvancedNodeResults(visibleIds, query);
   for (const path of lines.querySelectorAll('.network-connection')) {
     path.hidden = Boolean(nodeButtons.get(Number(path.dataset.from))?.hidden || nodeButtons.get(Number(path.dataset.to))?.hidden);
   }
@@ -597,7 +662,7 @@ function applyNodeFilters() {
     const anyVisible = [...nodeButtons.values()].some((button) => Number(button.dataset.level) === level && !button.hidden);
     label.hidden = !anyVisible;
   });
-  $('#node-status').textContent = `يعرض ${visible} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
+  $('#node-status').textContent = `يعرض ${visibleIds.length} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
   renderCanvasNetwork();
   persistUiSettings();
 }
@@ -1302,6 +1367,9 @@ function jumpToNodeFromSearch() {
   $('#node-filter').value = 'all';
   $('#software-filter').value = 'all';
   $('#level-filter').value = 'all';
+  $('#node-search-mode').value = 'all';
+  $('#node-sort').value = 'id';
+  $('#node-result-limit').value = '16';
   applyNodeFilters();
   const point = nodePositions.get(id);
   const button = nodeButtons.get(id);
@@ -1318,6 +1386,9 @@ function showAllNodes() {
   $('#node-filter').value = 'all';
   $('#software-filter').value = 'all';
   $('#level-filter').value = 'all';
+  $('#node-search-mode').value = 'all';
+  $('#node-sort').value = 'id';
+  $('#node-result-limit').value = '16';
   applyNodeFilters();
   centerMapViewport('smooth');
   setNodeStatus(`يعرض الآن جميع العقد الـ${NODE_TOTAL} في الشبكة.`);
@@ -1354,6 +1425,9 @@ function initializeNetwork() {
   $('#node-filter').addEventListener('change', applyNodeFilters);
   $('#software-filter').addEventListener('change', applyNodeFilters);
   $('#level-filter').addEventListener('change', applyNodeFilters);
+  $('#node-search-mode').addEventListener('change', applyNodeFilters);
+  $('#node-sort').addEventListener('change', applyNodeFilters);
+  $('#node-result-limit').addEventListener('change', applyNodeFilters);
   $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); persistUiSettings(); });
   $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); persistUiSettings(); });
   $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });

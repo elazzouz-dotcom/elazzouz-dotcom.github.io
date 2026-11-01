@@ -161,6 +161,22 @@
             <input id="node-import-file" class="node-import-file" type="file" accept="application/json,.json" hidden>
           </div>
         </div>
+        <details class="advanced-node-search">
+          <summary>بحث متقدم داخل الأنظمة الفرعية</summary>
+          <div class="advanced-node-search-body">
+            <label class="semver-field-label" for="node-search-mode">مطابقة الكلمات
+              <select id="node-search-mode" class="semver-select"><option value="all">كل الكلمات</option><option value="any">أي كلمة</option></select>
+            </label>
+            <label class="semver-field-label" for="node-sort">ترتيب النتائج
+              <select id="node-sort" class="semver-select"><option value="id">رقم العقدة</option><option value="level">المستوى ثم الرقم</option><option value="active">المهيأة أولًا</option></select>
+            </label>
+            <label class="semver-field-label" for="node-result-limit">عدد البطاقات
+              <select id="node-result-limit" class="semver-select"><option value="8">8</option><option value="16" selected>16</option><option value="32">32</option></select>
+            </label>
+            <p class="advanced-node-search-help">اكتب كلمات متعددة مثل <strong>N-600 VSAT</strong> أو <strong>software github</strong>. ابحث في رقم العقدة والرابط والتصنيف ومحتوى HTML، ثم اضغط بطاقة للانتقال إليها.</p>
+            <div id="advanced-node-results" class="advanced-node-results" aria-live="polite"></div>
+          </div>
+        </details>
         <details class="relation-customizer">
           <summary>تخصيص ألوان وأشكال خطوط الربط</summary>
           <div class="relation-control-grid">
