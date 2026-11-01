@@ -298,6 +298,7 @@
       <div class="hub-actions">
         <button id="hub-build" class="semver-button semver-button-primary" type="button">بناء المعاينة</button>
         <button id="hub-search" class="semver-button" type="button">بحث بالمحرك المختار</button>
+        <button id="hub-search-all" class="semver-button semver-button-primary" type="button">بحث شامل في كل المصادر</button>
         <button id="hub-fetch" class="semver-button" type="button">حفظ الملخص في مسار العقد</button>
         <button id="hub-save" class="semver-button" type="button">حفظ العقدة</button>
         <button id="hub-open" class="semver-button" type="button">فتح في التطبيق أو المتصفح</button>
@@ -318,7 +319,7 @@
       <p id="hub-status" class="hub-status" aria-live="polite">لم تُحفظ إعدادات لهذه العقدة بعد.</p>
       <div class="browser-frame">
         <div class="browser-toolbar"><span class="browser-dot" aria-hidden="true"></span><span class="browser-dot" aria-hidden="true"></span><span class="browser-dot" aria-hidden="true"></span><span id="hub-address" class="browser-address">معاينة معزولة</span></div>
-        <iframe id="hub-preview" class="hub-preview" title="معاينة معزولة لمحتوى العقدة" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
+        <iframe id="hub-preview" class="hub-preview" title="معاينة معزولة لمحتوى العقدة" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer"></iframe>
       </div>
       <div id="hub-extraction" class="hub-extraction" aria-live="polite">ستظهر هنا خلاصة النص والعنوان بعد بناء المعاينة.</div>
     </section>

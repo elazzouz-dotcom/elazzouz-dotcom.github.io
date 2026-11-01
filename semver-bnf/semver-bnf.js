@@ -1014,6 +1014,88 @@ function searchWithSelectedEngine() {
   window.open(url, '_blank', 'noopener,noreferrer');
   setHubStatus(`تم فتح البحث عبر ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'}.`);
 }
+
+const FEDERATED_SEARCH_ENGINES = Object.freeze([
+  ['Google', SEARCH_ENGINES.google], ['Bing', SEARCH_ENGINES.bing], ['DuckDuckGo', SEARCH_ENGINES.duckduckgo],
+  ['Brave Search', SEARCH_ENGINES.brave], ['Yahoo', SEARCH_ENGINES.yahoo], ['Ecosia', SEARCH_ENGINES.ecosia],
+  ['Startpage', SEARCH_ENGINES.startpage], ['Qwant', SEARCH_ENGINES.qwant], ['Kagi', SEARCH_ENGINES.kagi],
+  ['Yandex', SEARCH_ENGINES.yandex], ['Baidu', SEARCH_ENGINES.baidu]
+]);
+
+async function fetchSearchJson(url, timeoutMs = 6500) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+async function searchWikipedia(query) {
+  const endpoint = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=5&format=json&origin=*`;
+  const data = await fetchSearchJson(endpoint);
+  return (data.query?.search || []).map(item => ({ title: item.title, url: `https://en.wikipedia.org/?curid=${item.pageid}`, text: item.snippet?.replace(/<[^>]+>/g, '') || '', kind: 'مقالة' }));
+}
+
+async function searchStackOverflow(query) {
+  const endpoint = `https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${encodeURIComponent(query)}&site=stackoverflow&pagesize=5&filter=default`;
+  const data = await fetchSearchJson(endpoint);
+  return (data.items || []).map(item => ({ title: item.title, url: item.link, text: `إجابات برمجية · ${item.answer_count || 0} إجابة`, kind: 'Stack Overflow' }));
+}
+
+async function searchMdn(query) {
+  const data = await fetchSearchJson(`https://developer.mozilla.org/api/v1/search?q=${encodeURIComponent(query)}&size=5`);
+  const documents = data.documents || data.results || [];
+  return documents.slice(0, 5).map(item => ({ title: item.title || item.name, url: item.mdn_url || item.url || item.slug, text: item.summary || item.description || 'مرجع ويب وتقنيات.', kind: 'MDN' })).filter(item => item.url);
+}
+
+async function searchGithub(query) {
+  try {
+    const data = await fetchSearchJson(`https://api.github.com/search/code?q=${encodeURIComponent(query)}&per_page=5`);
+    return (data.items || []).map(item => ({ title: item.name, url: item.html_url, text: `ملف برمجي في ${item.repository?.full_name || 'GitHub'}`, kind: 'GitHub Code' }));
+  } catch {
+    const data = await fetchSearchJson(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=5`);
+    return (data.items || []).map(item => ({ title: item.full_name, url: item.html_url, text: item.description || 'مستودع برمجي.', kind: 'GitHub Repository' }));
+  }
+}
+
+async function searchNpm(query) {
+  const data = await fetchSearchJson(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(query)}&size=5`);
+  return (data.objects || []).map(item => ({ title: item.package?.name, url: item.package?.links?.npm, text: item.package?.description || 'حزمة JavaScript قابلة لإعادة الاستخدام.', kind: 'npm' })).filter(item => item.url);
+}
+
+function renderFederatedResults(query, reports) {
+  const engineCards = FEDERATED_SEARCH_ENGINES.map(([name, base]) => `<a class="federated-search-engine" href="${escapeXml(`${base}${encodeURIComponent(query)}`)}" target="_blank" rel="noopener noreferrer">${escapeXml(name)} ↗</a>`).join('');
+  const resultCards = reports.flatMap(report => (report.items || []).map(item => `<article class="federated-search-card"><span>${escapeXml(item.kind)}</span><h3><a href="${escapeXml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeXml(item.title || 'نتيجة بلا عنوان')}</a></h3><p>${escapeXml(item.text || '')}</p></article>`)).join('');
+  const message = resultCards ? 'تم العثور على نتائج من مصادر المقالات والبرمجة. افتح أي نتيجة، أو انتقل إلى أحد محركات البحث.' : 'لم تُرجع المصادر المتخصصة نتيجة مباشرة؛ جرّب أحد محركات البحث العامة أدناه.';
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e7f2f0;background:#071014;line-height:1.7}h1{font-size:1.35rem;margin:0 0 8px}p{color:#9cb0b2}.federated-search-engines{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.federated-search-engine{display:inline-block;padding:7px 10px;border:1px solid #315d57;border-radius:999px;color:#59e0a3;text-decoration:none;font-size:.82rem}.federated-search-results{display:grid;gap:10px}.federated-search-card{border:1px solid #25443f;border-radius:14px;padding:14px;background:#102127}.federated-search-card span{color:#f4ce72;font-size:.75rem;font-weight:700}.federated-search-card h3{font-size:1rem;margin:4px 0}.federated-search-card h3 a{color:#e8f7f2}.federated-search-card p{margin:0;font-size:.86rem}</style></head><body><h1>بحث شامل: ${escapeXml(query)}</h1><p>${escapeXml(message)}</p><div class="federated-search-engines">${engineCards}</div><section class="federated-search-results">${resultCards || '<p>لم نجد نتيجة متخصصة بعد. استخدم روابط المحركات أعلاه لتوسيع البحث.</p>'}</section></body></html>`;
+}
+
+async function searchEverywhere() {
+  const query = hubSearchQuery.value.trim();
+  if (!query) { setHubStatus('اكتب عبارة بحث أولًا.', false); hubSearchQuery.focus(); return; }
+  const button = $('#hub-search-all');
+  button.disabled = true;
+  button.textContent = 'جارٍ البحث في كل المصادر…';
+  hubPreview.hidden = false;
+  hubAddress.textContent = `بحث شامل · ${query}`;
+  setHubStatus('جارٍ البحث بالتوازي في محركات البحث ومصادر المقالات والبرمجة…');
+  const tasks = [
+    ['Wikipedia', searchWikipedia], ['Stack Overflow', searchStackOverflow], ['MDN', searchMdn], ['GitHub', searchGithub], ['npm', searchNpm]
+  ];
+  const settled = await Promise.allSettled(tasks.map(([, search]) => search(query)));
+  const reports = settled.map((result, index) => ({ source: tasks[index][0], items: result.status === 'fulfilled' ? result.value : [] }));
+  const total = reports.reduce((sum, report) => sum + report.items.length, 0);
+  hubPreview.removeAttribute('src');
+  hubPreview.srcdoc = renderFederatedResults(query, reports);
+  renderExtraction({ title: `بحث شامل: ${query}`, text: `تم فحص ${tasks.length} مصادر متخصصة وإعداد روابط ${FEDERATED_SEARCH_ENGINES.length} محرك بحث. عدد النتائج المباشرة: ${total}.`, source: 'البحث متعدد المصادر', kind: 'search' });
+  setHubStatus(total ? `اكتمل البحث الشامل؛ عُثر على ${total} نتيجة مباشرة مع روابط كل المحركات.` : 'اكتمل البحث الشامل؛ لم تُرجع المصادر المتخصصة نتيجة مباشرة، وجميع المحركات العامة متاحة للتجربة.');
+  button.disabled = false;
+  button.textContent = 'بحث شامل في كل المصادر';
+}
 function clearPreview() {
   hubPreview.removeAttribute('srcdoc');
   hubPreview.src = 'about:blank';
@@ -1672,6 +1754,7 @@ function setupHubModal() {
   $('#hub-close').addEventListener('click', closeHub);
   $('#hub-build').addEventListener('click', () => buildHub());
   $('#hub-search').addEventListener('click', searchWithSelectedEngine);
+  $('#hub-search-all').addEventListener('click', searchEverywhere);
   $('#hub-save').addEventListener('click', saveHub);
   let autoSaveTimer = 0;
   hubUrl.addEventListener('input', () => {
