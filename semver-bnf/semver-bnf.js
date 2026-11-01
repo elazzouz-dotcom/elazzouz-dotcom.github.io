@@ -506,7 +506,7 @@ function resetNodeLayout() {
   nodePositions.clear();
   layoutNodes();
   centerMapViewport('smooth');
-  setNodeStatus('تمت استعادة ترتيب 6600 عقدة بمسافة 10 سم ومسارات متماسكة.');
+  setNodeStatus('تمت استعادة ترتيب 660 عقدة بمسافة 10 سم ومسارات متماسكة.');
 }
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));

@@ -1,4 +1,5 @@
-export const NODE_LEVELS = Object.freeze([1, 3, 9, 27, 81, 243, 729, 2187, 3320]);
+// سبعة مستويات: شجرة ثلاثية متدرجة مع مستوى أخير جزئي مضبوط حتى يبقى كل أب صالحًا.
+export const NODE_LEVELS = Object.freeze([1, 3, 9, 27, 81, 243, 296]);
 export const NODE_TOTAL = NODE_LEVELS.reduce((sum, count) => sum + count, 0);
 
 export function getNodeLevelInfo(id) {
