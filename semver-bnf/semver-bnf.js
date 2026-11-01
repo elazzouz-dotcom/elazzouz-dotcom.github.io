@@ -40,8 +40,6 @@ let focusReturn = null;
 let draggedNode = null;
 let suppressNodeClick = false;
 let focusedEdge = null;
-const slaksChatRecords = new Map();
-let slaksChatSelected = null;
 
 function readJson(key, fallback) {
   try {
@@ -210,58 +208,6 @@ function endNodeDrag(event) {
     saveNodePositions();
     window.setTimeout(() => { suppressNodeClick = false; }, 0);
   }
-}
-function buildSlaksChatRecord(id) {
-  const data = getHubData(id);
-  const type = nodeContentType(data, id);
-  const parent = id > 1 ? getNodeParent(id) : null;
-  const configured = isConfigured(data);
-  return { id, label: nodeLabel(id), level: NODE_LEVELS.findIndex((count, level) => { let start = NODE_LEVELS.slice(0, level).reduce((sum, value) => sum + value, 0) + 1; return id >= start && id < start + count; }) + 1, parent, configured, type, url: data?.url || '', html: data?.html || '', updatedAt: data?.savedAt || '' };
-}
-function connectNodesToSlaksChat() {
-  slaksChatRecords.clear();
-  for (let id = 1; id <= NODE_TOTAL; id += 1) slaksChatRecords.set(id, buildSlaksChatRecord(id));
-  renderSlaksChat();
-}
-function pushNodeToSlaksChat(id) {
-  slaksChatRecords.set(id, buildSlaksChatRecord(id));
-  slaksChatSelected = id;
-  renderSlaksChat();
-}
-function renderSlaksChat() {
-  const log = $('#slaks-node-chat-log');
-  if (!log) return;
-  const query = ($('#slaks-chat-search-input')?.value || '').trim().toLowerCase();
-  const records = [...slaksChatRecords.values()].filter((record) => !query || `${record.label} ${record.url} ${record.type} ${record.html ? 'html' : ''}`.toLowerCase().includes(query));
-  const visible = records.slice(0, 120);
-  log.replaceChildren();
-  const system = document.createElement('div');
-  system.className = 'slaks-chat-message slaks-chat-system';
-  system.textContent = `تم ربط ${slaksChatRecords.size} عقدة · تعرض القائمة ${visible.length}${records.length > visible.length ? ` من ${records.length}` : ''}`;
-  log.appendChild(system);
-  visible.forEach((record) => {
-    const item = document.createElement('article');
-    item.className = `slaks-chat-message ${record.id === slaksChatSelected ? 'is-selected' : ''}`;
-    const title = document.createElement('strong');
-    title.textContent = `${record.label} · المستوى ${record.level}`;
-    const text = document.createElement('p');
-    text.textContent = record.configured ? `${record.type === 'html' ? 'HTML محلي' : record.url || 'بيانات محلية'} · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}` : `فارغة · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}`;
-    item.append(title, text);
-    item.addEventListener('click', () => { const button = nodeButtons.get(record.id); if (button) { button.scrollIntoView({ block: 'center', inline: 'center' }); openHubNode(record.id, button); } });
-    log.appendChild(item);
-  });
-  const active = [...slaksChatRecords.values()].filter((record) => record.configured).length;
-  $('#slaks-chat-badge').textContent = String(active || NODE_TOTAL);
-  $('#slaks-chat-footer').textContent = `${slaksChatRecords.size} عقدة مرتبطة · ${active} مهيأة · الحفظ محلي`;
-}
-function setupSlaksChat() {
-  connectNodesToSlaksChat();
-  const panel = $('#slaks-node-chat');
-  const toggle = $('#slaks-chat-toggle');
-  const close = () => { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); };
-  toggle.addEventListener('click', () => { panel.hidden = !panel.hidden; toggle.setAttribute('aria-expanded', String(!panel.hidden)); if (!panel.hidden) $('#slaks-chat-search-input').focus(); });
-  $('#slaks-chat-close').addEventListener('click', close);
-  $('#slaks-chat-search-input').addEventListener('input', renderSlaksChat);
 }
 function createNodeElements() {
   let id = 1;
@@ -694,7 +640,6 @@ function openHubNode(id, button) {
   highlightNodePath(id);
   $('#hub-node-number').textContent = `#${String(id).padStart(3, '0')}`;
   const data = getHubData(id);
-  pushNodeToSlaksChat(id);
   hubUrl.value = data?.url || '';
   hubHtml.value = data?.html || '';
   hubDialog.classList.remove('is-minimized', 'is-fullscreen');
@@ -1022,7 +967,6 @@ function scheduleNodeFilters() {
 function initializeNetwork() {
   restoreUiSettings();
   setupRelationCustomization();
-  setupSlaksChat();
   createNodeElements();
   layoutNodes();
   const observer = new ResizeObserver(scheduleLayout);
