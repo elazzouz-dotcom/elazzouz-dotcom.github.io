@@ -168,15 +168,18 @@ function fitMapToPositions() {
   nodeNetwork.style.height = `${mapHeight}px`;
 }
 function beginNodeDrag(event, id, button) {
-  if (event.button !== 0) return;
+  if (event.pointerType === 'mouse' && event.button !== 0) return;
+  if (draggedNode || event.isPrimary === false) return;
   const position = nodePositions.get(id);
   if (!position) return;
-  draggedNode = { id, button, startX: event.clientX, startY: event.clientY, originX: position.x, originY: position.y, moved: false };
+  event.preventDefault();
+  draggedNode = { id, button, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: position.x, originY: position.y, moved: false };
   button.setPointerCapture?.(event.pointerId);
 }
 function moveNodeDrag(event) {
-  if (!draggedNode) return;
+  if (!draggedNode || event.pointerId !== draggedNode.pointerId) return;
   const drag = draggedNode;
+  event.preventDefault();
   const deltaX = (event.clientX - drag.startX) / zoom;
   const deltaY = (event.clientY - drag.startY) / zoom;
   if (!drag.moved && Math.hypot(deltaX, deltaY) < 5) return;
@@ -193,9 +196,10 @@ function moveNodeDrag(event) {
   applyZoom();
 }
 function endNodeDrag(event) {
-  if (!draggedNode) return;
+  if (!draggedNode || (event.pointerId && event.pointerId !== draggedNode.pointerId)) return;
   const drag = draggedNode;
-  drag.button.releasePointerCapture?.(event.pointerId);
+  event.preventDefault();
+  drag.button.releasePointerCapture?.(drag.pointerId);
   drag.button.classList.remove('is-dragging');
   draggedNode = null;
   if (drag.moved) {
@@ -240,6 +244,7 @@ function createNodeElements() {
       button.addEventListener('pointermove', moveNodeDrag);
       button.addEventListener('pointerup', endNodeDrag);
       button.addEventListener('pointercancel', endNodeDrag);
+      button.addEventListener('lostpointercapture', endNodeDrag);
       nodeNetwork.appendChild(button);
       nodeButtons.set(currentId, button);
       refreshNode(currentId);
