@@ -70,10 +70,10 @@
     }
   };
   const renderSearchDashboard = (query, reports) => {
-    const engines = Object.entries(SEARCH_ENGINES).map(([key, base]) => `<a href="${escape(`${base}${encodeURIComponent(query)}`)}" target="_blank" rel="noopener noreferrer">${escape(engine.querySelector(`option[value="${key}"]`)?.text || key)} ↗</a>`).join('');
-    const cards = reports.flatMap(report => (report.items || []).map(item => `<article><small>${escape(item.kind)}</small><h3><a href="${escape(item.url)}" target="_blank" rel="noopener noreferrer">${escape(item.title || 'نتيجة بلا عنوان')}</a></h3><p>${escape(item.text || '')}</p></article>`)).join('');
+    const engines = Object.entries(SEARCH_ENGINES).map(([key, base]) => { const url = `${base}${encodeURIComponent(query)}`; return `<a href="${escape(url)}" data-preview-url="${escape(url)}">${escape(engine.querySelector(`option[value="${key}"]`)?.text || key)} ↗</a>`; }).join('');
+    const cards = reports.flatMap(report => (report.items || []).map(item => `<article><small>${escape(item.kind)}</small><h3><a href="${escape(item.url)}" data-preview-url="${escape(item.url)}">${escape(item.title || 'نتيجة بلا عنوان')}</a></h3><p>${escape(item.text || '')}</p></article>`)).join('');
     const fallback = cards ? '' : '<section class="fallback"><strong>لم يظهر موقع مباشر بعد.</strong><p>يمكنك فتح أحد المحركات أعلاه، أو استخدام هذه العبارة للبحث عن مقال أو مرجع أو شفرة برمجية. لا نعرض إجابة ذكاء اصطناعي مزيفة؛ يمكن تفعيلها لاحقًا عبر نقطة خلفية آمنة دون كشف مفاتيح API.</p></section>';
-    return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:22px;color:#e7f2f0;background:#071014;line-height:1.7}h1{font-size:1.3rem;margin:0 0 8px}p{color:#9cb0b2}.engines{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.engines a{padding:7px 10px;border:1px solid #315d57;border-radius:999px;color:#59e0a3;text-decoration:none;font-size:.82rem}.results{display:grid;gap:10px}.results article,.fallback{border:1px solid #25443f;border-radius:14px;padding:13px;background:#102127}.results small{color:#f4ce72;font-weight:700}.results h3{font-size:1rem;margin:3px 0}.results h3 a{color:#e8f7f2}.results p{margin:0;font-size:.86rem}.fallback strong{color:#f4ce72}</style></head><body><h1>بحث شامل: ${escape(query)}</h1><p>تظهر النتائج من مصادر المقالات والتقنية والبرمجة تدريجيًا، مع روابط كل محركات البحث.</p><nav class="engines">${engines}</nav><section class="results">${cards}</section>${fallback}</body></html>`;
+    return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:22px;color:#e7f2f0;background:#071014;line-height:1.7}h1{font-size:1.3rem;margin:0 0 8px}p{color:#9cb0b2}.engines{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.engines a{padding:7px 10px;border:1px solid #315d57;border-radius:999px;color:#59e0a3;text-decoration:none;font-size:.82rem}.results{display:grid;gap:10px}.results article,.fallback{border:1px solid #25443f;border-radius:14px;padding:13px;background:#102127}.results small{color:#f4ce72;font-weight:700}.results h3{font-size:1rem;margin:3px 0}.results h3 a{color:#e8f7f2}.results p{margin:0;font-size:.86rem}.fallback strong{color:#f4ce72}</style></head><body><h1>بحث شامل: ${escape(query)}</h1><p>تظهر النتائج من مصادر المقالات والتقنية والبرمجة تدريجيًا، مع روابط كل محركات البحث.</p><nav class="engines">${engines}</nav><section class="results">${cards}</section>${fallback}<script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'preview-in-site',url:link.getAttribute('data-preview-url')},'*');});</script></body></html>`;
   };
   const federatedSearch = async (query, run) => {
     const reports = [];
@@ -116,6 +116,21 @@
       return false;
     }
   };
+  const previewInsideSite = async (url) => {
+    let parsed;
+    try { parsed = new URL(url); } catch { return; }
+    if (!['http:', 'https:'].includes(parsed.protocol)) return;
+    const run = ++previewRun;
+    frame.removeAttribute('srcdoc');
+    frame.src = parsed.href;
+    describe(parsed.href, { title: parsed.hostname, status: 'جاري تجهيز المقال أو الموقع داخل المعاينة…' });
+    const usedProxy = await inspect(parsed.href, run);
+    if (run === previewRun && !usedProxy) setStatus('تم تحميل المحتوى داخل المعاينة.');
+  };
+  window.addEventListener('message', (event) => {
+    if (event.source !== frame.contentWindow || event.data?.type !== 'preview-in-site') return;
+    previewInsideSite(event.data.url);
+  });
 
   frame.addEventListener('load', () => {
     if (!frame.srcdoc && frame.src && frame.src !== 'about:blank') {
