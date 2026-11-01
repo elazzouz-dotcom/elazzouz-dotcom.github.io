@@ -9,6 +9,21 @@
 name = "github-oauth-proxy"
 main = "cloudflare-worker-oauth-proxy.js"
 compatibility_date = "2024-01-01"
+keep_vars = true
+
+[cache]
+enabled = true
+cross_version_cache = false
+
+[exports.default]
+type = "worker"
+[exports.default.cache]
+enabled = false
+
+[exports.Preview]
+type = "worker"
+[exports.Preview.cache]
+enabled = true
 
 [vars]
 # Public variables (safe to commit)
