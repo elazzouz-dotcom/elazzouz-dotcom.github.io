@@ -97,7 +97,15 @@ body.semver-page a { color: inherit; }
 .semver-stat { border: 1px solid var(--semver-line); border-radius: 15px; padding: .85rem 1rem; background: rgba(13, 25, 30, .75); }
 .semver-stat span { display: block; color: var(--semver-muted); font-size: .72rem; }
 .semver-stat strong { display: block; margin-top: .2rem; color: var(--semver-green); font-size: 1.3rem; }
-.node-toolbar { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(140px, .45fr) minmax(140px, .45fr) auto; align-items: end; gap: .65rem; margin-bottom: .8rem; }
+.node-toolbar { position: sticky; top: 70px; z-index: 10; display: grid; grid-template-columns: minmax(250px, 1.35fr) repeat(3, minmax(135px, .55fr)) auto; align-items: end; gap: .65rem; margin: 0 -.35rem .8rem; padding: .7rem; border: 1px solid rgba(89, 224, 163, .2); border-radius: 16px; background: rgba(7, 16, 20, .9); box-shadow: 0 12px 30px rgba(0, 0, 0, .18); backdrop-filter: blur(14px); }
+.search-control { position: relative; display: flex; align-items: center; }
+.search-control .semver-input { padding-inline: 2rem 2.25rem; transition: border-color .18s ease, box-shadow .18s ease; }
+.search-control .semver-input:focus { border-color: var(--semver-green); box-shadow: 0 0 0 3px rgba(89, 224, 163, .12); }
+.search-icon { position: absolute; inset-inline-start: .7rem; z-index: 1; color: var(--semver-green); font-size: 1.2rem; pointer-events: none; }
+.search-clear { position: absolute; inset-inline-end: .45rem; z-index: 1; width: 28px; height: 28px; border: 0; border-radius: 50%; color: var(--semver-muted); background: transparent; font: inherit; font-size: 1.15rem; line-height: 1; cursor: pointer; }
+.search-clear:hover, .search-clear:focus-visible { color: var(--semver-text); background: rgba(89, 224, 163, .12); }
+.node-toolbar .semver-select { transition: border-color .18s ease, background .18s ease; }
+.node-toolbar .semver-select:hover { border-color: rgba(89, 224, 163, .45); background: #0b1b20; }
 .semver-field-label { display: grid; gap: .4rem; color: var(--semver-muted); font-size: .75rem; font-weight: 800; }
 .semver-input, .semver-select, .semver-textarea { width: 100%; min-width: 0; border: 1px solid var(--semver-line); border-radius: 11px; padding: .72rem .8rem; color: var(--semver-text); background: #071014; font: inherit; font-size: .9rem; }
 .semver-input::placeholder, .semver-textarea::placeholder { color: #70868a; }
@@ -236,7 +244,7 @@ body.semver-page a { color: inherit; }
 @media (max-width: 900px) {
   .semver-hero-grid { grid-template-columns: 1fr; }
   .orbit-card { max-width: 720px; }
-  .node-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .node-toolbar { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .node-toolbar-controls { grid-column: 1 / -1; }
 }
 @media (max-width: 640px) {
@@ -257,7 +265,7 @@ body.semver-page a { color: inherit; }
   .semver-stat-row { gap: .45rem; }
   .semver-stat { padding: .65rem; }
   .semver-stat strong { font-size: 1.05rem; }
-  .node-toolbar { grid-template-columns: 1fr; }
+  .node-toolbar { grid-template-columns: 1fr; margin-inline: 0; }
   .node-toolbar-controls { grid-column: auto; }
   .node-toolbar-controls .semver-button { flex: 1; }
   .node-viewport { height: 62vh; min-height: 390px; }

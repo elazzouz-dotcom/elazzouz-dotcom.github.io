@@ -23,6 +23,8 @@ const stage = $('#network-stage');
 const nodeNetwork = $('#node-network');
 const lines = $('#node-lines');
 const nodeButtons = new Map();
+const nodeTypeCache = new Map();
+let filterFrame = 0;
 const levelLabels = [];
 const nodePositions = new Map();
 let mapWidth = 0;
@@ -72,7 +74,10 @@ function persistUiSettings() {
 function restoreUiSettings() {
   const settings = readJson(UI_SETTINGS_KEY, {});
   if (Number.isFinite(settings.zoom)) zoom = Math.min(1.5, Math.max(.6, Number(settings.zoom)));
-  if ($('#node-search')) $('#node-search').value = String(settings.query || '');
+  if ($('#node-search')) {
+    $('#node-search').value = String(settings.query || '');
+    if ($('#node-search-clear')) $('#node-search-clear').hidden = !settings.query;
+  }
   if ($('#node-filter') && ['all', 'active', 'empty'].includes(settings.nodeFilter)) $('#node-filter').value = settings.nodeFilter;
   if ($('#software-filter') && ['all', 'software', 'download', 'web', 'app', 'html'].includes(settings.softwareFilter)) $('#software-filter').value = settings.softwareFilter;
   if ($('#level-filter') && (settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter)))) $('#level-filter').value = String(settings.levelFilter);
@@ -103,6 +108,7 @@ function nodeLabel(id) {
 }
 
 function refreshNode(id) {
+  nodeTypeCache.delete(id);
   const button = nodeButtons.get(id);
   if (!button) return;
   const data = getHubData(id);
@@ -246,15 +252,20 @@ function scheduleLayout() {
   scheduleLayout.frame = requestAnimationFrame(layoutNodes);
 }
 
-function nodeContentType(data) {
-  if (!data || !isConfigured(data)) return 'empty';
-  if (data.html && !data.url) return 'html';
-  if (!data.url) return 'empty';
-  try {
-    const link = parseNodeLink(data.url);
-    if (link.kind !== 'web') return 'app';
-    return classifySoftwareUrl(link.url).kind;
-  } catch { return 'web'; }
+function nodeContentType(data, id = null) {
+  if (id !== null && nodeTypeCache.has(id)) return nodeTypeCache.get(id);
+  let type = 'empty';
+  if (data && isConfigured(data)) {
+    if (data.html && !data.url) type = 'html';
+    else if (data.url) {
+      try {
+        const link = parseNodeLink(data.url);
+        type = link.kind !== 'web' ? 'app' : classifySoftwareUrl(link.url).kind;
+      } catch { type = 'web'; }
+    }
+  }
+  if (id !== null) nodeTypeCache.set(id, type);
+  return type;
 }
 function applyNodeFilters() {
   const query = $('#node-search').value.trim().toLowerCase();
@@ -268,8 +279,8 @@ function applyNodeFilters() {
     const configured = isConfigured(data);
     const levelMatches = levelFilter === 'all' || button.dataset.level === levelFilter;
     const stateMatches = activeFilter === 'all' || (activeFilter === 'active' ? configured : !configured);
-    const typeMatches = softwareFilter === 'all' || nodeContentType(data) === softwareFilter;
-    const typeLabel = nodeContentType(data);
+    const typeLabel = nodeContentType(data, id);
+    const typeMatches = softwareFilter === 'all' || typeLabel === softwareFilter;
     const haystack = `${nodeLabel(id)} ${data?.url || ''} ${data?.html ? 'html' : ''} ${typeLabel}`.toLowerCase();
     const queryMatches = !query || haystack.includes(query);
     const show = levelMatches && stateMatches && typeMatches && queryMatches;
@@ -804,13 +815,32 @@ function exportReport() {
   window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 }
 
+function scheduleNodeFilters() {
+  if (filterFrame) cancelAnimationFrame(filterFrame);
+  filterFrame = requestAnimationFrame(() => { filterFrame = 0; applyNodeFilters(); });
+}
 function initializeNetwork() {
   restoreUiSettings();
   createNodeElements();
   layoutNodes();
   const observer = new ResizeObserver(scheduleLayout);
   observer.observe(nodeViewport);
-  $('#node-search').addEventListener('input', applyNodeFilters);
+  $('#node-search').addEventListener('input', () => {
+    $('#node-search-clear').hidden = !$('#node-search').value;
+    scheduleNodeFilters();
+  });
+  $('#node-search-clear').addEventListener('click', () => {
+    $('#node-search').value = '';
+    $('#node-search-clear').hidden = true;
+    scheduleNodeFilters();
+    $('#node-search').focus();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === '/' && !/input|textarea|select/i.test(document.activeElement?.tagName || '')) {
+      event.preventDefault();
+      $('#node-search').focus();
+    }
+  });
   $('#node-filter').addEventListener('change', applyNodeFilters);
   $('#software-filter').addEventListener('change', applyNodeFilters);
   $('#level-filter').addEventListener('change', applyNodeFilters);
