@@ -734,7 +734,6 @@ function saveHub() {
     index[activeHub.id] = data.url || `#node-${String(activeHub.id).padStart(3, '0')}`;
     if (!writeJson(LINK_KEY, index)) throw new Error('تعذر تحديث فهرس الروابط المحلي.');
     updateNodeStatsAndFilters(activeHub.id);
-    pushNodeToSlaksChat(activeHub.id);
     setHubStatus('حُفظت إعدادات العقدة في هذا المتصفح فقط.');
     buildHub(true);
   } catch (error) {
@@ -753,7 +752,6 @@ function clearHub() {
     delete central[activeHub.id];
     writeJson('semver-hub-stem-data', central);
     updateNodeStatsAndFilters(activeHub.id);
-    pushNodeToSlaksChat(activeHub.id);
     hubUrl.value = '';
     hubHtml.value = '';
     clearPreview();
