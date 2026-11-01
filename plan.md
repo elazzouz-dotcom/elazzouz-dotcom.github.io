@@ -40,6 +40,12 @@
 - عملية البث وإدارة القنوات تخضع لحساب المستخدم لدى Restream؛ يمكن لاحقًا بناء OAuth مخصص فقط بعد إنشاء تطبيق Restream وحفظ Client Secret في خدمة خلفية آمنة وتحديد redirect URI.
 
 
+## Cloudflare Worker: كاش `/preview`
+
+يظل الموقع الأساسي مستضافًا على GitHub Pages ويظل Worker `github-oauth-proxy` على نطاق `workers.dev`. يستخدم التنفيذ Module Worker ومدخلًا مسمى مستقلًا لـ`GET /preview` فقط، مع بقاء مدخل OAuth وواجهات GitHub دون كاش. تُخزّن استجابات HTML العامة الناجحة لمدة 300 ثانية، وتُفصل النسخة بمفتاح إصدار Worker، بينما يعيد `refresh=1` جلبًا غير مخزن مع `X-Preview-Cache: BYPASS`. تعرض الواجهة حالة Cloudflare الفعلية عبر `CF-Cache-Status` مع احترام CORS وتغاير `Origin`.
+
+يحتوي `cloudflare-worker-oauth-proxy.js` على مدخل المعاينة المعزول، و`wrangler.toml` على إعداد الكاش per-entrypoint مع الاحتفاظ بمتغيرات Worker الحالية، و`scripts/test_preview_deployment.py` على فحص عقد النشر. يجري GitHub Actions التحقق محليًا، ولا يعلن نجاح النشر تلقائيًا عند غياب أسرار المستودع.
+
 ## دليل GitHub Apps
 
 ### الهدف والحدود

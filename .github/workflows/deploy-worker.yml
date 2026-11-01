@@ -6,6 +6,8 @@ on:
     paths:
       - "cloudflare-worker-oauth-proxy.js"
       - "wrangler.toml"
+      - "scripts/test_preview_deployment.py"
+      - "scripts/check_site.py"
       - "satellite/**"
       - ".github/workflows/deploy-worker.yml"
   workflow_dispatch:
@@ -38,26 +40,46 @@ jobs:
       - name: Validate Worker JavaScript
         run: node --check cloudflare-worker-oauth-proxy.js
 
+      - name: Validate Preview cache contract
+        run: python3 scripts/test_preview_deployment.py --local-only
+
       - name: Validate site contracts
         run: python3 scripts/check_site.py
 
-      - name: Verify deployment secrets are configured
+      - name: Check Cloudflare deployment secrets
+        id: cloudflare-secrets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Missing GitHub Secret: CLOUDFLARE_API_TOKEN"; exit 1; }
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Missing GitHub Secret: CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Automatic Worker deployment skipped. Configure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in GitHub Secrets to enable it."
+          fi
 
       - name: Deploy Worker to Cloudflare
+        if: steps.cloudflare-secrets.outputs.configured == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
+          wranglerVersion: "4.107.0"
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config wrangler.toml
 
+      - name: Verify live Preview cache behavior
+        if: steps.cloudflare-secrets.outputs.configured == 'true'
+        run: python3 scripts/test_preview_deployment.py --live-only
+
       - name: Print deployment metadata
-        if: success()
+        if: success() && steps.cloudflare-secrets.outputs.configured == 'true'
         run: |
           echo "Worker github-oauth-proxy deployed successfully."
           echo "The API token was provided through GitHub Secrets and was not printed."
+
+      - name: Report skipped automatic deployment
+        if: steps.cloudflare-secrets.outputs.configured != 'true'
+        run: |
+          echo "Worker source and local contracts were validated, but this workflow did not deploy it."
+          echo "A Cloudflare deployment must be completed through an authorized Cloudflare connection or after adding the repository secrets."

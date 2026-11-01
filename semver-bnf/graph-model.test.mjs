@@ -2,10 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { NODE_LEVELS, NODE_TOTAL, getNodeChildren, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
 
-test('الشبكة تضم 6600 عقدة موزعة على تسعة مستويات', () => {
-  assert.deepEqual(NODE_LEVELS, [1, 3, 9, 27, 81, 243, 729, 2187, 3320]);
+test('الشبكة تضم 6600 عقدة بتدرج متزايد ومستوى أخير مكمل', () => {
+  assert.equal(NODE_LEVELS.length, 114);
+  assert.deepEqual(NODE_LEVELS.slice(0, 6), [1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(NODE_LEVELS.slice(-2), [113, 159]);
   assert.equal(NODE_TOTAL, 6600);
-  assert.equal(getNodeLevelInfo(200).level, 5);
+  assert.equal(getNodeLevelInfo(200).level, 19);
   assert.equal(getNodeLevelInfo(0), null);
 });
 
@@ -13,8 +15,8 @@ test('لكل عقدة غير الجذر أب سابق صالح ولا توجد �
   assert.equal(getNodeParent(1), null);
   assert.equal(getNodeParent(2), 1);
   assert.equal(getNodeParent(5), 2);
-  assert.equal(getNodeParent(14), 5);
-  assert.equal(getNodeParent(200), 67);
+  assert.equal(getNodeParent(14), 9);
+  assert.equal(getNodeParent(200), 180);
   let edges = 0;
   for (let id = 2; id <= NODE_TOTAL; id += 1) {
     const parent = getNodeParent(id);
@@ -32,9 +34,9 @@ test('لكل عقدة غير الجذر أب سابق صالح ولا توجد �
   assert.equal(edges, NODE_TOTAL - 1);
 });
 
-test('أبناء العقد تتبع البنية الثلاثية ولا تتجاوز 6600 عقدة', () => {
-  assert.deepEqual(getNodeChildren(1), [2, 3, 4]);
-  assert.deepEqual(getNodeChildren(2), [5, 6, 7]);
+test('أبناء العقد تتبع المستويات المتزايدة ولا تتجاوز 6600 عقدة', () => {
+  assert.deepEqual(getNodeChildren(1), [2, 3]);
+  assert.deepEqual(getNodeChildren(2), [4, 5]);
   assert.deepEqual(getNodeChildren(6600), []);
   for (let id = 1; id <= NODE_TOTAL; id += 1) {
     for (const child of getNodeChildren(id)) assert.equal(getNodeParent(child), id);

@@ -11,14 +11,16 @@ const ALLOWED_ORIGINS = [
 const GITHUB_CLIENT_ID = 'Ov23liCSQUsIFcULd37T';
 const LEGACY_CLIENT_ID = 'Ov23li9xlu3kRKACL6Tz';
 const GITHUB_CLIENT_IDS = [GITHUB_CLIENT_ID, LEGACY_CLIENT_ID];
-const PROXY_VERSION = '4.1.0';
+const PROXY_VERSION = '4.2.0';
+import { WorkerEntrypoint } from 'cloudflare:workers';
+let runtimeEnv = null;
 const DEFAULT_SCOPE = 'repo workflow admin:repo_hook read:user user:email';
 const USER_AGENT = 'Practical-Tools-GitHub-Login';
 const GITHUB_API = 'https://api.github.com';
 const OTP_ADMIN_EMAIL = 'elazzouz4@gmail.com';
 const OTP_TTL = 600;
 const OTP_MAX_ATTEMPTS = 5;
-function binding(name) { try { if (name === 'GMAIL_CLIENT_ID') return GMAIL_CLIENT_ID; } catch {} try { if (name === 'GMAIL_CLIENT_SECRET') return GMAIL_CLIENT_SECRET; } catch {} try { if (name === 'GMAIL_REFRESH_TOKEN') return GMAIL_REFRESH_TOKEN; } catch {} try { if (name === 'OTP_SIGNING_SECRET') return OTP_SIGNING_SECRET; } catch {} try { if (name === 'GMAIL_SENDER') return GMAIL_SENDER; } catch {} return ''; }
+function binding(name) { const value = runtimeEnv && runtimeEnv[name]; if (value !== undefined && value !== null) return value; try { if (name === 'GMAIL_CLIENT_ID') return GMAIL_CLIENT_ID; } catch {} try { if (name === 'GMAIL_CLIENT_SECRET') return GMAIL_CLIENT_SECRET; } catch {} try { if (name === 'GMAIL_REFRESH_TOKEN') return GMAIL_REFRESH_TOKEN; } catch {} try { if (name === 'OTP_SIGNING_SECRET') return OTP_SIGNING_SECRET; } catch {} try { if (name === 'GMAIL_SENDER') return GMAIL_SENDER; } catch {} return ''; }
 function b64url(bytes) { let s=''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function utf8b64url(text) { return b64url(new TextEncoder().encode(text)); }
 async function otpSign(value) { const key=await crypto.subtle.importKey('raw', new TextEncoder().encode(binding('OTP_SIGNING_SECRET') || binding('GMAIL_CLIENT_SECRET')), {name:'HMAC',hash:'SHA-256'}, false, ['sign']); return b64url(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))); }
@@ -36,7 +38,7 @@ function corsHeaders(origin) {
     'Access-Control-Allow-Origin': allowed ? origin : ALLOWED_ORIGINS[0],
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-GitHub-Api-Version, X-GitHub-Next-Global-ID',
-    'Access-Control-Expose-Headers': 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Used, X-RateLimit-Resource, Link, X-OAuth-Scopes, X-Accepted-OAuth-Scopes',
+    'Access-Control-Expose-Headers': 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Used, X-RateLimit-Resource, Link, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, CF-Cache-Status, X-Preview-Cache, X-Preview-Cache-Version',
     'Access-Control-Max-Age': '86400',
     'Access-Control-Allow-Credentials': 'true',
     'Vary': 'Origin'
@@ -84,7 +86,7 @@ function getBearer(request) {
   return cookie ? 'Bearer '+decodeURIComponent(cookie) : null;
 }
 function clientSecret() {
-  try { return typeof D !== 'undefined' ? D : null; } catch { return null; }
+  return binding('D') || binding('CLIENT_SECRET') || binding('GITHUB_CLIENT_SECRET') || null;
 }
 function basicAuthHeader() {
   const secret = clientSecret();
@@ -128,49 +130,12 @@ function previewMeta(html, sourceUrl) {
   const links = [...String(html || '').matchAll(/<a\b[^>]+href=["']([^"']+)["']/gi)].slice(0, 100).map(match => match[1]);
   return { title, description, text, links };
 }
-const PREVIEW_CACHE_VERSION = 'v1';
+const PREVIEW_CACHE_VERSION = 'v2';
 const PREVIEW_CACHE_TTL = 300;
-function previewCacheKey(targetUrl) {
-  const key = new URL('https://github-oauth-proxy.elazzouz4.workers.dev/preview');
-  key.searchParams.set('v', PREVIEW_CACHE_VERSION);
-  key.searchParams.set('url', targetUrl);
-  return new Request(key.toString(), { method: 'GET' });
-}
-async function readPreviewCache(targetUrl) {
-  try {
-    const cached = await caches.default.match(previewCacheKey(targetUrl));
-    return cached ? await cached.json() : null;
-  } catch {
-    return null;
-  }
-}
-async function writePreviewCache(targetUrl, payload) {
-  try {
-    const response = new Response(JSON.stringify(payload), {
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Cache-Control': `public, max-age=60, s-maxage=${PREVIEW_CACHE_TTL}`,
-        'Cache-Tag': 'slaks-preview'
-      }
-    });
-    await caches.default.put(previewCacheKey(targetUrl), response);
-  } catch {
-    // A cache failure must never make a valid upstream preview fail.
-  }
-}
 async function slaksPreview(searchParams, origin) {
   let target;
   try { target = new URL(searchParams.get('url') || ''); if (!['http:', 'https:'].includes(target.protocol) || !previewPublicHost(target.hostname)) throw new Error('Only public HTTP/HTTPS URLs are allowed.'); }
   catch (error) { return json({ error: error.message || 'Invalid public URL.' }, 400, origin); }
-  const bypassCache = searchParams.get('refresh') === '1';
-  if (!bypassCache) {
-    const cached = await readPreviewCache(target.href);
-    if (cached) {
-      const response = json(cached, 200, origin);
-      response.headers.set('X-Preview-Cache', 'HIT');
-      return response;
-    }
-  }
   try {
     const upstream = await fetch(target.href, { redirect: 'follow', headers: { 'User-Agent': 'Slaks-Cloudflare-Preview/1.0', Accept: 'text/html,application/xhtml+xml' } });
     const finalUrl = new URL(upstream.url || target.href);
@@ -178,16 +143,43 @@ async function slaksPreview(searchParams, origin) {
     const raw = await upstream.text();
     const metadata = previewMeta(raw, finalUrl.href);
     const contentType = upstream.headers.get('content-type') || '';
+    const isHtml = /text\/html/i.test(contentType);
     const payload = { ok: upstream.ok, status: upstream.status, target: target.href, finalUrl: finalUrl.href, contentType, ...metadata, html: previewCleanHtml(raw.slice(0, 1500000), finalUrl.href), text: metadata.text.slice(0, 1200) };
-    if (upstream.ok && contentType.includes('text/html')) await writePreviewCache(target.href, payload);
     const response = json(payload, upstream.ok ? 200 : 502, origin);
-    response.headers.set('X-Preview-Cache', 'MISS');
+    if (upstream.ok && isHtml) response.headers.set('X-Preview-Cacheable', '1');
     return response;
   } catch (error) { return json({ error: 'Unable to fetch the public URL.', message: error.message, target: target.href }, 502, origin); }
 }
+function previewCachePolicy(response, bypass = false) {
+  const headers = new Headers(response.headers);
+  const cacheable = !bypass && response.status === 200 && headers.get('X-Preview-Cacheable') === '1';
+  headers.delete('X-Preview-Cacheable');
+  headers.set('X-Preview-Cache-Version', PREVIEW_CACHE_VERSION);
+  headers.set('Cache-Control', 'no-store');
+  if (cacheable) {
+    headers.set('Cloudflare-CDN-Cache-Control', `public, max-age=${PREVIEW_CACHE_TTL}, s-maxage=${PREVIEW_CACHE_TTL}, stale-if-error=0`);
+    headers.set('Cache-Tag', `slaks-preview-${PREVIEW_CACHE_VERSION}`);
+  } else {
+    headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
+    if (bypass) headers.set('X-Preview-Cache', 'BYPASS');
+  }
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+export class Preview extends WorkerEntrypoint {
+  async fetch(request) {
+    runtimeEnv = this.env;
+    const origin = request.headers.get('Origin');
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/\/+$/, '');
+    if (origin && !ALLOWED_ORIGINS.includes(origin)) return previewCachePolicy(json({ error: 'origin_not_allowed' }, 403, origin));
+    if (path !== '/preview' || request.method !== 'GET') return previewCachePolicy(json({ error: 'not_found' }, 404, origin));
+    const bypass = url.searchParams.get('refresh') === '1';
+    return previewCachePolicy(await slaksPreview(url.searchParams, origin), bypass);
+  }
+}
 
 // ===== Main Handler =====
-async function handle(request) {
+async function handle(request, env, ctx) {
   const origin = request.headers.get('Origin');
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(origin) });
   if (origin && !ALLOWED_ORIGINS.includes(origin)) return json({ error: 'origin_not_allowed' }, 403, origin);
@@ -197,7 +189,13 @@ async function handle(request) {
   const method = request.method;
   const sp = url.searchParams;
 
-  if (path === '/preview' && method === 'GET') return slaksPreview(sp, origin);
+  if (path === '/preview' && method === 'GET') {
+    if (!ctx?.exports?.Preview?.fetch) return json({ error: 'preview_cache_entrypoint_unavailable' }, 503, origin);
+    const headers = new Headers(request.headers);
+    headers.set('Cloudflare-Workers-Version-Key', PREVIEW_CACHE_VERSION);
+    try { return await ctx.exports.Preview.fetch(new Request(request, { headers })); }
+    catch { return json({ error: 'preview_cache_entrypoint_unavailable' }, 503, origin); }
+  }
 
   try {
     // --- Health Check ---
@@ -540,4 +538,13 @@ async function handle(request) {
   }
 }
 
-addEventListener('fetch', event => event.respondWith(handle(event.request)));
+
+
+// Module entrypoint. Bindings are static for this Worker version; assigning them per request
+// keeps the existing helpers compatible while Preview uses its own named, cache-enabled entrypoint.
+export default {
+  async fetch(request, env, ctx) {
+    runtimeEnv = env;
+    return handle(request, env, ctx);
+  }
+};
