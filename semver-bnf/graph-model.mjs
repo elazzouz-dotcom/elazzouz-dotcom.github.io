@@ -102,6 +102,7 @@ export function parseNodeLink(value) {
   if (!['http:', 'https:'].includes(link.protocol) || !link.hostname) throw new Error('استخدم رابط ويب يبدأ بـ HTTP أو HTTPS.');
   if (link.username || link.password) throw new Error('احذف اسم المستخدم وكلمة المرور من الرابط قبل المتابعة.');
   if (isPrivateHost(link.hostname)) throw new Error('لأسباب السلامة، لا تفتح عناوين الشبكات المحلية أو الخاصة من هذه الأداة.');
+  if (!link.hostname.includes('.') && link.hostname !== 'matrix.org') throw new Error('أدخل نطاقًا عامًا صالحًا مثل example.com.');
   return { kind: 'web', url: link.href, host: link.hostname, display: link.hostname };
 }
 
