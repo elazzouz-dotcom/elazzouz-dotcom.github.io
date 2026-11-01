@@ -65,10 +65,26 @@
       .site-mobile-menu-panel a:hover, .site-mobile-menu-panel a:focus-visible { background: rgba(125, 211, 252, .12); color: #7dd3fc; }
       .site-footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
       .site-footer-links a { display: flex; min-height: 44px; align-items: center; padding-inline: 4px; }
+      #external-preview-stage { min-width: 0; }
+      #external-preview-frame { display: block; width: 100%; border: 0; }
+      #external-preview-title { min-width: 0; overflow-wrap: anywhere; }
+      #external-preview-open { display: inline-flex; min-height: 44px; align-items: center; white-space: nowrap; }
+      #external-preview-summary { min-width: 0; overflow-wrap: anywhere; }
+      #external-preview-summary dd { overflow-wrap: anywhere; word-break: break-word; }
+      #external-preview-engine { min-width: 10rem; }
+      @media (max-width: 899px) {
+        .external-preview-fields { flex-direction: column; }
+        .external-preview-fields > * { width: 100%; min-width: 0; }
+        #external-preview-engine, #external-preview-add { min-height: 48px; }
+      }
       @media (max-width: 767px) {
         .site-header-inner { gap: 8px; padding-inline: 12px; padding-block: 10px; }
         .site-brand { gap: 8px; }
         .site-brand-title { font-size: clamp(1rem, 4vw, 1.2rem); }
+        #external-preview-stage { border-radius: 1rem; }
+        #external-preview-stage > div { align-items: stretch; padding: .75rem; }
+        #external-preview-open { width: 100%; justify-content: center; }
+        #external-preview-frame { height: min(68vh, 32rem); min-height: 20rem; max-height: none; }
       }
       @media (min-width: 768px) { .site-mobile-menu { display: none; } }
     </style>
@@ -235,9 +251,9 @@
         </div>
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
           <div class="feature-card overflow-hidden p-4 sm:p-6">
-            <div class="flex flex-col gap-3">
+            <div class="external-preview-controls flex flex-col gap-3">
               <label class="sr-only" for="external-preview-url">ابحث أو أدخل رابطًا</label>
-              <div class="flex flex-col gap-3 sm:flex-row">
+              <div class="external-preview-fields flex flex-col gap-3 sm:flex-row">
                 <input id="external-preview-url" class="tool-input min-w-0 flex-1 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="text" inputmode="search" placeholder="ابحث أو ألصق رابطًا مثل example.com" autocomplete="off">
                 <select id="external-preview-engine" class="tool-input rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" aria-label="محرك البحث">
                   <option value="google">Google</option>
