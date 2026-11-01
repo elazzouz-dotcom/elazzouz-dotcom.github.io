@@ -40,6 +40,15 @@ const nodeTypeCache = new Map();
 let filterFrame = 0;
 let filterDebounceTimer = 0;
 const FILTER_DEBOUNCE_MS = 100;
+const nodeFilterWorker = typeof Worker === 'function'
+  ? new Worker(new URL('./node-filter-worker.js', import.meta.url), { type: 'module' })
+  : null;
+let nodeFilterWorkerReady = false;
+let nodeFilterRequestId = 0;
+let latestNodeFilterRequestId = 0;
+let nodeFilterIndexVersion = 0;
+let visibleNodeUpdateFrame = 0;
+let visibleNodeUpdateToken = 0;
 const levelLabels = [];
 const nodePositions = new Map();
 const visibleNodeIds = new Set();
@@ -667,7 +676,100 @@ function renderAdvancedNodeResults(ids, query) {
     container.appendChild(result);
   });
 }
+function buildNodeFilterIndex() {
+  const records = [];
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const data = getHubData(id);
+    const type = nodeContentType(data, id);
+    records.push({
+      id,
+      level: Number(nodeButtons.get(id)?.dataset.level || 0),
+      configured: isConfigured(data),
+      type,
+      searchText: nodeSearchText(id, data, type)
+    });
+  }
+  return records;
+}
+function initializeNodeFilterWorker() {
+  if (!nodeFilterWorker) return;
+  nodeFilterWorker.addEventListener('message', handleNodeFilterWorkerMessage);
+  nodeFilterWorker.addEventListener('error', () => {
+    nodeFilterWorkerReady = false;
+    setNodeStatus('تعذر تشغيل Worker؛ تم الرجوع إلى التصفية المحلية.', false);
+  });
+  sendNodeFilterIndex();
+}
+function sendNodeFilterIndex() {
+  if (!nodeFilterWorker) return;
+  nodeFilterIndexVersion += 1;
+  nodeFilterWorkerReady = false;
+  nodeFilterWorker.postMessage({ type: 'init', records: buildNodeFilterIndex(), indexVersion: nodeFilterIndexVersion });
+}
+function requestNodeFilterWorker() {
+  if (!nodeFilterWorker || !nodeFilterWorkerReady) {
+    applyNodeFiltersOnMainThread();
+    return;
+  }
+  const requestId = ++nodeFilterRequestId;
+  latestNodeFilterRequestId = requestId;
+  nodeFilterWorker.postMessage({
+    type: 'filter',
+    requestId,
+    query: $('#node-search').value.trim(),
+    searchMode: $('#node-search-mode')?.value || 'all',
+    sort: $('#node-sort')?.value || 'id',
+    nodeFilter: $('#node-filter').value,
+    softwareFilter: $('#software-filter').value,
+    levelFilter: $('#level-filter').value
+  });
+}
+function applyVisibleNodeIdsInBatches(visibleIds, visibleLevels) {
+  const token = ++visibleNodeUpdateToken;
+  if (visibleNodeUpdateFrame) cancelAnimationFrame(visibleNodeUpdateFrame);
+  const visibleSet = new Set(visibleIds);
+  visibleNodeIds.clear();
+  visibleIds.forEach((id) => visibleNodeIds.add(id));
+  let cursor = 1;
+  const processBatch = () => {
+    if (token !== visibleNodeUpdateToken) return;
+    const end = Math.min(NODE_TOTAL + 1, cursor + 240);
+    for (; cursor < end; cursor += 1) {
+      const button = nodeButtons.get(cursor);
+      if (!button) continue;
+      const visible = visibleSet.has(cursor);
+      button.hidden = !visible;
+      button.classList.toggle('is-highlighted', visible && Boolean($('#node-search').value.trim()));
+    }
+    if (cursor < NODE_TOTAL + 1) {
+      visibleNodeUpdateFrame = requestAnimationFrame(processBatch);
+      return;
+    }
+    visibleNodeUpdateFrame = 0;
+    levelLabels.forEach((label, level) => { label.hidden = !visibleLevels.has(level); });
+    const query = $('#node-search').value.trim();
+    renderAdvancedNodeResults(visibleIds, query);
+    scheduleEdgeVisibilityUpdate();
+    $('#node-status').textContent = `يعرض ${visibleIds.length} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
+    renderCanvasNetwork();
+    persistUiSettings();
+  };
+  visibleNodeUpdateFrame = requestAnimationFrame(processBatch);
+}
+function handleNodeFilterWorkerMessage(event) {
+  const message = event.data || {};
+  if (message.type === 'ready') {
+    nodeFilterWorkerReady = true;
+    requestNodeFilterWorker();
+    return;
+  }
+  if (message.type !== 'result' || message.requestId !== latestNodeFilterRequestId) return;
+  applyVisibleNodeIdsInBatches(message.visibleIds || [], new Set(message.visibleLevels || []));
+}
 function applyNodeFilters() {
+  requestNodeFilterWorker();
+}
+function applyNodeFiltersOnMainThread() {
   const query = $('#node-search').value.trim();
   const terms = getNodeSearchTerms(query);
   const searchMode = $('#node-search-mode')?.value || 'all';
@@ -834,6 +936,7 @@ function fetchNodePayload(id) {
 function updateNodeStatsAndFilters(id) {
   refreshNode(id);
   updateStats();
+  sendNodeFilterIndex();
   applyNodeFilters();
 }
 
@@ -1371,6 +1474,7 @@ function importNodes(file) {
       if (!writeJson(LINK_KEY, index)) throw new Error('تعذر تحديث فهرس العقد.');
       nodeButtons.forEach((_, id) => refreshNode(id));
       updateStats();
+      sendNodeFilterIndex();
       applyNodeFilters();
       setNodeStatus(`تم استيراد ${imported.length} عقدة بنجاح.`);
     } catch (error) { setNodeStatus(error?.message || 'تعذر استيراد ملف JSON.', false); }
@@ -1442,6 +1546,7 @@ function initializeNetwork() {
   restoreUiSettings();
   setupRelationCustomization();
   createNodeElements();
+  initializeNodeFilterWorker();
   setupCanvasInteraction();
   nodeViewport.addEventListener('scroll', renderCanvasNetwork, { passive: true });
   setupNodeChatRoom();
