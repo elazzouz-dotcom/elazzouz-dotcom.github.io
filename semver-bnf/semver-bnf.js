@@ -38,6 +38,7 @@ let activeHub = { id: null, node: null };
 let focusReturn = null;
 let draggedNode = null;
 let suppressNodeClick = false;
+let focusedEdge = null;
 
 function readJson(key, fallback) {
   try {
@@ -253,6 +254,22 @@ function createNodeElements() {
   updateStats();
 }
 
+function clearEdgeFocus() {
+  if (!focusedEdge) return;
+  const previous = focusedEdge;
+  previous.path?.classList.remove('edge-focused');
+  nodeButtons.get(previous.parentId)?.classList.remove('edge-node-focused');
+  nodeButtons.get(previous.childId)?.classList.remove('edge-node-focused');
+  focusedEdge = null;
+}
+function focusEdge(path, parentId, childId, persist = false) {
+  clearEdgeFocus();
+  focusedEdge = { path, parentId, childId };
+  path.classList.add('edge-focused');
+  nodeButtons.get(parentId)?.classList.add('edge-node-focused');
+  nodeButtons.get(childId)?.classList.add('edge-node-focused');
+  if (persist) setNodeStatus(`العلاقة المحددة: ${nodeLabel(parentId)} ← ${nodeLabel(childId)}.`);
+}
 function drawEdges() {
   const svgNamespace = 'http://www.w3.org/2000/svg';
   const fragment = document.createDocumentFragment();
@@ -268,10 +285,20 @@ function drawEdges() {
     path.setAttribute('class', 'network-connection');
     path.dataset.from = String(parentId);
     path.dataset.to = String(id);
+    path.setAttribute('role', 'button');
+    path.setAttribute('tabindex', '0');
+    path.setAttribute('aria-label', `علاقة من ${nodeLabel(parentId)} إلى ${nodeLabel(id)}`);
     path.setAttribute('d', `M ${parent.x} ${startY} C ${parent.x} ${startY + curve}, ${child.x} ${endY - curve}, ${child.x} ${endY}`);
+    path.addEventListener('pointerenter', () => focusEdge(path, parentId, id));
+    path.addEventListener('pointerleave', () => { if (focusedEdge?.path === path) clearEdgeFocus(); });
+    path.addEventListener('focus', () => focusEdge(path, parentId, id));
+    path.addEventListener('blur', () => { if (focusedEdge?.path === path) clearEdgeFocus(); });
+    path.addEventListener('click', () => focusEdge(path, parentId, id, true));
+    path.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); focusEdge(path, parentId, id, true); } });
     fragment.appendChild(path);
   }
   lines.replaceChildren(fragment);
+  focusedEdge = null;
   lines.setAttribute('viewBox', `0 0 ${mapWidth} ${mapHeight}`);
   lines.setAttribute('width', String(mapWidth));
   lines.setAttribute('height', String(mapHeight));
