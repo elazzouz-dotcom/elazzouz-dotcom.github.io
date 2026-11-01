@@ -15,7 +15,7 @@ const BUILTIN_NODES = Object.freeze({
   }
 });
 const NODE_SIZE = 44;
-const NODE_SPACING_CM = 20;
+const NODE_SPACING_CM = 10;
 const NODE_SPACING_PX = NODE_SPACING_CM * 37.7952755906;
 const ROW_GAP = NODE_SPACING_PX;
 const LEVEL_GAP = NODE_SPACING_PX;
@@ -388,6 +388,12 @@ function applyZoom() {
   $('#zoom-level').textContent = `${Math.round(zoom * 100)}%`;
 }
 
+function resetNodeLayout() {
+  localStorage.removeItem(POSITIONS_KEY);
+  nodePositions.clear();
+  layoutNodes();
+  setNodeStatus('تمت استعادة ترتيب 6600 عقدة بمسافة 10 سم ومسارات متماسكة.');
+}
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));
   mapWidth = viewportWidth;
@@ -1035,6 +1041,7 @@ function initializeNetwork() {
   $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); persistUiSettings(); });
   $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); persistUiSettings(); });
   $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
+  $('#map-layout-reset').addEventListener('click', resetNodeLayout);
   $('#map-root').addEventListener('click', () => {
     const root = nodeButtons.get(1);
     if (!root) return;
