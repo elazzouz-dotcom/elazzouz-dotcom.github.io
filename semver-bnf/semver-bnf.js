@@ -1630,8 +1630,6 @@ function initializeNetwork() {
   $('#node-search-mode').addEventListener('change', applyNodeFilters);
   $('#node-sort').addEventListener('change', applyNodeFilters);
   $('#node-result-limit').addEventListener('change', applyNodeFilters);
-  $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); persistUiSettings(); });
-  $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); persistUiSettings(); });
   $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
   $('#map-fit').addEventListener('click', () => { zoom = Math.max(.35, Math.min(1, Math.round(Math.min((nodeViewport.clientWidth - 24) / mapWidth, (nodeViewport.clientHeight - 24) / mapHeight) * 10) / 10)); applyZoom(); centerMapViewport('smooth'); persistUiSettings(); });
   $('#map-layout-reset').addEventListener('click', resetNodeLayout);
@@ -1879,69 +1877,52 @@ function setupOrbit() {
   sync();
 }
 
-function setupMapNavigation() {
+function setupPinchZoom() {
   const viewport = $('#node-viewport');
   if (!viewport) return;
-  const pan = (direction) => {
-    const distanceX = Math.max(220, Math.round(viewport.clientWidth * .72));
-    const distanceY = Math.max(220, Math.round(viewport.clientHeight * .72));
-    const offsets = {
-      up: { left: 0, top: -distanceY },
-      down: { left: 0, top: distanceY },
-      left: { left: -distanceX, top: 0 },
-      right: { left: distanceX, top: 0 }
+  let gesture = null;
+  const distance = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  const midpoint = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
+  viewport.addEventListener('touchstart', (event) => {
+    if (event.touches.length !== 2) return;
+    const [first, second] = event.touches;
+    const center = midpoint(first, second);
+    const rect = viewport.getBoundingClientRect();
+    gesture = {
+      startDistance: Math.max(1, distance(first, second)),
+      startZoom: zoom,
+      worldX: (center.x - rect.left + viewport.scrollLeft) / zoom,
+      worldY: (center.y - rect.top + viewport.scrollTop) / zoom
     };
-    const offset = offsets[direction];
-    const maxLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
-    const maxTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
-    const targetLeft = Math.max(0, Math.min(maxLeft, viewport.scrollLeft + offset.left));
-    const targetTop = Math.max(0, Math.min(maxTop, viewport.scrollTop + offset.top));
-    viewport.scrollTo({ left: targetLeft, top: targetTop, behavior: 'smooth' });
-  };
-  viewport.closest('.node-map-shell')?.querySelectorAll('[data-pan]').forEach((button) => {
-    button.addEventListener('click', () => pan(button.dataset.pan));
-  });
-  const zoomValue = $('#node-map-zoom-value');
-  const updateZoomLabel = () => {
-    if (zoomValue) zoomValue.textContent = `${Math.round(zoom * 100)}%`;
-    const toolbarZoom = $('#zoom-level');
-    if (toolbarZoom) toolbarZoom.textContent = `${Math.round(zoom * 100)}%`;
-  };
-  const setMapZoom = (nextZoom) => {
-    const bounded = Math.max(.3, Math.min(1.5, nextZoom));
-    const centerX = (viewport.scrollLeft + viewport.clientWidth / 2) / zoom;
-    const centerY = (viewport.scrollTop + viewport.clientHeight / 2) / zoom;
-    zoom = Math.round(bounded * 100) / 100;
-    applyZoom();
-    viewport.scrollLeft = Math.max(0, centerX * zoom - viewport.clientWidth / 2);
-    viewport.scrollTop = Math.max(0, centerY * zoom - viewport.clientHeight / 2);
-    updateZoomLabel();
-    persistUiSettings();
-    renderCanvasNetwork();
-  };
-  viewport.closest('.node-map-shell')?.querySelectorAll('[data-zoom]').forEach((button) => {
-    button.addEventListener('click', () => {
-      if (button.dataset.zoom === 'in') setMapZoom(zoom + .1);
-      else if (button.dataset.zoom === 'out') setMapZoom(zoom - .1);
-      else setMapZoom(.3);
-    });
-  });
-  updateZoomLabel();
-  viewport.addEventListener('keydown', (event) => {
-    const directions = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
-    const direction = directions[event.key];
-    if (!direction) return;
+  }, { passive: true });
+  viewport.addEventListener('touchmove', (event) => {
+    if (!gesture || event.touches.length !== 2) return;
     event.preventDefault();
-    pan(direction);
-  });
+    const [first, second] = event.touches;
+    const center = midpoint(first, second);
+    const rect = viewport.getBoundingClientRect();
+    zoom = Math.max(.3, Math.min(1.5, Math.round((gesture.startZoom * distance(first, second) / gesture.startDistance) * 100) / 100));
+    applyZoom();
+    viewport.scrollLeft = Math.max(0, gesture.worldX * zoom - (center.x - rect.left));
+    viewport.scrollTop = Math.max(0, gesture.worldY * zoom - (center.y - rect.top));
+  }, { passive: false });
+  const endGesture = (event) => {
+    if (event.touches.length < 2 && gesture) {
+      gesture = null;
+      persistUiSettings();
+    }
+  };
+  viewport.addEventListener('touchend', endGesture, { passive: true });
+  viewport.addEventListener('touchcancel', endGesture, { passive: true });
 }
+
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
   $('#clear-report-cache').addEventListener('click', clearReportCache);
   refreshReportCacheStatus();
   $('#export-report').addEventListener('click', exportReport);
   setupHubModal();
-  setupMapNavigation();
+  setupPinchZoom();
   setupValidator();
   setupMobileNavigation();
   setupExternalLinkModal();

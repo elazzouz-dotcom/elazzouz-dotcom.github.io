@@ -137,10 +137,8 @@
               <option value="all">كل المستويات</option>
             </select>
           </label>
-          <div class="node-toolbar-controls" role="group" aria-label="تحكم في تكبير الخريطة">
-            <button id="map-zoom-out" class="semver-button" type="button" aria-label="تصغير الخريطة">−</button>
+          <div class="node-toolbar-controls" role="group" aria-label="أدوات الخريطة">
             <span id="zoom-level" aria-live="polite">100%</span>
-            <button id="map-zoom-in" class="semver-button" type="button" aria-label="تكبير الخريطة">+</button>
             <button id="map-reset" class="semver-button" type="button">إعادة العرض</button><button id="map-fit" class="semver-button" type="button">ملاءمة الشبكة</button>
             <button id="map-layout-reset" class="semver-button" type="button">استعادة ترتيب 10 سم</button>
             <button id="show-all-nodes" class="semver-button semver-button-primary" type="button">عرض كل العقد</button>
@@ -178,19 +176,6 @@
           <button id="relation-reset" class="semver-button" type="button">إعادة الألوان الافتراضية</button>
         </details>
         <div class="node-map-shell">
-          <div class="node-map-navigation" aria-label="أدوات التحرك داخل شبكة العقد">
-            <button type="button" class="node-map-nav-button node-map-nav-up" data-pan="up" aria-label="التحرك إلى أعلى الشبكة">↑<span>أعلى</span></button>
-            <button type="button" class="node-map-nav-button node-map-nav-left" data-pan="left" aria-label="التحرك إلى يسار الشبكة">←<span>يسار</span></button>
-            <span class="node-map-nav-center" aria-hidden="true">شبكة</span>
-            <button type="button" class="node-map-nav-button node-map-nav-right" data-pan="right" aria-label="التحرك إلى يمين الشبكة">→<span>يمين</span></button>
-            <button type="button" class="node-map-nav-button node-map-nav-down" data-pan="down" aria-label="النزول إلى أسفل الشبكة">↓<span>أسفل</span></button>
-          </div>
-          <div class="node-map-zoom" aria-label="أدوات تكبير وتصغير الشبكة">
-            <button type="button" class="node-map-zoom-button" data-zoom="in" aria-label="تكبير الشبكة">＋</button>
-            <output id="node-map-zoom-value" aria-live="polite">100%</output>
-            <button type="button" class="node-map-zoom-button" data-zoom="out" aria-label="تصغير الشبكة">−</button>
-            <button type="button" class="node-map-zoom-fit" data-zoom="overview" aria-label="تصغير كبير لعرض مساحة واسعة من الشبكة">عرض واسع</button>
-          </div>
           <div id="node-viewport" class="node-viewport" role="region" aria-label="خريطة تفاعلية من 6600 عقدة" tabindex="0">
             <canvas id="network-canvas" aria-label="شبكة Canvas تفاعلية من 6600 عقدة"></canvas>
             <div id="network-stage-wrap" class="network-stage-wrap">
