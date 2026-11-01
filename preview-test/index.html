@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="صفحة اختبار معاينة الروابط داخل Slaks عبر Cloudflare Preview Relay">
+  <title>اختبار معاينة الروابط · Slaks</title>
+  <style>
+    :root { color-scheme: dark; --bg:#071014; --panel:#102127; --panel-2:#0b171b; --line:#27514d; --text:#e8f4f1; --muted:#9cb0b2; --mint:#59e0a3; --yellow:#f4ce72; --red:#ff7373; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--text); background:radial-gradient(circle at 10% 0%,#17393a 0,transparent 35%),linear-gradient(145deg,var(--bg),#0c1a20); }
+    main { width:min(1240px,calc(100% - 28px)); margin:0 auto; padding:30px 0 56px; }
+    header { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:22px; }
+    .eyebrow { color:var(--mint); font-size:.75rem; font-weight:800; letter-spacing:.14em; margin:0 0 8px; }
+    h1 { margin:0; font-size:clamp(1.8rem,4vw,3.2rem); line-height:1.1; }
+    .intro { color:var(--muted); max-width:700px; line-height:1.8; margin:12px 0 0; }
+    .badge { border:1px solid var(--line); border-radius:999px; color:var(--yellow); padding:8px 12px; font-size:.78rem; white-space:nowrap; }
+    .panel { border:1px solid var(--line); background:color-mix(in srgb,var(--panel) 92%,transparent); border-radius:20px; box-shadow:0 18px 60px #0006; }
+    .controls { padding:18px; margin-bottom:18px; }
+    label { display:block; color:var(--muted); font-size:.82rem; font-weight:700; margin-bottom:8px; }
+    .url-row { display:flex; gap:10px; }
+    input { width:100%; border:1px solid #3f7e73; background:#071014; color:var(--text); border-radius:12px; padding:13px 14px; font:inherit; direction:ltr; text-align:left; outline:none; }
+    input:focus { border-color:var(--mint); box-shadow:0 0 0 3px #59e0a333; }
+    button { border:1px solid var(--line); background:#152c31; color:var(--text); border-radius:11px; padding:11px 15px; font:inherit; font-weight:800; cursor:pointer; transition:.18s ease; }
+    button:hover { border-color:var(--mint); transform:translateY(-1px); }
+    button.primary { background:var(--mint); color:#052117; border-color:var(--mint); }
+    button.danger { color:#ffd3d3; border-color:#874548; }
+    .presets { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .presets button { font-size:.82rem; padding:8px 11px; }
+    .status { min-height:24px; margin:14px 0 0; color:var(--muted); font-size:.9rem; }
+    .status.ok { color:var(--mint); } .status.error { color:var(--red); }
+    .layout { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr); gap:18px; }
+    .preview-panel { overflow:hidden; }
+    .panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line); }
+    .panel-head h2 { font-size:1rem; margin:0; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .actions button { font-size:.78rem; padding:8px 11px; }
+    iframe { display:block; width:100%; height:min(68vh,720px); min-height:430px; border:0; background:white; }
+    .meta { padding:16px; }
+    .meta h2 { font-size:1rem; margin:0 0 12px; }
+    .meta dl { margin:0; display:grid; gap:12px; }
+    .meta dt { color:var(--muted); font-size:.76rem; margin-bottom:3px; }
+    .meta dd { margin:0; overflow-wrap:anywhere; line-height:1.55; }
+    .meta dd.code { direction:ltr; text-align:left; font-family:ui-monospace,SFMono-Regular,monospace; font-size:.78rem; color:#bcebd7; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:16px; }
+    .stat { border:1px solid var(--line); border-radius:12px; padding:10px; background:var(--panel-2); }
+    .stat strong { display:block; color:var(--yellow); font-size:1.2rem; }
+    .stat span { color:var(--muted); font-size:.72rem; }
+    .empty { height:100%; min-height:430px; display:grid; place-items:center; padding:40px; text-align:center; color:var(--muted); background:linear-gradient(135deg,#eef6f4,#dcebe7); }
+    .empty strong { display:block; color:#163a37; font-size:1.3rem; margin-bottom:7px; }
+    code { color:var(--yellow); }
+    @media (max-width:850px) { header { display:block; } .badge { display:inline-block; margin-top:14px; } .layout { grid-template-columns:1fr; } iframe { height:65vh; min-height:360px; } }
+    @media (max-width:520px) { main { width:min(100% - 18px,1240px); padding-top:18px; } .url-row { flex-direction:column; } .url-row button { width:100%; } .panel-head { align-items:flex-start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">SLAKS · PREVIEW RELAY LAB</p>
+        <h1>اختبر معاينة أي رابط</h1>
+        <p class="intro">أدخل رابطًا عامًا لترى النسخة المنظفة داخل الصفحة، مع العنوان والوصف والروابط التي استخرجها Cloudflare Worker. لا تفتح هذه الصفحة تبويبًا خارجيًا أثناء الاختبار.</p>
+      </div>
+      <span class="badge">GET /preview · live</span>
+    </header>
+
+    <section class="panel controls" aria-labelledby="controls-title">
+      <label id="controls-title" for="url-input">الرابط العام المراد معاينته</label>
+      <div class="url-row">
+        <input id="url-input" type="url" inputmode="url" dir="ltr" value="https://example.com" placeholder="https://example.com/article">
+        <button id="preview-button" class="primary" type="button">عرض المعاينة</button>
+      </div>
+      <div class="presets" aria-label="روابط اختبار جاهزة">
+        <button type="button" data-url="https://example.com">Example Domain</button>
+        <button type="button" data-url="https://en.wikipedia.org/wiki/Semantic_versioning">Wikipedia · مقال</button>
+        <button type="button" data-url="https://developer.mozilla.org/en-US/docs/Web/HTTP">MDN · توثيق</button>
+        <button type="button" data-url="http://localhost:3000">اختبار رابط محلي مرفوض</button>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite">جاهز للاختبار.</p>
+    </section>
+
+    <section class="layout">
+      <article class="panel preview-panel" aria-labelledby="preview-title">
+        <div class="panel-head">
+          <h2 id="preview-title">المعاينة داخل Slaks</h2>
+          <div class="actions">
+            <button id="fullscreen-button" type="button">ملء الشاشة</button>
+            <button id="clear-button" class="danger" type="button">مسح</button>
+          </div>
+        </div>
+        <div id="empty-state" class="empty"><div><strong>لا توجد معاينة بعد</strong><span>اختر رابطًا واضغط «عرض المعاينة».</span></div></div>
+        <iframe id="preview-frame" title="الموقع الخارجي داخل معاينة Slaks" sandbox="allow-forms allow-modals allow-popups allow-presentation allow-scripts"></iframe>
+      </article>
+
+      <aside class="panel meta" aria-labelledby="meta-title">
+        <h2 id="meta-title">بيانات الرابط</h2>
+        <dl>
+          <div><dt>العنوان</dt><dd id="meta-title-value">—</dd></div>
+          <div><dt>الرابط النهائي</dt><dd id="meta-url" class="code">—</dd></div>
+          <div><dt>الوصف</dt><dd id="meta-description">—</dd></div>
+        </dl>
+        <div class="stats">
+          <div class="stat"><strong id="stat-links">0</strong><span>روابط مستخرجة</span></div>
+          <div class="stat"><strong id="stat-html">0</strong><span>حروف HTML</span></div>
+          <div class="stat"><strong id="stat-status">—</strong><span>HTTP</span></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const RELAY = 'https://github-oauth-proxy.elazzouz4.workers.dev/preview';
+    const input = document.querySelector('#url-input');
+    const status = document.querySelector('#status');
+    const frame = document.querySelector('#preview-frame');
+    const empty = document.querySelector('#empty-state');
+    const previewButton = document.querySelector('#preview-button');
+    let lastHtml = '';
+
+    function setStatus(message, kind = '') {
+      status.textContent = message;
+      status.className = `status ${kind}`;
+    }
+    function setMeta(payload) {
+      document.querySelector('#meta-title-value').textContent = payload.title || '—';
+      document.querySelector('#meta-url').textContent = payload.finalUrl || payload.target || '—';
+      document.querySelector('#meta-description').textContent = payload.description || 'لا يوجد وصف مختصر.';
+      document.querySelector('#stat-links').textContent = Array.isArray(payload.links) ? payload.links.length : 0;
+      document.querySelector('#stat-html').textContent = typeof payload.html === 'string' ? payload.html.length.toLocaleString('ar') : 0;
+      document.querySelector('#stat-status').textContent = payload.status || '—';
+    }
+    async function preview() {
+      const value = input.value.trim();
+      if (!value) { setStatus('أدخل رابطًا أولًا.', 'error'); input.focus(); return; }
+      let url;
+      try { url = new URL(value); } catch { setStatus('الرابط غير صالح.', 'error'); return; }
+      if (!['http:', 'https:'].includes(url.protocol)) { setStatus('يُسمح فقط بروابط HTTP وHTTPS.', 'error'); return; }
+      previewButton.disabled = true;
+      setStatus('جاري جلب الصفحة وتنظيفها وتحليلها…');
+      try {
+        const response = await fetch(`${RELAY}?url=${encodeURIComponent(url.href)}`, { headers: { Accept: 'application/json' } });
+        const payload = await response.json();
+        if (!response.ok || !payload.html) throw new Error(payload.message || payload.error || `HTTP ${response.status}`);
+        lastHtml = payload.html;
+        frame.srcdoc = payload.html;
+        empty.hidden = true;
+        frame.hidden = false;
+        setMeta(payload);
+        setStatus(`تمت المعاينة بنجاح: ${payload.title || payload.finalUrl}`, 'ok');
+      } catch (error) {
+        frame.removeAttribute('srcdoc');
+        frame.hidden = true;
+        empty.hidden = false;
+        setStatus(`تعذر عرض الرابط: ${error.message}`, 'error');
+      } finally { previewButton.disabled = false; }
+    }
+    function clearPreview() {
+      frame.removeAttribute('srcdoc'); frame.hidden = true; empty.hidden = false; lastHtml = '';
+      setMeta({}); setStatus('تم مسح المعاينة.');
+    }
+    previewButton.addEventListener('click', preview);
+    input.addEventListener('keydown', event => { if (event.key === 'Enter') preview(); });
+    document.querySelectorAll('[data-url]').forEach(button => button.addEventListener('click', () => { input.value = button.dataset.url; preview(); }));
+    document.querySelector('#clear-button').addEventListener('click', clearPreview);
+    document.querySelector('#fullscreen-button').addEventListener('click', async () => {
+      const panel = document.querySelector('.preview-panel');
+      if (!document.fullscreenElement) await panel.requestFullscreen?.(); else await document.exitFullscreen?.();
+    });
+    frame.hidden = true;
+  </script>
+</body>
+</html>
