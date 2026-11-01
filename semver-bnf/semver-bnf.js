@@ -4,7 +4,7 @@ const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
 const VIEW_STATE_VERSION = 3;
-const POSITIONS_KEY = 'semver-bnf-node-positions-radial-10cm';
+const POSITIONS_KEY = 'semver-bnf-node-positions-radial-10cm-v2';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const BUILTIN_NODES = Object.freeze({
   600: {
@@ -1096,6 +1096,7 @@ function initializeNetwork() {
   createNodeElements();
   setupNodeChatRoom();
   layoutNodes();
+  centerMapViewport();
   const observer = new ResizeObserver(scheduleLayout);
   observer.observe(nodeViewport);
   $('#node-search').addEventListener('input', () => {
