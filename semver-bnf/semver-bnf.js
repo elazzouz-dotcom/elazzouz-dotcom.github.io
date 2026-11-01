@@ -218,7 +218,7 @@ function updateNodeChatRoomRecord(id) {
   const data = getHubData(id);
   const type = nodeContentType(data, id);
   const level = NODE_LEVELS.findIndex((count, levelIndex) => { const start = NODE_LEVELS.slice(0, levelIndex).reduce((sum, value) => sum + value, 0) + 1; return id >= start && id < start + count; }) + 1;
-  nodeChatRoomRecords.set(id, { id, type, level, configured: isConfigured(data), url: data?.url || '', html: data?.html || '', parent: connectedNodeParent(id) });
+  nodeChatRoomRecords.set(id, { id, type, level, configured: isConfigured(data), url: data?.url || '', html: data?.html || '', parent: id > 1 ? getNodeParent(id) : null });
 }
 function renderNodeChatRoom() {
   const log = $('#node-chat-room-log');
@@ -344,20 +344,18 @@ function focusEdge(path, parentId, childId, persist = false) {
   nodeButtons.get(childId)?.classList.add('edge-node-focused');
   if (persist) setNodeStatus(`العلاقة المحددة: ${nodeLabel(parentId)} ← ${nodeLabel(childId)}.`);
 }
-function connectedNodeParent(id) { return id > 1 ? id - 1 : null; }
 function drawEdges() {
   const svgNamespace = 'http://www.w3.org/2000/svg';
   const fragment = document.createDocumentFragment();
   for (let id = 2; id <= NODE_TOTAL; id += 1) {
-    const parentId = connectedNodeParent(id);
+    const parentId = getNodeParent(id);
     const parent = nodePositions.get(parentId);
     const child = nodePositions.get(id);
     if (!parent || !child) continue;
     const path = document.createElementNS(svgNamespace, 'path');
-    const startY = parent.y;
-    const endY = child.y;
-    const midX = (parent.x + child.x) / 2;
-    const midY = (parent.y + child.y) / 2;
+    const startY = parent.y + NODE_SIZE * .43;
+    const endY = child.y - NODE_SIZE * .43;
+    const curve = Math.max(18, Math.abs(endY - startY) * .38);
     const edgeType = relationType(parentId, id);
     path.setAttribute('class', `network-connection edge-${edgeType}`);
     path.dataset.relation = edgeType;
@@ -366,7 +364,7 @@ function drawEdges() {
     path.setAttribute('role', 'button');
     path.setAttribute('tabindex', '0');
     path.setAttribute('aria-label', `علاقة من ${nodeLabel(parentId)} إلى ${nodeLabel(id)}`);
-    path.setAttribute('d', `M ${parent.x} ${startY} Q ${midX} ${midY} ${child.x} ${endY}`);
+    path.setAttribute('d', `M ${parent.x} ${startY} C ${parent.x} ${startY + curve}, ${child.x} ${endY - curve}, ${child.x} ${endY}`);
     path.addEventListener('pointerenter', () => focusEdge(path, parentId, id));
     path.addEventListener('pointerleave', () => { if (focusedEdge?.path === path) clearEdgeFocus(); });
     path.addEventListener('focus', () => focusEdge(path, parentId, id));
@@ -416,8 +414,7 @@ function layoutNodes() {
     for (let position = 0; position < count; position += 1, cursor += 1) {
       const col = position % columns;
       const row = Math.floor(position / columns);
-      const visualCol = row % 2 ? columns - 1 - col : col;
-      const x = cellWidth * (visualCol + .5);
+      const x = cellWidth * (col + .5);
       const y = top + row * ROW_GAP + 25;
       const saved = storedPositions[cursor];
       const position = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)
@@ -497,7 +494,7 @@ function nodePath(id) {
   while (current !== null && !seen.has(current)) {
     seen.add(current);
     path.push(current);
-    current = connectedNodeParent(current);
+    current = getNodeParent(current);
   }
   return path;
 }
