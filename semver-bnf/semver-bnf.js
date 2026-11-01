@@ -937,6 +937,19 @@ function reportConcurrency() {
 function reportSignature(item) {
   return `${item.url || ''}|${item.html || ''}|${item.savedAt || ''}`;
 }
+function refreshReportCacheStatus() {
+  const status = $('#report-cache-status');
+  if (!status) return;
+  const cache = readReportCache();
+  const count = Object.keys(cache).length;
+  const size = JSON.stringify(cache).length;
+  status.textContent = count ? `ذاكرة الروابط: ${count} نتيجة محفوظة محليًا · ${Math.round(size / 1024)} كيلوبايت · صلاحية 10 دقائق.` : 'ذاكرة الروابط فارغة؛ ستُحفظ النتائج محليًا بعد جمع التقرير.';
+}
+function clearReportCache() {
+  localStorage.removeItem(REPORT_CACHE_KEY);
+  refreshReportCacheStatus();
+  $('#report-status').textContent = 'تم مسح ذاكرة الروابط المحلية. لن تُحذف بيانات العقد.';
+}
 function readReportCache() {
   const cache = readJson(REPORT_CACHE_KEY, {});
   return cache && typeof cache === 'object' ? cache : {};
@@ -980,6 +993,7 @@ async function collectReport() {
     status.textContent = `إعداد الملخص المحلي: ${completed} من ${total} عقدة · دفعات متزامنة: ${concurrency}…`;
   });
   writeReportCache(cache);
+  refreshReportCacheStatus();
   latestReport = {
     generatedAt: new Date().toISOString(),
     totalNodes: NODE_TOTAL,
@@ -1426,6 +1440,8 @@ function setupOrbit() {
 
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
+  $('#clear-report-cache').addEventListener('click', clearReportCache);
+  refreshReportCacheStatus();
   $('#export-report').addEventListener('click', exportReport);
   setupHubModal();
   setupValidator();
