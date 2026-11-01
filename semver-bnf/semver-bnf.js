@@ -354,7 +354,7 @@ function focusEdge(path, parentId, childId, persist = false) {
 }
 function canvasPointFromEvent(event) {
   const rect = networkCanvas.getBoundingClientRect();
-  return { x: (event.clientX - rect.left) / zoom, y: (event.clientY - rect.top) / zoom };
+  return { x: (event.clientX - rect.left + nodeViewport.scrollLeft) / zoom, y: (event.clientY - rect.top + nodeViewport.scrollTop) / zoom };
 }
 function canvasNodeAt(point) {
   let hit = null;
@@ -367,11 +367,15 @@ function canvasNodeAt(point) {
   return hit;
 }
 function resizeNetworkCanvas() {
-  const ratio = window.devicePixelRatio || 1;
-  networkCanvas.width = Math.max(1, Math.ceil(mapWidth * ratio));
-  networkCanvas.height = Math.max(1, Math.ceil(mapHeight * ratio));
-  networkCanvas.style.width = `${mapWidth}px`;
-  networkCanvas.style.height = `${mapHeight}px`;
+  const ratio = Math.min(2, window.devicePixelRatio || 1);
+  const width = Math.max(1, nodeViewport.clientWidth);
+  const height = Math.max(1, nodeViewport.clientHeight);
+  networkCanvas.width = Math.ceil(width * ratio);
+  networkCanvas.height = Math.ceil(height * ratio);
+  networkCanvas.style.width = `${width}px`;
+  networkCanvas.style.height = `${height}px`;
+  networkCanvas.style.left = `${nodeViewport.scrollLeft}px`;
+  networkCanvas.style.top = `${nodeViewport.scrollTop}px`;
   canvasContext.setTransform(ratio, 0, 0, ratio, 0, 0);
 }
 function renderCanvasNetwork() {
@@ -379,12 +383,22 @@ function renderCanvasNetwork() {
   resizeNetworkCanvas();
   const root = getComputedStyle(document.documentElement);
   const colors = { hierarchy: root.getPropertyValue('--edge-hierarchy').trim() || '#59e0a3', content: root.getPropertyValue('--edge-content').trim() || '#55b8e8', software: root.getPropertyValue('--edge-software').trim() || '#f4ce72' };
-  canvasContext.clearRect(0, 0, mapWidth, mapHeight);
-  canvasContext.lineWidth = 2.5;
+  const offsetX = nodeViewport.scrollLeft;
+  const offsetY = nodeViewport.scrollTop;
+  canvasContext.clearRect(0, 0, nodeViewport.clientWidth, nodeViewport.clientHeight);
+  canvasContext.save();
+  canvasContext.scale(zoom, zoom);
+  canvasContext.translate(-offsetX / zoom, -offsetY / zoom);
+  canvasContext.lineWidth = 2.5 / zoom;
   for (let id = 2; id <= NODE_TOTAL; id += 1) {
     const parentId = getNodeParent(id); const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
     const parentButton = nodeButtons.get(parentId); const childButton = nodeButtons.get(id);
     if (!parent || !child || parentButton?.hidden || childButton?.hidden) continue;
+    const visibleLeft = offsetX / zoom - NODE_SIZE;
+    const visibleTop = offsetY / zoom - NODE_SIZE;
+    const visibleRight = (offsetX + nodeViewport.clientWidth) / zoom + NODE_SIZE;
+    const visibleBottom = (offsetY + nodeViewport.clientHeight) / zoom + NODE_SIZE;
+    if (Math.max(parent.x, child.x) < visibleLeft || Math.min(parent.x, child.x) > visibleRight || Math.max(parent.y, child.y) < visibleTop || Math.min(parent.y, child.y) > visibleBottom) continue;
     const type = relationType(parentId, id); canvasContext.strokeStyle = colors[type === 'software' ? 'software' : type === 'content' ? 'content' : 'hierarchy'];
     const style = readJson(RELATION_STYLE_KEY, {})[type === 'software' ? 'software' : type] || {};
     canvasContext.setLineDash(style.style === 'dashed' ? [10, 7] : style.style === 'dotted' ? [2, 7] : []);
@@ -393,6 +407,11 @@ function renderCanvasNetwork() {
   canvasContext.setLineDash([]);
   for (let id = 1; id <= NODE_TOTAL; id += 1) {
     const button = nodeButtons.get(id); const point = nodePositions.get(id); if (!button || button.hidden || !point) continue;
+    const visibleLeft = offsetX / zoom - NODE_SIZE;
+    const visibleTop = offsetY / zoom - NODE_SIZE;
+    const visibleRight = (offsetX + nodeViewport.clientWidth) / zoom + NODE_SIZE;
+    const visibleBottom = (offsetY + nodeViewport.clientHeight) / zoom + NODE_SIZE;
+    if (point.x < visibleLeft || point.x > visibleRight || point.y < visibleTop || point.y > visibleBottom) continue;
     const active = button.dataset.active === 'true'; const highlighted = button.classList.contains('is-highlighted') || button.classList.contains('is-path');
     canvasContext.beginPath(); canvasContext.arc(point.x, point.y, NODE_SIZE / 2, 0, Math.PI * 2);
     canvasContext.fillStyle = active ? '#17140b' : '#081411'; canvasContext.fill(); canvasContext.lineWidth = highlighted ? 4 : 2; canvasContext.strokeStyle = active ? '#f4ce72' : highlighted ? '#f4ce72' : '#59e0a3'; canvasContext.stroke();
@@ -1289,6 +1308,7 @@ function initializeNetwork() {
   setupRelationCustomization();
   createNodeElements();
   setupCanvasInteraction();
+  nodeViewport.addEventListener('scroll', renderCanvasNetwork, { passive: true });
   setupNodeChatRoom();
   layoutNodes();
   centerMapViewport();
