@@ -8,6 +8,7 @@ import streamlit as st
 from app.main.routes import (
     SearchAPIError,
     SearchConfigurationError,
+    analyze_keywords_with_ai,
     analyze_results,
     normalize_results,
     result_rows,
@@ -134,6 +135,56 @@ for index, row in enumerate(rows, 1):
         if row["url"]:
             st.markdown(f"**الرابط:** [{row['url']}]({row['url']})")
         st.caption(f"النطاق: {row['domain'] or 'غير معروف'} · الدرجة: {row['score'] if row['score'] is not None else '—'}")
+
+st.subheader("تحليل الكلمات المفتاحية بالذكاء الاصطناعي")
+st.caption("ميزة اختيارية: لا تُرسل النتائج إلى نموذج الذكاء الاصطناعي إلا بعد الضغط على الزر.")
+ai_model = st.text_input("نموذج التحليل", value="gpt-6-luna", help="يمكن تغييره عبر OPENAI_MODEL أو هذا الحقل.")
+if st.button("حلّل الكلمات والنية والفرص", type="secondary"):
+    try:
+        with st.spinner("يحلل الذكاء الاصطناعي الكلمات والموضوعات…"):
+            ai_analysis = analyze_keywords_with_ai(
+                results,
+                query=st.session_state.get("last_query", ""),
+                model=ai_model.strip() or None,
+            )
+        st.session_state.ai_analysis = ai_analysis
+    except (SearchConfigurationError, SearchAPIError, ValueError) as exc:
+        st.error(str(exc))
+    except Exception as exc:
+        st.error(f"تعذر تحليل الكلمات: {type(exc).__name__}")
+
+ai_analysis = st.session_state.get("ai_analysis")
+if ai_analysis:
+    st.success(f"اكتمل التحليل باستخدام {ai_analysis.get('model', 'النموذج المحدد')} على {ai_analysis.get('source_results', 0)} نتيجة.")
+    st.write(f"**الخلاصة:** {ai_analysis.get('summary', '—')}")
+    st.write(f"**نية البحث:** {ai_analysis.get('search_intent', '—')} · **الثقة:** {ai_analysis.get('confidence', '—')}%")
+    clusters = ai_analysis.get("clusters", [])
+    if clusters:
+        st.write("**التجميعات الموضوعية:**")
+        st.dataframe(
+            [{"الموضوع": c.get("topic", ""), "الكلمات": "، ".join(c.get("keywords", [])), "السبب": c.get("rationale", "")} for c in clusters],
+            use_container_width=True,
+            hide_index=True,
+        )
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        st.write("**فرص المحتوى**")
+        for item in ai_analysis.get("opportunities", []):
+            st.write(f"- {item}")
+    with col_b:
+        st.write("**كلمات سلبية مقترحة**")
+        for item in ai_analysis.get("negative_keywords", []):
+            st.write(f"- {item}")
+    with col_c:
+        st.write("**استعلامات مقترحة**")
+        for item in ai_analysis.get("recommended_queries", []):
+            st.write(f"- {item}")
+    st.download_button(
+        "تنزيل تحليل الذكاء الاصطناعي",
+        json.dumps(ai_analysis, ensure_ascii=False, indent=2).encode("utf-8"),
+        file_name="ai-keyword-analysis.json",
+        mime="application/json",
+    )
 
 st.subheader("تصدير")
 json_bytes = json.dumps({"query": st.session_state.get("last_query", ""), "analysis": analysis, "results": rows}, ensure_ascii=False, indent=2).encode("utf-8")

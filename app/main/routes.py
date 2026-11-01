@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any, Iterable
 from urllib.parse import urlparse
+import json
 import os
 import re
 
@@ -152,3 +153,102 @@ def analyze_results(results: Iterable[SearchResult]) -> dict[str, Any]:
 
 def result_rows(results: Iterable[SearchResult]) -> list[dict[str, Any]]:
     return [asdict(item) for item in results]
+
+
+def analyze_keywords_with_ai(
+    results: Iterable[SearchResult],
+    *,
+    query: str,
+    model: str | None = None,
+) -> dict[str, Any]:
+    """Use an OpenAI-compatible model for structured keyword analysis.
+
+    The call is opt-in from the UI. Only normalized search results are sent;
+    the API key is read server-side and is never included in the prompt.
+    """
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key or api_key == "<YOUR_OPENAI_API_KEY>":
+        raise SearchConfigurationError(
+            "ضع OPENAI_API_KEY لتحليل الكلمات بالذكاء الاصطناعي، ثم اضغط الزر مرة أخرى."
+        )
+    try:
+        from openai import OpenAI
+    except ImportError as exc:
+        raise SearchConfigurationError("ثبّت مكتبة openai أولًا: pip install openai") from exc
+
+    selected = list(results)[:50]
+    context = [
+        {"title": item.title, "url": item.url, "snippet": item.snippet, "domain": item.domain}
+        for item in selected
+    ]
+    client_kwargs = {"api_key": api_key}
+    base_url = os.getenv("OPENAI_API_BASE", "").strip()
+    if base_url:
+        client_kwargs["base_url"] = base_url
+    client = OpenAI(**client_kwargs)
+    chosen_model = model or os.getenv("OPENAI_MODEL", "gpt-6-luna")
+    response = client.chat.completions.create(
+        model=chosen_model,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "أنت محلل SEO وبحث دقيق. حلل النتائج فقط، لا تخترع بيانات أو أرقامًا. "
+                    "أعد JSON مطابقًا للمخطط، باللغة العربية، مع كلمات مفتاحية عملية."
+                ),
+            },
+            {
+                "role": "user",
+                "content": json.dumps(
+                    {"query": query, "results": context}, ensure_ascii=False
+                ),
+            },
+        ],
+        max_completion_tokens=1800,
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "keyword_analysis",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "summary": {"type": "string"},
+                        "search_intent": {"type": "string"},
+                        "clusters": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": False,
+                                "properties": {
+                                    "topic": {"type": "string"},
+                                    "keywords": {"type": "array", "items": {"type": "string"}},
+                                    "rationale": {"type": "string"},
+                                },
+                                "required": ["topic", "keywords", "rationale"],
+                            },
+                        },
+                        "opportunities": {"type": "array", "items": {"type": "string"}},
+                        "negative_keywords": {"type": "array", "items": {"type": "string"}},
+                        "recommended_queries": {"type": "array", "items": {"type": "string"}},
+                        "confidence": {"type": "integer", "minimum": 0, "maximum": 100},
+                    },
+                    "required": [
+                        "summary", "search_intent", "clusters", "opportunities",
+                        "negative_keywords", "recommended_queries", "confidence",
+                    ],
+                },
+            },
+        },
+    )
+    content = response.choices[0].message.content if response.choices else None
+    if not content:
+        raise SearchAPIError("لم يُرجع نموذج الذكاء الاصطناعي تحليلًا.")
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise SearchAPIError("استجابة تحليل الكلمات ليست JSON صالحًا.") from exc
+    parsed["model"] = chosen_model
+    parsed["source_results"] = len(selected)
+    return parsed
