@@ -279,8 +279,8 @@ function createNodeElements() {
   let id = 1;
   NODE_LEVELS.forEach((count, level) => {
     const label = document.createElement('span');
-    label.className = 'network-level-label';
-    label.textContent = `المستوى ${level + 1} · ${count} عقدة`;
+    label.className = `network-level-label${level < 6 ? ' network-level-intro' : ''}`;
+    label.textContent = level < 6 ? `المستوى ${level + 1} · ${count} ${count === 1 ? 'عقدة' : count === 2 ? 'عقدتان' : 'عقد'}` : `المستوى ${level + 1} · ${count} عقدة`;
     label.dataset.level = String(level);
     nodeNetwork.appendChild(label);
     levelLabels.push(label);
@@ -429,6 +429,28 @@ function renderCanvasNetwork() {
     canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.quadraticCurveTo((parent.x + child.x) / 2, (parent.y + child.y) / 2, child.x, child.y); canvasContext.stroke();
   }
   canvasContext.setLineDash([]);
+  const introLevels = NODE_LEVELS.slice(0, 6);
+  let introCursor = 1;
+  introLevels.forEach((count, level) => {
+    const first = nodePositions.get(introCursor);
+    const last = nodePositions.get(introCursor + count - 1);
+    if (first && last) {
+      const y = first.y;
+      canvasContext.save();
+      canvasContext.strokeStyle = 'rgba(89, 224, 163, .16)';
+      canvasContext.setLineDash([5, 8]);
+      canvasContext.lineWidth = 1;
+      canvasContext.beginPath(); canvasContext.moveTo(34, y); canvasContext.lineTo(mapWidth - 34, y); canvasContext.stroke();
+      canvasContext.setLineDash([]);
+      canvasContext.fillStyle = 'rgba(168, 255, 211, .82)';
+      canvasContext.font = '800 12px system-ui,sans-serif';
+      canvasContext.textAlign = 'start'; canvasContext.textBaseline = 'middle';
+      const countLabel = count === 1 ? 'عقدة' : count === 2 ? 'عقدتان' : 'عقد';
+      canvasContext.fillText(`المستوى ${level + 1} · ${count} ${countLabel}`, 38, y - 31);
+      canvasContext.restore();
+    }
+    introCursor += count;
+  });
   for (const id of visibleNodeIds) {
     const button = nodeButtons.get(id); const point = nodePositions.get(id); if (!button || button.hidden || !point) continue;
     const visibleLeft = offsetX / zoom - NODE_SIZE;
@@ -437,7 +459,10 @@ function renderCanvasNetwork() {
     const visibleBottom = (offsetY + nodeViewport.clientHeight) / zoom + NODE_SIZE;
     if (point.x < visibleLeft || point.x > visibleRight || point.y < visibleTop || point.y > visibleBottom) continue;
     const active = button.dataset.active === 'true'; const highlighted = button.classList.contains('is-highlighted') || button.classList.contains('is-path');
-    canvasContext.beginPath(); canvasContext.arc(point.x, point.y, NODE_SIZE / 2, 0, Math.PI * 2);
+    const introNode = Number(button.dataset.level) < 6;
+    const nodeRadius = introNode ? 25 : NODE_SIZE / 2;
+    canvasContext.beginPath(); canvasContext.arc(point.x, point.y, nodeRadius, 0, Math.PI * 2);
+    if (introNode) { canvasContext.fillStyle = 'rgba(89, 224, 163, .08)'; canvasContext.fill(); canvasContext.beginPath(); canvasContext.arc(point.x, point.y, nodeRadius + 5, 0, Math.PI * 2); canvasContext.strokeStyle = 'rgba(244, 206, 114, .38)'; canvasContext.lineWidth = 1.5; canvasContext.stroke(); canvasContext.beginPath(); canvasContext.arc(point.x, point.y, nodeRadius, 0, Math.PI * 2); }
     canvasContext.fillStyle = active ? '#17140b' : '#081411'; canvasContext.fill(); canvasContext.lineWidth = highlighted ? 4 : 2; canvasContext.strokeStyle = active ? '#f4ce72' : highlighted ? '#f4ce72' : '#59e0a3'; canvasContext.stroke();
     canvasContext.fillStyle = '#59e0a3'; canvasContext.font = '900 16px system-ui,sans-serif'; canvasContext.textAlign = 'center'; canvasContext.textBaseline = 'middle'; canvasContext.fillText('+', point.x, point.y - 4);
     canvasContext.fillStyle = '#e5fff3'; canvasContext.font = '900 7px system-ui,sans-serif'; canvasContext.fillText(nodeLabel(id), point.x, point.y + 10);
