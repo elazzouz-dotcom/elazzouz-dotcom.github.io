@@ -560,7 +560,45 @@ function appendReportText(parent, tag, text, className = '') {
   return element;
 }
 
+function openReportInside(id) {
+  const button = nodeButtons.get(Number(id));
+  if (button) {
+    openHubNode(Number(id), button);
+    setHubStatus('تُعرض هذه الصفحة داخل الموقع. قد تمنع بعض المواقع التضمين، لكنك لن تغادر الصفحة تلقائيًا.');
+    return;
+  }
+  setHubStatus('تعذر العثور على العقدة المطلوبة.', false);
+}
+function renderInfoChat(results) {
+  const log = $('#info-chat-log');
+  if (!log) return;
+  log.replaceChildren();
+  const intro = document.createElement('div');
+  intro.className = 'info-chat-message info-chat-system';
+  intro.textContent = `تم ضخ ${results.length} ملخصًا إلى نفق المعلومات من أصل ${NODE_TOTAL} عقدة.`;
+  log.appendChild(intro);
+  results.forEach((item) => {
+    const message = document.createElement('article');
+    message.className = 'info-chat-message';
+    const title = document.createElement('strong');
+    title.textContent = `${nodeLabel(item.id)} · ${item.title || item.url || 'معلومة عقدة'}`;
+    const detail = document.createElement('p');
+    detail.textContent = item.error || (item.status === 'external-only' ? 'رابط خارجي جاهز للعرض داخل الموقع.' : item.text || 'اكتمل التحليل المحلي.');
+    const actions = document.createElement('div');
+    actions.className = 'info-chat-actions';
+    const preview = document.createElement('button');
+    preview.type = 'button';
+    preview.className = 'info-chat-preview';
+    preview.textContent = '◉ عرض الرابط داخل الموقع';
+    preview.addEventListener('click', () => openReportInside(item.id));
+    actions.appendChild(preview);
+    message.append(title, detail, actions);
+    log.appendChild(message);
+  });
+  log.scrollTop = log.scrollHeight;
+}
 function renderReport(results) {
+  renderInfoChat(results);
   const output = $('#network-report');
   output.replaceChildren();
   const successCount = results.filter((item) => !item.error && item.status !== 'external-only').length;
@@ -591,6 +629,14 @@ function renderReport(results) {
     if (item.title) appendReportText(card, 'small', item.title);
     if (item.contentType) appendReportText(card, 'small', `نوع المحتوى: ${item.contentType}`);
     appendReportText(card, 'p', item.error || item.text || 'لا يوجد نص قابل للعرض.');
+    if (item.url) {
+      const previewButton = document.createElement('button');
+      previewButton.type = 'button';
+      previewButton.className = 'report-preview-button';
+      previewButton.textContent = '◉ عرض الرابط داخل الموقع';
+      previewButton.addEventListener('click', () => openReportInside(item.id));
+      card.appendChild(previewButton);
+    }
     cards.appendChild(card);
   });
   output.appendChild(cards);
@@ -847,6 +893,8 @@ function setupActions() {
   setupValidator();
   setupMobileNavigation();
   setupOrbit();
+  // تشغيل نفق المعلومات تلقائيًا عند وجود عقد مهيأة، دون طلب إضافي من المستخدم.
+  window.setTimeout(() => collectReport(), 250);
 }
 
 initializeNetwork();

@@ -110,6 +110,22 @@ body.semver-page a { color: inherit; }
 .report-card strong { color: var(--semver-green); font-size: .88rem; }
 .report-card small, .report-card p { overflow-wrap: anywhere; margin: 0; color: var(--semver-muted); font-size: .75rem; line-height: 1.7; }
 .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: .65rem; max-height: 640px; overflow: auto; }
+
+.report-tunnel { display: grid; grid-template-columns: minmax(250px, .72fr) minmax(0, 1.28fr); gap: .8rem; align-items: start; }
+.info-chat-panel { min-width: 0; border: 1px solid rgba(89, 224, 163, .22); border-radius: 16px; padding: .85rem; background: linear-gradient(160deg, rgba(12, 32, 35, .96), rgba(7, 19, 23, .96)); }
+.info-chat-heading { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; border-bottom: 1px solid var(--semver-line); padding-bottom: .6rem; }
+.info-chat-heading .semver-kicker { margin: 0; }
+.info-chat-heading h3 { flex: 1 1 100%; order: 3; margin: 0; color: var(--semver-text); font-size: 1.05rem; }
+.info-chat-live { color: var(--semver-green); font-size: .68rem; font-weight: 900; }
+.info-chat-intro { margin: .65rem 0; color: var(--semver-muted); font-size: .74rem; line-height: 1.7; }
+.info-chat-log { display: grid; gap: .55rem; max-height: 570px; overflow: auto; padding-inline-end: .15rem; }
+.info-chat-message { border: 1px solid rgba(89, 224, 163, .15); border-radius: 13px 13px 4px 13px; padding: .65rem; background: rgba(18, 42, 45, .72); }
+.info-chat-message.info-chat-system { border-color: rgba(244, 206, 114, .28); border-radius: 13px; color: var(--semver-gold); background: rgba(78, 63, 25, .24); font-size: .76rem; line-height: 1.6; }
+.info-chat-message strong { display: block; color: var(--semver-green); font-size: .75rem; overflow-wrap: anywhere; }
+.info-chat-message p { margin: .28rem 0 .5rem; color: var(--semver-muted); font-size: .72rem; line-height: 1.6; overflow-wrap: anywhere; }
+.info-chat-actions { display: flex; justify-content: flex-start; }
+.info-chat-preview { border: 1px solid rgba(89, 224, 163, .35); border-radius: 999px; padding: .35rem .55rem; color: var(--semver-green); background: rgba(89, 224, 163, .07); font: inherit; font-size: .68rem; font-weight: 800; cursor: pointer; }
+.info-chat-preview:hover, .info-chat-preview:focus-visible { border-color: var(--semver-green); background: rgba(89, 224, 163, .15); }
 .validator-grid, .grammar-grid, .example-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
 .validator-row { display: flex; gap: .6rem; }
 .validator-row .semver-input { flex: 1; }
@@ -211,6 +227,8 @@ body.semver-page a { color: inherit; }
   .node-viewport { height: 62vh; min-height: 390px; }
   .validator-grid, .grammar-grid, .example-grid { grid-template-columns: 1fr; }
   .validator-row { flex-direction: column; }
+  .report-tunnel { grid-template-columns: 1fr; }
+  .info-chat-log { max-height: 360px; }
   .hub-form-grid { grid-template-columns: 1fr; }
   .hub-form-grid .full { grid-column: auto; }
   .hub-analysis-list { grid-template-columns: 1fr; }
@@ -223,3 +241,5 @@ body.semver-page a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+.report-preview-button { justify-self: start; border: 1px solid rgba(89, 224, 163, .35); border-radius: 999px; padding: .38rem .6rem; color: var(--semver-green); background: rgba(89, 224, 163, .07); font: inherit; font-size: .68rem; font-weight: 800; cursor: pointer; }
+.report-preview-button:hover, .report-preview-button:focus-visible { border-color: var(--semver-green); background: rgba(89, 224, 163, .15); }
