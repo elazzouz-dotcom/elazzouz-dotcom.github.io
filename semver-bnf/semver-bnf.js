@@ -228,9 +228,20 @@ function scheduleLayout() {
   scheduleLayout.frame = requestAnimationFrame(layoutNodes);
 }
 
+function nodeContentType(data) {
+  if (!data || !isConfigured(data)) return 'empty';
+  if (data.html && !data.url) return 'html';
+  if (!data.url) return 'empty';
+  try {
+    const link = parseNodeLink(data.url);
+    if (link.kind !== 'web') return 'app';
+    return classifySoftwareUrl(link.url).kind;
+  } catch { return 'web'; }
+}
 function applyNodeFilters() {
   const query = $('#node-search').value.trim().toLowerCase();
   const activeFilter = $('#node-filter').value;
+  const softwareFilter = $('#software-filter').value;
   const levelFilter = $('#level-filter').value;
   let visible = 0;
   for (let id = 1; id <= NODE_TOTAL; id += 1) {
@@ -239,9 +250,11 @@ function applyNodeFilters() {
     const configured = isConfigured(data);
     const levelMatches = levelFilter === 'all' || button.dataset.level === levelFilter;
     const stateMatches = activeFilter === 'all' || (activeFilter === 'active' ? configured : !configured);
-    const haystack = `${nodeLabel(id)} ${data?.url || ''} ${data?.html ? 'html' : ''}`.toLowerCase();
+    const typeMatches = softwareFilter === 'all' || nodeContentType(data) === softwareFilter;
+    const typeLabel = nodeContentType(data);
+    const haystack = `${nodeLabel(id)} ${data?.url || ''} ${data?.html ? 'html' : ''} ${typeLabel}`.toLowerCase();
     const queryMatches = !query || haystack.includes(query);
-    const show = levelMatches && stateMatches && queryMatches;
+    const show = levelMatches && stateMatches && typeMatches && queryMatches;
     button.hidden = !show;
     button.classList.toggle('is-highlighted', Boolean(query && queryMatches && show));
     if (show) visible += 1;
@@ -720,6 +733,7 @@ function initializeNetwork() {
   observer.observe(nodeViewport);
   $('#node-search').addEventListener('input', applyNodeFilters);
   $('#node-filter').addEventListener('change', applyNodeFilters);
+  $('#software-filter').addEventListener('change', applyNodeFilters);
   $('#level-filter').addEventListener('change', applyNodeFilters);
   $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); });
   $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); });
@@ -729,6 +743,7 @@ function initializeNetwork() {
     if (!root) return;
     $('#node-search').value = '';
     $('#node-filter').value = 'all';
+    $('#software-filter').value = 'all';
     $('#level-filter').value = 'all';
     applyNodeFilters();
     nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
