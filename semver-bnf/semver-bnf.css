@@ -391,5 +391,3 @@ body.semver-page a { color: inherit; }
 .node-viewport { cursor: grab; -webkit-overflow-scrolling: touch; }
 .node-viewport:active { cursor: grabbing; }
 .node-viewport > * { touch-action: pan-x pan-y; }
-
-
