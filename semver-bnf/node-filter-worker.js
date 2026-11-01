@@ -1,4 +1,7 @@
 let records = [];
+let indexVersion = 0;
+const FILTER_CACHE_LIMIT = 80;
+const filterCache = new Map();
 
 function tokenize(query) {
   const terms = [];
@@ -17,6 +20,26 @@ function matchesQuery(text, terms, mode) {
   return mode === 'any'
     ? terms.some((term) => text.includes(term))
     : terms.every((term) => text.includes(term));
+}
+
+function filterCacheKey(message) {
+  return JSON.stringify([
+    indexVersion,
+    String(message.query || '').trim().toLocaleLowerCase(),
+    message.searchMode === 'any' ? 'any' : 'all',
+    message.sort || 'id',
+    message.nodeFilter || 'all',
+    message.softwareFilter || 'all',
+    message.levelFilter || 'all'
+  ]);
+}
+
+function cacheResult(key, result) {
+  filterCache.delete(key);
+  filterCache.set(key, result);
+  while (filterCache.size > FILTER_CACHE_LIMIT) {
+    filterCache.delete(filterCache.keys().next().value);
+  }
 }
 
 function filterRecords(message) {
@@ -47,21 +70,29 @@ function filterRecords(message) {
     visibleIds.sort((a, b) => Number(records[b - 1].configured) - Number(records[a - 1].configured) || a - b);
   }
 
-  return {
-    type: 'result',
-    requestId: message.requestId,
-    visibleIds,
-    visibleLevels: [...visibleLevels],
-    total: visibleIds.length
-  };
+  return { visibleIds, visibleLevels: [...visibleLevels], total: visibleIds.length };
 }
 
 self.addEventListener('message', (event) => {
   const message = event.data || {};
   if (message.type === 'init') {
     records = Array.isArray(message.records) ? message.records : [];
-    self.postMessage({ type: 'ready', total: records.length, indexVersion: message.indexVersion || 0 });
+    indexVersion = Number(message.indexVersion || 0);
+    filterCache.clear();
+    self.postMessage({ type: 'ready', total: records.length, indexVersion, cacheLimit: FILTER_CACHE_LIMIT });
     return;
   }
-  if (message.type === 'filter') self.postMessage(filterRecords(message));
+  if (message.type !== 'filter') return;
+
+  const key = filterCacheKey(message);
+  const cached = filterCache.get(key);
+  if (cached) {
+    cacheResult(key, cached);
+    self.postMessage({ type: 'result', requestId: message.requestId, ...cached, cached: true });
+    return;
+  }
+
+  const result = filterRecords(message);
+  cacheResult(key, result);
+  self.postMessage({ type: 'result', requestId: message.requestId, ...result, cached: false });
 });

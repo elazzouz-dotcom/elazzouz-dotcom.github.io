@@ -764,6 +764,7 @@ function handleNodeFilterWorkerMessage(event) {
     return;
   }
   if (message.type !== 'result' || message.requestId !== latestNodeFilterRequestId) return;
+  $('#node-status').dataset.filterCache = message.cached ? 'hit' : 'miss';
   applyVisibleNodeIdsInBatches(message.visibleIds || [], new Set(message.visibleLevels || []));
 }
 function applyNodeFilters() {
