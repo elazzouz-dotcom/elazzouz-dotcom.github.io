@@ -8,6 +8,9 @@ const POSITIONS_KEY = 'semver-bnf-node-positions-radial-10cm-v2';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
 const REPORT_CACHE_TTL = 10 * 60 * 1000;
+const LINK_CACHE_DB = 'slaks-link-cache-db';
+const LINK_CACHE_STORE = 'payloads';
+const pendingLinkLoads = new Map();
 const BUILTIN_NODES = Object.freeze({
   600: {
     url: 'https://elazzouz-dotcom.github.io/satellite/',
@@ -1007,6 +1010,59 @@ function reportConcurrency() {
 function reportSignature(item) {
   return `${item.url || ''}|${item.html || ''}|${item.savedAt || ''}`;
 }
+let linkCacheDbPromise;
+function openLinkCacheDb() {
+  if (!('indexedDB' in window)) return Promise.resolve(null);
+  if (linkCacheDbPromise) return linkCacheDbPromise;
+  linkCacheDbPromise = new Promise((resolve) => {
+    const request = indexedDB.open(LINK_CACHE_DB, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(LINK_CACHE_STORE, { keyPath: 'key' });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+  });
+  return linkCacheDbPromise;
+}
+async function idbReadCache(key) {
+  const db = await openLinkCacheDb();
+  if (!db) return null;
+  return new Promise((resolve) => { const tx = db.transaction(LINK_CACHE_STORE, 'readonly'); const request = tx.objectStore(LINK_CACHE_STORE).get(key); request.onsuccess = () => resolve(request.result || null); request.onerror = () => resolve(null); });
+}
+async function idbWriteCache(entry) {
+  const db = await openLinkCacheDb();
+  if (!db) return;
+  await new Promise((resolve) => { const tx = db.transaction(LINK_CACHE_STORE, 'readwrite'); tx.objectStore(LINK_CACHE_STORE).put(entry); tx.oncomplete = resolve; tx.onerror = resolve; });
+}
+async function idbClearCache() {
+  const db = await openLinkCacheDb();
+  if (!db) return;
+  await new Promise((resolve) => { const tx = db.transaction(LINK_CACHE_STORE, 'readwrite'); tx.objectStore(LINK_CACHE_STORE).clear(); tx.oncomplete = resolve; tx.onerror = resolve; });
+}
+function linkCacheKey(item) { return `node:${item.id}:${reportSignature(item)}`; }
+async function loadNodePayloadCached(item, allowStale = true) {
+  const key = linkCacheKey(item);
+  const cached = await idbReadCache(key);
+  const fresh = cached && Date.now() - Number(cached.cachedAt || 0) < REPORT_CACHE_TTL;
+  if (fresh) return { ...cached.payload, cached: true, cacheState: 'fresh' };
+  if (pendingLinkLoads.has(key)) {
+    const payload = await pendingLinkLoads.get(key);
+    return { ...payload, cached: false, cacheState: 'shared-request' };
+  }
+  const refresh = (async () => {
+    try {
+      const payload = await fetchNodePayload(item.id) || { id: item.id, error: 'لا توجد بيانات.' };
+      await idbWriteCache({ key, cachedAt: Date.now(), payload });
+      return payload;
+    } finally {
+      pendingLinkLoads.delete(key);
+    }
+  })();
+  pendingLinkLoads.set(key, refresh);
+  if (cached && allowStale) {
+    refresh.catch(() => {});
+    return { ...cached.payload, cached: true, cacheState: 'stale-refreshing' };
+  }
+  return { ...(await refresh), cached: false, cacheState: 'fresh' };
+}
 function refreshReportCacheStatus() {
   const status = $('#report-cache-status');
   if (!status) return;
@@ -1015,8 +1071,9 @@ function refreshReportCacheStatus() {
   const size = JSON.stringify(cache).length;
   status.textContent = count ? `ذاكرة الروابط: ${count} نتيجة محفوظة محليًا · ${Math.round(size / 1024)} كيلوبايت · صلاحية 10 دقائق.` : 'ذاكرة الروابط فارغة؛ ستُحفظ النتائج محليًا بعد جمع التقرير.';
 }
-function clearReportCache() {
+async function clearReportCache() {
   localStorage.removeItem(REPORT_CACHE_KEY);
+  await idbClearCache();
   refreshReportCacheStatus();
   $('#report-status').textContent = 'تم مسح ذاكرة الروابط المحلية. لن تُحذف بيانات العقد.';
 }
@@ -1048,12 +1105,9 @@ async function collectReport() {
   const results = await mapConcurrent(active, concurrency, async (item) => {
     const signature = reportSignature(item);
     const cached = cache[item.id];
-    if (cached && cached.signature === signature && Date.now() - Number(cached.cachedAt || 0) < REPORT_CACHE_TTL) {
-      cacheHits += 1;
-      return { ...cached.payload, cached: true };
-    }
     try {
-      const payload = await fetchNodePayload(item.id) || { id: item.id, error: 'لا توجد بيانات.' };
+      const payload = await loadNodePayloadCached(item);
+      if (payload.cached) cacheHits += 1;
       cache[item.id] = { signature, cachedAt: Date.now(), payload };
       return payload;
     } catch (error) {
