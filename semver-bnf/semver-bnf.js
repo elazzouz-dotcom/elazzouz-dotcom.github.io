@@ -953,6 +953,53 @@ function configuredNodeData() {
   }
   return nodes;
 }
+function downloadBlob(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function escapeXml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[character]));
+}
+function exportNetworkMapJson() {
+  const nodes = [];
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const position = nodePositions.get(id);
+    const data = getHubData(id);
+    nodes.push({ id, label: nodeLabel(id), x: Math.round(position?.x || 0), y: Math.round(position?.y || 0), level: position?.level ?? null, parent: connectedNodeParent(id), type: nodeContentType(data, id), configured: isConfigured(data), url: data?.url || '', html: data?.html || '' });
+  }
+  const edges = nodes.filter((node) => node.parent).map((node) => ({ from: node.parent, to: node.id, relation: relationType(node.parent, node.id) }));
+  const payload = { format: 'slaks-semver-network-map', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, spacingCm: NODE_SPACING_CM, width: mapWidth, height: mapHeight, nodes, edges };
+  downloadBlob(JSON.stringify(payload, null, 2), 'slaks-network-map.json', 'application/json');
+  setNodeStatus(`تم تصدير الخريطة كاملة: ${nodes.length} عقدة و${edges.length} علاقة.`);
+}
+function exportNetworkMapSvg() {
+  const root = getComputedStyle(document.documentElement);
+  const hierarchyColor = root.getPropertyValue('--edge-hierarchy').trim() || '#59e0a3';
+  const contentColor = root.getPropertyValue('--edge-content').trim() || '#55b8e8';
+  const softwareColor = root.getPropertyValue('--edge-software').trim() || '#f4ce72';
+  const edgeLines = [];
+  for (let id = 2; id <= NODE_TOTAL; id += 1) {
+    const parentId = connectedNodeParent(id); const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
+    if (!parent || !child) continue;
+    const relation = relationType(parentId, id); const color = relation === 'software' ? softwareColor : relation === 'content' ? contentColor : hierarchyColor;
+    const startY = parent.y; const endY = child.y; const midX = (parent.x + child.x) / 2; const midY = (parent.y + child.y) / 2;
+    edgeLines.push(`<path d="M ${parent.x} ${startY} Q ${midX} ${midY} ${child.x} ${endY}" fill="none" stroke="${escapeXml(color)}" stroke-width="2.5"/>`);
+  }
+  const nodeShapes = [];
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const point = nodePositions.get(id); if (!point) continue;
+    const data = getHubData(id); const active = isConfigured(data); const color = active ? '#f4ce72' : '#59e0a3';
+    nodeShapes.push(`<g><circle cx="${point.x}" cy="${point.y}" r="22" fill="#081411" stroke="${color}" stroke-width="2"/><text x="${point.x}" y="${point.y + 5}" fill="#dfffee" font-family="system-ui,sans-serif" font-size="12" font-weight="800" text-anchor="middle">+</text><text x="${point.x}" y="${point.y + 36}" fill="#adc5bb" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">${escapeXml(nodeLabel(id))}</text></g>`);
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${mapWidth}" height="${mapHeight}" viewBox="0 0 ${mapWidth} ${mapHeight}"><title>Slaks network map · ${NODE_TOTAL} nodes</title><rect width="100%" height="100%" fill="#071014"/>${edgeLines.join('')}${nodeShapes.join('')}</svg>`;
+  downloadBlob(svg, 'slaks-network-map.svg', 'image/svg+xml');
+  setNodeStatus(`تم تصدير صورة SVG عالية الدقة: ${NODE_TOTAL} عقدة.`);
+}
 function exportNodes() {
   const payload = { format: 'slaks-semver-node-data', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, nodes: configuredNodeData() };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -1067,6 +1114,8 @@ function initializeNetwork() {
     root.focus({ preventScroll: true });
   });
   $('#export-nodes').addEventListener('click', exportNodes);
+  $('#export-map-json').addEventListener('click', exportNetworkMapJson);
+  $('#export-map-svg').addEventListener('click', exportNetworkMapSvg);
   $('#import-nodes').addEventListener('click', () => $('#node-import-file').click());
   $('#node-import-file').addEventListener('change', (event) => {
     importNodes(event.target.files?.[0]);
