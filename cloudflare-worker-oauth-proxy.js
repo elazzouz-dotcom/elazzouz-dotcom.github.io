@@ -128,17 +128,61 @@ function previewMeta(html, sourceUrl) {
   const links = [...String(html || '').matchAll(/<a\b[^>]+href=["']([^"']+)["']/gi)].slice(0, 100).map(match => match[1]);
   return { title, description, text, links };
 }
+const PREVIEW_CACHE_VERSION = 'v1';
+const PREVIEW_CACHE_TTL = 300;
+function previewCacheKey(targetUrl) {
+  const key = new URL('https://github-oauth-proxy.elazzouz4.workers.dev/preview');
+  key.searchParams.set('v', PREVIEW_CACHE_VERSION);
+  key.searchParams.set('url', targetUrl);
+  return new Request(key.toString(), { method: 'GET' });
+}
+async function readPreviewCache(targetUrl) {
+  try {
+    const cached = await caches.default.match(previewCacheKey(targetUrl));
+    return cached ? await cached.json() : null;
+  } catch {
+    return null;
+  }
+}
+async function writePreviewCache(targetUrl, payload) {
+  try {
+    const response = new Response(JSON.stringify(payload), {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': `public, max-age=60, s-maxage=${PREVIEW_CACHE_TTL}`,
+        'Cache-Tag': 'slaks-preview'
+      }
+    });
+    await caches.default.put(previewCacheKey(targetUrl), response);
+  } catch {
+    // A cache failure must never make a valid upstream preview fail.
+  }
+}
 async function slaksPreview(searchParams, origin) {
   let target;
   try { target = new URL(searchParams.get('url') || ''); if (!['http:', 'https:'].includes(target.protocol) || !previewPublicHost(target.hostname)) throw new Error('Only public HTTP/HTTPS URLs are allowed.'); }
   catch (error) { return json({ error: error.message || 'Invalid public URL.' }, 400, origin); }
+  const bypassCache = searchParams.get('refresh') === '1';
+  if (!bypassCache) {
+    const cached = await readPreviewCache(target.href);
+    if (cached) {
+      const response = json(cached, 200, origin);
+      response.headers.set('X-Preview-Cache', 'HIT');
+      return response;
+    }
+  }
   try {
     const upstream = await fetch(target.href, { redirect: 'follow', headers: { 'User-Agent': 'Slaks-Cloudflare-Preview/1.0', Accept: 'text/html,application/xhtml+xml' } });
     const finalUrl = new URL(upstream.url || target.href);
     if (!previewPublicHost(finalUrl.hostname)) throw new Error('The destination redirected to a private or local host.');
     const raw = await upstream.text();
     const metadata = previewMeta(raw, finalUrl.href);
-    return json({ ok: upstream.ok, status: upstream.status, target: target.href, finalUrl: finalUrl.href, contentType: upstream.headers.get('content-type') || '', ...metadata, html: previewCleanHtml(raw.slice(0, 1500000), finalUrl.href), text: metadata.text.slice(0, 1200) }, upstream.ok ? 200 : 502, origin);
+    const contentType = upstream.headers.get('content-type') || '';
+    const payload = { ok: upstream.ok, status: upstream.status, target: target.href, finalUrl: finalUrl.href, contentType, ...metadata, html: previewCleanHtml(raw.slice(0, 1500000), finalUrl.href), text: metadata.text.slice(0, 1200) };
+    if (upstream.ok && contentType.includes('text/html')) await writePreviewCache(target.href, payload);
+    const response = json(payload, upstream.ok ? 200 : 502, origin);
+    response.headers.set('X-Preview-Cache', 'MISS');
+    return response;
   } catch (error) { return json({ error: 'Unable to fetch the public URL.', message: error.message, target: target.href }, 502, origin); }
 }
 
