@@ -6,7 +6,7 @@
     <title>بوابة البحث متعدد المحركات | Slaks</title>
     <meta
       name="description"
-      content="بوابة بحث متعددة المحركات للويب العام فقط: Google، Bing، Brave، DuckDuckGo، Startpage، GitHub، وغيرها."
+      content="بوابة بحث متعددة المحركات للويب العام فقط: Google، Bing، Brave، DuckDuckGo، GitHub، Startpage، Qwant، Kagi، SearchCode، وغيرها."
     />
     <style>
       :root {
@@ -38,12 +38,12 @@
       }
 
       a { color: inherit; }
-      button, input {
+      button, input, select {
         font: inherit;
       }
 
       .container {
-        max-width: 1100px;
+        max-width: 1150px;
         margin: 0 auto;
         padding: 24px 18px 80px;
       }
@@ -122,21 +122,17 @@
         color: var(--muted);
         line-height: 1.9;
         font-size: 1.05rem;
-        max-width: 900px;
+        max-width: 960px;
       }
 
-      .search-panel {
+      .search-row {
         margin-top: 24px;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-columns: minmax(0, 1fr) 150px auto auto;
         gap: 12px;
       }
 
-      .input-wrap {
-        position: relative;
-      }
-
-      .search-input {
+      .search-input, .mode-select {
         width: 100%;
         border: 1px solid var(--line);
         background: rgba(2, 6, 23, 0.7);
@@ -148,7 +144,7 @@
         outline: none;
       }
 
-      .search-input:focus {
+      .search-input:focus, .mode-select:focus {
         border-color: rgba(103, 232, 249, 0.7);
         box-shadow: 0 0 0 4px rgba(103, 232, 249, 0.1);
       }
@@ -176,6 +172,11 @@
         border-color: rgba(52, 211, 153, 0.26);
         color: #a7f3d0;
       }
+      .btn.secondary {
+        background: rgba(96, 165, 250, 0.08);
+        border-color: rgba(96, 165, 250, 0.28);
+        color: var(--accent);
+      }
 
       .two-column {
         display: grid;
@@ -194,6 +195,29 @@
       .panel h2 {
         margin: 0 0 14px;
         font-size: 1.15rem;
+      }
+
+      .engine-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .tab {
+        border: 1px solid var(--line);
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .tab.active {
+        background: rgba(103, 232, 249, 0.08);
+        border-color: rgba(103, 232, 249, 0.38);
+        color: var(--accent);
       }
 
       .engine-grid {
@@ -287,6 +311,30 @@
         color: var(--text);
       }
 
+      .result-link {
+        display: inline-block;
+        margin-top: 8px;
+        color: var(--accent);
+        text-decoration: none;
+        word-break: break-all;
+      }
+
+      .recent-searches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .recent-pill {
+        border: 1px solid var(--line);
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 7px 10px;
+        cursor: pointer;
+        font-size: 0.87rem;
+      }
+
       .footer-note {
         margin-top: 26px;
         padding: 18px 20px;
@@ -298,7 +346,7 @@
       }
 
       @media (max-width: 860px) {
-        .search-panel {
+        .search-row {
           grid-template-columns: 1fr;
         }
 
@@ -333,21 +381,26 @@
           <span class="eyebrow">Multi-Engine Search</span>
           <h1>بوابة البحث متعدد المحركات</h1>
           <p class="intro">
-            هذه الصفحة لا تفتح أي خدمات سرية، ولا تجمع بيانات من مواقع محظورة، بل تسمح فقط بالبحث عبر محركات البحث العامة والمشهورة، مع إضافة محركات أقل شيوعًا ومفيدة للمطورين والباحثين.
-            الهدف: تسهيل مقارنة النتائج، وليس اختراق أي شيء أو إتلاف شيء.
+            هذه الصفحة تفتح محركات بحث عامة ومشهورة فقط، مثل Google وBing وBrave وDuckDuckGo وGitHub وSearchCode وغيرها، في بيئة آمنة داخل المتصفح. لا تنفذ أي scraping لصفحات محظورة أو وصول إلى Deep Web أو Dark Web، بل تركز فقط على البحث العام والمفتوح.
           </p>
 
-          <div class="search-panel">
-            <div class="input-wrap">
-              <input
-                id="query"
-                class="search-input"
-                type="text"
-                value="open source ai tools"
-                placeholder="اكتب كلمة مفتاحية أو عنواناً…"
-                aria-label="استعلام البحث"
-              />
-            </div>
+          <div class="search-row">
+            <input
+              id="query"
+              class="search-input"
+              type="text"
+              value="open source ai tools"
+              placeholder="اكتب كلمة مفتاحية أو استعلامًا…"
+              aria-label="استعلام البحث"
+            />
+
+            <select id="modeSelect" class="mode-select" aria-label="نوع البحث">
+              <option value="normal">بحث عادي</option>
+              <option value="phrase">عبارة دقيقة</option>
+              <option value="site">بحث داخل موقع</option>
+              <option value="intitle">عنوان صفحة</option>
+              <option value="filetype">نوع ملف</option>
+            </select>
 
             <button id="searchBtn" class="btn primary" type="button">بحث</button>
             <button id="openAllBtn" class="btn success" type="button">فتح كل المحركات</button>
@@ -356,24 +409,25 @@
 
         <section class="two-column">
           <div class="panel">
-            <h2>اختر محرك البحث</h2>
+            <h2>اختر الفئة</h2>
+            <div id="engineTabs" class="engine-bar" aria-live="polite"></div>
             <div id="engineGrid" class="engine-grid" aria-live="polite"></div>
           </div>
 
           <aside class="meta-box">
             <div class="panel">
-              <h2>ملاحظات</h2>
+              <h2>بحث سريع</h2>
               <div class="meta-card">
-                <strong>نوع النتائج</strong>
-                <p>البحث هنا يفتح الروابط في المتصفح فقط. لا توجد scrape أو فحص غير مصرح به، ولا يتم الوصول إلى Deep Web أو Dark Web.</p>
+                <strong>آخر عمليات البحث</strong>
+                <div id="recentSearches" class="recent-searches"></div>
               </div>
             </div>
 
             <div class="panel">
               <h2>ملخص</h2>
               <div class="meta-card">
-                <strong>المحركات المضمنة</strong>
-                <p id="summaryText">Google، Bing، Brave، DuckDuckGo، Startpage، Qwant، Kagi، GitHub، SearchCode، Ecosia، Yahoo.</p>
+                <strong>المحركات الحالية</strong>
+                <p id="summaryText">Google، Bing، Brave، DuckDuckGo، GitHub، SearchCode، Startpage، Qwant، Kagi، Yahoo.</p>
               </div>
             </div>
           </aside>
@@ -385,35 +439,82 @@
         </section>
 
         <div class="footer-note">
-          هذا هو نموذج آمن ومرخص للاستخدام داخل المتصفح فقط: يفتح روابط البحث العامة، ويقارن النتائج، ولا يخرق سياسة أي موقع. إذا كنت تريد نسخة أعمق من هذا المشروع، يمكن تطويرها لاحقًا باستخدام APIs رسمية فقط، وليس via scraping غير مصرح به.
+          هذا النموذج موجّه للاستخدام الآمن داخل المتصفح فقط، ولا يوزّع أو يسرق محتوى محظور. إذا كنت تريد نسخة أكثر تقدمًا في المستقبل، يمكن توسيعها إلى واجهة API رسمية فقط، مع فلترة مناسبة والالتزام بسياسات كل موقع.
         </div>
       </main>
     </div>
 
     <script>
+      const categories = {
+        all: { label: 'الكل', ids: [] },
+        web: { label: 'ويب', ids: ['google','bing','brave','ddg','startpage','qwant','yahoo','ecosia','kagi'] },
+        dev: { label: 'مطورين', ids: ['github','searchcode','grepapp'] },
+        ai: { label: 'AI', ids: ['google','bing','brave','ddg','kagi'] }
+      };
+
       const engines = [
-        { id: 'google', label: 'Google', symbol: 'G', url: q => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
-        { id: 'bing', label: 'Bing', symbol: 'B', url: q => `https://www.bing.com/search?q=${encodeURIComponent(q)}` },
-        { id: 'brave', label: 'Brave', symbol: 'R', url: q => `https://search.brave.com/search?q=${encodeURIComponent(q)}` },
-        { id: 'ddg', label: 'DuckDuckGo', symbol: 'D', url: q => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
-        { id: 'startpage', label: 'Startpage', symbol: 'S', url: q => `https://www.startpage.com/sp/search?query=${encodeURIComponent(q)}` },
-        { id: 'qwant', label: 'Qwant', symbol: 'Q', url: q => `https://www.qwant.com/?q=${encodeURIComponent(q)}&t=web` },
-        { id: 'yahoo', label: 'Yahoo', symbol: 'Y', url: q => `https://search.yahoo.com/search?p=${encodeURIComponent(q)}` },
-        { id: 'ecosia', label: 'Ecosia', symbol: 'E', url: q => `https://www.ecosia.org/search?q=${encodeURIComponent(q)}` },
-        { id: 'github', label: 'GitHub', symbol: 'GH', url: q => `https://github.com/search?q=${encodeURIComponent(q)}` },
-        { id: 'searchcode', label: 'SearchCode', symbol: 'SC', url: q => `https://searchcode.com/?q=${encodeURIComponent(q)}` },
-        { id: 'grepapp', label: 'Grep.app', symbol: 'GA', url: q => `https://grep.app/search?q=${encodeURIComponent(q)}` },
-        { id: 'kagi', label: 'Kagi', symbol: 'K', url: q => `https://kagi.com/search?q=${encodeURIComponent(q)}` }
+        { id: 'google', label: 'Google', symbol: 'G', category: 'web', url: q => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
+        { id: 'bing', label: 'Bing', symbol: 'B', category: 'web', url: q => `https://www.bing.com/search?q=${encodeURIComponent(q)}` },
+        { id: 'brave', label: 'Brave', symbol: 'R', category: 'web', url: q => `https://search.brave.com/search?q=${encodeURIComponent(q)}` },
+        { id: 'ddg', label: 'DuckDuckGo', symbol: 'D', category: 'web', url: q => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
+        { id: 'startpage', label: 'Startpage', symbol: 'S', category: 'web', url: q => `https://www.startpage.com/sp/search?query=${encodeURIComponent(q)}` },
+        { id: 'qwant', label: 'Qwant', symbol: 'Q', category: 'web', url: q => `https://www.qwant.com/?q=${encodeURIComponent(q)}&t=web` },
+        { id: 'yahoo', label: 'Yahoo', symbol: 'Y', category: 'web', url: q => `https://search.yahoo.com/search?p=${encodeURIComponent(q)}` },
+        { id: 'ecosia', label: 'Ecosia', symbol: 'E', category: 'web', url: q => `https://www.ecosia.org/search?q=${encodeURIComponent(q)}` },
+        { id: 'github', label: 'GitHub', symbol: 'GH', category: 'dev', url: q => `https://github.com/search?q=${encodeURIComponent(q)}` },
+        { id: 'searchcode', label: 'SearchCode', symbol: 'SC', category: 'dev', url: q => `https://searchcode.com/?q=${encodeURIComponent(q)}` },
+        { id: 'grepapp', label: 'Grep.app', symbol: 'GA', category: 'dev', url: q => `https://grep.app/search?q=${encodeURIComponent(q)}` },
+        { id: 'kagi', label: 'Kagi', symbol: 'K', category: 'web', url: q => `https://kagi.com/search?q=${encodeURIComponent(q)}` }
       ];
 
       const state = new Set(engines.map(e => e.id));
+      const selectedTab = { current: 'all' };
       const engineGrid = document.getElementById('engineGrid');
       const resultsEl = document.getElementById('results');
       const inputEl = document.getElementById('query');
+      const recentSearchesEl = document.getElementById('recentSearches');
+      const modeSelect = document.getElementById('modeSelect');
+
+      function buildSearchQuery(rawQuery) {
+        const q = rawQuery.trim();
+        if (!q) return '';
+
+        const mode = modeSelect.value;
+        if (mode === 'phrase') return `"${q}"`;
+        if (mode === 'site') return `site:${q}`;
+        if (mode === 'intitle') return `intitle:"${q}"`;
+        if (mode === 'filetype') return `${q} filetype:pdf`;
+        return q;
+      }
+
+      function getVisibleEngines() {
+        const tab = selectedTab.current;
+        const ids = categories[tab].ids.length ? categories[tab].ids : engines.map(engine => engine.id);
+        return engines.filter(engine => ids.includes(engine.id));
+      }
+
+      function renderTabs() {
+        const tabsEl = document.getElementById('engineTabs');
+        tabsEl.innerHTML = '';
+        Object.entries(categories).forEach(([key, value]) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'tab ' + (selectedTab.current === key ? 'active' : '');
+          button.textContent = value.label;
+          button.addEventListener('click', () => {
+            selectedTab.current = key;
+            renderTabs();
+            renderEngineGrid();
+            renderLinks();
+          });
+          tabsEl.appendChild(button);
+        });
+      }
 
       function renderEngineGrid() {
         engineGrid.innerHTML = '';
-        engines.forEach((engine) => {
+        const visible = getVisibleEngines();
+        visible.forEach((engine) => {
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'engine-chip ' + (state.has(engine.id) ? 'selected' : '');
@@ -423,11 +524,8 @@
             <span>${engine.label}</span>
           `;
           btn.addEventListener('click', () => {
-            if (state.has(engine.id)) {
-              state.delete(engine.id);
-            } else {
-              state.add(engine.id);
-            }
+            if (state.has(engine.id)) state.delete(engine.id);
+            else state.add(engine.id);
             renderEngineGrid();
             renderLinks();
           });
@@ -435,13 +533,48 @@
         });
       }
 
+      function renderRecentSearches() {
+        const items = JSON.parse(localStorage.getItem('searchPortalRecent') || '[]');
+        recentSearchesEl.innerHTML = '';
+        if (!items.length) {
+          recentSearchesEl.innerHTML = '<span class="tiny">لا توجد عمليات بحث سابقة</span>';
+          return;
+        }
+
+        items.slice(0, 8).forEach((term) => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'recent-pill';
+          chip.textContent = term;
+          chip.addEventListener('click', () => {
+            inputEl.value = term;
+            renderLinks();
+          });
+          recentSearchesEl.appendChild(chip);
+        });
+      }
+
+      function saveRecentQuery(q) {
+        const term = q.trim();
+        if (!term) return;
+        let items = JSON.parse(localStorage.getItem('searchPortalRecent') || '[]');
+        items = items.filter(item => item !== term);
+        items.unshift(term);
+        items = items.slice(0, 8);
+        localStorage.setItem('searchPortalRecent', JSON.stringify(items));
+        renderRecentSearches();
+      }
+
       function renderLinks() {
-        const query = inputEl.value.trim();
+        const raw = inputEl.value.trim();
+        const query = buildSearchQuery(raw);
         const selected = engines.filter(engine => state.has(engine.id));
+        const summaryText = document.getElementById('summaryText');
+        summaryText.textContent = selected.map(engine => engine.label).join('، ') || 'لم يتم اختيار أي محرك';
 
         resultsEl.innerHTML = '';
         if (!selected.length) {
-          resultsEl.innerHTML = '<div class="result-item">لم يتم اختيار أي محرك. اختر واحدًا على الأقل لعرض الروابط.</div>';
+          resultsEl.innerHTML = '<div class="result-item">لم يتم اختيار أي محرك. اختر واحدًا أو أكثر لعرض الروابط.</div>';
           return;
         }
 
@@ -456,14 +589,16 @@
           item.innerHTML = `
             <div><strong>${engine.label}</strong></div>
             <div class="tiny">${engine.url(query)}</div>
+            <a class="result-link" href="${engine.url(query)}" target="_blank" rel="noopener noreferrer">فتح النتائج</a>
           `;
           resultsEl.appendChild(item);
         });
       }
 
       function openSelectedEngines() {
-        const q = inputEl.value.trim();
-        if (!q) {
+        const raw = inputEl.value.trim();
+        const query = buildSearchQuery(raw);
+        if (!query) {
           inputEl.focus();
           return;
         }
@@ -474,8 +609,9 @@
           return;
         }
 
+        saveRecentQuery(raw);
         selected.forEach((engine, index) => {
-          const url = engine.url(q);
+          const url = engine.url(query);
           setTimeout(() => {
             window.open(url, '_blank', 'noopener,noreferrer');
           }, index * 150);
@@ -483,6 +619,12 @@
       }
 
       document.getElementById('searchBtn').addEventListener('click', () => {
+        const raw = inputEl.value.trim();
+        if (!raw) {
+          inputEl.focus();
+          return;
+        }
+        saveRecentQuery(raw);
         renderLinks();
       });
 
@@ -494,11 +636,18 @@
       inputEl.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
           event.preventDefault();
+          const raw = inputEl.value.trim();
+          if (!raw) return;
+          saveRecentQuery(raw);
+          renderLinks();
           openSelectedEngines();
         }
       });
 
+      modeSelect.addEventListener('change', renderLinks);
+      renderTabs();
       renderEngineGrid();
+      renderRecentSearches();
       renderLinks();
     </script>
   </body>
