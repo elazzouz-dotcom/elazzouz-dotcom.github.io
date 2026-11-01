@@ -620,9 +620,22 @@ const hubModal = $('#hub-modal');
 const hubDialog = $('#hub-dialog');
 const hubUrl = $('#hub-url');
 const hubHtml = $('#hub-html');
+const hubSearchQuery = $('#hub-search-query');
+const hubSearchEngine = $('#hub-search-engine');
 const hubPreview = $('#hub-preview');
 const hubAddress = $('#hub-address');
 
+const SEARCH_ENGINES = Object.freeze({
+  google: 'https://www.google.com/search?q=', bing: 'https://www.bing.com/search?q=', duckduckgo: 'https://duckduckgo.com/?q=', brave: 'https://search.brave.com/search?q=', yahoo: 'https://search.yahoo.com/search?p=', ecosia: 'https://www.ecosia.org/search?q=', startpage: 'https://www.startpage.com/sp/search?query=', qwant: 'https://www.qwant.com/?q=', kagi: 'https://kagi.com/search?q=', yandex: 'https://yandex.com/search/?text=', baidu: 'https://www.baidu.com/s?wd='
+});
+function searchWithSelectedEngine() {
+  const query = hubSearchQuery.value.trim();
+  if (!query) { setHubStatus('اكتب عبارة بحث أولًا.', false); hubSearchQuery.focus(); return; }
+  const base = SEARCH_ENGINES[hubSearchEngine.value] || SEARCH_ENGINES.google;
+  const url = `${base}${encodeURIComponent(query)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+  setHubStatus(`تم فتح البحث عبر ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'}.`);
+}
 function clearPreview() {
   hubPreview.removeAttribute('srcdoc');
   hubPreview.src = 'about:blank';
@@ -686,6 +699,8 @@ function openHubNode(id, button) {
   const data = getHubData(id);
   hubUrl.value = data?.url || '';
   hubHtml.value = data?.html || '';
+  hubSearchQuery.value = data?.searchQuery || '';
+  hubSearchEngine.value = data?.searchEngine || 'google';
   hubDialog.classList.remove('is-minimized', 'is-fullscreen');
   $('#hub-minimize').textContent = 'تصغير';
   hubModal.hidden = false;
@@ -714,7 +729,7 @@ function saveHub() {
       clearHub();
       return;
     }
-    const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, active: true, savedAt: new Date().toISOString() };
+    const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, searchQuery: hubSearchQuery.value.trim(), searchEngine: hubSearchEngine.value, active: true, savedAt: new Date().toISOString() };
     const storageKey = `${LINK_KEY}-${activeHub.id}`;
     const serialized = JSON.stringify(data);
     if (semverStorageChars(storageKey) + storageKey.length + serialized.length > MAX_STORAGE_CHARS) throw new Error('وصلت بيانات مختبر العقد إلى سقف التخزين المحلي (نحو 650 كيلوبايت). امسح بعض العقد أو صغّر HTML.');
@@ -1026,7 +1041,7 @@ function importNodes(file) {
         if (rawUrl) link = parseNodeLink(rawUrl);
         if (html.length > MAX_HTML_CHARS) throw new Error(`HTML العقدة ${id} يتجاوز الحد المسموح.`);
         if (!rawUrl && !html.trim()) continue;
-        const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, active: true, savedAt: new Date().toISOString() };
+        const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, searchQuery: hubSearchQuery.value.trim(), searchEngine: hubSearchEngine.value, active: true, savedAt: new Date().toISOString() };
         const storageKey = `${LINK_KEY}-${id}`;
         if (semverStorageChars(storageKey) + storageKey.length + JSON.stringify(data).length > MAX_STORAGE_CHARS) throw new Error('تجاوزت بيانات العقد سقف التخزين المحلي.');
         if (!writeJson(storageKey, data)) throw new Error('تعذر حفظ بيانات العقد في المتصفح.');
@@ -1124,6 +1139,7 @@ function initializeNetwork() {
 function setupHubModal() {
   $('#hub-close').addEventListener('click', closeHub);
   $('#hub-build').addEventListener('click', () => buildHub());
+  $('#hub-search').addEventListener('click', searchWithSelectedEngine);
   $('#hub-save').addEventListener('click', saveHub);
   let autoSaveTimer = 0;
   hubUrl.addEventListener('input', () => {
