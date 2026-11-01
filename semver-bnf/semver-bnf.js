@@ -13,8 +13,10 @@ const BUILTIN_NODES = Object.freeze({
   }
 });
 const NODE_SIZE = 44;
-const ROW_GAP = 70;
-const LEVEL_GAP = 68;
+const NODE_SPACING_CM = 20;
+const NODE_SPACING_PX = NODE_SPACING_CM * 37.7952755906;
+const ROW_GAP = NODE_SPACING_PX;
+const LEVEL_GAP = NODE_SPACING_PX;
 const MAX_HTML_CHARS = 300_000;
 const MAX_STORAGE_CHARS = 650_000;
 const nodeViewport = $('#node-viewport');
