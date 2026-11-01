@@ -37,6 +37,8 @@ let zoom = 1;
 let latestReport = null;
 let activeHub = { id: null, node: null };
 let focusReturn = null;
+const nodeChatRoomRecords = new Map();
+let nodeChatRoomSelected = null;
 let draggedNode = null;
 let suppressNodeClick = false;
 let focusedEdge = null;
@@ -208,6 +210,34 @@ function endNodeDrag(event) {
     saveNodePositions();
     window.setTimeout(() => { suppressNodeClick = false; }, 0);
   }
+}
+function updateNodeChatRoomRecord(id) {
+  const data = getHubData(id);
+  const type = nodeContentType(data, id);
+  const level = NODE_LEVELS.findIndex((count, levelIndex) => { const start = NODE_LEVELS.slice(0, levelIndex).reduce((sum, value) => sum + value, 0) + 1; return id >= start && id < start + count; }) + 1;
+  nodeChatRoomRecords.set(id, { id, type, level, configured: isConfigured(data), url: data?.url || '', html: data?.html || '', parent: id > 1 ? getNodeParent(id) : null });
+}
+function renderNodeChatRoom() {
+  const log = $('#node-chat-room-log');
+  if (!log) return;
+  const query = ($('#node-chat-room-search')?.value || '').trim().toLowerCase();
+  const records = [...nodeChatRoomRecords.values()].filter((record) => !query || `${nodeLabel(record.id)} ${record.url} ${record.type} ${record.html ? 'html' : ''}`.toLowerCase().includes(query));
+  const visible = records.slice(0, 160);
+  log.replaceChildren();
+  visible.forEach((record) => {
+    const message = document.createElement('article');
+    message.className = `node-chat-message ${record.id === nodeChatRoomSelected ? 'is-selected' : ''}`;
+    message.innerHTML = `<strong>${nodeLabel(record.id)} · المستوى ${record.level}</strong><span>${record.configured ? `${record.type === 'html' ? 'HTML محلي' : record.url || 'بيانات محلية'} · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}` : `عقدة فارغة · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}`}</span>`;
+    message.addEventListener('click', () => { nodeChatRoomSelected = record.id; const button = nodeButtons.get(record.id); if (button) { button.scrollIntoView({ block: 'center', inline: 'center' }); openHubNode(record.id, button); } renderNodeChatRoom(); });
+    log.appendChild(message);
+  });
+  const active = [...nodeChatRoomRecords.values()].filter((record) => record.configured).length;
+  $('#node-chat-room-status').textContent = `تم ربط ${nodeChatRoomRecords.size} عقدة · ${active} مهيأة · يعرض ${visible.length}${records.length > visible.length ? ` من ${records.length}` : ''} · البيانات محلية`;
+}
+function setupNodeChatRoom() {
+  for (let id = 1; id <= NODE_TOTAL; id += 1) updateNodeChatRoomRecord(id);
+  $('#node-chat-room-search').addEventListener('input', renderNodeChatRoom);
+  renderNodeChatRoom();
 }
 function createNodeElements() {
   let id = 1;
@@ -635,6 +665,9 @@ async function buildHub(silent = false) {
 }
 
 function openHubNode(id, button) {
+  nodeChatRoomSelected = id;
+  updateNodeChatRoomRecord(id);
+  renderNodeChatRoom();
   focusReturn = button;
   activeHub = { id, node: button };
   highlightNodePath(id);
@@ -679,6 +712,8 @@ function saveHub() {
     index[activeHub.id] = data.url || `#node-${String(activeHub.id).padStart(3, '0')}`;
     if (!writeJson(LINK_KEY, index)) throw new Error('تعذر تحديث فهرس الروابط المحلي.');
     updateNodeStatsAndFilters(activeHub.id);
+    updateNodeChatRoomRecord(activeHub.id);
+    renderNodeChatRoom();
     setHubStatus('حُفظت إعدادات العقدة في هذا المتصفح فقط.');
     buildHub(true);
   } catch (error) {
@@ -697,6 +732,8 @@ function clearHub() {
     delete central[activeHub.id];
     writeJson('semver-hub-stem-data', central);
     updateNodeStatsAndFilters(activeHub.id);
+    updateNodeChatRoomRecord(activeHub.id);
+    renderNodeChatRoom();
     hubUrl.value = '';
     hubHtml.value = '';
     clearPreview();
@@ -968,6 +1005,7 @@ function initializeNetwork() {
   restoreUiSettings();
   setupRelationCustomization();
   createNodeElements();
+  setupNodeChatRoom();
   layoutNodes();
   const observer = new ResizeObserver(scheduleLayout);
   observer.observe(nodeViewport);
