@@ -4,7 +4,7 @@ const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
 const VIEW_STATE_VERSION = 4;
-const POSITIONS_KEY = 'semver-bnf-node-positions-radial-10cm-v2';
+const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v3';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
 const REPORT_CACHE_TTL = 10 * 60 * 1000;
@@ -420,6 +420,20 @@ function renderCanvasNetwork() {
   }
 }
 function setupCanvasInteraction() {
+  networkCanvas.addEventListener('wheel', (event) => {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+    const rect = networkCanvas.getBoundingClientRect();
+    const pointerX = event.clientX - rect.left;
+    const pointerY = event.clientY - rect.top;
+    const worldX = (pointerX + nodeViewport.scrollLeft) / zoom;
+    const worldY = (pointerY + nodeViewport.scrollTop) / zoom;
+    zoom = Math.max(.35, Math.min(1.5, Math.round((zoom + (event.deltaY < 0 ? .1 : -.1)) * 10) / 10));
+    applyZoom();
+    nodeViewport.scrollLeft = Math.max(0, worldX * zoom - pointerX);
+    nodeViewport.scrollTop = Math.max(0, worldY * zoom - pointerY);
+    renderCanvasNetwork();
+  }, { passive: false });
   networkCanvas.addEventListener('pointerdown', (event) => {
     const point = canvasPointFromEvent(event); const id = canvasNodeAt(point); if (!id) return;
     canvasPointer = { id, startX: point.x, startY: point.y, moved: false }; networkCanvas.setPointerCapture?.(event.pointerId); event.preventDefault();
@@ -496,34 +510,39 @@ function resetNodeLayout() {
 }
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));
-  const ringGap = NODE_SPACING_PX + NODE_SIZE;
-  const ringRadii = NODE_LEVELS.map((count, level) => level === 0 ? 0 : Math.max(level * ringGap, (count * NODE_SPACING_PX) / (Math.PI * 2)));
-  const maxRadius = Math.max(...ringRadii, NODE_SIZE * 2);
-  mapWidth = Math.max(viewportWidth, Math.ceil(maxRadius * 2 + NODE_SIZE * 2 + 80));
-  mapHeight = mapWidth;
-  const centerX = mapWidth / 2;
-  const centerY = mapHeight / 2;
+  const gridCell = 86;
+  const columns = 72;
+  const sidePadding = 60;
   const storedPositions = readNodePositions();
+  const rowsByLevel = NODE_LEVELS.map((count) => Math.max(1, Math.ceil(count / columns)));
+  const totalRows = rowsByLevel.reduce((sum, rows) => sum + rows, 0) + NODE_LEVELS.length + 1;
+  mapWidth = Math.max(viewportWidth, columns * gridCell + sidePadding * 2);
+  mapHeight = Math.max(nodeViewport.clientHeight, totalRows * gridCell + sidePadding * 2);
   let cursor = 1;
+  let rowCursor = 1;
   nodePositions.clear();
   NODE_LEVELS.forEach((count, level) => {
-    const radius = ringRadii[level];
+    const rows = rowsByLevel[level];
+    const levelWidth = Math.min(columns, count) * gridCell;
+    const startX = Math.max(sidePadding, (mapWidth - levelWidth) / 2 + gridCell / 2);
     const label = levelLabels[level];
-    label.style.top = `${centerY - radius - 28}px`;
-    label.style.insetInlineStart = `${centerX + 12}px`;
+    label.style.top = `${sidePadding + rowCursor * gridCell - 28}px`;
+    label.style.insetInlineStart = `${Math.max(12, startX - gridCell / 2)}px`;
     for (let position = 0; position < count; position += 1, cursor += 1) {
-      const angle = level === 0 ? -Math.PI / 2 : -Math.PI / 2 + (position / count) * Math.PI * 2;
-      const radialX = centerX + Math.cos(angle) * radius;
-      const radialY = centerY + Math.sin(angle) * radius;
+      const col = position % columns;
+      const row = Math.floor(position / columns);
+      const gridX = startX + col * gridCell;
+      const gridY = sidePadding + (rowCursor + row) * gridCell;
       const saved = storedPositions[cursor];
-      const point = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)
-        ? { x: Math.max(NODE_SIZE / 2, saved.x), y: Math.max(NODE_SIZE / 2, saved.y), level, row: 0, col: position }
-        : { x: radialX, y: radialY, level, row: 0, col: position };
+      const point = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y) && saved.x <= mapWidth && saved.y <= mapHeight
+        ? { x: Math.max(NODE_SIZE / 2, saved.x), y: Math.max(NODE_SIZE / 2, saved.y), level, row, col }
+        : { x: gridX, y: gridY, level, row, col };
       nodePositions.set(cursor, point);
       const button = nodeButtons.get(cursor);
       button.style.left = `${point.x - NODE_SIZE / 2}px`;
       button.style.top = `${point.y - NODE_SIZE / 2}px`;
     }
+    rowCursor += rows + 1;
   });
   fitMapToPositions();
   drawEdges();
@@ -1338,6 +1357,7 @@ function initializeNetwork() {
   $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); persistUiSettings(); });
   $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); persistUiSettings(); });
   $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
+  $('#map-fit').addEventListener('click', () => { zoom = Math.max(.35, Math.min(1, Math.round(Math.min((nodeViewport.clientWidth - 24) / mapWidth, (nodeViewport.clientHeight - 24) / mapHeight) * 10) / 10)); applyZoom(); centerMapViewport('smooth'); persistUiSettings(); });
   $('#map-layout-reset').addEventListener('click', resetNodeLayout);
   $('#show-all-nodes').addEventListener('click', showAllNodes);
   $('#map-root').addEventListener('click', () => {
