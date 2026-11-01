@@ -295,3 +295,14 @@ body.semver-page a { color: inherit; }
 .external-link-actions a { border: 1px solid #b9dce6; border-radius: 999px; padding: .35rem .65rem; color: #197c9f; font-weight: 800; text-decoration: none; }
 .external-link-frame { width: 100%; height: 100%; min-height: 300px; border: 0; background: #fff; }
 @media (max-width: 640px) { .external-link-dialog { height: 94vh; border-radius: 14px; } .external-link-header { padding: .8rem; } .external-link-actions { padding-inline: .8rem; } .external-link-actions span { max-width: 58%; } }
+/* Dark external preview: avoid a bright white modal surface */
+.external-link-dialog { border-color: rgba(89, 224, 163, .28); color: var(--semver-text); background: #0d191e; box-shadow: 0 30px 100px rgba(0, 0, 0, .62); }
+.external-link-header { border-bottom-color: rgba(128, 171, 160, .2); background: #102127; }
+.external-link-heading img { border-color: rgba(89, 224, 163, .35); }
+.external-link-header h2 { color: var(--semver-text); }
+.external-link-header p { color: var(--semver-muted); }
+.external-link-close { color: var(--semver-text); background: #183238; }
+.external-link-close:hover, .external-link-close:focus-visible { color: #061317; background: var(--semver-green); }
+.external-link-actions { color: var(--semver-muted); background: #0a1519; }
+.external-link-actions a { border-color: rgba(89, 224, 163, .35); color: var(--semver-green); background: rgba(89, 224, 163, .06); }
+.external-link-frame { background: #0a1519; }
