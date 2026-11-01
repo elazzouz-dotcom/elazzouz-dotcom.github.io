@@ -230,15 +230,30 @@
       <div class="mx-auto max-w-7xl">
         <div class="mb-8 max-w-3xl">
           <p class="mb-3 text-sm font-extrabold uppercase tracking-[0.16em] text-[var(--color-primary)]">External preview · معاينة خارجية</p>
-          <h2 id="external-preview-heading" class="mb-4 text-3xl font-black sm:text-5xl">أضف رابطًا إلى عقدة، وشاهد الموقع يعمل.</h2>
-          <p class="mb-0 text-lg leading-8 text-[var(--color-muted)]">اكتب أي رابط ويب خارجي، حتى من استضافة أو نطاق مختلف، واضغط «+». ستظهر المعاينة داخل الواجهة، مع محاولة قراءة العنوان والوصف واللغة. إذا منع الموقع التضمين، يبقى رابط الفتح المباشر متاحًا بدل إخفاء الموقع أو ادعاء قراءة غير ممكنة.</p>
+          <h2 id="external-preview-heading" class="mb-4 text-3xl font-black sm:text-5xl">ابحث أو ألصق رابطًا، وشاهد النتيجة في المعاينة.</h2>
+          <p class="mb-0 text-lg leading-8 text-[var(--color-muted)]">استخدم الحقل كشريط بحث وعنوان موحّد: اكتب رابطًا لفتح الموقع داخل المعاينة، أو اكتب عبارة بحث واختر محرك البحث الذي تريد استخدامه. ستظهر النتيجة في نفس مكان المعاينة.</p>
         </div>
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
           <div class="feature-card overflow-hidden p-4 sm:p-6">
-            <div class="flex flex-col gap-3 sm:flex-row">
-              <label class="sr-only" for="external-preview-url">رابط الموقع الخارجي</label>
-              <input id="external-preview-url" class="tool-input min-w-0 flex-1 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="url" inputmode="url" placeholder="example.com أو https://example.com" autocomplete="url">
-              <button id="external-preview-add" class="btn-primary shrink-0 px-5 py-3" type="button" aria-label="إضافة الموقع إلى عقدة">+ إضافة إلى عقدة</button>
+            <div class="flex flex-col gap-3">
+              <label class="sr-only" for="external-preview-url">ابحث أو أدخل رابطًا</label>
+              <div class="flex flex-col gap-3 sm:flex-row">
+                <input id="external-preview-url" class="tool-input min-w-0 flex-1 rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" type="text" inputmode="search" placeholder="ابحث أو ألصق رابطًا مثل example.com" autocomplete="off">
+                <select id="external-preview-engine" class="tool-input rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3" aria-label="محرك البحث">
+                  <option value="google">Google</option>
+                  <option value="bing">Bing</option>
+                  <option value="duckduckgo">DuckDuckGo</option>
+                  <option value="brave">Brave Search</option>
+                  <option value="yahoo">Yahoo</option>
+                  <option value="ecosia">Ecosia</option>
+                  <option value="startpage">Startpage</option>
+                  <option value="qwant">Qwant</option>
+                  <option value="kagi">Kagi</option>
+                  <option value="yandex">Yandex</option>
+                  <option value="baidu">Baidu</option>
+                </select>
+                <button id="external-preview-add" class="btn-primary shrink-0 px-5 py-3" type="button" aria-label="بحث أو فتح الرابط في المعاينة">بحث / معاينة</button>
+              </div>
             </div>
             <div id="external-preview-empty" class="mt-5 rounded-[var(--radius)] border border-dashed border-[var(--color-border)] p-8 text-center text-sm text-[var(--color-muted)]">ستظهر المعاينة هنا بعد إضافة رابط.</div>
             <div id="external-preview-stage" class="mt-5 hidden overflow-hidden rounded-[var(--radius)] border border-[var(--color-border)] bg-[var(--color-dark)]">
