@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="لوحة معلومات تفاعلية لتحليل الكلمات المفتاحية ونتائج البحث.">
+  <title>Keyword Intelligence · لوحة تحليل الكلمات</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="التنقل الرئيسي">
+      <a class="brand" href="#overview" aria-label="Keyword Intelligence">
+        <span class="brand-mark"><i></i><i></i><i></i></span>
+        <span><b>Keyword</b><small>INTELLIGENCE</small></span>
+      </a>
+      <div class="side-label">مساحة العمل</div>
+      <nav>
+        <a class="nav-link active" href="#overview"><span>◈</span>نظرة عامة</a>
+        <a class="nav-link" href="#keywords"><span>⌁</span>الكلمات المفتاحية</a>
+        <a class="nav-link" href="#topics"><span>◎</span>الموضوعات والنية</a>
+        <a class="nav-link" href="#opportunities"><span>↗</span>فرص المحتوى</a>
+      </nav>
+      <div class="side-label">الأدوات</div>
+      <button class="nav-link nav-button" id="refresh-data"><span>⟳</span>تحديث البيانات</button>
+      <button class="nav-link nav-button" id="theme-toggle"><span>◐</span>الوضع الهادئ</button>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>بيانات تجريبية آمنة</span>
+        <small>آخر تحديث منذ 4 دقائق</small>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">SEARCH INTELLIGENCE / 01</p>
+          <h1>لوحة تحليل الكلمات المفتاحية</h1>
+        </div>
+        <div class="top-actions">
+          <span class="live-pill"><span class="pulse"></span>نظام التحليل يعمل</span>
+          <button class="icon-button" id="export-json" title="تصدير JSON">⇩<span>JSON</span></button>
+          <button class="primary-button" id="export-csv">تصدير CSV <span>↗</span></button>
+        </div>
+      </header>
+
+      <section class="hero-strip" id="overview">
+        <div class="hero-copy">
+          <span class="section-kicker">ملخص تنفيذي</span>
+          <h2>حوّل نتائج البحث إلى <em>قرارات محتوى</em> قابلة للتنفيذ.</h2>
+          <p>قراءة موحدة للنية، الموضوعات، فرص النمو، والكلمات التي تستحق الاستبعاد — في مساحة واحدة.</p>
+        </div>
+        <div class="hero-meta">
+          <span>مصدر البيانات</span><strong>Browserbase / Streamlit</strong>
+          <span>الاستعلام الأخير</span><strong>تحليل أداء Canvas للشبكات</strong>
+        </div>
+      </section>
+
+      <section class="kpi-grid" aria-label="المؤشرات الأساسية">
+        <article class="kpi-card accent-cyan"><div class="kpi-top"><span>إجمالي النتائج</span><span class="trend up">+12.8%</span></div><strong id="kpi-results">—</strong><div class="micro-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><small>مقارنة بالدورة السابقة</small></article>
+        <article class="kpi-card accent-green"><div class="kpi-top"><span>النطاقات الفريدة</span><span class="trend up">+4.2%</span></div><strong id="kpi-domains">—</strong><div class="metric-line"><span style="width:72%"></span></div><small>توزيع مصادر متنوع</small></article>
+        <article class="kpi-card accent-gold"><div class="kpi-top"><span>متوسط الصلة</span><span class="trend up">+8.6%</span></div><strong id="kpi-relevance">—</strong><div class="metric-line gold"><span style="width:84%"></span></div><small>من 100 نقطة</small></article>
+        <article class="kpi-card accent-violet"><div class="kpi-top"><span>فرص المحتوى</span><span class="trend neutral">مستقرة</span></div><strong id="kpi-opportunities">—</strong><div class="opportunity-mini"><span>فجوات عالية</span><b id="kpi-gaps">—</b></div><small>جاهزة للمراجعة</small></article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel panel-wide" id="keywords">
+          <div class="panel-heading"><div><span class="section-kicker">توزيع الحضور</span><h3>أكثر النطاقات ظهورًا</h3></div><span class="panel-note">حسب عدد النتائج</span></div>
+          <div class="horizontal-chart" id="domain-chart"></div>
+        </article>
+        <article class="panel intent-panel" id="topics">
+          <div class="panel-heading"><div><span class="section-kicker">إشارة النية</span><h3>نية البحث</h3></div><span class="panel-note">48 نتيجة</span></div>
+          <div class="donut-wrap"><div class="donut" id="intent-donut"><div><strong id="intent-top-value">—</strong><small id="intent-top-label">—</small></div></div><div class="legend" id="intent-legend"></div></div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid lower-grid">
+        <article class="panel panel-wide">
+          <div class="panel-heading"><div><span class="section-kicker">لغة السوق</span><h3>الكلمات المفتاحية المتكررة</h3></div><div class="chart-legend"><span><i class="dot cyan"></i>حضور</span><span><i class="dot muted"></i>صلة</span></div></div>
+          <div class="keyword-chart" id="keyword-chart"></div>
+        </article>
+        <article class="panel activity-panel">
+          <div class="panel-heading"><div><span class="section-kicker">تطور الإشارة</span><h3>منحنى الصلة</h3></div><span class="trend up">+18.4%</span></div>
+          <svg class="line-chart" viewBox="0 0 430 180" role="img" aria-label="منحنى تطور الصلة"><defs><linearGradient id="area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#56d6c9" stop-opacity=".28"/><stop offset="1" stop-color="#56d6c9" stop-opacity="0"/></linearGradient></defs><path class="gridline" d="M0 35H430M0 85H430M0 135H430"/><path class="area-path" d="M0 145 L55 132 L110 138 L165 98 L220 112 L275 74 L330 66 L385 42 L430 30 V180 H0Z"/><path class="line-path" d="M0 145 L55 132 L110 138 L165 98 L220 112 L275 74 L330 66 L385 42 L430 30"/><circle cx="430" cy="30" r="5" class="last-point"/></svg><div class="axis-labels"><span>الأسبوع 1</span><span>الأسبوع 4</span><span>الأسبوع 8</span></div>
+        </article>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-heading table-heading"><div><span class="section-kicker">مستكشف البيانات</span><h3>الكلمات المفتاحية المرشحة</h3></div><div class="table-tools"><label class="search-box"><span>⌕</span><input id="keyword-search" type="search" placeholder="ابحث عن كلمة أو موضوع…"></label><select id="intent-filter" aria-label="فلترة حسب النية"><option value="all">كل النوايا</option><option value="معلوماتية">معلوماتية</option><option value="تجارية">تجارية</option><option value="تنقلية">تنقلية</option></select></div></div>
+        <div class="table-scroll"><table><thead><tr><th>الكلمة المفتاحية</th><th>الموضوع</th><th>النية</th><th>الحضور</th><th>الطلب</th><th>الفرصة</th></tr></thead><tbody id="keyword-table"></tbody></table></div><div class="table-footer"><span id="table-count">—</span><span>البيانات قابلة للاستبدال بنتائج API الحية</span></div>
+      </section>
+
+      <section class="insights-grid" id="opportunities">
+        <article class="panel insight-panel opportunity-panel"><div class="panel-heading"><div><span class="section-kicker">مساحات النمو</span><h3>فرص المحتوى</h3></div><span class="count-badge" id="opportunity-count">—</span></div><div id="opportunity-list" class="insight-list"></div></article>
+        <article class="panel insight-panel negative-panel"><div class="panel-heading"><div><span class="section-kicker">تنقية الإشارة</span><h3>الكلمات السلبية</h3></div><span class="count-badge muted-badge">—</span></div><div id="negative-list" class="chip-list"></div><p class="panel-footnote">تُستخدم لاستبعاد الزيارات غير المناسبة في الحملات القادمة.</p></article>
+        <article class="panel insight-panel query-panel"><div class="panel-heading"><div><span class="section-kicker">الخطوة التالية</span><h3>استعلامات مقترحة</h3></div><span class="arrow-mark">↗</span></div><div id="query-list" class="query-list"></div></article>
+      </section>
+
+      <footer class="page-footer"><span>KEYWORD INTELLIGENCE · لوحة تحليل تجريبية</span><span>تحديث آمن دون مفاتيح داخل المتصفح</span></footer>
+    </main>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>
