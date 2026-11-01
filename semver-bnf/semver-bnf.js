@@ -307,6 +307,11 @@ function animatePipeFlow(id) {
   });
 }
 
+function setNodeStatus(message, good = true) {
+  const status = $('#node-status');
+  status.textContent = message;
+  status.style.color = good ? 'var(--semver-muted)' : 'var(--semver-danger)';
+}
 function setHubStatus(message, good = true) {
   const status = $('#hub-status');
   status.textContent = message;
@@ -715,6 +720,60 @@ async function collectReport() {
   button.disabled = false;
 }
 
+function configuredNodeData() {
+  const nodes = {};
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const data = getHubData(id);
+    if (isConfigured(data)) nodes[id] = { url: data.url || '', html: data.html || '', kind: data.kind || '', active: true };
+  }
+  return nodes;
+}
+function exportNodes() {
+  const payload = { format: 'slaks-semver-node-data', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, nodes: configuredNodeData() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'semver-node-data.json';
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setNodeStatus(`تم تصدير ${Object.keys(payload.nodes).length} عقدة إلى ملف JSON.`);
+}
+function importNodes(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const payload = JSON.parse(String(reader.result || ''));
+      if (!payload || payload.format !== 'slaks-semver-node-data' || !payload.nodes || typeof payload.nodes !== 'object') throw new Error('ملف JSON ليس ملف عقد صالحًا.');
+      const imported = [];
+      for (const [rawId, rawData] of Object.entries(payload.nodes)) {
+        const id = Number(rawId);
+        if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL || !rawData || typeof rawData !== 'object') continue;
+        const rawUrl = String(rawData.url || '').trim();
+        const html = String(rawData.html || '');
+        let link = null;
+        if (rawUrl) link = parseNodeLink(rawUrl);
+        if (html.length > MAX_HTML_CHARS) throw new Error(`HTML العقدة ${id} يتجاوز الحد المسموح.`);
+        if (!rawUrl && !html.trim()) continue;
+        const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, active: true, savedAt: new Date().toISOString() };
+        const storageKey = `${LINK_KEY}-${id}`;
+        if (semverStorageChars(storageKey) + storageKey.length + JSON.stringify(data).length > MAX_STORAGE_CHARS) throw new Error('تجاوزت بيانات العقد سقف التخزين المحلي.');
+        if (!writeJson(storageKey, data)) throw new Error('تعذر حفظ بيانات العقد في المتصفح.');
+        imported.push(id);
+      }
+      const index = readJson(LINK_KEY, {});
+      imported.forEach((id) => { const data = getHubData(id); index[id] = data?.url || `#node-${String(id).padStart(3, '0')}`; });
+      if (!writeJson(LINK_KEY, index)) throw new Error('تعذر تحديث فهرس العقد.');
+      nodeButtons.forEach((_, id) => refreshNode(id));
+      updateStats();
+      applyNodeFilters();
+      setNodeStatus(`تم استيراد ${imported.length} عقدة بنجاح.`);
+    } catch (error) { setNodeStatus(error?.message || 'تعذر استيراد ملف JSON.', false); }
+  };
+  reader.onerror = () => setNodeStatus('تعذر قراءة ملف JSON.', false);
+  reader.readAsText(file);
+}
 function exportReport() {
   if (!latestReport) return;
   const blob = new Blob([JSON.stringify(latestReport, null, 2)], { type: 'application/json' });
@@ -748,6 +807,12 @@ function initializeNetwork() {
     applyNodeFilters();
     nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     root.focus({ preventScroll: true });
+  });
+  $('#export-nodes').addEventListener('click', exportNodes);
+  $('#import-nodes').addEventListener('click', () => $('#node-import-file').click());
+  $('#node-import-file').addEventListener('change', (event) => {
+    importNodes(event.target.files?.[0]);
+    event.target.value = '';
   });
 }
 

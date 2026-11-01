@@ -311,3 +311,6 @@ body.semver-page a { color: inherit; }
 .hub-dialog .semver-input, .hub-dialog .semver-textarea { color: #e8f0ee; border-color: rgba(89, 224, 163, .28); background: #071014; caret-color: var(--semver-green); }
 .hub-dialog .semver-input:focus, .hub-dialog .semver-textarea:focus { border-color: var(--semver-green); box-shadow: 0 0 0 3px rgba(89, 224, 163, .12); }
 .hub-dialog .semver-input::placeholder, .hub-dialog .semver-textarea::placeholder { color: #789296; }
+
+.node-import-file { display: none; }
+@media (max-width: 640px) { .node-toolbar-controls .semver-button { flex: 1 1 135px; } }
