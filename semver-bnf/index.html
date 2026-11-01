@@ -185,6 +185,12 @@
             <button type="button" class="node-map-nav-button node-map-nav-right" data-pan="right" aria-label="التحرك إلى يمين الشبكة">→<span>يمين</span></button>
             <button type="button" class="node-map-nav-button node-map-nav-down" data-pan="down" aria-label="النزول إلى أسفل الشبكة">↓<span>أسفل</span></button>
           </div>
+          <div class="node-map-zoom" aria-label="أدوات تكبير وتصغير الشبكة">
+            <button type="button" class="node-map-zoom-button" data-zoom="in" aria-label="تكبير الشبكة">＋</button>
+            <output id="node-map-zoom-value" aria-live="polite">100%</output>
+            <button type="button" class="node-map-zoom-button" data-zoom="out" aria-label="تصغير الشبكة">−</button>
+            <button type="button" class="node-map-zoom-fit" data-zoom="overview" aria-label="تصغير كبير لعرض مساحة واسعة من الشبكة">عرض واسع</button>
+          </div>
           <div id="node-viewport" class="node-viewport" role="region" aria-label="خريطة تفاعلية من 6600 عقدة" tabindex="0">
             <canvas id="network-canvas" aria-label="شبكة Canvas تفاعلية من 6600 عقدة"></canvas>
             <div id="network-stage-wrap" class="network-stage-wrap">

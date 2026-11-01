@@ -110,7 +110,7 @@ function persistUiSettings() {
 function restoreUiSettings() {
   const settings = readJson(UI_SETTINGS_KEY, {});
   const showAll = settings.viewVersion !== VIEW_STATE_VERSION;
-  if (Number.isFinite(settings.zoom)) zoom = Math.min(1.5, Math.max(.6, Number(settings.zoom)));
+  if (Number.isFinite(settings.zoom)) zoom = Math.min(1.5, Math.max(.3, Number(settings.zoom)));
   if ($('#node-search')) {
     $('#node-search').value = showAll ? '' : String(settings.query || '');
     if ($('#node-search-clear')) $('#node-search-clear').hidden = !$('#node-search').value;
@@ -1896,6 +1896,32 @@ function setupMapNavigation() {
   viewport.closest('.node-map-shell')?.querySelectorAll('[data-pan]').forEach((button) => {
     button.addEventListener('click', () => pan(button.dataset.pan));
   });
+  const zoomValue = $('#node-map-zoom-value');
+  const updateZoomLabel = () => {
+    if (zoomValue) zoomValue.textContent = `${Math.round(zoom * 100)}%`;
+    const toolbarZoom = $('#zoom-level');
+    if (toolbarZoom) toolbarZoom.textContent = `${Math.round(zoom * 100)}%`;
+  };
+  const setMapZoom = (nextZoom) => {
+    const bounded = Math.max(.3, Math.min(1.5, nextZoom));
+    const centerX = (viewport.scrollLeft + viewport.clientWidth / 2) / zoom;
+    const centerY = (viewport.scrollTop + viewport.clientHeight / 2) / zoom;
+    zoom = Math.round(bounded * 100) / 100;
+    applyZoom();
+    viewport.scrollLeft = Math.max(0, centerX * zoom - viewport.clientWidth / 2);
+    viewport.scrollTop = Math.max(0, centerY * zoom - viewport.clientHeight / 2);
+    updateZoomLabel();
+    persistUiSettings();
+    renderCanvasNetwork();
+  };
+  viewport.closest('.node-map-shell')?.querySelectorAll('[data-zoom]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (button.dataset.zoom === 'in') setMapZoom(zoom + .1);
+      else if (button.dataset.zoom === 'out') setMapZoom(zoom - .1);
+      else setMapZoom(.3);
+    });
+  });
+  updateZoomLabel();
   viewport.addEventListener('keydown', (event) => {
     const directions = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
     const direction = directions[event.key];
