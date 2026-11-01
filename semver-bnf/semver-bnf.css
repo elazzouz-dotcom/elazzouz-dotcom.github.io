@@ -1,4 +1,10 @@
 :root {
+  --edge-hierarchy: #59e0a3;
+  --edge-content: #55b8e8;
+  --edge-software: #f4ce72;
+  --edge-hierarchy-dash: none;
+  --edge-content-dash: 10 7;
+  --edge-software-dash: 2 7;
   --semver-bg: #071014;
   --semver-panel: #0d191e;
   --semver-panel-2: #102127;
@@ -118,7 +124,9 @@ body.semver-page a { color: inherit; }
 .network-stage { position: absolute; inset: 0 auto auto 0; transform-origin: top left; direction: ltr; }
 #node-lines, #node-network { position: absolute; inset: 0 auto auto 0; }
 #node-lines { overflow: visible; pointer-events: none; }
-.network-connection { fill: none; stroke: rgba(89, 224, 163, .34); stroke-width: 2.5; pointer-events: stroke; cursor: pointer; transition: stroke .16s ease, stroke-width .16s ease, filter .16s ease; }
+.network-connection { fill: none; stroke: var(--edge-hierarchy); stroke-dasharray: var(--edge-hierarchy-dash); stroke-width: 2.5; pointer-events: stroke; cursor: pointer; transition: stroke .16s ease, stroke-width .16s ease, filter .16s ease; }
+.network-connection.edge-content { stroke: var(--edge-content); stroke-dasharray: var(--edge-content-dash); }
+.network-connection.edge-software { stroke: var(--edge-software); stroke-dasharray: var(--edge-software-dash); }
 .network-connection:hover, .network-connection:focus-visible, .network-connection.edge-focused { stroke: var(--semver-gold); stroke-width: 5; filter: drop-shadow(0 0 4px rgba(244, 206, 114, .65)); outline: none; }
 .network-node.edge-node-focused { outline: 3px solid var(--semver-gold); outline-offset: 5px; box-shadow: 0 0 24px rgba(244, 206, 114, .5); }
 .network-connection.path-active { stroke: var(--semver-gold); stroke-width: 3; opacity: .92; }
@@ -138,6 +146,18 @@ body.semver-page a { color: inherit; }
 .node-id { color: #adc5bb; font-size: .48rem; font-weight: 800; }
 .node-badge { position: absolute; top: -8px; inset-inline-start: 27px; max-width: 92px; overflow: hidden; border: 1px solid rgba(244, 206, 114, .6); border-radius: 999px; padding: .12rem .3rem; color: #ffefbd; background: #221d0e; font-size: .48rem; text-overflow: ellipsis; white-space: nowrap; }
 .node-badge[hidden] { display: none; }
+
+.relation-customizer { margin-bottom: .8rem; border: 1px solid rgba(89, 224, 163, .2); border-radius: 14px; background: rgba(13, 25, 30, .72); }
+.relation-customizer summary { padding: .75rem .9rem; color: var(--semver-green); font-size: .8rem; font-weight: 800; cursor: pointer; }
+.relation-control-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; padding: 0 .9rem .75rem; }
+.relation-control-grid label { display: grid; gap: .35rem; color: var(--semver-muted); font-size: .7rem; font-weight: 800; }
+.relation-control-grid label > span { display: flex; gap: .35rem; }
+.relation-color { width: 36px; min-width: 36px; height: 36px; padding: 2px; border: 1px solid var(--semver-line); border-radius: 8px; background: #071014; cursor: pointer; }
+.relation-style { min-width: 0; flex: 1; border: 1px solid var(--semver-line); border-radius: 8px; padding: .4rem; color: var(--semver-text); background: #071014; font: inherit; font-size: .72rem; }
+.relation-customizer > .semver-button { margin: 0 .9rem .85rem; min-height: 34px; padding: .4rem .65rem; font-size: .72rem; }
+.edge-legend { display: inline-flex; align-items: center; gap: .3rem; }
+.edge-legend i { display: inline-block; width: 22px; border-top: 3px solid; }
+.legend-hierarchy { border-color: var(--edge-hierarchy); }.legend-content { border-color: var(--edge-content); border-top-style: dashed; }.legend-software { border-color: var(--edge-software); border-top-style: dotted; }
 .node-map-legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .6rem; padding: .7rem .35rem .2rem; color: var(--semver-muted); font-size: .73rem; }
 .node-map-legend strong { color: var(--semver-gold); }
 .node-status, .hub-status { min-height: 1.4em; margin: .65rem 0 0; color: var(--semver-muted); font-size: .8rem; }
@@ -268,6 +288,7 @@ body.semver-page a { color: inherit; }
   .semver-stat { padding: .65rem; }
   .semver-stat strong { font-size: 1.05rem; }
   .node-toolbar { grid-template-columns: 1fr; margin-inline: 0; }
+  .relation-control-grid { grid-template-columns: 1fr; }
   .node-toolbar-controls { grid-column: auto; }
   .node-toolbar-controls .semver-button { flex: 1; }
   .node-viewport { height: 62vh; min-height: 390px; }

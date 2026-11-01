@@ -4,6 +4,7 @@ const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
 const POSITIONS_KEY = 'semver-bnf-node-positions';
+const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const BUILTIN_NODES = Object.freeze({
   600: {
     url: 'https://elazzouz-dotcom.github.io/satellite/',
@@ -254,6 +255,42 @@ function createNodeElements() {
   updateStats();
 }
 
+const DEFAULT_RELATION_STYLES = Object.freeze({ hierarchy: { color: '#59e0a3', style: 'solid' }, content: { color: '#55b8e8', style: 'dashed' }, software: { color: '#f4ce72', style: 'dotted' } });
+function relationType(parentId, childId) {
+  const childType = nodeContentType(getHubData(childId), childId);
+  const parentType = nodeContentType(getHubData(parentId), parentId);
+  if (['software', 'download', 'app'].includes(childType) || ['software', 'download', 'app'].includes(parentType)) return 'software';
+  if (childType !== 'empty' || parentType !== 'empty') return 'content';
+  return 'hierarchy';
+}
+function applyRelationCustomization() {
+  const saved = readJson(RELATION_STYLE_KEY, {});
+  Object.keys(DEFAULT_RELATION_STYLES).forEach((type) => {
+    const config = { ...DEFAULT_RELATION_STYLES[type], ...(saved[type] || {}) };
+    document.documentElement.style.setProperty(`--edge-${type}`, config.color);
+    document.documentElement.style.setProperty(`--edge-${type}-dash`, config.style === 'dashed' ? '10 7' : config.style === 'dotted' ? '2 7' : 'none');
+    const color = document.querySelector(`.relation-color[data-relation="${type}"]`);
+    const style = document.querySelector(`.relation-style[data-relation="${type}"]`);
+    if (color) color.value = config.color;
+    if (style) style.value = config.style;
+  });
+}
+function saveRelationCustomization() {
+  const styles = {};
+  document.querySelectorAll('.relation-color').forEach((input) => {
+    const type = input.dataset.relation;
+    const style = document.querySelector(`.relation-style[data-relation="${type}"]`);
+    styles[type] = { color: input.value, style: style?.value || 'solid' };
+  });
+  writeJson(RELATION_STYLE_KEY, styles);
+  applyRelationCustomization();
+  drawEdges();
+}
+function setupRelationCustomization() {
+  applyRelationCustomization();
+  document.querySelectorAll('.relation-color, .relation-style').forEach((control) => control.addEventListener('input', saveRelationCustomization));
+  $('#relation-reset').addEventListener('click', () => { writeJson(RELATION_STYLE_KEY, DEFAULT_RELATION_STYLES); applyRelationCustomization(); drawEdges(); });
+}
 function clearEdgeFocus() {
   if (!focusedEdge) return;
   const previous = focusedEdge;
@@ -282,7 +319,9 @@ function drawEdges() {
     const startY = parent.y + NODE_SIZE * .43;
     const endY = child.y - NODE_SIZE * .43;
     const curve = Math.max(18, Math.abs(endY - startY) * .38);
-    path.setAttribute('class', 'network-connection');
+    const edgeType = relationType(parentId, id);
+    path.setAttribute('class', `network-connection edge-${edgeType}`);
+    path.dataset.relation = edgeType;
     path.dataset.from = String(parentId);
     path.dataset.to = String(id);
     path.setAttribute('role', 'button');
@@ -927,6 +966,7 @@ function scheduleNodeFilters() {
 }
 function initializeNetwork() {
   restoreUiSettings();
+  setupRelationCustomization();
   createNodeElements();
   layoutNodes();
   const observer = new ResizeObserver(scheduleLayout);
