@@ -3,7 +3,7 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
-const POSITIONS_KEY = 'semver-bnf-node-positions';
+const POSITIONS_KEY = 'semver-bnf-node-positions-10cm';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const BUILTIN_NODES = Object.freeze({
   600: {
