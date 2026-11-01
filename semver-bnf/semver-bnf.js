@@ -317,6 +317,22 @@ function renderExtraction(payload) {
   container.append(title, detail, text);
 }
 
+function classifySoftwareUrl(url) {
+  let parsed;
+  try { parsed = new URL(url); } catch { return { kind: 'web', label: 'صفحة ويب' }; }
+  const path = parsed.pathname.toLowerCase();
+  const downloadExt = /\.(exe|msi|dmg|pkg|deb|rpm|appimage|apk|ipa|zip|tar|gz|7z|pdf|apk)(?:$|\?)/i;
+  if (downloadExt.test(path)) return { kind: 'download', label: 'ملف برنامج قابل للتنزيل', host: parsed.hostname };
+  if (/github\.com|gitlab\.com|npmjs\.com|pypi\.org|crates\.io|rubygems\.org|apps\.apple\.com|play\.google\.com|microsoft\.com/i.test(parsed.hostname)) {
+    return { kind: 'software', label: 'صفحة برمجية أو متجر تطبيقات', host: parsed.hostname };
+  }
+  return { kind: 'web', label: 'تطبيق ويب أو صفحة خارجية', host: parsed.hostname };
+}
+function softwareDownloadPreview(link, info) {
+  const safeUrl = link.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeHost = (info.host || link.host || 'مصدر خارجي').replace(/[&<>"']/g, '');
+  return `<main style="box-sizing:border-box;min-height:100vh;padding:clamp(24px,6vw,72px);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#e8f0ee;background:#071014;direction:rtl"><div style="max-width:720px;margin:auto;border:1px solid #315d57;border-radius:24px;padding:clamp(24px,5vw,48px);background:linear-gradient(145deg,#102127,#0b171b);box-shadow:0 20px 60px #0008"><div style="font-size:42px;color:#59e0a3">⌘</div><p style="color:#59e0a3;font-size:12px;font-weight:800;letter-spacing:.12em">SOFTWARE PREVIEW</p><h1 style="font-size:clamp(24px,5vw,42px);margin:.4em 0">${info.label}</h1><p style="color:#9cb0b2;line-height:1.8">هذا رابط ملف برمجي. يمكن عرض معلوماته داخل الموقع، لكن لا يمكن للمتصفح تشغيل ملف تنفيذي مباشرة لأسباب أمنية.</p><p style="color:#f4ce72;overflow-wrap:anywhere">المصدر: ${safeHost}</p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:16px;border-radius:12px;padding:12px 18px;color:#052117;background:#59e0a3;font-weight:800;text-decoration:none">فتح ملف البرنامج خارجيًا ↗</a></div></main>`;
+}
 function summarizeHtml(html, source = 'HTML محلي') {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   doc.querySelectorAll('script,style,template').forEach((element) => element.remove());
@@ -391,11 +407,19 @@ async function buildHub(silent = false) {
         setHubStatus('الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
         return;
       }
+      const software = classifySoftwareUrl(link.url);
+      hubAddress.textContent = `${software.label} · ${link.url}`;
+      if (software.kind === 'download') {
+        hubPreview.removeAttribute('src');
+        hubPreview.srcdoc = softwareDownloadPreview(link, software);
+        renderExtraction({ title: software.label, text: 'تم التعرف على ملف برمجي وعرض بطاقة آمنة داخل المعاينة. لا يتم تشغيل الملفات التنفيذية داخل المتصفح.', source: 'معاينة برمجية آمنة', kind: 'software' });
+        setHubStatus('عُرضت معلومات البرنامج داخل الموقع. استخدم زر الفتح الخارجي لتنزيل الملف.');
+        return;
+      }
       hubPreview.removeAttribute('srcdoc');
       hubPreview.src = link.url;
-      hubAddress.textContent = link.url;
-      renderExtraction({ title: link.host || link.display, text: 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر الفتح المباشر عند الحاجة.', source: 'معاينة HTTP/HTTPS خارجية', kind: 'web' });
-      setHubStatus('جارية معاينة الرابط الخارجي داخل إطار معزول. إذا رفض الموقع العرض، استخدم الفتح المباشر.');
+      renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر الفتح المباشر عند الحاجة.', source: software.label, kind: software.kind });
+      setHubStatus(`جارية معاينة ${software.label} داخل الموقع. إذا رفض الموقع العرض، استخدم الفتح الخارجي.`);
       return;
     }
     if (localHtml.trim()) {
