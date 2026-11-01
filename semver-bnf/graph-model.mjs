@@ -58,6 +58,12 @@ export function parseNodeLink(value) {
   if (!raw) throw new Error('أدخل رابطًا أولًا.');
   if (raw.length > 8192) throw new Error('طول الرابط يتجاوز الحد المحلي المسموح به (8192 محرفًا).');
   if (/[\u0000-\u001f\u007f]/.test(raw)) throw new Error('يحتوي الرابط على محارف تحكم غير مسموح بها.');
+  const matrixAlias = raw.match(/^#([A-Za-z0-9._=-]{1,255}):([A-Za-z0-9.-]+(?::\d{1,5})?)$/);
+  if (matrixAlias) {
+    const alias = `#${matrixAlias[1]}:${matrixAlias[2]}`;
+    return { kind: 'matrix', url: `https://matrix.to/#/${alias}`, host: matrixAlias[2], display: `غرفة Matrix ${alias}` };
+  }
+
   const schemeMatch = raw.match(/^([a-z][a-z\d+.-]*):/i);
   const scheme = schemeMatch?.[1]?.toLowerCase() || '';
 

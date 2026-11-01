@@ -90,7 +90,7 @@ function restoreUiSettings() {
     if ($('#node-search-clear')) $('#node-search-clear').hidden = !$('#node-search').value;
   }
   if ($('#node-filter')) $('#node-filter').value = showAll ? 'all' : (['all', 'active', 'empty'].includes(settings.nodeFilter) ? settings.nodeFilter : 'all');
-  if ($('#software-filter')) $('#software-filter').value = showAll ? 'all' : (['all', 'software', 'download', 'web', 'app', 'html'].includes(settings.softwareFilter) ? settings.softwareFilter : 'all');
+  if ($('#software-filter')) $('#software-filter').value = showAll ? 'all' : (['all', 'software', 'download', 'web', 'app', 'matrix', 'html'].includes(settings.softwareFilter) ? settings.softwareFilter : 'all');
   if ($('#level-filter')) $('#level-filter').value = showAll ? 'all' : ((settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter))) ? String(settings.levelFilter) : 'all');
   if (showAll) writeJson(UI_SETTINGS_KEY, { ...settings, viewVersion: VIEW_STATE_VERSION, query: '', nodeFilter: 'all', softwareFilter: 'all', levelFilter: 'all' });
 }
@@ -296,7 +296,7 @@ const DEFAULT_RELATION_STYLES = Object.freeze({ hierarchy: { color: '#59e0a3', s
 function relationType(parentId, childId) {
   const childType = nodeContentType(getHubData(childId), childId);
   const parentType = nodeContentType(getHubData(parentId), parentId);
-  if (['software', 'download', 'app'].includes(childType) || ['software', 'download', 'app'].includes(parentType)) return 'software';
+  if (['software', 'download', 'app', 'matrix'].includes(childType) || ['software', 'download', 'app', 'matrix'].includes(parentType)) return 'software';
   if (childType !== 'empty' || parentType !== 'empty') return 'content';
   return 'hierarchy';
 }
@@ -636,9 +636,9 @@ async function buildHub(silent = false) {
       const link = parseNodeLink(urlText);
       if (link.kind !== 'web') {
         clearPreview();
-        hubAddress.textContent = link.url;
-        renderExtraction({ title: link.display, text: 'هذا الرابط يفتح في تطبيق خارجي ولا يمكن معاينته أو جلب محتواه داخل الشبكة.', source: 'فتح خارجي فقط', kind: link.kind });
-        setHubStatus('الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
+        hubAddress.textContent = link.kind === 'matrix' ? `Matrix.org · ${link.display}` : link.url;
+        renderExtraction({ title: link.display, text: link.kind === 'matrix' ? 'تم التعرف على غرفة Matrix. استخدم زر الفتح لفتحها في matrix.to أو عميل Matrix المثبت على جهازك.' : 'هذا الرابط يفتح في تطبيق خارجي ولا يمكن معاينته أو جلب محتواه داخل الشبكة.', source: link.kind === 'matrix' ? 'Matrix.org' : 'فتح خارجي فقط', kind: link.kind });
+        setHubStatus(link.kind === 'matrix' ? 'غرفة Matrix جاهزة للفتح عبر matrix.to.' : 'الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
         return;
       }
       const software = classifySoftwareUrl(link.url);
