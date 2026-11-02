@@ -302,10 +302,20 @@
             <span class="mod9-badge">حساب فوري</span>
           </div>
           <p class="mod9-citation">{وَكَانَ فِي الْمَدِينَةِ تِسْعَةُ رَهْطٍ يُفْسِدُونَ فِي الْأَرْضِ وَلَا يُصْلِحُونَ} [سورة النمل: 48]</p>
-          <p class="mod9-note">أدخل عددًا صحيحًا لفحص جذره الرقمي وعمليات الجمع والطرح والضرب والقسمة على 9. النتيجة تشرح متى يحافظ العدد على الصنف 0 بترديد 9، ولا تفترض أن كل عدد يعطي الجذر 9.</p>
+          <p class="mod9-note">أدخل عددًا صحيحًا أو اختر سياقًا. يتكيف المختبر مع السنة، مستويات الشبكة، إجمالي العقد، قيمة جُمّل الفاتحة، أو العقدة التي فتحتها، ثم يعيد الحساب فورًا.</p>
           <div class="mod9-input-row">
             <label class="semver-field-label" for="mod9-input">العدد أو السنة
               <input id="mod9-input" class="semver-input" type="number" inputmode="numeric" step="1" value="2025" aria-describedby="mod9-help">
+            </label>
+            <label class="semver-field-label" for="mod9-context">سياق التحليل
+              <select id="mod9-context" class="semver-select">
+                <option value="year">السنة / الحدث (2025)</option>
+                <option value="levels">مستويات الشبكة (114)</option>
+                <option value="nodes">إجمالي عقد الشبكة (6600)</option>
+                <option value="fatiha">قيمة جُمّل الفاتحة (1014)</option>
+                <option value="active-node">العقدة النشطة</option>
+                <option value="manual">إدخال يدوي</option>
+              </select>
             </label>
             <button id="mod9-run" class="semver-button semver-button-primary" type="button">تشغيل الفحص</button>
           </div>

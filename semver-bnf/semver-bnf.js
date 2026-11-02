@@ -1399,6 +1399,7 @@ function openHubNode(id, button) {
   highlightNodePath(id);
   $('#hub-node-number').textContent = `#${String(id).padStart(3, '0')}`;
   renderQuranNodeAnalysis(id);
+  setMod9NodeContext(id);
   const storedData = getHubData(id);
   const data = storedData || (button?.dataset.linkUrl ? { url: button.dataset.linkUrl, kind: button.dataset.linkKind || '' } : null);
   hubUrl.value = data?.url || '';
@@ -2294,11 +2295,27 @@ function digitalRootBigInt(value) {
 function formatBigInt(value) {
   return value.toString();
 }
+let mod9AnalyzeCurrent = null;
+function setMod9NodeContext(id) {
+  const input = $('#mod9-input');
+  const context = $('#mod9-context');
+  if (!input || !context) return;
+  const metric = quranMetricForNode(id);
+  input.value = String(metric.abjad_value);
+  context.value = 'active-node';
+  const option = context.querySelector('option[value="active-node"]');
+  if (option) option.textContent = `العقدة النشطة N-${String(id).padStart(3, '0')} · ${metric.surah_name}`;
+  const help = $('#mod9-help');
+  if (help) help.textContent = `السياق النشط: ${metric.surah_name} · قيمة الجُمّل ${metric.abjad_value} · الحساب محلي ودقيق.`;
+  mod9AnalyzeCurrent?.();
+}
 function setupMod9Lab() {
   const input = $('#mod9-input');
+  const context = $('#mod9-context');
   const run = $('#mod9-run');
   const results = $('#mod9-results');
-  if (!input || !run || !results) return;
+  if (!input || !context || !run || !results) return;
+  const presetValues = { year: '2025', levels: '114', nodes: '6600', fatiha: '525' };
   const renderOperation = (name, expression, value, exact = true) => {
     const row = document.createElement('div');
     row.className = 'mod9-operation';
@@ -2340,6 +2357,24 @@ function setupMod9Lab() {
     explanation.textContent = root === 9n ? 'هذا العدد من مضاعفات 9؛ لذلك تحافظ الإضافة والطرح بمقدار 9 على الصنف نفسه، بينما تكون القسمة على 9 صحيحة.' : 'العدد ليس من مضاعفات 9؛ الإضافة والطرح بمقدار 9 يحافظان على باقي القسمة، لكن الجذر الرقمي لا يكون بالضرورة 9.';
     results.appendChild(explanation);
   };
+  mod9AnalyzeCurrent = analyze;
+  context.addEventListener('change', () => {
+    if (context.value === 'active-node') {
+      if (!activeHub?.id) {
+        input.value = '2025';
+        context.value = 'year';
+        const help = $('#mod9-help');
+        if (help) help.textContent = 'افتح عقدة من الشبكة أولًا لتفعيل سياق العقدة النشطة.';
+      }
+    } else if (presetValues[context.value]) {
+      input.value = presetValues[context.value];
+    }
+    analyze();
+  });
+  input.addEventListener('input', () => {
+    if (context.value === 'active-node' || context.value !== 'manual') context.value = 'manual';
+    analyze();
+  });
   run.addEventListener('click', analyze);
   input.addEventListener('keydown', (event) => { if (event.key === 'Enter') analyze(); });
   analyze();
