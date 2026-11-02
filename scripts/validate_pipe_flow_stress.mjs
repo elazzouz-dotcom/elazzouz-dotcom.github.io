@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { NODE_LEVELS, NODE_TOTAL, getNodeParent } from '../semver-bnf/graph-model.mjs';
 
-const FRAMES = 120;
 const PRESSURE_WAVES = 16;
 const EXPECTED_EDGES = NODE_TOTAL - 1;
+const TARGET_SAMPLES = 15_000_000;
+const FRAMES = Math.ceil(TARGET_SAMPLES / (PRESSURE_WAVES * EXPECTED_EDGES));
 
 function positionFor(id) {
   // تخطيط حتمي قريب من التخطيط البصري، حتى يختبر الاختبار مسارات الأنابيب الفعلية.
