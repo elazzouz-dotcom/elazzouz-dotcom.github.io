@@ -68,6 +68,9 @@ let nodeChatRoomSelected = null;
 let draggedNode = null;
 let suppressNodeClick = false;
 let focusedEdge = null;
+let pipeFlowEnabled = true;
+let pipeFlowFrame = 0;
+let pipeFlowStartedAt = performance.now();
 
 function readJson(key, fallback) {
   try {
@@ -462,6 +465,50 @@ function resizeNetworkCanvas() {
   networkCanvas.style.top = `${nodeViewport.scrollTop}px`;
   canvasContext.setTransform(ratio, 0, 0, ratio, 0, 0);
 }
+function pointOnPolyline(points, progress) {
+  const lengths = [];
+  let total = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    const length = Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
+    lengths.push(length);
+    total += length;
+  }
+  let distance = total * Math.max(0, Math.min(1, progress));
+  for (let index = 0; index < lengths.length; index += 1) {
+    if (distance <= lengths[index]) {
+      const start = points[index]; const end = points[index + 1];
+      const ratio = lengths[index] ? distance / lengths[index] : 0;
+      return { x: start.x + (end.x - start.x) * ratio, y: start.y + (end.y - start.y) * ratio };
+    }
+    distance -= lengths[index];
+  }
+  return points.at(-1);
+}
+function drawPipePump(parent, child, seed) {
+  if (!pipeFlowEnabled) return;
+  const midY = parent.y + (child.y - parent.y) * .5;
+  const points = [{ x: parent.x, y: parent.y }, { x: parent.x, y: midY }, { x: child.x, y: midY }, { x: child.x, y: child.y }];
+  const center = pointOnPolyline(points, .5);
+  const pulse = pointOnPolyline(points, ((performance.now() - pipeFlowStartedAt) / 1800 + seed * .013) % 1);
+  canvasContext.save();
+  canvasContext.globalAlpha = .82;
+  canvasContext.strokeStyle = '#f4ce72';
+  canvasContext.fillStyle = '#f4ce72';
+  canvasContext.lineWidth = 1.5 / zoom;
+  canvasContext.beginPath(); canvasContext.arc(center.x, center.y, 5 / zoom, 0, Math.PI * 2); canvasContext.stroke();
+  canvasContext.beginPath(); canvasContext.arc(pulse.x, pulse.y, 2.7 / zoom, 0, Math.PI * 2); canvasContext.fill();
+  canvasContext.restore();
+}
+function requestPipeFlowFrame() {
+  if (pipeFlowFrame) return;
+  pipeFlowFrame = window.requestAnimationFrame(() => {
+    pipeFlowFrame = 0;
+    if (pipeFlowEnabled) {
+      renderCanvasNetwork();
+      requestPipeFlowFrame();
+    }
+  });
+}
 function renderCanvasNetwork() {
   if (!networkCanvas || !canvasContext) return;
   resizeNetworkCanvas();
@@ -473,7 +520,9 @@ function renderCanvasNetwork() {
   canvasContext.save();
   canvasContext.scale(zoom, zoom);
   canvasContext.translate(-offsetX / zoom, -offsetY / zoom);
-  canvasContext.lineWidth = 2.5 / zoom;
+  canvasContext.lineWidth = 4 / zoom;
+  canvasContext.lineCap = 'round';
+  canvasContext.lineJoin = 'round';
   for (const edgeKey of visibleEdgeIds) {
     const [parentRaw, childRaw] = edgeKey.split(':');
     const id = Number(childRaw);
@@ -493,6 +542,7 @@ function renderCanvasNetwork() {
     canvasContext.setLineDash(style.style === 'dashed' ? [7, 6] : style.style === 'dotted' ? [2, 6] : []);
     const midY = parent.y + (child.y - parent.y) * .5;
     canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.lineTo(parent.x, midY); canvasContext.lineTo(child.x, midY); canvasContext.lineTo(child.x, child.y); canvasContext.stroke();
+    drawPipePump(parent, child, id);
     canvasContext.globalAlpha = 1;
   }
   canvasContext.setLineDash([]);
@@ -534,6 +584,7 @@ function renderCanvasNetwork() {
     canvasContext.fillStyle = '#59e0a3'; canvasContext.font = '900 16px system-ui,sans-serif'; canvasContext.textAlign = 'center'; canvasContext.textBaseline = 'middle'; canvasContext.fillText('+', point.x, point.y - 4);
     canvasContext.fillStyle = '#e5fff3'; canvasContext.font = '900 7px system-ui,sans-serif'; canvasContext.fillText(nodeLabel(id), point.x, point.y + 10);
   }
+  canvasContext.restore();
 }
 function setupCanvasInteraction() {
   networkCanvas.addEventListener('wheel', (event) => {
@@ -1878,6 +1929,21 @@ function populateLevelFilter() {
     select.appendChild(new Option(`المستوى ${level + 1} · ${count} عقدة`, String(level)));
   });
 }
+function setPipeFlowEnabled(enabled) {
+  pipeFlowEnabled = Boolean(enabled);
+  if (pipeFlowEnabled) pipeFlowStartedAt = performance.now();
+  const toggle = $('#pipe-flow-toggle');
+  const status = $('#pipe-flow-status');
+  const indicator = document.querySelector('.pipe-flow-indicator');
+  if (toggle) {
+    toggle.setAttribute('aria-pressed', String(pipeFlowEnabled));
+    toggle.textContent = pipeFlowEnabled ? 'إيقاف المضخات' : 'تشغيل المضخات';
+  }
+  if (status) status.textContent = pipeFlowEnabled ? 'التدفق يعمل عبر الأنابيب الظاهرة' : 'تدفق المعلومات متوقف';
+  indicator?.classList.toggle('is-off', !pipeFlowEnabled);
+  renderCanvasNetwork();
+  if (pipeFlowEnabled) requestPipeFlowFrame();
+}
 function initializeNetwork() {
   populateLevelFilter();
   restoreUiSettings();
@@ -1915,6 +1981,7 @@ function initializeNetwork() {
   $('#node-search-mode').addEventListener('change', applyNodeFilters);
   $('#node-sort').addEventListener('change', applyNodeFilters);
   $('#node-result-limit').addEventListener('change', applyNodeFilters);
+  $('#pipe-flow-toggle').addEventListener('click', () => setPipeFlowEnabled(!pipeFlowEnabled));
   $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
   $('#map-fit').addEventListener('click', () => { zoom = Math.max(.05, Math.min(1, Math.round(Math.min((nodeViewport.clientWidth - 24) / mapWidth, (nodeViewport.clientHeight - 24) / mapHeight) * 10) / 10)); applyZoom(); centerMapViewport('smooth'); persistUiSettings(); });
   $('#map-layout-reset').addEventListener('click', resetNodeLayout);
@@ -1939,6 +2006,7 @@ function initializeNetwork() {
     event.target.value = '';
   });
   showAllNodes();
+  setPipeFlowEnabled(true);
 }
 
 function setupHubModal() {

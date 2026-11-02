@@ -184,6 +184,12 @@
           <button id="relation-reset" class="semver-button" type="button">إعادة الألوان الافتراضية</button>
         </details>
         <div class="node-map-shell">
+          <div class="pipe-flow-controls" role="group" aria-label="تحكم في مضخات الأنابيب">
+            <span class="pipe-flow-indicator" aria-hidden="true"></span>
+            <strong>مضخات الأنابيب</strong>
+            <span id="pipe-flow-status" aria-live="polite">تدفق المعلومات متوقف</span>
+            <button id="pipe-flow-toggle" class="semver-button semver-button-primary" type="button" aria-pressed="true">إيقاف المضخات</button>
+          </div>
           <div id="node-viewport" class="node-viewport" role="region" aria-label="خريطة تفاعلية من 6600 عقدة" tabindex="0">
             <canvas id="network-canvas" aria-label="شبكة Canvas تفاعلية من 6600 عقدة"></canvas>
             <div id="network-stage-wrap" class="network-stage-wrap">
@@ -193,7 +199,7 @@
               </div>
             </div>
           </div>
-          <div class="node-map-legend"><span><strong>أخضر</strong> عقدة غير مهيأة</span><span><strong>ذهبي</strong> عقدة تحتوي رابطًا أو محتوى</span><span><strong>N-6600</strong> آخر عقدة في الشبكة</span><span>اختر العقدة لفتح إعداداتها</span></div>
+          <div class="node-map-legend"><span><strong>أخضر</strong> عقدة غير مهيأة</span><span><strong>ذهبي</strong> عقدة تحتوي رابطًا أو محتوى</span><span><strong>نبض ذهبي</strong> مضخة تدفع البيانات داخل الأنبوب</span><span><strong>N-6600</strong> آخر عقدة في الشبكة</span><span>اختر العقدة لفتح إعداداتها</span></div>
         </div>
         <p id="node-status" class="node-status" aria-live="polite">جارٍ تجهيز شبكة العقد…</p>
         <p class="semver-note">تُقبل روابط HTTP/HTTPS العامة وتُحفظ محليًا، ولا تجلب الصفحة محتوى المواقع الخارجية. عند الفتح يختار iOS أو Android التطبيق المرتبط برابط Universal/App Link إن كان مثبتًا، وإلا يفتح المتصفح. تُدعم روابط mailto: وtel: وsms: وwhatsapp: وtg: وspotify: وitms-apps: وgeo: وcomgooglemaps:. تُرفض مخططات JavaScript والملفات المحلية والعناوين الخاصة. يعرض الإطار HTML الذي تدخله أنت فقط، مع sandbox محدود الصلاحيات. التخزين في هذا المتصفح فقط وبسقف إجمالي تقريبي 650 كيلوبايت.</p>

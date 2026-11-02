@@ -137,6 +137,12 @@ body.semver-page a { color: inherit; }
 .advanced-node-result-empty { grid-column: 1 / -1; margin: 0; color: var(--semver-muted); font-size: .75rem; }
 #zoom-level { min-width: 3.4rem; align-self: center; color: var(--semver-muted); text-align: center; font-size: .76rem; }
 .node-map-shell { border: 1px solid rgba(89, 224, 163, .28); border-radius: 18px; padding: .45rem; background: linear-gradient(145deg, rgba(7, 16, 20, .9), rgba(9, 27, 26, .8)); box-shadow: inset 0 0 38px rgba(89, 224, 163, .045); }
+.pipe-flow-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .55rem; margin: 0 0 .45rem; border: 1px solid rgba(244, 206, 114, .25); border-radius: 12px; padding: .55rem .7rem; color: var(--semver-muted); background: rgba(22, 24, 14, .72); font-size: .76rem; }
+.pipe-flow-controls strong { color: var(--semver-gold); }
+.pipe-flow-controls #pipe-flow-status { margin-inline-end: auto; }
+.pipe-flow-controls .semver-button { min-height: 34px; padding: .35rem .65rem; font-size: .72rem; }
+.pipe-flow-indicator { width: .62rem; height: .62rem; border: 2px solid var(--semver-gold); border-radius: 50%; box-shadow: 0 0 0 4px rgba(244, 206, 114, .1), 0 0 14px rgba(244, 206, 114, .7); }
+.pipe-flow-indicator.is-off { border-color: var(--semver-muted); box-shadow: 0 0 0 4px rgba(156, 176, 178, .08); }
 .node-viewport { position: relative; height: min(72vh, 780px); min-height: 430px; overflow: auto; touch-action: pan-x pan-y; direction: ltr; border-radius: 14px; background-image: radial-gradient(rgba(89, 224, 163, .11) 1px, transparent 1px); background-size: 22px 22px; overscroll-behavior: contain; scrollbar-color: #295445 #0a1418; }
 .network-stage-wrap { position: relative; }
 .network-stage { position: absolute; inset: 0 auto auto 0; transform-origin: top left; direction: ltr; }
@@ -336,6 +342,8 @@ body.semver-page a { color: inherit; }
   .relation-control-grid { grid-template-columns: 1fr; }
   .node-toolbar-controls { grid-column: auto; }
   .node-toolbar-controls .semver-button { flex: 1; }
+  .pipe-flow-controls #pipe-flow-status { flex-basis: 100%; order: 3; }
+  .pipe-flow-controls .semver-button { margin-inline-start: auto; }
   .node-viewport { position: relative; height: 62vh; min-height: 390px; }
   .validator-grid, .grammar-grid, .example-grid { grid-template-columns: 1fr; }
   .validator-row { flex-direction: column; }
