@@ -23,6 +23,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Run strict SemVer structural validation
+        run: python3 scripts/validate_semver_bnf.py
+      - name: Stress-test information pumps under concurrent pressure
+        run: node scripts/validate_pipe_flow_stress.mjs
+      - name: Set up Python for Quran analysis
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: analysis/requirements-simulation.txt
+      - name: Install pinned scientific stack
+        run: python -m pip install --requirement analysis/requirements-simulation.txt
+      - name: Regenerate Quran report and node metrics
+        run: |
+          python analysis/run_reproducible_pipeline.py --samples 200000 --seed 12345
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("analysis/quran_analysis_report.json").read_text(encoding="utf-8"))
+          assert report["metadata"]["random_seed"] == 12345
+          assert report["metadata"]["simulations_B"] == 200000
+          assert "kruskal_wallis" in report and len(report["kruskal_wallis"]) == 4
+          print("Quran report and Kruskal-Wallis checks: OK")
+          PY
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -36,6 +60,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build local Tailwind CSS
         run: pnpm build:css
+      - name: Fingerprint static assets for browser caching
+        run: python3 scripts/cache_bust.py
       - name: Remove build dependencies from Pages artifact
         run: rm -rf node_modules
       - name: Configure Pages

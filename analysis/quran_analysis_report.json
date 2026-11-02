@@ -1,0 +1,1666 @@
+{
+  "metadata": {
+    "timestamp_utc": "2026-11-02T02:16:58.495772+00:00",
+    "total_surahs": 114,
+    "civil_surahs": 28,
+    "simulations_B": 200000,
+    "random_seed": 12345,
+    "rng_algorithm": "PCG64",
+    "numpy_version": "2.5.3",
+    "scipy_version": "1.16.2",
+    "pandas_version": "3.0.6",
+    "normalization_rules": {
+      "hamza": "أ، إ، آ، ا → ا/1",
+      "ta_marbuta": "ة → ه/5",
+      "waw_hamza": "ؤ → و/6",
+      "alif_maqsura": "ى → ي/10",
+      "unknown": "المسافات وعلامات الترقيم والأحرف خارج الخريطة لا تضيف قيمة"
+    }
+  },
+  "tests": {
+    "surah_number_root": {
+      "column": "surah_number_root",
+      "metadata": {
+        "simulations_B": 200000,
+        "random_seed": 12345,
+        "rng_algorithm": "PCG64"
+      },
+      "statistical_metrics": {
+        "chi2_observed": 6.717128801431127,
+        "degrees_of_freedom": 8,
+        "exceedances": 117926,
+        "p_value_monte_carlo": 0.5896320518397408,
+        "standard_error_se": 0.0010999201913288316,
+        "cramers_v": 0.24273891832315247
+      },
+      "contingency_table": {
+        "1": {
+          "مكية": 11,
+          "مدنية": 2
+        },
+        "2": {
+          "مكية": 9,
+          "مدنية": 4
+        },
+        "3": {
+          "مكية": 9,
+          "مدنية": 4
+        },
+        "4": {
+          "مكية": 7,
+          "مدنية": 6
+        },
+        "5": {
+          "مكية": 11,
+          "مدنية": 2
+        },
+        "6": {
+          "مكية": 10,
+          "مدنية": 3
+        },
+        "7": {
+          "مكية": 11,
+          "مدنية": 1
+        },
+        "8": {
+          "مكية": 9,
+          "مدنية": 3
+        },
+        "9": {
+          "مكية": 9,
+          "مدنية": 3
+        }
+      }
+    },
+    "ayahs_count_root": {
+      "column": "ayahs_count_root",
+      "metadata": {
+        "simulations_B": 200000,
+        "random_seed": 12345,
+        "rng_algorithm": "PCG64"
+      },
+      "statistical_metrics": {
+        "chi2_observed": 3.4312263806156715,
+        "degrees_of_freedom": 8,
+        "exceedances": 183173,
+        "p_value_monte_carlo": 0.9158654206728967,
+        "standard_error_se": 0.0006207075261776743,
+        "cramers_v": 0.17348912652654774
+      },
+      "contingency_table": {
+        "1": {
+          "مكية": 10,
+          "مدنية": 2
+        },
+        "2": {
+          "مكية": 12,
+          "مدنية": 6
+        },
+        "3": {
+          "مكية": 11,
+          "مدنية": 6
+        },
+        "4": {
+          "مكية": 8,
+          "مدنية": 3
+        },
+        "5": {
+          "مكية": 7,
+          "مدنية": 2
+        },
+        "6": {
+          "مكية": 9,
+          "مدنية": 3
+        },
+        "7": {
+          "مكية": 9,
+          "مدنية": 2
+        },
+        "8": {
+          "مكية": 12,
+          "مدنية": 2
+        },
+        "9": {
+          "مكية": 8,
+          "مدنية": 2
+        }
+      }
+    },
+    "combined_root": {
+      "column": "combined_root",
+      "metadata": {
+        "simulations_B": 200000,
+        "random_seed": 12345,
+        "rng_algorithm": "PCG64"
+      },
+      "statistical_metrics": {
+        "chi2_observed": 4.612256763170385,
+        "degrees_of_freedom": 8,
+        "exceedances": 162882,
+        "p_value_monte_carlo": 0.8144109279453603,
+        "standard_error_se": 0.000869324486781185,
+        "cramers_v": 0.20114271714230506
+      },
+      "contingency_table": {
+        "1": {
+          "مكية": 8,
+          "مدنية": 4
+        },
+        "2": {
+          "مكية": 15,
+          "مدنية": 4
+        },
+        "3": {
+          "مكية": 12,
+          "مدنية": 2
+        },
+        "4": {
+          "مكية": 6,
+          "مدنية": 2
+        },
+        "5": {
+          "مكية": 7,
+          "مدنية": 5
+        },
+        "6": {
+          "مكية": 9,
+          "مدنية": 1
+        },
+        "7": {
+          "مكية": 10,
+          "مدنية": 4
+        },
+        "8": {
+          "مكية": 12,
+          "مدنية": 4
+        },
+        "9": {
+          "مكية": 7,
+          "مدنية": 2
+        }
+      }
+    },
+    "abjad_root": {
+      "column": "abjad_root",
+      "metadata": {
+        "simulations_B": 200000,
+        "random_seed": 12345,
+        "rng_algorithm": "PCG64"
+      },
+      "statistical_metrics": {
+        "chi2_observed": 7.023739653203939,
+        "degrees_of_freedom": 8,
+        "exceedances": 110502,
+        "p_value_monte_carlo": 0.5525122374388128,
+        "standard_error_se": 0.001111848075757264,
+        "cramers_v": 0.2482171455477929
+      },
+      "contingency_table": {
+        "1": {
+          "مكية": 9,
+          "مدنية": 1
+        },
+        "2": {
+          "مكية": 10,
+          "مدنية": 3
+        },
+        "3": {
+          "مكية": 13,
+          "مدنية": 3
+        },
+        "4": {
+          "مكية": 7,
+          "مدنية": 3
+        },
+        "5": {
+          "مكية": 8,
+          "مدنية": 6
+        },
+        "6": {
+          "مكية": 8,
+          "مدنية": 3
+        },
+        "7": {
+          "مكية": 15,
+          "مدنية": 3
+        },
+        "8": {
+          "مكية": 8,
+          "مدنية": 5
+        },
+        "9": {
+          "مكية": 8,
+          "مدنية": 1
+        }
+      }
+    }
+  },
+  "kruskal_wallis": {
+    "surah_number": {
+      "column": "surah_number",
+      "test": "Kruskal-Wallis H",
+      "groups": {
+        "مكية": 86,
+        "مدنية": 28
+      },
+      "statistical_metrics": {
+        "H_statistic": 3.6443738263758405,
+        "degrees_of_freedom": 1,
+        "p_value": 0.05625895536980014,
+        "epsilon_squared": 0.023401538286511862
+      }
+    },
+    "ayahs_count": {
+      "column": "ayahs_count",
+      "test": "Kruskal-Wallis H",
+      "groups": {
+        "مكية": 86,
+        "مدنية": 28
+      },
+      "statistical_metrics": {
+        "H_statistic": 0.1408406208436597,
+        "degrees_of_freedom": 1,
+        "p_value": 0.7074467475134982,
+        "epsilon_squared": 0.0
+      }
+    },
+    "combined_value": {
+      "column": "combined_value",
+      "test": "Kruskal-Wallis H",
+      "groups": {
+        "مكية": 86,
+        "مدنية": 28
+      },
+      "statistical_metrics": {
+        "H_statistic": 9.844143537353983,
+        "degrees_of_freedom": 1,
+        "p_value": 0.0017037329575853427,
+        "epsilon_squared": 0.07826675696773436
+      }
+    },
+    "abjad_value": {
+      "column": "abjad_value",
+      "test": "Kruskal-Wallis H",
+      "groups": {
+        "مكية": 86,
+        "مدنية": 28
+      },
+      "statistical_metrics": {
+        "H_statistic": 0.6717284926852053,
+        "degrees_of_freedom": 1,
+        "p_value": 0.4124496241931557,
+        "epsilon_squared": 0.0
+      }
+    }
+  },
+  "rows": [
+    {
+      "surah_number": 1,
+      "surah_name": "الفاتحة",
+      "ayahs_count": 7,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 7,
+      "combined_value": 8,
+      "combined_root": 8,
+      "abjad_value": 525,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 2,
+      "surah_name": "البقرة",
+      "ayahs_count": 286,
+      "type": "مدنية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 7,
+      "combined_value": 288,
+      "combined_root": 9,
+      "abjad_value": 338,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 3,
+      "surah_name": "آل عمران",
+      "ayahs_count": 200,
+      "type": "مدنية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 2,
+      "combined_value": 203,
+      "combined_root": 5,
+      "abjad_value": 392,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 4,
+      "surah_name": "النساء",
+      "ayahs_count": 176,
+      "type": "مدنية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 5,
+      "combined_value": 180,
+      "combined_root": 9,
+      "abjad_value": 142,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 5,
+      "surah_name": "المائدة",
+      "ayahs_count": 120,
+      "type": "مدنية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 3,
+      "combined_value": 125,
+      "combined_root": 8,
+      "abjad_value": 91,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 6,
+      "surah_name": "الأنعام",
+      "ayahs_count": 165,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 3,
+      "combined_value": 171,
+      "combined_root": 9,
+      "abjad_value": 193,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 7,
+      "surah_name": "الأعراف",
+      "ayahs_count": 206,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 8,
+      "combined_value": 213,
+      "combined_root": 6,
+      "abjad_value": 383,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 8,
+      "surah_name": "الأنفال",
+      "ayahs_count": 75,
+      "type": "مدنية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 3,
+      "combined_value": 83,
+      "combined_root": 2,
+      "abjad_value": 193,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 9,
+      "surah_name": "التوبة",
+      "ayahs_count": 129,
+      "type": "مدنية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 3,
+      "combined_value": 138,
+      "combined_root": 3,
+      "abjad_value": 444,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 10,
+      "surah_name": "يونس",
+      "ayahs_count": 109,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 1,
+      "combined_value": 119,
+      "combined_root": 2,
+      "abjad_value": 126,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 11,
+      "surah_name": "هود",
+      "ayahs_count": 123,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 6,
+      "combined_value": 134,
+      "combined_root": 8,
+      "abjad_value": 15,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 12,
+      "surah_name": "يوسف",
+      "ayahs_count": 111,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 3,
+      "combined_value": 123,
+      "combined_root": 6,
+      "abjad_value": 156,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 13,
+      "surah_name": "الرعد",
+      "ayahs_count": 43,
+      "type": "مدنية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 7,
+      "combined_value": 56,
+      "combined_root": 2,
+      "abjad_value": 305,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 14,
+      "surah_name": "إبراهيم",
+      "ayahs_count": 52,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 7,
+      "combined_value": 66,
+      "combined_root": 3,
+      "abjad_value": 259,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 15,
+      "surah_name": "الحجر",
+      "ayahs_count": 99,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 9,
+      "combined_value": 114,
+      "combined_root": 6,
+      "abjad_value": 242,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 16,
+      "surah_name": "النحل",
+      "ayahs_count": 128,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 2,
+      "combined_value": 144,
+      "combined_root": 9,
+      "abjad_value": 119,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 17,
+      "surah_name": "الإسراء",
+      "ayahs_count": 111,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 3,
+      "combined_value": 128,
+      "combined_root": 2,
+      "abjad_value": 293,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 18,
+      "surah_name": "الكهف",
+      "ayahs_count": 110,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 2,
+      "combined_value": 128,
+      "combined_root": 2,
+      "abjad_value": 136,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 19,
+      "surah_name": "مريم",
+      "ayahs_count": 98,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 8,
+      "combined_value": 117,
+      "combined_root": 9,
+      "abjad_value": 290,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 20,
+      "surah_name": "طه",
+      "ayahs_count": 135,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 9,
+      "combined_value": 155,
+      "combined_root": 2,
+      "abjad_value": 14,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 21,
+      "surah_name": "الأنبياء",
+      "ayahs_count": 112,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 4,
+      "combined_value": 133,
+      "combined_root": 7,
+      "abjad_value": 95,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 22,
+      "surah_name": "الحج",
+      "ayahs_count": 78,
+      "type": "مدنية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 6,
+      "combined_value": 100,
+      "combined_root": 1,
+      "abjad_value": 42,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 23,
+      "surah_name": "المؤمنون",
+      "ayahs_count": 118,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 1,
+      "combined_value": 141,
+      "combined_root": 6,
+      "abjad_value": 223,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 24,
+      "surah_name": "النور",
+      "ayahs_count": 64,
+      "type": "مدنية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 1,
+      "combined_value": 88,
+      "combined_root": 7,
+      "abjad_value": 287,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 25,
+      "surah_name": "الفرقان",
+      "ayahs_count": 77,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 5,
+      "combined_value": 102,
+      "combined_root": 3,
+      "abjad_value": 462,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 26,
+      "surah_name": "الشعراء",
+      "ayahs_count": 227,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 2,
+      "combined_value": 253,
+      "combined_root": 1,
+      "abjad_value": 602,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 27,
+      "surah_name": "النمل",
+      "ayahs_count": 93,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 3,
+      "combined_value": 120,
+      "combined_root": 3,
+      "abjad_value": 151,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 28,
+      "surah_name": "القصص",
+      "ayahs_count": 88,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 7,
+      "combined_value": 116,
+      "combined_root": 8,
+      "abjad_value": 311,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 29,
+      "surah_name": "العنكبوت",
+      "ayahs_count": 69,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 6,
+      "combined_value": 98,
+      "combined_root": 8,
+      "abjad_value": 579,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 30,
+      "surah_name": "الروم",
+      "ayahs_count": 60,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 6,
+      "combined_value": 90,
+      "combined_root": 9,
+      "abjad_value": 277,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 31,
+      "surah_name": "لقمان",
+      "ayahs_count": 34,
+      "type": "مكية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 7,
+      "combined_value": 65,
+      "combined_root": 2,
+      "abjad_value": 221,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 32,
+      "surah_name": "السجدة",
+      "ayahs_count": 30,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 3,
+      "combined_value": 62,
+      "combined_root": 8,
+      "abjad_value": 103,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 33,
+      "surah_name": "الأحزاب",
+      "ayahs_count": 73,
+      "type": "مدنية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 1,
+      "combined_value": 106,
+      "combined_root": 7,
+      "abjad_value": 50,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 34,
+      "surah_name": "سبأ",
+      "ayahs_count": 54,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 9,
+      "combined_value": 88,
+      "combined_root": 7,
+      "abjad_value": 63,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 35,
+      "surah_name": "فاطر",
+      "ayahs_count": 45,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 9,
+      "combined_value": 80,
+      "combined_root": 8,
+      "abjad_value": 290,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 36,
+      "surah_name": "يس",
+      "ayahs_count": 83,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 2,
+      "combined_value": 119,
+      "combined_root": 2,
+      "abjad_value": 70,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 37,
+      "surah_name": "الصافات",
+      "ayahs_count": 182,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 2,
+      "combined_value": 219,
+      "combined_root": 3,
+      "abjad_value": 603,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 38,
+      "surah_name": "ص",
+      "ayahs_count": 88,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 7,
+      "combined_value": 126,
+      "combined_root": 9,
+      "abjad_value": 90,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 39,
+      "surah_name": "الزمر",
+      "ayahs_count": 75,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 3,
+      "combined_value": 114,
+      "combined_root": 6,
+      "abjad_value": 278,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 40,
+      "surah_name": "غافر",
+      "ayahs_count": 85,
+      "type": "مكية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 4,
+      "combined_value": 125,
+      "combined_root": 8,
+      "abjad_value": 1281,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 41,
+      "surah_name": "فصلت",
+      "ayahs_count": 54,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 9,
+      "combined_value": 95,
+      "combined_root": 5,
+      "abjad_value": 600,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 42,
+      "surah_name": "الشورى",
+      "ayahs_count": 53,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 8,
+      "combined_value": 95,
+      "combined_root": 5,
+      "abjad_value": 547,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 43,
+      "surah_name": "الزخرف",
+      "ayahs_count": 89,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 8,
+      "combined_value": 132,
+      "combined_root": 6,
+      "abjad_value": 918,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 44,
+      "surah_name": "الدخان",
+      "ayahs_count": 59,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 5,
+      "combined_value": 103,
+      "combined_root": 4,
+      "abjad_value": 686,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 45,
+      "surah_name": "الجاثية",
+      "ayahs_count": 37,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 1,
+      "combined_value": 82,
+      "combined_root": 1,
+      "abjad_value": 550,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 46,
+      "surah_name": "الأحقاف",
+      "ayahs_count": 35,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 8,
+      "combined_value": 81,
+      "combined_root": 9,
+      "abjad_value": 221,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 47,
+      "surah_name": "محمد",
+      "ayahs_count": 38,
+      "type": "مدنية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 2,
+      "combined_value": 85,
+      "combined_root": 4,
+      "abjad_value": 92,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 48,
+      "surah_name": "الفتح",
+      "ayahs_count": 29,
+      "type": "مدنية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 2,
+      "combined_value": 77,
+      "combined_root": 5,
+      "abjad_value": 519,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 49,
+      "surah_name": "الحجرات",
+      "ayahs_count": 18,
+      "type": "مدنية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 9,
+      "combined_value": 67,
+      "combined_root": 4,
+      "abjad_value": 643,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 50,
+      "surah_name": "ق",
+      "ayahs_count": 45,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 9,
+      "combined_value": 95,
+      "combined_root": 5,
+      "abjad_value": 100,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 51,
+      "surah_name": "الذاريات",
+      "ayahs_count": 60,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 6,
+      "combined_value": 111,
+      "combined_root": 3,
+      "abjad_value": 1343,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 52,
+      "surah_name": "الطور",
+      "ayahs_count": 49,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 4,
+      "combined_value": 101,
+      "combined_root": 2,
+      "abjad_value": 246,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 53,
+      "surah_name": "النجم",
+      "ayahs_count": 62,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 8,
+      "combined_value": 115,
+      "combined_root": 7,
+      "abjad_value": 124,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 54,
+      "surah_name": "القمر",
+      "ayahs_count": 55,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 1,
+      "combined_value": 109,
+      "combined_root": 1,
+      "abjad_value": 371,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 55,
+      "surah_name": "الرحمن",
+      "ayahs_count": 78,
+      "type": "مدنية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 6,
+      "combined_value": 133,
+      "combined_root": 7,
+      "abjad_value": 329,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 56,
+      "surah_name": "الواقعة",
+      "ayahs_count": 96,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 6,
+      "combined_value": 152,
+      "combined_root": 8,
+      "abjad_value": 213,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 57,
+      "surah_name": "الحديد",
+      "ayahs_count": 29,
+      "type": "مدنية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 2,
+      "combined_value": 86,
+      "combined_root": 5,
+      "abjad_value": 57,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 58,
+      "surah_name": "المجادلة",
+      "ayahs_count": 22,
+      "type": "مدنية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 4,
+      "combined_value": 80,
+      "combined_root": 8,
+      "abjad_value": 114,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 59,
+      "surah_name": "الحشر",
+      "ayahs_count": 24,
+      "type": "مدنية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 6,
+      "combined_value": 83,
+      "combined_root": 2,
+      "abjad_value": 539,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 60,
+      "surah_name": "الممتحنة",
+      "ayahs_count": 13,
+      "type": "مدنية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 4,
+      "combined_value": 73,
+      "combined_root": 1,
+      "abjad_value": 574,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 61,
+      "surah_name": "الصف",
+      "ayahs_count": 14,
+      "type": "مدنية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 5,
+      "combined_value": 75,
+      "combined_root": 3,
+      "abjad_value": 201,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 62,
+      "surah_name": "الجمعة",
+      "ayahs_count": 11,
+      "type": "مدنية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 2,
+      "combined_value": 73,
+      "combined_root": 1,
+      "abjad_value": 149,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 63,
+      "surah_name": "المنافقون",
+      "ayahs_count": 11,
+      "type": "مدنية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 2,
+      "combined_value": 74,
+      "combined_root": 2,
+      "abjad_value": 358,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 64,
+      "surah_name": "التغابن",
+      "ayahs_count": 18,
+      "type": "مدنية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 9,
+      "combined_value": 82,
+      "combined_root": 1,
+      "abjad_value": 1484,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 65,
+      "surah_name": "الطلاق",
+      "ayahs_count": 12,
+      "type": "مدنية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 3,
+      "combined_value": 77,
+      "combined_root": 5,
+      "abjad_value": 171,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 66,
+      "surah_name": "التحريم",
+      "ayahs_count": 12,
+      "type": "مدنية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 3,
+      "combined_value": 78,
+      "combined_root": 6,
+      "abjad_value": 689,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 67,
+      "surah_name": "الملك",
+      "ayahs_count": 30,
+      "type": "مكية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 3,
+      "combined_value": 97,
+      "combined_root": 7,
+      "abjad_value": 121,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 68,
+      "surah_name": "القلم",
+      "ayahs_count": 52,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 7,
+      "combined_value": 120,
+      "combined_root": 3,
+      "abjad_value": 201,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 69,
+      "surah_name": "الحاقة",
+      "ayahs_count": 52,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 7,
+      "combined_value": 121,
+      "combined_root": 4,
+      "abjad_value": 145,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 70,
+      "surah_name": "المعارج",
+      "ayahs_count": 44,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 8,
+      "combined_value": 114,
+      "combined_root": 6,
+      "abjad_value": 345,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 71,
+      "surah_name": "نوح",
+      "ayahs_count": 28,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 1,
+      "combined_value": 99,
+      "combined_root": 9,
+      "abjad_value": 64,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 72,
+      "surah_name": "الجن",
+      "ayahs_count": 28,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 1,
+      "combined_value": 100,
+      "combined_root": 1,
+      "abjad_value": 84,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 73,
+      "surah_name": "المزمل",
+      "ayahs_count": 20,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 2,
+      "combined_value": 93,
+      "combined_root": 3,
+      "abjad_value": 148,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 74,
+      "surah_name": "المدثر",
+      "ayahs_count": 56,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 2,
+      "combined_value": 130,
+      "combined_root": 4,
+      "abjad_value": 775,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 75,
+      "surah_name": "القيامة",
+      "ayahs_count": 40,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 4,
+      "combined_value": 115,
+      "combined_root": 7,
+      "abjad_value": 187,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 76,
+      "surah_name": "الإنسان",
+      "ayahs_count": 31,
+      "type": "مدنية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 4,
+      "combined_value": 107,
+      "combined_root": 8,
+      "abjad_value": 193,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 77,
+      "surah_name": "المرسلات",
+      "ayahs_count": 50,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 5,
+      "combined_value": 127,
+      "combined_root": 1,
+      "abjad_value": 762,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 78,
+      "surah_name": "النبأ",
+      "ayahs_count": 40,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 4,
+      "combined_value": 118,
+      "combined_root": 1,
+      "abjad_value": 84,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 79,
+      "surah_name": "النازعات",
+      "ayahs_count": 46,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 1,
+      "combined_value": 125,
+      "combined_root": 8,
+      "abjad_value": 560,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 80,
+      "surah_name": "عبس",
+      "ayahs_count": 42,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 6,
+      "combined_value": 122,
+      "combined_root": 5,
+      "abjad_value": 132,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 81,
+      "surah_name": "التكوير",
+      "ayahs_count": 29,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 2,
+      "combined_value": 110,
+      "combined_root": 2,
+      "abjad_value": 667,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 82,
+      "surah_name": "الانفطار",
+      "ayahs_count": 19,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 1,
+      "combined_value": 101,
+      "combined_root": 2,
+      "abjad_value": 372,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 83,
+      "surah_name": "المطففين",
+      "ayahs_count": 36,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 9,
+      "combined_value": 119,
+      "combined_root": 2,
+      "abjad_value": 300,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 84,
+      "surah_name": "الانشقاق",
+      "ayahs_count": 25,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 7,
+      "combined_value": 109,
+      "combined_root": 1,
+      "abjad_value": 583,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 85,
+      "surah_name": "البروج",
+      "ayahs_count": 22,
+      "type": "مكية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 4,
+      "combined_value": 107,
+      "combined_root": 8,
+      "abjad_value": 242,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 86,
+      "surah_name": "الطارق",
+      "ayahs_count": 17,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 8,
+      "combined_value": 103,
+      "combined_root": 4,
+      "abjad_value": 341,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 87,
+      "surah_name": "الأعلى",
+      "ayahs_count": 19,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 1,
+      "combined_value": 106,
+      "combined_root": 7,
+      "abjad_value": 142,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 88,
+      "surah_name": "الغاشية",
+      "ayahs_count": 26,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 8,
+      "combined_value": 114,
+      "combined_root": 6,
+      "abjad_value": 1347,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 89,
+      "surah_name": "الفجر",
+      "ayahs_count": 30,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 3,
+      "combined_value": 119,
+      "combined_root": 2,
+      "abjad_value": 314,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 90,
+      "surah_name": "البلد",
+      "ayahs_count": 20,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 2,
+      "combined_value": 110,
+      "combined_root": 2,
+      "abjad_value": 67,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 91,
+      "surah_name": "الشمس",
+      "ayahs_count": 15,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 6,
+      "combined_value": 106,
+      "combined_root": 7,
+      "abjad_value": 431,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 92,
+      "surah_name": "الليل",
+      "ayahs_count": 21,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 3,
+      "combined_value": 113,
+      "combined_root": 5,
+      "abjad_value": 101,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 93,
+      "surah_name": "الضحى",
+      "ayahs_count": 11,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 2,
+      "combined_value": 104,
+      "combined_root": 5,
+      "abjad_value": 849,
+      "abjad_root": 3
+    },
+    {
+      "surah_number": 94,
+      "surah_name": "الشرح",
+      "ayahs_count": 8,
+      "type": "مكية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 8,
+      "combined_value": 102,
+      "combined_root": 3,
+      "abjad_value": 539,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 95,
+      "surah_name": "التين",
+      "ayahs_count": 8,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 8,
+      "combined_value": 103,
+      "combined_root": 4,
+      "abjad_value": 491,
+      "abjad_root": 5
+    },
+    {
+      "surah_number": 96,
+      "surah_name": "العلق",
+      "ayahs_count": 19,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 1,
+      "combined_value": 115,
+      "combined_root": 7,
+      "abjad_value": 231,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 97,
+      "surah_name": "القدر",
+      "ayahs_count": 5,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 5,
+      "combined_value": 102,
+      "combined_root": 3,
+      "abjad_value": 335,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 98,
+      "surah_name": "البينة",
+      "ayahs_count": 8,
+      "type": "مدنية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 8,
+      "combined_value": 106,
+      "combined_root": 7,
+      "abjad_value": 98,
+      "abjad_root": 8
+    },
+    {
+      "surah_number": 99,
+      "surah_name": "الزلزلة",
+      "ayahs_count": 8,
+      "type": "مدنية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 8,
+      "combined_value": 107,
+      "combined_root": 8,
+      "abjad_value": 110,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 100,
+      "surah_name": "العاديات",
+      "ayahs_count": 11,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 2,
+      "combined_value": 111,
+      "combined_root": 3,
+      "abjad_value": 517,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 101,
+      "surah_name": "القارعة",
+      "ayahs_count": 11,
+      "type": "مكية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 2,
+      "combined_value": 112,
+      "combined_root": 4,
+      "abjad_value": 407,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 102,
+      "surah_name": "التكاثر",
+      "ayahs_count": 8,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 8,
+      "combined_value": 110,
+      "combined_root": 2,
+      "abjad_value": 1152,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 103,
+      "surah_name": "العصر",
+      "ayahs_count": 3,
+      "type": "مكية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 3,
+      "combined_value": 106,
+      "combined_root": 7,
+      "abjad_value": 391,
+      "abjad_root": 4
+    },
+    {
+      "surah_number": 104,
+      "surah_name": "الهمزة",
+      "ayahs_count": 9,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 9,
+      "combined_value": 113,
+      "combined_root": 5,
+      "abjad_value": 88,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 105,
+      "surah_name": "الفيل",
+      "ayahs_count": 5,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 5,
+      "combined_value": 110,
+      "combined_root": 2,
+      "abjad_value": 151,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 106,
+      "surah_name": "قريش",
+      "ayahs_count": 4,
+      "type": "مكية",
+      "surah_number_root": 7,
+      "ayahs_count_root": 4,
+      "combined_value": 110,
+      "combined_root": 2,
+      "abjad_value": 610,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 107,
+      "surah_name": "الماعون",
+      "ayahs_count": 7,
+      "type": "مكية",
+      "surah_number_root": 8,
+      "ayahs_count_root": 7,
+      "combined_value": 114,
+      "combined_root": 6,
+      "abjad_value": 198,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 108,
+      "surah_name": "الكوثر",
+      "ayahs_count": 3,
+      "type": "مكية",
+      "surah_number_root": 9,
+      "ayahs_count_root": 3,
+      "combined_value": 111,
+      "combined_root": 3,
+      "abjad_value": 757,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 109,
+      "surah_name": "الكافرون",
+      "ayahs_count": 6,
+      "type": "مكية",
+      "surah_number_root": 1,
+      "ayahs_count_root": 6,
+      "combined_value": 115,
+      "combined_root": 7,
+      "abjad_value": 388,
+      "abjad_root": 1
+    },
+    {
+      "surah_number": 110,
+      "surah_name": "النصر",
+      "ayahs_count": 3,
+      "type": "مدنية",
+      "surah_number_root": 2,
+      "ayahs_count_root": 3,
+      "combined_value": 113,
+      "combined_root": 5,
+      "abjad_value": 371,
+      "abjad_root": 2
+    },
+    {
+      "surah_number": 111,
+      "surah_name": "المسد",
+      "ayahs_count": 5,
+      "type": "مكية",
+      "surah_number_root": 3,
+      "ayahs_count_root": 5,
+      "combined_value": 116,
+      "combined_root": 8,
+      "abjad_value": 135,
+      "abjad_root": 9
+    },
+    {
+      "surah_number": 112,
+      "surah_name": "الإخلاص",
+      "ayahs_count": 4,
+      "type": "مكية",
+      "surah_number_root": 4,
+      "ayahs_count_root": 4,
+      "combined_value": 116,
+      "combined_root": 8,
+      "abjad_value": 753,
+      "abjad_root": 6
+    },
+    {
+      "surah_number": 113,
+      "surah_name": "الفلق",
+      "ayahs_count": 5,
+      "type": "مكية",
+      "surah_number_root": 5,
+      "ayahs_count_root": 5,
+      "combined_value": 118,
+      "combined_root": 1,
+      "abjad_value": 241,
+      "abjad_root": 7
+    },
+    {
+      "surah_number": 114,
+      "surah_name": "الناس",
+      "ayahs_count": 6,
+      "type": "مكية",
+      "surah_number_root": 6,
+      "ayahs_count_root": 6,
+      "combined_value": 120,
+      "combined_root": 3,
+      "abjad_value": 142,
+      "abjad_root": 7
+    }
+  ]
+}

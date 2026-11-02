@@ -1,0 +1,110 @@
+name: Quran reproducible analysis
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "analysis/**"
+      - "quran-analysis/**"
+      - "semver-bnf/quran-node-metrics.mjs"
+      - "semver-node-metrics.json"
+      - "scripts/validate_semver_bnf.py"
+      - ".github/workflows/quran-analysis.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "analysis/**"
+      - "quran-analysis/**"
+      - "semver-bnf/quran-node-metrics.mjs"
+      - "semver-node-metrics.json"
+      - "scripts/validate_semver_bnf.py"
+      - ".github/workflows/quran-analysis.yml"
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: "Monte Carlo simulations"
+        required: false
+        default: "200000"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quran-analysis-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+  QURAN_SEED: "12345"
+  QURAN_SAMPLES: "200000"
+
+jobs:
+  analyze:
+    name: Reproduce Quran statistics
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run strict SemVer structural validation
+        run: python3 scripts/validate_semver_bnf.py
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: analysis/requirements-simulation.txt
+
+      - name: Install pinned scientific stack
+        run: python -m pip install --requirement analysis/requirements-simulation.txt
+
+      - name: Run Monte Carlo and Kruskal-Wallis pipeline
+        env:
+          REQUESTED_SAMPLES: ${{ inputs.samples || env.QURAN_SAMPLES }}
+        run: >-
+          python analysis/run_reproducible_pipeline.py
+          --samples "${REQUESTED_SAMPLES}"
+          --seed "${QURAN_SEED}"
+
+      - name: Validate Python and JavaScript
+        run: |
+          python -m py_compile analysis/scientific_quran_analyzer.py quran-analysis/analyzer.py analysis/run_reproducible_pipeline.py
+          node --check semver-bnf/semver-bnf.js
+          node --check quran-analysis/app.js
+
+      - name: Validate report schema and reproducibility metadata
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("analysis/quran_analysis_report.json").read_text(encoding="utf-8"))
+          meta = report["metadata"]
+          assert meta["total_surahs"] == 114
+          assert meta["random_seed"] == 12345
+          assert meta["rng_algorithm"] == "PCG64"
+          assert meta["simulations_B"] == 200000
+          assert set(report["tests"]) == {"surah_number_root", "ayahs_count_root", "combined_root", "abjad_root"}
+          assert set(report["kruskal_wallis"]) == {"surah_number", "ayahs_count", "combined_value", "abjad_value"}
+          for item in report["tests"].values():
+              metrics = item["statistical_metrics"]
+              assert 0 <= metrics["p_value_monte_carlo"] <= 1
+              assert metrics["standard_error_se"] >= 0
+          for item in report["kruskal_wallis"].values():
+              assert 0 <= item["statistical_metrics"]["p_value"] <= 1
+          print("Quran report schema: OK")
+          PY
+
+      - name: Validate site contracts
+        run: python3 scripts/check_site.py
+
+      - name: Upload reproducible report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-analysis-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            analysis/quran_analysis_report.json
+            semver-bnf/quran-node-metrics.mjs
+            semver-node-metrics.json
