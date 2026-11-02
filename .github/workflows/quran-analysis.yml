@@ -7,6 +7,8 @@ on:
       - "analysis/**"
       - "quran-analysis/**"
       - "semver-bnf/quran-node-metrics.mjs"
+      - "semver-node-metrics.json"
+      - "scripts/validate_semver_bnf.py"
       - ".github/workflows/quran-analysis.yml"
   pull_request:
     branches: [main]
@@ -14,6 +16,8 @@ on:
       - "analysis/**"
       - "quran-analysis/**"
       - "semver-bnf/quran-node-metrics.mjs"
+      - "semver-node-metrics.json"
+      - "scripts/validate_semver_bnf.py"
       - ".github/workflows/quran-analysis.yml"
   workflow_dispatch:
     inputs:
@@ -42,6 +46,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Run strict SemVer structural validation
+        run: python3 scripts/validate_semver_bnf.py
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -100,3 +107,4 @@ jobs:
           path: |
             analysis/quran_analysis_report.json
             semver-bnf/quran-node-metrics.mjs
+            semver-node-metrics.json
