@@ -4,7 +4,7 @@ const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
 const VIEW_STATE_VERSION = 6;
-const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v3';
+const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v4';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
 const REPORT_CACHE_TTL = 10 * 60 * 1000;
@@ -20,7 +20,7 @@ const BUILTIN_NODES = Object.freeze({
     label: 'VSAT Gateway'
   }
 });
-const NODE_SIZE = 44;
+const NODE_SIZE = 60;
 const NODE_SPACING_CM = 10;
 const NODE_SPACING_PX = NODE_SPACING_CM * 37.7952755906;
 const ROW_GAP = NODE_SPACING_PX;
@@ -610,8 +610,8 @@ function resetNodeLayout() {
 }
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));
-  const gridCell = 86;
-  const columns = 72;
+  const gridCell = 112;
+  const columns = 60;
   const sidePadding = 60;
   const storedPositions = readNodePositions();
   const rowsByLevel = NODE_LEVELS.map((count) => Math.max(1, Math.ceil(count / columns)));
