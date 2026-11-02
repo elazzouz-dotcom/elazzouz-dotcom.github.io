@@ -1,5 +1,5 @@
 import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } from './graph-model.mjs';
-import { QURAN_STATISTICS, quranMetricForNode } from './quran-node-metrics.mjs';
+import { QURAN_STATISTICS, QURAN_SURAH_METRICS, quranMetricForNode } from './quran-node-metrics.mjs';
 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
@@ -2344,6 +2344,30 @@ function setupMod9Lab() {
   input.addEventListener('keydown', (event) => { if (event.key === 'Enter') analyze(); });
   analyze();
 }
+function setupSovereignDashboard() {
+  const lines = [...document.querySelectorAll('[data-agent-line]')];
+  const name = $('#radar-name');
+  const details = $('#radar-details');
+  const indexLabel = $('#radar-index');
+  const meter = $('#radar-meter-fill');
+  const status = $('#agent-code-status');
+  if (!lines.length || !name || !details || !indexLabel || !meter) return;
+  let lineIndex = 0;
+  let surahIndex = 0;
+  const update = () => {
+    lines.forEach((line, index) => line.classList.toggle('is-active', index === lineIndex));
+    const surah = QURAN_SURAH_METRICS[surahIndex % QURAN_SURAH_METRICS.length];
+    name.textContent = `سورة ${surah.surah_name} (${surah.surah_number})`;
+    details.textContent = `الآيات: ${surah.ayahs_count} · النوع: ${surah.type} · الجذر المركب: ${surah.combined_root} · الجمل: ${surah.abjad_value}`;
+    indexLabel.textContent = `${surah.surah_number} / ${QURAN_SURAH_METRICS.length}`;
+    meter.style.width = `${Math.max(1, Math.round(surah.surah_number / QURAN_SURAH_METRICS.length * 100))}%`;
+    status.textContent = `الدورة ${lineIndex + 1}/5 · الرادار يقرأ السجل ${surah.surah_number} محليًا.`;
+    lineIndex = (lineIndex + 1) % lines.length;
+    surahIndex = (surahIndex + 1) % QURAN_SURAH_METRICS.length;
+  };
+  update();
+  window.setInterval(update, 1400);
+}
 
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
@@ -2357,6 +2381,7 @@ function setupActions() {
   setupExternalLinkModal();
   setupOrbit();
   setupMod9Lab();
+  setupSovereignDashboard();
   // تشغيل نفق المعلومات تلقائيًا عند وجود عقد مهيأة، دون طلب إضافي من المستخدم.
   window.setTimeout(() => collectReport(), 250);
 }

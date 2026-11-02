@@ -98,6 +98,41 @@
         </div>
       </div>
     </section>
+    <section id="sovereign-dashboard" class="semver-section" aria-labelledby="sovereign-dashboard-title">
+      <div class="semver-container">
+        <div class="semver-section-head">
+          <div><p class="semver-kicker">لوحة التشغيل الموحدة</p><h2 id="sovereign-dashboard-title">مراقبة العقد والتحليل في مكان واحد</h2><p>لوحة محلية تعرض حالة الفحص، ورادار بيانات السور، ومقاييس الشبكة دون استبدال أدوات المعاينة أو مسار المضخات.</p></div>
+        </div>
+        <div class="sovereign-dashboard-grid">
+          <article class="sovereign-panel">
+            <div class="sovereign-panel-heading"><h3>وكلاء الفحص وحالة خط البناء</h3><span id="agent-status" class="sovereign-live">● مباشر</span></div>
+            <div id="agent-code-view" class="agent-code-view" aria-live="polite">
+              <div class="agent-code-line" data-agent-line="0">01. initialize_sovereign_network(nodes=6600, levels=114)</div>
+              <div class="agent-code-line" data-agent-line="1">02. validate_hierarchy(edges=6599, parents=1)</div>
+              <div class="agent-code-line" data-agent-line="2">03. run_mod9_and_quran_metrics(B=200000)</div>
+              <div class="agent-code-line" data-agent-line="3">04. stress_test_information_pumps(waves=16)</div>
+              <div class="agent-code-line" data-agent-line="4">05. publish_after_quality_gate()</div>
+            </div>
+            <p id="agent-code-status" class="sovereign-muted">جاهز لتشغيل دورة فحص محلية.</p>
+          </article>
+          <article class="sovereign-panel">
+            <div class="sovereign-panel-heading"><h3>رادار السور وعقد الشبكة</h3><span id="radar-index" class="sovereign-live">1 / 114</span></div>
+            <div class="surah-radar" aria-live="polite">
+              <strong id="radar-name">سورة الفاتحة (1)</strong>
+              <span id="radar-details">الآيات: 7 · النوع: مكية · الجذر المركب: 8 · الجمل: 525</span>
+              <div class="radar-meter"><span id="radar-meter-fill"></span></div>
+            </div>
+            <p class="sovereign-muted">يتنقل الرادار بين السجلات الـ114 من البيانات المحلية المولدة للتحليل.</p>
+          </article>
+        </div>
+        <div class="sovereign-metrics" aria-label="المقاييس الأساسية">
+          <div><span>إجمالي العقد</span><strong>6600</strong></div>
+          <div><span>العلاقات الهرمية</span><strong>6599</strong></div>
+          <div><span>المستويات</span><strong>114</strong></div>
+          <div><span>عينات الضغط</span><strong>12.67M</strong></div>
+        </div>
+      </div>
+    </section>
     <section id="node-hub" class="semver-section">
       <div class="semver-container">
         <div class="semver-section-head">
