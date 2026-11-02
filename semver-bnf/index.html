@@ -126,6 +126,16 @@
             <p class="sovereign-muted">يتنقل الرادار بين السجلات الـ114 من البيانات المحلية المولدة للتحليل.</p>
           </article>
         </div>
+        <article class="sovereign-panel swarm-report-panel" aria-labelledby="swarm-report-title">
+          <div class="sovereign-panel-heading"><h3 id="swarm-report-title">سجل تقارير الفحص الدوري</h3><span id="swarm-report-count" class="sovereign-live">0 سجل</span></div>
+          <p id="swarm-report-last" class="sovereign-muted">سيُحفظ كل فحص محليًا عند تشغيل السرب.</p>
+          <div class="swarm-report-actions">
+            <button id="swarm-report-json" class="semver-button" type="button">تصدير JSON</button>
+            <button id="swarm-report-csv" class="semver-button" type="button">تصدير CSV</button>
+            <button id="swarm-report-clear" class="semver-button semver-button-danger" type="button">مسح السجل</button>
+          </div>
+          <div id="swarm-report-log" class="swarm-report-log" role="log" aria-live="polite"></div>
+        </article>
         <div class="sovereign-metrics" aria-label="المقاييس الأساسية">
           <div><span>إجمالي العقد</span><strong>6600</strong></div>
           <div><span>العلاقات الهرمية</span><strong>6599</strong></div>
@@ -429,7 +439,7 @@
     </div>
   </footer>
   <script src="/language.js" defer></script>
-  <script defer src="/semver-bnf/sovereign-bug-swarm.js?v=swarm-v1"></script>
+  <script defer src="/semver-bnf/sovereign-bug-swarm.js?v=swarm-v2"></script>
   <script type="module" src="/semver-bnf/knowledge-api-client.js?v=knowledge-api-v1"></script>
   <script type="module" src="/semver-bnf/semver-bnf.js?v=hierarchical-8cm-v1"></script>
 </body>
