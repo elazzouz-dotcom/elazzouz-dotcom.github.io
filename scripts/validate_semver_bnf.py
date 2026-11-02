@@ -82,6 +82,19 @@ def validate_network_structure(json_path: str | Path = DEFAULT_METRICS) -> int:
         if declared_levels != list(range(1, EXPECTED_LEVELS + 1)):
             errors.append("معرّفات المستويات يجب أن تكون متسلسلة من 1 إلى 114.")
 
+    level_members: dict[int, list[int]] = {level: [] for level in range(1, EXPECTED_LEVELS + 1)}
+    level_start = 1
+    for expected_level, expected_count in enumerate(EXPECTED_LEVEL_COUNTS, 1):
+        level_end = level_start + expected_count - 1
+        for node_id in range(level_start, level_end + 1):
+            if node_id in node_levels:
+                level_members[expected_level].append(node_id)
+                if node_levels[node_id] != expected_level:
+                    errors.append(f"العقدة N-{node_id:03d} موضوعة في مستوى خاطئ: {node_levels[node_id]} بدلًا من {expected_level}.")
+        if len(level_members[expected_level]) != expected_count:
+            errors.append(f"المستوى {expected_level} لا يحتوي عدد العقد المتوقع ({expected_count}).")
+        level_start = level_end + 1
+
     seen_edges: set[tuple[int, int]] = set()
     incoming: dict[int, int] = {}
     for index, edge in enumerate(edges):

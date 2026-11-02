@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Run strict SemVer structural validation
         run: python3 scripts/validate_semver_bnf.py
+      - name: Stress-test information pumps under concurrent pressure
+        run: node scripts/validate_pipe_flow_stress.mjs
       - name: Set up Python for Quran analysis
         uses: actions/setup-python@v5
         with:
