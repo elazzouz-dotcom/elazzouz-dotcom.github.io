@@ -59,7 +59,7 @@ jobs:
       - name: Remove build dependencies from Pages artifact
         run: rm -rf node_modules
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
