@@ -71,6 +71,8 @@ let focusedEdge = null;
 let pipeFlowEnabled = true;
 let pipeFlowFrame = 0;
 let pipeFlowStartedAt = performance.now();
+let quickSearchTimer = 0;
+let quickSearchRequest = 0;
 
 function readJson(key, fallback) {
   try {
@@ -792,7 +794,7 @@ function getNodeSearchTerms(query) {
   return terms.filter(Boolean);
 }
 function nodeSearchText(id, data, typeLabel) {
-  return `${nodeLabel(id)} ${id} ${data?.label || ''} ${data?.url || ''} ${data?.html ? 'html محلي' : ''} ${typeLabel}`.toLocaleLowerCase();
+  return `${nodeLabel(id)} ${id} ${data?.label || ''} ${data?.url || ''} ${data?.description || ''} ${data?.content || ''} ${data?.domain || ''} ${data?.html ? 'html محلي' : ''} ${typeLabel}`.toLocaleLowerCase();
 }
 function renderAdvancedNodeResults(ids, query) {
   const container = $('#advanced-node-results');
@@ -836,6 +838,73 @@ function renderAdvancedNodeResults(ids, query) {
     });
     container.appendChild(result);
   });
+}
+function focusNodeFromQuickSearch(id) {
+  const numericId = Number(id);
+  const button = nodeButtons.get(numericId);
+  const point = nodePositions.get(numericId);
+  if (!button || !point) return;
+  $('#node-search').value = '';
+  $('#node-search-clear').hidden = true;
+  $('#node-filter').value = 'all';
+  $('#software-filter').value = 'all';
+  $('#level-filter').value = 'all';
+  applyNodeFilters();
+  nodeViewport.scrollTo({ left: Math.max(0, point.x * zoom - nodeViewport.clientWidth / 2), top: Math.max(0, point.y * zoom - nodeViewport.clientHeight / 2), behavior: 'smooth' });
+  button.focus({ preventScroll: true });
+  button.classList.add('is-highlighted');
+  window.setTimeout(() => button.classList.remove('is-highlighted'), 1800);
+  openHubNode(numericId, button);
+}
+function appendQuickSearchResult(container, item, central = false) {
+  const id = Number(item.id);
+  if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL) return;
+  const result = document.createElement('button');
+  result.type = 'button';
+  result.className = 'quick-node-result';
+  const title = document.createElement('strong');
+  title.textContent = `${item.nodeKey || nodeLabel(id)}${central ? ' · مركزي' : ''}`;
+  const detail = document.createElement('span');
+  detail.textContent = item.title || item.url || item.description || `عقدة ${id}`;
+  result.append(title, detail);
+  result.addEventListener('click', () => focusNodeFromQuickSearch(id));
+  container.appendChild(result);
+}
+function renderQuickSearchResults(query) {
+  const container = $('#quick-node-results');
+  if (!container) return;
+  const cleanQuery = query.trim();
+  window.clearTimeout(quickSearchTimer);
+  if (!cleanQuery) { container.hidden = true; container.replaceChildren(); return; }
+  const terms = getNodeSearchTerms(cleanQuery);
+  const local = [];
+  for (let id = 1; id <= NODE_TOTAL && local.length < 8; id += 1) {
+    const data = getHubData(id);
+    const type = nodeContentType(data, id);
+    const haystack = nodeSearchText(id, data, type);
+    if (terms.every((term) => haystack.includes(term))) local.push({ id, nodeKey: nodeLabel(id), title: data?.label || '', url: data?.url || '', description: data?.description || '' });
+  }
+  container.replaceChildren();
+  container.hidden = false;
+  const meta = document.createElement('p');
+  meta.className = 'quick-node-result-meta';
+  meta.textContent = `نتائج سريعة من شبكة ${NODE_TOTAL} عقدة`;
+  container.appendChild(meta);
+  local.forEach((item) => appendQuickSearchResult(container, item));
+  const request = ++quickSearchRequest;
+  if (window.SlaksKnowledge?.enabled) {
+    quickSearchTimer = window.setTimeout(async () => {
+      try {
+        const payload = await window.SlaksKnowledge.search(cleanQuery, 8);
+        if (request !== quickSearchRequest) return;
+        const localIds = new Set(local.map((item) => item.id));
+        (payload.items || []).filter((item) => !localIds.has(Number(item.id))).forEach((item) => appendQuickSearchResult(container, item, true));
+      } catch { /* local search remains available when the central API is unavailable */ }
+    }, 180);
+  }
+  if (!local.length && !window.SlaksKnowledge?.enabled) {
+    meta.textContent = 'لا توجد عقد مطابقة محليًا. اكتب N-001 أو أضف كلمات من الرابط أو المحتوى.';
+  }
 }
 function buildNodeFilterIndex() {
   const records = [];
@@ -1960,6 +2029,7 @@ function initializeNetwork() {
   observer.observe(nodeViewport);
   $('#node-search').addEventListener('input', () => {
     $('#node-search-clear').hidden = !$('#node-search').value;
+    renderQuickSearchResults($('#node-search').value);
     scheduleNodeFilters();
   });
   $('#node-search-jump').addEventListener('click', jumpToNodeFromSearch);
@@ -1967,6 +2037,7 @@ function initializeNetwork() {
   $('#node-search-clear').addEventListener('click', () => {
     $('#node-search').value = '';
     $('#node-search-clear').hidden = true;
+    renderQuickSearchResults('');
     scheduleNodeFilters();
     $('#node-search').focus();
   });
