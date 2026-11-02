@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://elazzouz-dotcom.github.io/schemas/provenance.schema.json",
+  "title": "Slaks Reproducible Analysis Provenance",
+  "description": "Machine-readable provenance record for one reproducible analysis run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["provenance_schema", "schema_version", "record_type", "status", "run", "source", "runtime", "randomness", "analysis", "inputs", "outputs", "performance", "validation", "integrity"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "provenance_schema": { "type": "string", "format": "uri" },
+    "schema_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "record_type": { "const": "reproducible_analysis_run" },
+    "status": { "enum": ["design_template", "running", "completed", "failed", "superseded"] },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "created_at", "trigger", "actor", "purpose"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1 },
+        "created_at": { "type": ["string", "null"], "format": "date-time" },
+        "trigger": { "enum": ["manual", "pull_request", "push", "schedule", "workflow_dispatch", "api", "unknown"] },
+        "actor": { "type": ["string", "null"] },
+        "purpose": { "type": "string", "minLength": 1 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "branch", "working_tree_dirty", "generator"],
+      "properties": {
+        "repository": { "type": ["string", "null"], "format": "uri" },
+        "commit": { "type": ["string", "null"], "pattern": "^[0-9a-fA-F]{7,64}$" },
+        "branch": { "type": ["string", "null"] },
+        "working_tree_dirty": { "type": ["boolean", "null"] },
+        "generator": { "type": ["string", "null"] }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "python_version", "platform", "architecture", "dependencies", "dependency_lockfile"],
+      "properties": {
+        "language": { "type": ["string", "null"] },
+        "python_version": { "type": ["string", "null"] },
+        "platform": { "type": ["string", "null"] },
+        "architecture": { "type": ["string", "null"] },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "null"] }
+        },
+        "dependency_lockfile": { "type": ["string", "null"] }
+      }
+    },
+    "randomness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seed", "seed_type", "bit_generator", "random_stream_policy", "deterministic"],
+      "properties": {
+        "seed": { "type": ["integer", "string", "null"] },
+        "seed_type": { "type": ["string", "null"] },
+        "bit_generator": { "type": ["string", "null"] },
+        "random_stream_policy": { "type": ["string", "null"] },
+        "deterministic": { "type": ["boolean", "null"] }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["simulation", "tests", "parameters", "confidence_level"],
+      "properties": {
+        "simulation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "replications", "batch_size", "statistic"],
+          "properties": {
+            "method": { "type": ["string", "null"] },
+            "replications": { "type": ["integer", "null"], "minimum": 0 },
+            "batch_size": { "type": ["integer", "null"], "minimum": 1 },
+            "statistic": { "type": ["string", "null"] }
+          }
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "implementation", "correction", "alternative"],
+            "properties": {
+              "name": { "type": "string" },
+              "implementation": { "type": ["string", "null"] },
+              "correction": { "type": ["string", "null"] },
+              "alternative": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "parameters": { "type": "object" },
+        "confidence_level": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "kind", "sha256", "bytes"],
+        "properties": {
+          "path": { "type": "string" },
+          "kind": { "type": "string" },
+          "sha256": { "type": ["string", "null"], "pattern": "^[0-9a-fA-F]{64}$" },
+          "bytes": { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "kind", "sha256", "bytes"],
+        "properties": {
+          "path": { "type": "string" },
+          "kind": { "enum": ["json", "csv", "html", "figure", "report", "other"] },
+          "sha256": { "type": ["string", "null"], "pattern": "^[0-9a-fA-F]{64}$" },
+          "bytes": { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wall_time_seconds", "cpu_time_seconds", "peak_memory_bytes", "started_at", "finished_at"],
+      "properties": {
+        "wall_time_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "cpu_time_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "peak_memory_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "started_at": { "type": ["string", "null"], "format": "date-time" },
+        "finished_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checks", "all_passed", "reproducibility_reference"],
+      "properties": {
+        "checks": { "type": "array", "items": { "type": "object" } },
+        "all_passed": { "type": ["boolean", "null"] },
+        "reproducibility_reference": { "type": ["string", "null"] }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_sha256", "canonicalization", "signed", "signature"],
+      "properties": {
+        "record_sha256": { "type": ["string", "null"], "pattern": "^[0-9a-fA-F]{64}$" },
+        "canonicalization": { "type": ["string", "null"] },
+        "signed": { "type": ["boolean", "null"] },
+        "signature": { "type": ["string", "null"] }
+      }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  }
+}
