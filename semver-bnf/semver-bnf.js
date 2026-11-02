@@ -2488,6 +2488,7 @@ function setupQuranAnalysis() {
   select.addEventListener('change', render);
   analyzeButton.addEventListener('click', () => {
     const surah = QURAN_SURAH_METRICS.find((item) => item.surah_number === Number(select.value)) || QURAN_SURAH_METRICS[0];
+    if (window.sovereignBugs?.running) window.sovereignBugs.stop();
     const input = $('#mod9-input');
     const context = $('#mod9-context');
     if (!input || !context) return;
