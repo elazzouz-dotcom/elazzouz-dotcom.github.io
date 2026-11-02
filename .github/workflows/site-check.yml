@@ -44,6 +44,8 @@ jobs:
         run: python3 scripts/validate_semver_bnf.py
       - name: Stress-test information pumps under concurrent pressure
         run: node scripts/validate_pipe_flow_stress.mjs
+      - name: Dry-run bounded sovereign crawler
+        run: python3 scripts/sovereign_crawler_engine.py --report /tmp/sovereign-crawl-report.json
       - name: Validate fixed OneCompiler integration contract
         run: python3 scripts/check_onecompiler_contract.py
       - name: Verify Ed25519 provenance signature

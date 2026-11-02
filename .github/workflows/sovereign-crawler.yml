@@ -1,0 +1,48 @@
+name: Sovereign crawler swarm
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Maximum public URLs to inspect"
+        required: false
+        default: "6600"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sovereign-crawler
+  cancel-in-progress: true
+
+jobs:
+  crawl:
+    name: Crawl configured public node URLs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate network topology before crawling
+        run: python3 scripts/validate_semver_bnf.py
+      - name: Crawl bounded public targets
+        env:
+          CRAWL_LIMIT: ${{ inputs.limit || '6600' }}
+          CRAWL_TIMEOUT: "8"
+          CRAWL_MAX_BYTES: "300000"
+          CRAWL_WORKERS: "4"
+        run: python3 scripts/sovereign_crawler_engine.py
+      - name: Upload crawl report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sovereign-crawl-report-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 14
+          path: reports/sovereign-crawl-report.json
