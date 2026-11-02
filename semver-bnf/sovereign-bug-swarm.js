@@ -66,9 +66,12 @@ class SovereignBugSwarm {
       const configured = node.dataset.active === 'true';
       this.scanned += 1;
       this.setUi(`● ${bug.id} يفحص ${node.dataset.id} · ${configured ? 'مهيأة' : 'فارغة'} · ${this.scanned} فحص`, 'نشط');
-      window.dispatchEvent(new CustomEvent('slaks:swarm-node', {
-        detail: { id, name: `عقدة N-${String(id).padStart(3, '0')}`, value: id, agent: bug.id, configured }
-      }));
+      const detail = { id, name: `عقدة N-${String(id).padStart(3, '0')}`, value: id, agent: bug.id, configured };
+      if (typeof window.inspectNodeAlgebraically === 'function') {
+        window.inspectNodeAlgebraically(detail.id, detail.name, detail.value);
+      } else {
+        window.dispatchEvent(new CustomEvent('slaks:swarm-node', { detail }));
+      }
     }
     this.timers.set(bug.id, window.setTimeout(() => this.tick(bug), bug.delay));
   }

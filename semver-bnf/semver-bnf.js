@@ -2384,6 +2384,7 @@ function inspectNodeAlgebraically(nodeNumber, nodeName, nodeAbjad) {
   mod9AnalyzeCurrent?.();
   console.log(`[فحص جبري نشط] العقدة: ${nodeName || 'Unnamed Node'} | الرقم: ${nodeNumber} | القيمة: ${valueToInject}`);
 }
+window.inspectNodeAlgebraically = inspectNodeAlgebraically;
 function setMod9NodeContext(id) {
   const metric = quranMetricForNode(id);
   inspectNodeAlgebraically(id, metric.surah_name, metric.abjad_value);
