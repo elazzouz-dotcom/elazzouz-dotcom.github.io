@@ -1,4 +1,5 @@
 import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } from './graph-model.mjs';
+import { QURAN_STATISTICS, quranMetricForNode } from './quran-node-metrics.mjs';
 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
@@ -305,8 +306,9 @@ function endNodeDrag(event) {
 function updateNodeChatRoomRecord(id) {
   const data = getHubData(id);
   const type = nodeContentType(data, id);
+  const quran = quranMetricForNode(id);
   const level = NODE_LEVELS.findIndex((count, levelIndex) => { const start = NODE_LEVELS.slice(0, levelIndex).reduce((sum, value) => sum + value, 0) + 1; return id >= start && id < start + count; }) + 1;
-  nodeChatRoomRecords.set(id, { id, type, level, configured: isConfigured(data), url: data?.url || '', html: data?.html || '', parent: id > 1 ? getNodeParent(id) : null });
+  nodeChatRoomRecords.set(id, { id, type, level, configured: isConfigured(data), url: data?.url || '', html: data?.html || '', parent: id > 1 ? getNodeParent(id) : null, quran });
 }
 function renderNodeChatRoom() {
   const log = $('#node-chat-room-log');
@@ -321,7 +323,7 @@ function renderNodeChatRoom() {
     const title = document.createElement('strong');
     title.textContent = `${nodeLabel(record.id)} · المستوى ${record.level}`;
     const details = document.createElement('span');
-    details.textContent = record.configured ? `${record.type === 'html' ? 'HTML محلي' : record.url || 'بيانات محلية'} · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}` : `عقدة فارغة · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}`;
+    details.textContent = `${record.configured ? (record.type === 'html' ? 'HTML محلي' : record.url || 'بيانات محلية') : 'عقدة فارغة'} · ${record.quran.surah_name} · الجذر المركب ${record.quran.combined_root} · الأب: ${record.parent ? nodeLabel(record.parent) : 'الجذر'}`;
     message.append(title, details);
     message.addEventListener('click', () => { nodeChatRoomSelected = record.id; const button = nodeButtons.get(record.id); if (button) { button.scrollIntoView({ block: 'center', inline: 'center' }); openHubNode(record.id, button); } renderNodeChatRoom(); });
     log.appendChild(message);
@@ -1181,6 +1183,30 @@ function clearPreview() {
   hubPreview.hidden = true;
 }
 
+function sanitizeExternalPreview(html, baseUrl) {
+  const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+  doc.querySelectorAll('script,iframe,object,embed,form,base,meta[http-equiv="refresh"]').forEach((element) => element.remove());
+  doc.querySelectorAll('*').forEach((element) => {
+    [...element.attributes].forEach((attribute) => {
+      if (/^on/i.test(attribute.name) || attribute.name === 'srcdoc') element.removeAttribute(attribute.name);
+    });
+  });
+  doc.querySelectorAll('a[href]').forEach((anchor) => {
+    try {
+      const url = new URL(anchor.getAttribute('href'), baseUrl);
+      if (!['http:', 'https:'].includes(url.protocol)) anchor.removeAttribute('href');
+      else { anchor.href = url.href; anchor.target = '_blank'; anchor.rel = 'noopener noreferrer'; anchor.dataset.previewUrl = url.href; }
+    } catch { anchor.removeAttribute('href'); }
+  });
+  doc.querySelectorAll('img[src]').forEach((image) => {
+    try { image.src = new URL(image.getAttribute('src'), baseUrl).href; image.loading = 'lazy'; image.referrerPolicy = 'no-referrer'; }
+    catch { image.removeAttribute('src'); }
+  });
+  const safeBody = doc.body?.innerHTML || '<p>لم يُرجع المصدر محتوى قابلًا للعرض.</p>';
+  const safeTitle = (doc.title || 'معاينة ويب').replace(/[<>]/g, '');
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; font-src https:; connect-src 'none'; frame-src 'none';"><title>${escapeXml(safeTitle)}</title><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e8f0ee;background:#071014;line-height:1.75}a{color:#59e0a3}img{max-width:100%;height:auto;border-radius:10px}pre{overflow:auto;background:#102127;padding:12px;border-radius:10px}</style></head><body>${safeBody}<script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'hub-preview-url',url:link.dataset.previewUrl},'*');});</script></body></html>`;
+}
+
 async function buildHub(silent = false) {
   hubPreview.hidden = false;
   const urlText = hubUrl.value.trim();
@@ -1213,7 +1239,7 @@ async function buildHub(silent = false) {
         const payload = await response.json();
         if (response.ok && payload.html) {
           hubPreview.removeAttribute('src');
-          hubPreview.srcdoc = payload.html;
+          hubPreview.srcdoc = sanitizeExternalPreview(payload.html, payload.finalUrl || link.url);
           hubAddress.textContent = `${software.label} · ${payload.finalUrl || link.url}`;
           renderExtraction({ title: payload.title || link.host, text: payload.description || payload.text || 'تم جلب نسخة HTML عبر Relay داخل Slaks.', elements: payload.elements, links: payload.links?.length, source: 'Cloudflare Preview Relay', kind: software.kind });
           setHubStatus('ظهرت نسخة الموقع داخل Slaks عبر Relay؛ يمكنك متابعة الروابط من نفس بطاقة المعاينة.');
@@ -1242,6 +1268,26 @@ async function buildHub(silent = false) {
   }
 }
 
+function renderQuranNodeAnalysis(id) {
+  const host = $('#hub-quran-analysis');
+  if (!host) return;
+  const metric = quranMetricForNode(id);
+  const combined = QURAN_STATISTICS.kruskal_wallis?.combined_value?.statistical_metrics;
+  host.replaceChildren();
+  const title = document.createElement('strong');
+  title.textContent = `السورة المرتبطة: ${metric.surah_name} · ${metric.type} · عقدة ${nodeLabel(id)}`;
+  const values = document.createElement('div');
+  values.className = 'hub-quran-values';
+  [['رقم السورة', metric.surah_number], ['الآيات', metric.ayahs_count], ['جذر الرقم', metric.surah_number_root], ['جذر الآيات', metric.ayahs_count_root], ['القيمة المركبة', metric.combined_value], ['جذر المركب', metric.combined_root], ['قيمة الجُمّل', metric.abjad_value], ['جذر الجُمّل', metric.abjad_root]].forEach(([label, value]) => {
+    const item = document.createElement('span');
+    item.textContent = `${label}: ${value}`;
+    values.appendChild(item);
+  });
+  const test = document.createElement('small');
+  test.textContent = combined ? `Kruskal-Wallis للقيمة المركبة: H=${combined.H_statistic.toFixed(4)} · p=${combined.p_value.toFixed(5)} · ε²=${combined.epsilon_squared.toFixed(4)} · B=200,000 · seed=12345` : 'نتيجة Kruskal-Wallis محفوظة في التقرير العلمي.';
+  host.append(title, values, test);
+}
+
 function openHubNode(id, button) {
   nodeChatRoomSelected = id;
   updateNodeChatRoomRecord(id);
@@ -1250,6 +1296,7 @@ function openHubNode(id, button) {
   activeHub = { id, node: button };
   highlightNodePath(id);
   $('#hub-node-number').textContent = `#${String(id).padStart(3, '0')}`;
+  renderQuranNodeAnalysis(id);
   const storedData = getHubData(id);
   const data = storedData || (button?.dataset.linkUrl ? { url: button.dataset.linkUrl, kind: button.dataset.linkKind || '' } : null);
   hubUrl.value = data?.url || '';
