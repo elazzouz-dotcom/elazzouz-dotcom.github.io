@@ -5,7 +5,7 @@ const EXTRA_NODES = 50_000;
 const TOTAL_NODES = BASE_NODES + EXTRA_NODES;
 const ATTACK_SOURCES = 50_000;
 const ATTACK_EVENTS = 1_000_000;
-const WINDOW_EVENTS = 10_000;
+const WINDOW_EVENTS = 50_000;
 const GLOBAL_LIMIT_PER_WINDOW = 12_000;
 const SOURCE_LIMIT_PER_WINDOW = 4;
 const QUEUE_CAPACITY = 8_192;
@@ -70,11 +70,11 @@ function runDistributedResilienceTest() {
       continue;
     }
     sourceWindows.set(source, { window, count: sourceCount + 1 });
+    globalCount += 1;
     if (queue.length - queueHead >= QUEUE_CAPACITY) {
       queueOverflow += 1;
       continue;
     }
-    globalCount += 1;
     queue.push({ source, node: BASE_NODES + (event % EXTRA_NODES) + 1, eventId });
     accepted += 1;
     maxQueueDepth = Math.max(maxQueueDepth, queue.length - queueHead);
