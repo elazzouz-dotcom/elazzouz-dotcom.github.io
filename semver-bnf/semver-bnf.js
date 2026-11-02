@@ -354,7 +354,11 @@ function createNodeElements() {
       button.type = 'button';
       button.className = 'network-node';
       button.dataset.id = String(currentId);
+      button.dataset.nodeNumber = String(currentId);
       button.dataset.level = String(level);
+      const nodeMetric = quranMetricForNode(currentId);
+      button.dataset.nodeName = nodeMetric.surah_name;
+      button.dataset.nodeAbjad = String(nodeMetric.abjad_value);
       button.setAttribute('aria-label', `${nodeLabel(currentId)}، المستوى ${level + 1}، افتح الإعدادات`);
       button.setAttribute('aria-pressed', 'false');
       const plus = document.createElement('span');
@@ -2296,18 +2300,26 @@ function formatBigInt(value) {
   return value.toString();
 }
 let mod9AnalyzeCurrent = null;
-function setMod9NodeContext(id) {
+function inspectNodeAlgebraically(nodeNumber, nodeName, nodeAbjad) {
   const input = $('#mod9-input');
   const context = $('#mod9-context');
-  if (!input || !context) return;
-  const metric = quranMetricForNode(id);
-  input.value = String(metric.abjad_value);
+  if (!input || !context) {
+    console.warn('[Mod 9] حقل التحليل غير موجود.');
+    return;
+  }
+  const valueToInject = String(nodeAbjad || nodeNumber || '');
+  input.value = valueToInject;
   context.value = 'active-node';
   const option = context.querySelector('option[value="active-node"]');
-  if (option) option.textContent = `العقدة النشطة N-${String(id).padStart(3, '0')} · ${metric.surah_name}`;
+  if (option) option.textContent = `العقدة النشطة N-${String(nodeNumber).padStart(3, '0')} · ${nodeName || 'بدون اسم'}`;
   const help = $('#mod9-help');
-  if (help) help.textContent = `السياق النشط: ${metric.surah_name} · قيمة الجُمّل ${metric.abjad_value} · الحساب محلي ودقيق.`;
+  if (help) help.textContent = `السياق النشط: ${nodeName || 'بدون اسم'} · الرقم ${nodeNumber} · قيمة التحليل ${valueToInject}.`;
   mod9AnalyzeCurrent?.();
+  console.log(`[فحص جبري نشط] العقدة: ${nodeName || 'Unnamed Node'} | الرقم: ${nodeNumber} | القيمة: ${valueToInject}`);
+}
+function setMod9NodeContext(id) {
+  const metric = quranMetricForNode(id);
+  inspectNodeAlgebraically(id, metric.surah_name, metric.abjad_value);
 }
 function setupMod9Lab() {
   const input = $('#mod9-input');
@@ -2381,12 +2393,13 @@ function setupMod9Lab() {
 }
 function setupSovereignDashboard() {
   const lines = [...document.querySelectorAll('[data-agent-line]')];
+  const radar = $('#surah-radar');
   const name = $('#radar-name');
   const details = $('#radar-details');
   const indexLabel = $('#radar-index');
   const meter = $('#radar-meter-fill');
   const status = $('#agent-code-status');
-  if (!lines.length || !name || !details || !indexLabel || !meter) return;
+  if (!lines.length || !radar || !name || !details || !indexLabel || !meter) return;
   let lineIndex = 0;
   let surahIndex = 0;
   const update = () => {
@@ -2394,12 +2407,18 @@ function setupSovereignDashboard() {
     const surah = QURAN_SURAH_METRICS[surahIndex % QURAN_SURAH_METRICS.length];
     name.textContent = `سورة ${surah.surah_name} (${surah.surah_number})`;
     details.textContent = `الآيات: ${surah.ayahs_count} · النوع: ${surah.type} · الجذر المركب: ${surah.combined_root} · الجمل: ${surah.abjad_value}`;
+    radar.dataset.nodeNumber = String(surah.surah_number);
+    radar.dataset.nodeName = surah.surah_name;
+    radar.dataset.nodeAbjad = String(surah.abjad_value);
     indexLabel.textContent = `${surah.surah_number} / ${QURAN_SURAH_METRICS.length}`;
     meter.style.width = `${Math.max(1, Math.round(surah.surah_number / QURAN_SURAH_METRICS.length * 100))}%`;
     status.textContent = `الدورة ${lineIndex + 1}/5 · الرادار يقرأ السجل ${surah.surah_number} محليًا.`;
     lineIndex = (lineIndex + 1) % lines.length;
     surahIndex = (surahIndex + 1) % QURAN_SURAH_METRICS.length;
   };
+  const inspectRadar = () => inspectNodeAlgebraically(radar.dataset.nodeNumber, radar.dataset.nodeName, radar.dataset.nodeAbjad);
+  radar.addEventListener('click', inspectRadar);
+  radar.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspectRadar(); } });
   update();
   window.setInterval(update, 1400);
 }
