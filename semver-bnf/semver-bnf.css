@@ -180,6 +180,18 @@ body.semver-page a { color: inherit; }
 .legend-hierarchy { border-color: var(--edge-hierarchy); }.legend-content { border-color: var(--edge-content); border-top-style: dashed; }.legend-software { border-color: var(--edge-software); border-top-style: dotted; }
 .node-map-legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .6rem; padding: .7rem .35rem .2rem; color: var(--semver-muted); font-size: .73rem; }
 .node-map-legend strong { color: var(--semver-gold); }
+.node-centrality-panel { margin: 1rem 0; padding: 1rem; border: 1px solid rgba(89, 224, 163, .2); border-radius: 16px; background: linear-gradient(145deg, rgba(13, 25, 30, .95), rgba(10, 28, 28, .85)); }
+.node-centrality-head { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.node-centrality-head h2 { margin: 0 0 .3rem; font-size: 1.1rem; }
+.node-centrality-head p { margin: 0; color: var(--semver-muted); font-size: .78rem; line-height: 1.7; }
+.node-centrality-method { flex: 0 0 auto; border: 1px solid rgba(244, 206, 114, .25); border-radius: 999px; padding: .35rem .6rem; color: var(--semver-gold); font-size: .7rem; }
+.node-centrality-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: .8rem; }
+.node-centrality-grid h3 { margin: 0 0 .4rem; color: var(--semver-green); font-size: .82rem; }
+.node-centrality-grid ol { display: grid; gap: .35rem; margin: 0; padding-inline-start: 1.5rem; }
+.node-centrality-grid li { color: var(--semver-muted); font-size: .75rem; }
+.node-centrality-grid button { width: 100%; border: 1px solid var(--semver-line); border-radius: 8px; padding: .45rem .55rem; color: var(--semver-text); background: rgba(16, 33, 39, .85); font: inherit; text-align: start; cursor: pointer; }
+.node-centrality-grid button:hover, .node-centrality-grid button:focus-visible { border-color: var(--semver-gold); color: var(--semver-gold); outline: none; }
+.network-node.centrality-focus { border-color: var(--semver-gold); box-shadow: 0 0 0 4px rgba(244, 206, 114, .18), 0 0 24px rgba(244, 206, 114, .4); z-index: 8; }
 .node-status, .hub-status { min-height: 1.4em; margin: .65rem 0 0; color: var(--semver-muted); font-size: .8rem; }
 .semver-note { margin: .75rem 0 0; border-inline-start: 3px solid var(--semver-gold); border-radius: 8px; padding: .75rem .9rem; color: var(--semver-muted); background: rgba(244, 206, 114, .055); font-size: .8rem; line-height: 1.8; }
 .report-actions { display: flex; flex-wrap: wrap; gap: .6rem; }

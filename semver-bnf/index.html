@@ -169,6 +169,10 @@
             <div id="advanced-node-results" class="advanced-node-results" aria-live="polite"></div>
           </div>
         </details>
+        <section class="node-centrality-panel" aria-labelledby="node-centrality-title">
+          <div class="node-centrality-head"><div><p class="semver-kicker">NETWORK CENTRALITY</p><h2 id="node-centrality-title">العقد الأكثر تأثيرًا</h2><p>الدرجة تقيس عدد الروابط المباشرة، والوساطة تقيس عدد المسارات التي تمر عبر العقدة بين أجزاء الشبكة.</p></div><span class="node-centrality-method">شجرة 6600 عقدة · 6599 علاقة</span></div>
+          <div class="node-centrality-grid"><div><h3>أعلى درجة</h3><ol id="centrality-degree-list"></ol></div><div><h3>أعلى وساطة</h3><ol id="centrality-betweenness-list"></ol></div></div>
+        </section>
         <details class="relation-customizer">
           <summary>تخصيص ألوان وأشكال خطوط الربط</summary>
           <div class="relation-control-grid">
@@ -343,6 +347,6 @@
   </footer>
   <script src="/language.js" defer></script>
   <script type="module" src="/semver-bnf/knowledge-api-client.js?v=knowledge-api-v1"></script>
-  <script type="module" src="/semver-bnf/semver-bnf.js?v=square-nodes-pinch-v2"></script>
+  <script type="module" src="/semver-bnf/semver-bnf.js?v=square-nodes-centrality-v3"></script>
 </body>
 </html>

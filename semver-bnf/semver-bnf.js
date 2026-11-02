@@ -36,6 +36,7 @@ const networkCanvas = $('#network-canvas');
 const canvasContext = networkCanvas.getContext('2d');
 let canvasPointer = null;
 const nodeButtons = new Map();
+const nodeCentrality = new Map();
 const nodeTypeCache = new Map();
 let filterFrame = 0;
 let filterDebounceTimer = 0;
@@ -146,6 +147,62 @@ function isConfigured(data) {
 
 function nodeLabel(id) {
   return `N-${String(id).padStart(3, '0')}`;
+}
+
+function calculateNodeCentrality() {
+  const children = Array.from({ length: NODE_TOTAL + 1 }, () => []);
+  const parents = new Int32Array(NODE_TOTAL + 1);
+  for (let id = 2; id <= NODE_TOTAL; id += 1) {
+    const parent = getNodeParent(id);
+    parents[id] = parent;
+    children[parent].push(id);
+  }
+  const subtree = new Int32Array(NODE_TOTAL + 1);
+  subtree.fill(1);
+  for (let id = NODE_TOTAL; id > 1; id -= 1) subtree[parents[id]] += subtree[id];
+  const normalization = ((NODE_TOTAL - 1) * (NODE_TOTAL - 2)) / 2;
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const components = children[id].map((child) => subtree[child]);
+    if (parents[id]) components.push(NODE_TOTAL - subtree[id]);
+    const pairCount = (NODE_TOTAL ** 2 - components.reduce((sum, size) => sum + size ** 2, 0)) / 2;
+    nodeCentrality.set(id, {
+      degree: children[id].length + (parents[id] ? 1 : 0),
+      betweenness: normalization ? pairCount / normalization : 0,
+      subtreeSize: subtree[id]
+    });
+  }
+}
+
+function centralityLabel(id, metric) {
+  const metrics = nodeCentrality.get(id) || { degree: 0, betweenness: 0 };
+  const value = metric === 'degree' ? String(metrics.degree) : metrics.betweenness.toFixed(4);
+  return `${nodeLabel(id)} · ${metric === 'degree' ? 'الدرجة' : 'الوساطة'} ${value}`;
+}
+
+function renderNodeCentrality() {
+  const entries = [...nodeCentrality.entries()];
+  [['#centrality-degree-list', 'degree'], ['#centrality-betweenness-list', 'betweenness']].forEach(([selector, metric]) => {
+    const list = $(selector);
+    if (!list) return;
+    list.replaceChildren();
+    entries.sort((a, b) => b[1][metric] - a[1][metric] || a[0] - b[0]).slice(0, 8).forEach(([id]) => {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = `${centralityLabel(id, metric)} · المستوى ${(nodeButtons.get(id)?.dataset.level ? Number(nodeButtons.get(id).dataset.level) + 1 : 0)}`;
+      button.addEventListener('click', () => {
+        const node = nodeButtons.get(id);
+        const position = nodePositions.get(id);
+        if (!node || !position) return;
+        nodeButtons.forEach((candidate) => candidate.classList.remove('centrality-focus'));
+        node.classList.add('centrality-focus');
+        nodeViewport.scrollTo({ left: Math.max(0, position.x * zoom - nodeViewport.clientWidth / 2), top: Math.max(0, position.y * zoom - nodeViewport.clientHeight / 2), behavior: 'smooth' });
+        setNodeStatus(`تم تحديد ${centralityLabel(id, metric)}؛ حجم الفرع ${nodeCentrality.get(id).subtreeSize} عقدة.`);
+      });
+      item.appendChild(button);
+      list.appendChild(item);
+    });
+  });
 }
 
 function refreshNode(id) {
@@ -320,6 +377,8 @@ function createNodeElements() {
       refreshNode(currentId);
     }
   });
+  calculateNodeCentrality();
+  renderNodeCentrality();
   updateStats();
 }
 
