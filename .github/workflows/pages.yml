@@ -56,6 +56,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build local Tailwind CSS
         run: pnpm build:css
+      - name: Fingerprint static assets for browser caching
+        run: python3 scripts/cache_bust.py
       - name: Remove build dependencies from Pages artifact
         run: rm -rf node_modules
       - name: Configure Pages
