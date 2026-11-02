@@ -2024,9 +2024,13 @@ function setupPinchZoom() {
   const midpoint = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
   viewport.addEventListener('touchstart', (event) => {
     if (event.touches.length !== 2) return;
+    // Reserve the two-finger gesture for the map instead of page navigation
+    // or browser zoom, while leaving one-finger scrolling unchanged.
+    event.preventDefault();
     const [first, second] = event.touches;
     const center = midpoint(first, second);
     const rect = viewport.getBoundingClientRect();
+    viewport.style.touchAction = 'none';
     gesture = {
       startDistance: Math.max(1, distance(first, second)),
       startZoom: zoom,
@@ -2048,6 +2052,7 @@ function setupPinchZoom() {
   const endGesture = (event) => {
     if (event.touches.length < 2 && gesture) {
       gesture = null;
+      viewport.style.touchAction = 'pan-x pan-y';
       persistUiSettings();
     }
   };
