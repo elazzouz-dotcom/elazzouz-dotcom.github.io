@@ -372,10 +372,6 @@ function createNodeElements() {
       badge.className = 'node-badge';
       badge.hidden = true;
       button.append(plus, number, badge);
-      button.addEventListener('click', () => {
-        if (suppressNodeClick) return;
-        openHubNode(currentId, button);
-      });
       button.addEventListener('pointerdown', (event) => beginNodeDrag(event, currentId, button));
       button.addEventListener('pointermove', moveNodeDrag);
       button.addEventListener('pointerup', endNodeDrag);
@@ -2321,6 +2317,17 @@ function setMod9NodeContext(id) {
   const metric = quranMetricForNode(id);
   inspectNodeAlgebraically(id, metric.surah_name, metric.abjad_value);
 }
+function setupAlgebraBridge() {
+  document.addEventListener('click', (event) => {
+    const targetNode = event.target.closest?.('[data-node-number]');
+    if (!targetNode) return;
+    const nodeNumber = Number(targetNode.dataset.nodeNumber || 0);
+    const nodeName = targetNode.dataset.nodeName || 'عقدة غير معنونة';
+    const nodeAbjad = targetNode.dataset.nodeAbjad || '';
+    if (targetNode.classList.contains('network-node') && !suppressNodeClick) openHubNode(nodeNumber, targetNode);
+    else inspectNodeAlgebraically(nodeNumber, nodeName, nodeAbjad);
+  });
+}
 function setupMod9Lab() {
   const input = $('#mod9-input');
   const context = $('#mod9-context');
@@ -2416,9 +2423,7 @@ function setupSovereignDashboard() {
     lineIndex = (lineIndex + 1) % lines.length;
     surahIndex = (surahIndex + 1) % QURAN_SURAH_METRICS.length;
   };
-  const inspectRadar = () => inspectNodeAlgebraically(radar.dataset.nodeNumber, radar.dataset.nodeName, radar.dataset.nodeAbjad);
-  radar.addEventListener('click', inspectRadar);
-  radar.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspectRadar(); } });
+  radar.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspectNodeAlgebraically(radar.dataset.nodeNumber, radar.dataset.nodeName, radar.dataset.nodeAbjad); } });
   update();
   window.setInterval(update, 1400);
 }
@@ -2435,6 +2440,7 @@ function setupActions() {
   setupExternalLinkModal();
   setupOrbit();
   setupMod9Lab();
+  setupAlgebraBridge();
   setupSovereignDashboard();
   // تشغيل نفق المعلومات تلقائيًا عند وجود عقد مهيأة، دون طلب إضافي من المستخدم.
   window.setTimeout(() => collectReport(), 250);
