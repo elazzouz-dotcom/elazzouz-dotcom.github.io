@@ -1,4 +1,5 @@
 import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } from './graph-model.mjs';
+import { BUILTIN_NODES } from './builtin-nodes.mjs';
 import { QURAN_STATISTICS, QURAN_SURAH_METRICS, quranMetricForNode } from './quran-node-metrics.mjs';
 
 const $ = (selector) => document.querySelector(selector);
@@ -12,15 +13,6 @@ const REPORT_CACHE_TTL = 10 * 60 * 1000;
 const LINK_CACHE_DB = 'slaks-link-cache-db';
 const LINK_CACHE_STORE = 'payloads';
 const pendingLinkLoads = new Map();
-const BUILTIN_NODES = Object.freeze({
-  600: {
-    url: 'https://elazzouz-dotcom.github.io/satellite/',
-    html: '',
-    active: true,
-    builtIn: true,
-    label: 'VSAT Gateway'
-  }
-});
 const NODE_SIZE = 60;
 const NODE_SPACING_CM = 8;
 const NODE_SPACING_PX = NODE_SPACING_CM * 37.7952755906;
@@ -1138,6 +1130,19 @@ function fetchNodePayload(id) {
   const data = getHubData(id);
   if (!data) return null;
   if (data.url) {
+    const builtIn = BUILTIN_NODES[id];
+    if (builtIn?.kind === 'local-tool' && data.url === builtIn.url) {
+      return {
+        id,
+        kind: 'local-tool',
+        url: data.url,
+        title: builtIn.label,
+        text: `${builtIn.description} لا يُجلب محتوى من خادم ولا تُجرى اتصالات خارجية.`,
+        source: 'أداة محلية',
+        status: 'ok',
+        previewable: true
+      };
+    }
     let link;
     try { link = parseNodeLink(data.url); }
     catch (error) {
@@ -1378,6 +1383,20 @@ async function buildHub(silent = false) {
         hubAddress.textContent = link.kind === 'matrix' ? `Matrix.org · ${link.display}` : link.url;
         renderExtraction({ title: link.display, text: link.kind === 'matrix' ? 'تم التعرف على غرفة Matrix. استخدم زر الفتح لفتحها في matrix.to أو عميل Matrix المثبت على جهازك.' : 'هذا الرابط يفتح في تطبيق خارجي ولا يمكن معاينته أو جلب محتواه داخل الشبكة.', source: link.kind === 'matrix' ? 'Matrix.org' : 'فتح خارجي فقط', kind: link.kind });
         setHubStatus(link.kind === 'matrix' ? 'غرفة Matrix جاهزة للفتح عبر matrix.to.' : 'الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
+        return;
+      }
+      const builtIn = BUILTIN_NODES[activeHub.id];
+      if (builtIn?.kind === 'local-tool' && link.url === builtIn.url) {
+        hubAddress.textContent = `${builtIn.label} · ${nodeLabel(activeHub.id)}`;
+        hubPreview.removeAttribute('srcdoc');
+        hubPreview.src = link.url;
+        renderExtraction({
+          title: builtIn.label,
+          text: `${builtIn.description} تُعرض الأداة من GitHub Pages داخل إطار معزول، من دون استخدام Relay المعاينة أو طلب بيانات من مصدر خارجي.`,
+          source: 'أداة محلية في شبكة 6600 عقدة',
+          kind: 'محاكاة تعليمية'
+        });
+        setHubStatus('تعمل المحاكاة داخل Slaks من ملفات الموقع المحلية؛ لم يُطلب محتوى من خدمة معاينة خارجية.');
         return;
       }
       const software = classifySoftwareUrl(link.url);

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="محاكاة بصرية عربية محلية لتوازن أدوار سرب تعليمي؛ لا تفحص مواقع ولا ترسل بيانات ولا توفر حماية فعلية.">
+  <title>محاكاة السرب المتوازن | Slaks</title>
+  <link rel="canonical" href="https://elazzouz-dotcom.github.io/semver-bnf/swarm-simulation/">
+  <meta property="og:title" content="محاكاة السرب المتوازن | Slaks">
+  <meta property="og:description" content="عرض تعليمي محلي لتوزيع أدوار السرب، بلا فحص شبكة أو إرسال بيانات.">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/semver-bnf/swarm-simulation/">
+  <meta property="og:site_name" content="Slaks">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="محاكاة السرب المتوازن | Slaks">
+  <meta name="twitter:description" content="عرض تعليمي محلي لتوزيع أدوار السرب، بلا فحص شبكة أو إرسال بيانات.">
+  <meta name="twitter:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
+  <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/semver-bnf/semver-bnf.css">
+  <link rel="stylesheet" href="/semver-bnf/swarm-simulation/swarm-simulation.css">
+  <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
+  <script src="/semver-bnf/swarm-simulation/swarm-simulation.js" defer></script>
+</head>
+<body class="semver-page swarm-simulation-page">
+  <header class="semver-header">
+    <div class="semver-container semver-header-inner">
+      <a class="semver-brand" href="/" aria-label="Slaks — الصفحة الرئيسية">
+        <img class="semver-brand-logo" src="/assets/slaks-logo.jpg" alt="شعار Slaks"><span>Slaks</span>
+      </a>
+      <nav class="swarm-tool-nav" aria-label="التنقل">
+        <a href="/semver-bnf/">شبكة 6600 عقدة</a>
+        <a href="/tools/">فهرس الأدوات</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="semver-container swarm-tool-main">
+    <section class="swarm-tool-heading" aria-labelledby="swarm-title">
+      <p class="semver-kicker">العقدة N-6600 · تجربة محلية</p>
+      <h1 id="swarm-title">محاكاة السرب المتوازن</h1>
+      <p>شاهد كيف يتغيّر توزيع ثلاثة أدوار تعليمية في سرب صغير. كل الحركة والحسابات تجري داخل هذه الصفحة فقط.</p>
+    </section>
+
+    <section class="semver-card swarm-tool-shell" aria-label="لوحة المحاكاة">
+      <div class="swarm-notice" role="note">
+        <strong>محاكاة تعليمية فقط</strong>
+        <span>لا تفحص مواقع أو شبكات خارجية، ولا ترسل بيانات، ولا تمثل نظام حماية حقيقيًا.</span>
+      </div>
+
+      <div class="swarm-metrics" aria-label="إحصاءات المحاكاة">
+        <article class="swarm-stat"><span>إجمالي الوكلاء</span><strong id="agent-count">57</strong><i class="swarm-meter"><i id="agent-meter"></i></i></article>
+        <article class="swarm-stat"><span>استكشاف</span><strong id="explore-count">19</strong><i class="swarm-meter"><i id="explore-meter"></i></i></article>
+        <article class="swarm-stat"><span>فحص تعليمي</span><strong id="inspect-count">19</strong><i class="swarm-meter swarm-meter-gold"><i id="inspect-meter"></i></i></article>
+        <article class="swarm-stat"><span>حماية افتراضية</span><strong id="protect-count">19</strong><i class="swarm-meter swarm-meter-blue"><i id="protect-meter"></i></i></article>
+        <article class="swarm-stat"><span>مؤشر التوازن</span><strong id="stability-value">75%</strong><i class="swarm-meter"><i id="stability-meter"></i></i></article>
+      </div>
+
+      <div class="swarm-controls" role="group" aria-label="أوامر المحاكاة">
+        <button id="swarm-toggle" class="semver-button semver-button-primary" type="button" aria-pressed="false">تشغيل المحاكاة</button>
+        <button id="swarm-rebalance" class="semver-button" type="button">إعادة توازن الأدوار</button>
+        <button id="swarm-add" class="semver-button" type="button">إضافة 10 وكلاء</button>
+        <button id="swarm-clear" class="semver-button semver-button-danger" type="button">مسح سجل الأحداث</button>
+      </div>
+
+      <div class="swarm-visual-card">
+        <div class="swarm-visual-heading">
+          <h2>الحركة بين الأدوار</h2>
+          <span id="swarm-state" class="swarm-state" role="status" aria-live="polite">المحاكاة متوقفة</span>
+        </div>
+        <canvas id="swarm-canvas" aria-label="رسم متحرك لوكلاء ملونين يتوزعون على ثلاثة أدوار تعليمية داخل مساحة مغلقة؛ لا يمثل اتصالًا شبكيًا."></canvas>
+        <div class="swarm-legend" aria-label="مفتاح الألوان">
+          <span><i class="swarm-dot swarm-dot-green"></i>استكشاف</span>
+          <span><i class="swarm-dot swarm-dot-gold"></i>فحص تعليمي</span>
+          <span><i class="swarm-dot swarm-dot-blue"></i>حماية افتراضية</span>
+        </div>
+      </div>
+
+      <div class="swarm-lower-grid">
+        <section class="swarm-explanation" aria-labelledby="swarm-about-title">
+          <h2 id="swarm-about-title">ما الذي تمثله هذه الأداة؟</h2>
+          <p>كل نقطة وكيل افتراضي يتحرك على لوحة الرسم. الأعداد ومؤشر التوازن ناتجة عن قواعد عشوائية مبسطة لأغراض الشرح فقط، وليست قياسًا أمنيًا أو علميًا.</p>
+          <p class="swarm-limit">الحد الأعلى هو 300 وكيل؛ ويمكن إيقاف الحركة أو إعادة توزيع الأدوار في أي وقت.</p>
+        </section>
+        <section class="swarm-log-section" aria-labelledby="swarm-log-title">
+          <div class="swarm-log-heading"><h2 id="swarm-log-title">سجل الأحداث</h2><span>محلي في الصفحة</span></div>
+          <ol id="swarm-log" class="swarm-log" role="log" aria-live="polite" aria-relevant="additions text"></ol>
+        </section>
+      </div>
+    </section>
+    <p class="swarm-back-link"><a class="semver-button semver-button-subtle" href="/semver-bnf/">العودة إلى شبكة SemVer ذات 6600 عقدة</a></p>
+  </main>
+</body>
+</html>
