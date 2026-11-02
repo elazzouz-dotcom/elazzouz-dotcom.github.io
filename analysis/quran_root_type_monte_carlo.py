@@ -25,7 +25,7 @@ import scipy
 from scipy.stats import chi2_contingency, random_table
 
 
-DEFAULT_SEED = 42
+DEFAULT_SEED = 12345
 DEFAULT_SAMPLES = 200_000
 REQUIRED_COLUMNS = ("combined_root", "type")
 
@@ -78,7 +78,7 @@ def run_simulation(observed: np.ndarray, config: SimulationConfig) -> dict:
 
     # Use one local Generator and one deterministic random_table.rvs call.
     # Do not add random calls before this line if exact reproducibility matters.
-    rng = np.random.default_rng(config.seed)
+    rng = np.random.Generator(np.random.PCG64(config.seed))
     simulated = random_table.rvs(
         observed.sum(axis=1),
         observed.sum(axis=0),
@@ -108,6 +108,7 @@ def run_simulation(observed: np.ndarray, config: SimulationConfig) -> dict:
             "numpy": np.__version__,
             "pandas": pd.__version__,
             "scipy": scipy.__version__,
+            "rng_algorithm": "PCG64",
         },
     }
 

@@ -89,7 +89,7 @@ class ScientificQuranAnalyzer:
             exceedances += int(np.count_nonzero(chi2_sim >= chi2_observed))
             remaining -= size
         p_value = (exceedances + 1) / (B + 1)
-        se = float(np.sqrt(p_value * (1 - p_value) / B))
+        se = float(np.sqrt(p_value * (1 - p_value) / (B + 1)))
         cramers_v = float(np.sqrt(chi2_observed / (observed.sum() * (min(table.shape) - 1))))
         return {
             "column": column,
