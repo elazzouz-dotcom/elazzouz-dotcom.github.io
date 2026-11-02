@@ -12,9 +12,28 @@
 
 يسجل `performance` زمن الجدار، زمن CPU، الذاكرة القصوى، وأوقات البداية والنهاية. يسجل `validation` نتائج اختبارات الروابط، اختبارات الانحدار الإحصائي، وفحص إعادة التشغيل. لا تُعتبر النتيجة مكتملة قبل تعيين `validation.all_passed` إلى `true`.
 
-لا يوضع أي Secret أو Access Token أو محتوى خاص داخل هذا الملف. ويمكن حساب `integrity.record_sha256` بعد حذف قيمة الحقل نفسها، ثم تخزين التجزئة الناتجة في السجل النهائي. عند الحاجة إلى توقيع، تُستخدم آلية توقيع خارجية ولا يُحفظ المفتاح الخاص في المستودع.
+## التوقيع المشفّر
 
-## التحقق المحلي
+يستخدم السجل توقيعًا مضمّنًا بخوارزمية **Ed25519**. يُحفظ المفتاح العام في [`provenance-public-key.pem`](./provenance-public-key.pem)، بينما لا يُحفظ المفتاح الخاص في المستودع مطلقًا. يجب تخزينه في GitHub Actions Secret باسم `PROVENANCE_SIGNING_KEY_PEM` بصيغة PEM.
+
+توقّع الأداة payload غير موقع بعد تطبيع JSON حتمي: UTF-8، مفاتيح مرتبة، فواصل مضغوطة، وسطر LF نهائي. ويُحفظ في `integrity.record_sha256` تجزئة هذا payload، وفي `integrity.signature` قيمة التوقيع Base64 وبصمة المفتاح العام. لذلك فإن تعديل أي قيمة في السجل يجعل التحقق يفشل.
+
+للتوقيع محليًا بعد توفير المفتاح خارج المستودع:
+
+```bash
+PROVENANCE_SIGNING_KEY_PEM="$(cat /secure/path/provenance-ed25519-private.pem)" \
+  python3 scripts/sign_provenance.py
+```
+
+للتحقق دون المفتاح الخاص:
+
+```bash
+python3 scripts/verify_provenance.py
+```
+
+يجب أن تُظهر الأداة `Signature valid: provenance.json`. لا تُرسل المفتاح الخاص إلى السجل، ولا إلى مخرجات CI، ولا إلى المتصفح.
+
+## التحقق البنيوي
 
 ```bash
 python3 - <<'PY'
@@ -43,3 +62,5 @@ if errors:
 print('Provenance record conforms to the schema.')
 PY
 ```
+
+لا يوضع أي Secret أو Access Token أو محتوى خاص داخل هذا الملف. وعند تدوير المفتاح، يُنشأ مفتاح عام جديد وتُحدّث بصمته، ثم يُعاد توقيع السجل من خلال Secret الجديد.

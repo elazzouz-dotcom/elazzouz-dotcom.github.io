@@ -154,9 +154,19 @@
       "required": ["record_sha256", "canonicalization", "signed", "signature"],
       "properties": {
         "record_sha256": { "type": ["string", "null"], "pattern": "^[0-9a-fA-F]{64}$" },
-        "canonicalization": { "type": ["string", "null"] },
+        "canonicalization": { "enum": ["deterministic-json-v1 (UTF-8, sorted keys, compact separators, trailing LF)", null] },
         "signed": { "type": ["boolean", "null"] },
-        "signature": { "type": ["string", "null"] }
+        "signature": {
+          "type": ["object", "null"],
+          "required": ["algorithm", "encoding", "value", "public_key_sha256"],
+          "additionalProperties": false,
+          "properties": {
+            "algorithm": { "const": "Ed25519" },
+            "encoding": { "const": "base64" },
+            "value": { "type": "string", "minLength": 1 },
+            "public_key_sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" }
+          }
+        }
       }
     },
     "notes": { "type": "array", "items": { "type": "string" } }

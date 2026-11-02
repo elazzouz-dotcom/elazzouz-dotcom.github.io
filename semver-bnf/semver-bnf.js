@@ -4,8 +4,8 @@ import { QURAN_STATISTICS, quranMetricForNode } from './quran-node-metrics.mjs';
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
-const VIEW_STATE_VERSION = 6;
-const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v4';
+const VIEW_STATE_VERSION = 7;
+const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v5-8cm';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
 const REPORT_CACHE_TTL = 10 * 60 * 1000;
@@ -22,7 +22,7 @@ const BUILTIN_NODES = Object.freeze({
   }
 });
 const NODE_SIZE = 60;
-const NODE_SPACING_CM = 10;
+const NODE_SPACING_CM = 8;
 const NODE_SPACING_PX = NODE_SPACING_CM * 37.7952755906;
 const ROW_GAP = NODE_SPACING_PX;
 const LEVEL_GAP = NODE_SPACING_PX;
@@ -667,43 +667,46 @@ function resetNodeLayout() {
   nodePositions.clear();
   layoutNodes();
   centerMapViewport('smooth');
-  setNodeStatus('تمت استعادة ترتيب 6600 عقدة بمسافة 10 سم ومسارات متماسكة.');
+  setNodeStatus('تمت استعادة ترتيب 6600 عقدة بمسافة 8 سم ومسارات هرمية متماسكة.');
 }
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));
-  const gridCell = 112;
+  const gridCell = NODE_SPACING_PX;
   const columns = 60;
-  const sidePadding = 60;
+  const sidePadding = Math.max(NODE_SPACING_PX, 2 * gridCell);
   const storedPositions = readNodePositions();
   const rowsByLevel = NODE_LEVELS.map((count) => Math.max(1, Math.ceil(count / columns)));
-  const totalRows = rowsByLevel.reduce((sum, rows) => sum + rows, 0) + NODE_LEVELS.length + 1;
+  const totalRows = rowsByLevel.reduce((sum, rows) => sum + rows, 0) + NODE_LEVELS.length * .35 + 1;
   mapWidth = Math.max(viewportWidth, columns * gridCell + sidePadding * 2);
   mapHeight = Math.max(nodeViewport.clientHeight, totalRows * gridCell + sidePadding * 2);
   let cursor = 1;
-  let rowCursor = 1;
+  let rowCursor = 0;
   nodePositions.clear();
   NODE_LEVELS.forEach((count, level) => {
     const rows = rowsByLevel[level];
     const levelWidth = Math.min(columns, count) * gridCell;
     const startX = Math.max(sidePadding, (mapWidth - levelWidth) / 2 + gridCell / 2);
     const label = levelLabels[level];
-    label.style.top = `${sidePadding + rowCursor * gridCell - 28}px`;
+    const levelTop = sidePadding + rowCursor * gridCell;
+    label.style.top = `${levelTop - gridCell * .48}px`;
     label.style.insetInlineStart = `${Math.max(12, startX - gridCell / 2)}px`;
     for (let position = 0; position < count; position += 1, cursor += 1) {
       const col = position % columns;
       const row = Math.floor(position / columns);
-      const gridX = startX + col * gridCell;
-      const gridY = sidePadding + (rowCursor + row) * gridCell;
+      // Alternate row lanes by half a cell to reduce long vertical collisions.
+      const rowOffset = row % 2 === 0 ? 0 : gridCell / 2;
+      const gridX = startX + col * gridCell + rowOffset;
+      const gridY = levelTop + row * gridCell;
       const saved = storedPositions[cursor];
       const point = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y) && saved.x <= mapWidth && saved.y <= mapHeight
         ? { x: Math.max(NODE_SIZE / 2, saved.x), y: Math.max(NODE_SIZE / 2, saved.y), level, row, col }
-        : { x: gridX, y: gridY, level, row, col };
+        : { x: gridX, y: gridY, level, row, col, rowOffset };
       nodePositions.set(cursor, point);
       const button = nodeButtons.get(cursor);
       button.style.left = `${point.x - NODE_SIZE / 2}px`;
       button.style.top = `${point.y - NODE_SIZE / 2}px`;
     }
-    rowCursor += rows + 1;
+    rowCursor += rows + 1.35;
   });
   fitMapToPositions();
   drawEdges();

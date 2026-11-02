@@ -77,10 +77,15 @@
     "reproducibility_reference": null
   },
   "integrity": {
-    "record_sha256": null,
-    "canonicalization": "RFC 8785 JSON Canonicalization Scheme",
-    "signed": false,
-    "signature": null
+    "record_sha256": "9203dd6ec259150848cf3aebd5106989e967a9feaa87b168b92c14c6b079b2f1",
+    "canonicalization": "deterministic-json-v1 (UTF-8, sorted keys, compact separators, trailing LF)",
+    "signed": true,
+    "signature": {
+      "algorithm": "Ed25519",
+      "encoding": "base64",
+      "value": "9CpYhcuN9dEHEtMrDzEYhy1lUoP/q7sjwOuM8AKxn+oTd19DKpoCACmqWucZWd/rEsED69WYczIgLRLvm+AwDw==",
+      "public_key_sha256": "b1aa8ffc4055b1e4aee5e06e2d3b4f462e7f17a26cee7950bc9080359ebe69b7"
+    }
   },
   "notes": [
     "Replace every null or replace-with-* value during a real pipeline run.",

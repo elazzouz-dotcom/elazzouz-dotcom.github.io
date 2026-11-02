@@ -42,3 +42,5 @@ jobs:
         run: node --test semver-bnf/graph-model.test.mjs
       - name: Validate fixed OneCompiler integration contract
         run: python3 scripts/check_onecompiler_contract.py
+      - name: Verify Ed25519 provenance signature
+        run: python3 scripts/verify_provenance.py
