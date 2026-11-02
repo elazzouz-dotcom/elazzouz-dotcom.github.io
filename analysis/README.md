@@ -31,7 +31,7 @@ python quran_root_type_monte_carlo.py data.csv \
 
 ```text
 p_MC = (عدد القيم المحاكاة التي >= chi2_observed + 1) / (B + 1)
-SE_MC = sqrt(p_MC * (1 - p_MC) / B)
+SE_MC = sqrt(p_MC * (1 - p_MC) / (B + 1))
 ```
 
 لإعادة النتيجة نفسها عمليًا، ثبّت إصدار Python وإصدارات NumPy وPandas وSciPy، واستخدم الملف نفسه، وتسلسل الاستدعاءات نفسه، والمنصة نفسها قدر الإمكان. لا يضمن `seed=42` وحده تطابق النتائج عبر إصدارات أو بيئات مختلفة.

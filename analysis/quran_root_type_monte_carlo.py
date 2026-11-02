@@ -89,7 +89,9 @@ def run_simulation(observed: np.ndarray, config: SimulationConfig) -> dict:
 
     exceedances = int(np.count_nonzero(chi2_simulated >= chi2_observed))
     p_mc = (exceedances + 1) / (config.samples + 1)
-    se_mc = float(np.sqrt(p_mc * (1.0 - p_mc) / config.samples))
+    # Keep the uncertainty estimate consistent with the +1 corrected
+    # Monte Carlo proportion used above.
+    se_mc = float(np.sqrt(p_mc * (1.0 - p_mc) / (config.samples + 1)))
 
     return {
         "config": asdict(config),
