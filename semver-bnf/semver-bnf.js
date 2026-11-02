@@ -1283,9 +1283,21 @@ function renderQuranNodeAnalysis(id) {
     item.textContent = `${label}: ${value}`;
     values.appendChild(item);
   });
-  const test = document.createElement('small');
-  test.textContent = combined ? `Kruskal-Wallis للقيمة المركبة: H=${combined.H_statistic.toFixed(4)} · p=${combined.p_value.toFixed(5)} · ε²=${combined.epsilon_squared.toFixed(4)} · B=200,000 · seed=12345` : 'نتيجة Kruskal-Wallis محفوظة في التقرير العلمي.';
-  host.append(title, values, test);
+  const tests = document.createElement('div');
+  tests.className = 'hub-quran-tests';
+  const labels = { surah_number_root: 'جذر رقم السورة', ayahs_count_root: 'جذر الآيات', combined_root: 'الجذر المركب', abjad_root: 'جذر الجُمّل' };
+  Object.entries(QURAN_STATISTICS.tests || {}).forEach(([key, item]) => {
+    const metrics = item.statistical_metrics;
+    const card = document.createElement('span');
+    card.textContent = `χ² ${labels[key] || key}: ${metrics.chi2_observed.toFixed(3)} · p=${metrics.p_value_monte_carlo.toFixed(5)}`;
+    tests.appendChild(card);
+  });
+  if (combined) {
+    const kw = document.createElement('small');
+    kw.textContent = `Kruskal-Wallis للقيمة المركبة: H=${combined.H_statistic.toFixed(4)} · p=${combined.p_value.toFixed(5)} · ε²=${combined.epsilon_squared.toFixed(4)} · B=200,000 · seed=12345`;
+    tests.appendChild(kw);
+  }
+  host.append(title, values, tests);
 }
 
 function openHubNode(id, button) {
