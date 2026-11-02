@@ -2285,6 +2285,66 @@ function setupPinchZoom() {
   viewport.addEventListener('touchcancel', endGesture, { passive: true });
 }
 
+function digitalRootBigInt(value) {
+  const absolute = value < 0n ? -value : value;
+  if (absolute === 0n) return 0n;
+  const remainder = absolute % 9n;
+  return remainder === 0n ? 9n : remainder;
+}
+function formatBigInt(value) {
+  return value.toString();
+}
+function setupMod9Lab() {
+  const input = $('#mod9-input');
+  const run = $('#mod9-run');
+  const results = $('#mod9-results');
+  if (!input || !run || !results) return;
+  const renderOperation = (name, expression, value, exact = true) => {
+    const row = document.createElement('div');
+    row.className = 'mod9-operation';
+    const title = document.createElement('strong');
+    title.textContent = name;
+    const calculation = document.createElement('code');
+    calculation.textContent = expression;
+    const root = document.createElement('span');
+    root.className = `mod9-root${exact && digitalRootBigInt(value) === 9n ? '' : ' is-neutral'}`;
+    root.textContent = exact ? `الجذر الرقمي: ${digitalRootBigInt(value).toString()}` : 'قسمة غير تامة';
+    row.append(title, calculation, root);
+    return row;
+  };
+  const analyze = () => {
+    const raw = input.value.trim();
+    results.replaceChildren();
+    results.removeAttribute('data-state');
+    if (!/^-?\d+$/.test(raw)) {
+      results.dataset.state = 'error';
+      results.textContent = 'الرجاء إدخال عدد صحيح صالح دون كسور أو فواصل.';
+      return;
+    }
+    let number;
+    try { number = BigInt(raw); } catch { results.dataset.state = 'error'; results.textContent = 'تعذر قراءة العدد.'; return; }
+    const root = digitalRootBigInt(number);
+    const summary = document.createElement('div');
+    summary.className = 'mod9-summary';
+    [['العدد', formatBigInt(number)], ['الجذر الرقمي', root.toString()], ['الباقي Mod 9', (number % 9n).toString()]].forEach(([label, value]) => {
+      const item = document.createElement('span'); item.textContent = `${label}: ${value}`; summary.appendChild(item);
+    });
+    results.appendChild(summary);
+    results.appendChild(renderOperation('الضرب في 9', `${formatBigInt(number)} × 9 = ${formatBigInt(number * 9n)}`, number * 9n));
+    results.appendChild(renderOperation('طرح 9', `${formatBigInt(number)} − 9 = ${formatBigInt(number - 9n)}`, number - 9n));
+    const divisible = number % 9n === 0n;
+    results.appendChild(renderOperation('القسمة على 9', divisible ? `${formatBigInt(number)} ÷ 9 = ${formatBigInt(number / 9n)}` : `${formatBigInt(number)} ÷ 9`, divisible ? number / 9n : 0n, divisible));
+    results.appendChild(renderOperation('جمع 9', `${formatBigInt(number)} + 9 = ${formatBigInt(number + 9n)}`, number + 9n));
+    const explanation = document.createElement('p');
+    explanation.className = 'mod9-explanation';
+    explanation.textContent = root === 9n ? 'هذا العدد من مضاعفات 9؛ لذلك تحافظ الإضافة والطرح بمقدار 9 على الصنف نفسه، بينما تكون القسمة على 9 صحيحة.' : 'العدد ليس من مضاعفات 9؛ الإضافة والطرح بمقدار 9 يحافظان على باقي القسمة، لكن الجذر الرقمي لا يكون بالضرورة 9.';
+    results.appendChild(explanation);
+  };
+  run.addEventListener('click', analyze);
+  input.addEventListener('keydown', (event) => { if (event.key === 'Enter') analyze(); });
+  analyze();
+}
+
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
   $('#clear-report-cache').addEventListener('click', clearReportCache);
@@ -2296,6 +2356,7 @@ function setupActions() {
   setupMobileNavigation();
   setupExternalLinkModal();
   setupOrbit();
+  setupMod9Lab();
   // تشغيل نفق المعلومات تلقائيًا عند وجود عقد مهيأة، دون طلب إضافي من المستخدم.
   window.setTimeout(() => collectReport(), 250);
 }
