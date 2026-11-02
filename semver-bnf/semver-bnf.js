@@ -1183,9 +1183,45 @@ function clearPreview() {
   hubPreview.hidden = true;
 }
 
-function sanitizeExternalPreview(html, baseUrl) {
+function scoreQuranRelevantText(text, metric) {
+  if (!metric) return 0;
+  const haystack = String(text || '').toLowerCase();
+  const terms = [metric.surah_name, metric.type, 'quran', 'surah', 'chapter', 'ayah', 'verse', String(metric.surah_number), String(metric.ayahs_count), String(metric.combined_root), String(metric.abjad_root)].filter(Boolean).map(String);
+  return terms.reduce((score, term) => score + (haystack.includes(term.toLowerCase()) ? (term.length > 2 ? 3 : 1) : 0), 0) + Math.min(2, Math.floor(haystack.length / 240));
+}
+
+function addQuranFilteredDigest(doc, metric) {
+  if (!metric || !doc.body) return;
+  const candidates = [...doc.body.querySelectorAll('article,section,main,p,li,h1,h2,h3,h4,blockquote,pre')]
+    .filter((element) => {
+      const text = element.textContent?.replace(/\s+/g, ' ').trim() || '';
+      return text.length >= 30 && text.length <= 2400 && !element.closest('nav,footer,aside,form');
+    })
+    .map((element) => ({ element, text: element.textContent.replace(/\s+/g, ' ').trim(), score: scoreQuranRelevantText(element.textContent, metric) }))
+    .sort((a, b) => b.score - a.score || b.text.length - a.text.length)
+    .filter((item, index, all) => item.score > 0 && !all.slice(0, index).some((previous) => previous.text.includes(item.text) || item.text.includes(previous.text)))
+    .slice(0, 12);
+  if (!candidates.length) return;
+  const digest = doc.createElement('section');
+  digest.setAttribute('data-slaks-quran-filter', 'true');
+  const heading = doc.createElement('h2');
+  heading.textContent = `تصفية خوارزمية · ${metric.surah_name} · ${metric.type}`;
+  const note = doc.createElement('p');
+  note.textContent = `تم ترتيب ${candidates.length} مقطعًا وفق تطابق نصي مع اسم السورة وخصائصها الرقمية. هذه مطابقة استكشافية وليست تفسيرًا دينيًا.`;
+  digest.append(heading, note, ...candidates.map(({ element, score }) => {
+    const item = doc.createElement('article');
+    item.setAttribute('data-quran-score', String(score));
+    item.innerHTML = `<strong>درجة المطابقة: ${score}</strong> `;
+    item.appendChild(element.cloneNode(true));
+    return item;
+  }));
+  doc.body.prepend(digest);
+}
+
+function sanitizeExternalPreview(html, baseUrl, metric = null) {
   const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
   doc.querySelectorAll('script,iframe,object,embed,form,base,meta[http-equiv="refresh"]').forEach((element) => element.remove());
+  addQuranFilteredDigest(doc, metric);
   doc.querySelectorAll('*').forEach((element) => {
     [...element.attributes].forEach((attribute) => {
       if (/^on/i.test(attribute.name) || attribute.name === 'srcdoc') element.removeAttribute(attribute.name);
@@ -1204,7 +1240,7 @@ function sanitizeExternalPreview(html, baseUrl) {
   });
   const safeBody = doc.body?.innerHTML || '<p>لم يُرجع المصدر محتوى قابلًا للعرض.</p>';
   const safeTitle = (doc.title || 'معاينة ويب').replace(/[<>]/g, '');
-  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; font-src https:; connect-src 'none'; frame-src 'none';"><title>${escapeXml(safeTitle)}</title><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e8f0ee;background:#071014;line-height:1.75}a{color:#59e0a3}img{max-width:100%;height:auto;border-radius:10px}pre{overflow:auto;background:#102127;padding:12px;border-radius:10px}</style></head><body>${safeBody}<script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'hub-preview-url',url:link.dataset.previewUrl},'*');});</script></body></html>`;
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; font-src https:; connect-src 'none'; frame-src 'none';"><title>${escapeXml(safeTitle)}</title><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e8f0ee;background:#071014;line-height:1.75}a{color:#59e0a3}img{max-width:100%;height:auto;border-radius:10px}pre{overflow:auto;background:#102127;padding:12px;border-radius:10px}[data-slaks-quran-filter]{margin-bottom:28px;padding:18px;border:1px solid #59e0a3;border-radius:16px;background:linear-gradient(145deg,#102127,#0b171b)}[data-slaks-quran-filter] h2{margin-top:0;color:#59e0a3}[data-slaks-quran-filter] p{color:#9cb0b2}[data-slaks-quran-filter] article{margin-top:10px;padding:10px;border-radius:10px;background:#071014;border-inline-start:3px solid #f4ce72}[data-slaks-quran-filter] strong{color:#f4ce72}</style></head><body>${safeBody}<script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'hub-preview-url',url:link.dataset.previewUrl},'*');});</script></body></html>`;
 }
 
 async function buildHub(silent = false) {
@@ -1239,7 +1275,7 @@ async function buildHub(silent = false) {
         const payload = await response.json();
         if (response.ok && payload.html) {
           hubPreview.removeAttribute('src');
-          hubPreview.srcdoc = sanitizeExternalPreview(payload.html, payload.finalUrl || link.url);
+          hubPreview.srcdoc = sanitizeExternalPreview(payload.html, payload.finalUrl || link.url, quranMetricForNode(activeHub.id));
           hubAddress.textContent = `${software.label} · ${payload.finalUrl || link.url}`;
           renderExtraction({ title: payload.title || link.host, text: payload.description || payload.text || 'تم جلب نسخة HTML عبر Relay داخل Slaks.', elements: payload.elements, links: payload.links?.length, source: 'Cloudflare Preview Relay', kind: software.kind });
           setHubStatus('ظهرت نسخة الموقع داخل Slaks عبر Relay؛ يمكنك متابعة الروابط من نفس بطاقة المعاينة.');
