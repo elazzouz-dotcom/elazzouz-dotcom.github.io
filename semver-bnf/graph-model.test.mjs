@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { NODE_LEVELS, NODE_TOTAL, getNodeChildren, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
+import { BUILTIN_NODES } from './builtin-nodes.mjs';
 
 test('الشبكة تضم 6600 عقدة بمستويات متزايدة تبدأ من 1 ثم 2 ثم 3', () => {
   assert.deepEqual(NODE_LEVELS.slice(0, 6), [1, 2, 3, 4, 5, 6]);
@@ -9,6 +11,22 @@ test('الشبكة تضم 6600 عقدة بمستويات متزايدة تبدأ
   assert.equal(NODE_TOTAL, 6600);
   assert.equal(getNodeLevelInfo(200).level, 19);
   assert.equal(getNodeLevelInfo(0), null);
+});
+
+test('محاكاة السرب مدمجة في العقدة الطرفية 6600 دون توسيع الشبكة أو الاتصال بالشبكة', async () => {
+  const node = BUILTIN_NODES[6600];
+  assert.equal(NODE_TOTAL, 6600);
+  assert.equal(getNodeChildren(6600).length, 0);
+  assert.equal(node.kind, 'local-tool');
+  assert.equal(node.label, 'محاكاة السرب المتوازن');
+  assert.equal(node.url, 'https://elazzouz-dotcom.github.io/semver-bnf/swarm-simulation/');
+
+  const page = await readFile(new URL('./swarm-simulation/index.html', import.meta.url), 'utf8');
+  const script = await readFile(new URL('./swarm-simulation/swarm-simulation.js', import.meta.url), 'utf8');
+  assert.match(page, /<html lang="ar" dir="rtl">/);
+  assert.match(page, /محاكاة تعليمية فقط/);
+  assert.match(script, /const LIMIT = 300/);
+  assert.doesNotMatch(script, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
 });
 
 test('لكل عقدة غير الجذر أب سابق صالح ولا توجد حلقات ذاتية', () => {
