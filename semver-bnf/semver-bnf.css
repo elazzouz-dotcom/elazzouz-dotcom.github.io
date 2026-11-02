@@ -210,6 +210,9 @@ body.semver-page a { color: inherit; }
 .sovereign-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: .7rem; border-bottom: 1px solid var(--semver-line); padding-bottom: .6rem; }
 .sovereign-panel-heading h3 { margin: 0; color: var(--semver-green); font-size: 1rem; }
 .sovereign-live { color: var(--semver-green); font-size: .68rem; font-weight: 900; white-space: nowrap; }
+.swarm-toggle { width: 100%; min-height: 36px; margin-top: .7rem; padding: .4rem .7rem; font-size: .75rem; }
+.network-node.is-swarm-active { z-index: 8; border-color: var(--semver-gold); color: #071014; background: var(--semver-gold); box-shadow: 0 0 0 5px rgba(244,206,114,.18), 0 0 24px rgba(244,206,114,.48); animation: swarm-node-pulse 1s ease-in-out infinite alternate; }
+@keyframes swarm-node-pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
 .sovereign-muted { margin: .6rem 0 0; color: var(--semver-muted); font-size: .75rem; line-height: 1.7; }
 .agent-code-view { display: grid; gap: .18rem; min-height: 170px; margin-top: .75rem; overflow: hidden; border: 1px solid #1f2937; border-radius: 10px; padding: .75rem; color: #38bdf8; background: #010409; font: .68rem/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .agent-code-line { overflow: hidden; padding: .2rem .3rem; opacity: .4; text-overflow: ellipsis; white-space: nowrap; transition: opacity .25s ease, background .25s ease, color .25s ease; }

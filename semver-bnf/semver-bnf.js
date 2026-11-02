@@ -2499,6 +2499,15 @@ function setupSovereignDashboard() {
   window.setInterval(update, 1400);
 }
 
+function setupBugSwarmBridge() {
+  document.addEventListener('slaks:swarm-node', (event) => {
+    const detail = event.detail || {};
+    const id = Number(detail.id);
+    if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL) return;
+    inspectNodeAlgebraically(id, detail.name || `عقدة N-${String(id).padStart(3, '0')}`, detail.value || id);
+  });
+}
+
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
   $('#clear-report-cache').addEventListener('click', clearReportCache);
@@ -2513,6 +2522,7 @@ function setupActions() {
   setupMod9Lab();
   setupAlgebraBridge();
   setupSovereignDashboard();
+  setupBugSwarmBridge();
   // تشغيل نفق المعلومات تلقائيًا عند وجود عقد مهيأة، دون طلب إضافي من المستخدم.
   window.setTimeout(() => collectReport(), 250);
 }

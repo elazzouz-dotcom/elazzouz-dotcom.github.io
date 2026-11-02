@@ -105,7 +105,8 @@
         </div>
         <div class="sovereign-dashboard-grid">
           <article class="sovereign-panel">
-            <div class="sovereign-panel-heading"><h3>وكلاء الفحص وحالة خط البناء</h3><span id="agent-status" class="sovereign-live">● مباشر</span></div>
+            <div class="sovereign-panel-heading"><h3>وكلاء الفحص وحالة خط البناء</h3><span id="agent-status" class="sovereign-live">● سرب يستعد</span></div>
+            <button id="swarm-toggle" class="semver-button swarm-toggle" type="button" aria-pressed="true">إيقاف السرب</button>
             <div id="agent-code-view" class="agent-code-view" aria-live="polite">
               <div class="agent-code-line" data-agent-line="0">01. initialize_sovereign_network(nodes=6600, levels=114)</div>
               <div class="agent-code-line" data-agent-line="1">02. validate_hierarchy(edges=6599, parents=1)</div>
@@ -428,6 +429,7 @@
     </div>
   </footer>
   <script src="/language.js" defer></script>
+  <script defer src="/semver-bnf/sovereign-bug-swarm.js?v=swarm-v1"></script>
   <script type="module" src="/semver-bnf/knowledge-api-client.js?v=knowledge-api-v1"></script>
   <script type="module" src="/semver-bnf/semver-bnf.js?v=hierarchical-8cm-v1"></script>
 </body>
