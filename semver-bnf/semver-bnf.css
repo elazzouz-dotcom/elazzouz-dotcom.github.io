@@ -289,6 +289,17 @@ body.semver-page a { color: inherit; }
 .mod9-root { color: #10b981; font-weight: 800; }
 .mod9-root.is-neutral { color: #f59e0b; }
 .mod9-explanation { margin: .65rem 0 0; color: #94a3b8; font-family: system-ui, sans-serif; font-size: .75rem; line-height: 1.7; }
+.quran-analysis-panel { margin-top: 1rem; border: 1px solid rgba(244, 206, 114, .36); border-radius: 14px; padding: .9rem; background: linear-gradient(145deg, rgba(31, 28, 13, .7), rgba(7, 16, 20, .8)); }
+.quran-analysis-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.quran-analysis-heading .semver-kicker { margin: 0 0 .2rem; color: var(--semver-gold); }
+.quran-analysis-heading h3 { margin: 0; color: #f8e7ad; font-family: system-ui, sans-serif; font-size: 1rem; }
+.quran-analysis-heading > span { color: var(--semver-muted); font-size: .72rem; white-space: nowrap; }
+.quran-analysis-controls { display: flex; align-items: end; gap: .6rem; margin-top: .75rem; }
+.quran-analysis-controls .semver-field-label { flex: 1; color: var(--semver-gold); }
+.quran-analysis-controls .semver-button { min-height: 40px; border-color: rgba(244, 206, 114, .45); color: #1b1708; background: var(--semver-gold); }
+.quran-analysis-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .45rem; margin-top: .7rem; }
+.quran-analysis-summary span { border: 1px solid rgba(244, 206, 114, .24); border-radius: 9px; padding: .45rem .5rem; color: #e8dcae; background: rgba(244, 206, 114, .06); font-size: .72rem; }
+.quran-analysis-note { margin: .65rem 0 0; color: var(--semver-muted); font-family: system-ui, sans-serif; font-size: .7rem; line-height: 1.7; }
 .grammar-card { padding: 1rem; }
 .grammar-card h3 { margin: 0 0 .75rem; font-size: 1rem; }
 .grammar-card pre { overflow: auto; margin: 0; border: 1px solid rgba(89, 224, 163, .14); border-radius: 12px; padding: .9rem; color: #d5e7df; background: #071014; direction: ltr; text-align: left; font: .77rem/1.85 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }

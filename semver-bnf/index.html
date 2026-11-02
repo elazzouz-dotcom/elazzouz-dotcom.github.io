@@ -333,6 +333,17 @@
           </div>
           <p id="mod9-help" class="mod9-help">يُنفّذ التحليل محليًا باستخدام أعداد صحيحة دقيقة.</p>
           <div id="mod9-results" class="mod9-results" aria-live="polite"></div>
+          <section class="quran-analysis-panel" aria-labelledby="quran-analysis-title">
+            <div class="quran-analysis-heading"><div><p class="semver-kicker">المصحف الشريف · بيانات محلية</p><h3 id="quran-analysis-title">تحليل السور داخل المختبر</h3></div><span>114 سورة</span></div>
+            <div class="quran-analysis-controls">
+              <label class="semver-field-label" for="quran-surah-select">اختر السورة
+                <select id="quran-surah-select" class="semver-select"></select>
+              </label>
+              <button id="quran-analyze" class="semver-button" type="button">تحليل السورة في Mod 9</button>
+            </div>
+            <div id="quran-analysis-summary" class="quran-analysis-summary" aria-live="polite"></div>
+            <p class="quran-analysis-note">يعرض هذا القسم بيانات السورة المحلية المستخدمة في التحليل: عدد الآيات، النوع، القيمة المركبة، وقيمة الجُمّل. لا يستبدل نص المصحف أو التفسير.</p>
+          </section>
         </div>
       </div>
     </section>

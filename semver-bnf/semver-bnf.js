@@ -2470,6 +2470,37 @@ function setupMod9Lab() {
   input.addEventListener('keydown', (event) => { if (event.key === 'Enter') analyze(); });
   analyze();
 }
+function setupQuranAnalysis() {
+  const select = $('#quran-surah-select');
+  const summary = $('#quran-analysis-summary');
+  const analyzeButton = $('#quran-analyze');
+  if (!select || !summary || !analyzeButton) return;
+  QURAN_SURAH_METRICS.forEach((surah) => {
+    select.appendChild(new Option(`${surah.surah_number}. ${surah.surah_name} · ${surah.type}`, String(surah.surah_number)));
+  });
+  const render = () => {
+    const surah = QURAN_SURAH_METRICS.find((item) => item.surah_number === Number(select.value)) || QURAN_SURAH_METRICS[0];
+    summary.replaceChildren();
+    [['الآيات', surah.ayahs_count], ['النوع', surah.type], ['القيمة المركبة', `${surah.combined_value} · جذر ${surah.combined_root}`], ['قيمة الجُمّل', `${surah.abjad_value} · جذر ${surah.abjad_root}`]].forEach(([label, value]) => {
+      const item = document.createElement('span'); item.textContent = `${label}: ${value}`; summary.appendChild(item);
+    });
+  };
+  select.addEventListener('change', render);
+  analyzeButton.addEventListener('click', () => {
+    const surah = QURAN_SURAH_METRICS.find((item) => item.surah_number === Number(select.value)) || QURAN_SURAH_METRICS[0];
+    const input = $('#mod9-input');
+    const context = $('#mod9-context');
+    if (!input || !context) return;
+    input.value = String(surah.abjad_value);
+    context.value = 'manual';
+    const help = $('#mod9-help');
+    if (help) help.textContent = `تحليل سورة ${surah.surah_name} · قيمة الجُمّل ${surah.abjad_value} · ${surah.ayahs_count} آية.`;
+    mod9AnalyzeCurrent?.();
+    $('#mod9-lab')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  select.value = '1';
+  render();
+}
 function setupSovereignDashboard() {
   const lines = [...document.querySelectorAll('[data-agent-line]')];
   const radar = $('#surah-radar');
@@ -2521,6 +2552,7 @@ function setupActions() {
   setupExternalLinkModal();
   setupOrbit();
   setupMod9Lab();
+  setupQuranAnalysis();
   setupAlgebraBridge();
   setupSovereignDashboard();
   setupBugSwarmBridge();
