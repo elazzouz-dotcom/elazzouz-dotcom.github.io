@@ -3,8 +3,8 @@ import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
-const VIEW_STATE_VERSION = 4;
-const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v3';
+const VIEW_STATE_VERSION = 6;
+const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v4';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
 const REPORT_CACHE_TTL = 10 * 60 * 1000;
@@ -20,7 +20,7 @@ const BUILTIN_NODES = Object.freeze({
     label: 'VSAT Gateway'
   }
 });
-const NODE_SIZE = 44;
+const NODE_SIZE = 60;
 const NODE_SPACING_CM = 10;
 const NODE_SPACING_PX = NODE_SPACING_CM * 37.7952755906;
 const ROW_GAP = NODE_SPACING_PX;
@@ -36,10 +36,26 @@ const networkCanvas = $('#network-canvas');
 const canvasContext = networkCanvas.getContext('2d');
 let canvasPointer = null;
 const nodeButtons = new Map();
+const nodeCentrality = new Map();
 const nodeTypeCache = new Map();
 let filterFrame = 0;
+let filterDebounceTimer = 0;
+const FILTER_DEBOUNCE_MS = 100;
+const nodeFilterWorker = typeof Worker === 'function'
+  ? new Worker(new URL('./node-filter-worker.js', import.meta.url), { type: 'module' })
+  : null;
+let nodeFilterWorkerReady = false;
+let nodeFilterRequestId = 0;
+let latestNodeFilterRequestId = 0;
+let nodeFilterIndexVersion = 0;
+let visibleNodeUpdateFrame = 0;
+let visibleNodeUpdateToken = 0;
 const levelLabels = [];
 const nodePositions = new Map();
+const visibleNodeIds = new Set();
+const visibleEdgeIds = new Set();
+let edgeVisibilityFrame = 0;
+let edgeVisibilityToken = 0;
 let mapWidth = 0;
 let mapHeight = 0;
 let zoom = 1;
@@ -86,21 +102,27 @@ function persistUiSettings() {
     query: $('#node-search')?.value || '',
     nodeFilter: $('#node-filter')?.value || 'all',
     softwareFilter: $('#software-filter')?.value || 'all',
-    levelFilter: $('#level-filter')?.value || 'all'
+    levelFilter: $('#level-filter')?.value || 'all',
+    searchMode: $('#node-search-mode')?.value || 'all',
+    sort: $('#node-sort')?.value || 'id',
+    resultLimit: $('#node-result-limit')?.value || '16'
   });
 }
 function restoreUiSettings() {
   const settings = readJson(UI_SETTINGS_KEY, {});
   const showAll = settings.viewVersion !== VIEW_STATE_VERSION;
-  if (Number.isFinite(settings.zoom)) zoom = Math.min(1.5, Math.max(.6, Number(settings.zoom)));
+  if (Number.isFinite(settings.zoom)) zoom = Math.min(1.5, Math.max(.05, Number(settings.zoom)));
   if ($('#node-search')) {
     $('#node-search').value = showAll ? '' : String(settings.query || '');
     if ($('#node-search-clear')) $('#node-search-clear').hidden = !$('#node-search').value;
   }
   if ($('#node-filter')) $('#node-filter').value = showAll ? 'all' : (['all', 'active', 'empty'].includes(settings.nodeFilter) ? settings.nodeFilter : 'all');
   if ($('#software-filter')) $('#software-filter').value = showAll ? 'all' : (['all', 'software', 'download', 'web', 'app', 'matrix', 'html'].includes(settings.softwareFilter) ? settings.softwareFilter : 'all');
-  if ($('#level-filter')) $('#level-filter').value = showAll ? 'all' : ((settings.levelFilter === 'all' || /^[0-8]$/.test(String(settings.levelFilter))) ? String(settings.levelFilter) : 'all');
-  if (showAll) writeJson(UI_SETTINGS_KEY, { ...settings, viewVersion: VIEW_STATE_VERSION, query: '', nodeFilter: 'all', softwareFilter: 'all', levelFilter: 'all' });
+  if ($('#level-filter')) $('#level-filter').value = showAll ? 'all' : ((settings.levelFilter === 'all' || /^\d+$/.test(String(settings.levelFilter)) && Number(settings.levelFilter) < NODE_LEVELS.length) ? String(settings.levelFilter) : 'all');
+  if ($('#node-search-mode')) $('#node-search-mode').value = showAll ? 'all' : (['all', 'any'].includes(settings.searchMode) ? settings.searchMode : 'all');
+  if ($('#node-sort')) $('#node-sort').value = showAll ? 'id' : (['id', 'level', 'active'].includes(settings.sort) ? settings.sort : 'id');
+  if ($('#node-result-limit')) $('#node-result-limit').value = showAll ? '16' : (['8', '16', '32'].includes(String(settings.resultLimit)) ? String(settings.resultLimit) : '16');
+  if (showAll) writeJson(UI_SETTINGS_KEY, { ...settings, viewVersion: VIEW_STATE_VERSION, query: '', nodeFilter: 'all', softwareFilter: 'all', levelFilter: 'all', searchMode: 'all', sort: 'id', resultLimit: '16' });
 }
 function getHubData(id) {
   try {
@@ -127,6 +149,62 @@ function nodeLabel(id) {
   return `N-${String(id).padStart(3, '0')}`;
 }
 
+function calculateNodeCentrality() {
+  const children = Array.from({ length: NODE_TOTAL + 1 }, () => []);
+  const parents = new Int32Array(NODE_TOTAL + 1);
+  for (let id = 2; id <= NODE_TOTAL; id += 1) {
+    const parent = getNodeParent(id);
+    parents[id] = parent;
+    children[parent].push(id);
+  }
+  const subtree = new Int32Array(NODE_TOTAL + 1);
+  subtree.fill(1);
+  for (let id = NODE_TOTAL; id > 1; id -= 1) subtree[parents[id]] += subtree[id];
+  const normalization = ((NODE_TOTAL - 1) * (NODE_TOTAL - 2)) / 2;
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const components = children[id].map((child) => subtree[child]);
+    if (parents[id]) components.push(NODE_TOTAL - subtree[id]);
+    const pairCount = (NODE_TOTAL ** 2 - components.reduce((sum, size) => sum + size ** 2, 0)) / 2;
+    nodeCentrality.set(id, {
+      degree: children[id].length + (parents[id] ? 1 : 0),
+      betweenness: normalization ? pairCount / normalization : 0,
+      subtreeSize: subtree[id]
+    });
+  }
+}
+
+function centralityLabel(id, metric) {
+  const metrics = nodeCentrality.get(id) || { degree: 0, betweenness: 0 };
+  const value = metric === 'degree' ? String(metrics.degree) : metrics.betweenness.toFixed(4);
+  return `${nodeLabel(id)} · ${metric === 'degree' ? 'الدرجة' : 'الوساطة'} ${value}`;
+}
+
+function renderNodeCentrality() {
+  const entries = [...nodeCentrality.entries()];
+  [['#centrality-degree-list', 'degree'], ['#centrality-betweenness-list', 'betweenness']].forEach(([selector, metric]) => {
+    const list = $(selector);
+    if (!list) return;
+    list.replaceChildren();
+    entries.sort((a, b) => b[1][metric] - a[1][metric] || a[0] - b[0]).slice(0, 8).forEach(([id]) => {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = `${centralityLabel(id, metric)} · المستوى ${(nodeButtons.get(id)?.dataset.level ? Number(nodeButtons.get(id).dataset.level) + 1 : 0)}`;
+      button.addEventListener('click', () => {
+        const node = nodeButtons.get(id);
+        const position = nodePositions.get(id);
+        if (!node || !position) return;
+        nodeButtons.forEach((candidate) => candidate.classList.remove('centrality-focus'));
+        node.classList.add('centrality-focus');
+        nodeViewport.scrollTo({ left: Math.max(0, position.x * zoom - nodeViewport.clientWidth / 2), top: Math.max(0, position.y * zoom - nodeViewport.clientHeight / 2), behavior: 'smooth' });
+        setNodeStatus(`تم تحديد ${centralityLabel(id, metric)}؛ حجم الفرع ${nodeCentrality.get(id).subtreeSize} عقدة.`);
+      });
+      item.appendChild(button);
+      list.appendChild(item);
+    });
+  });
+}
+
 function refreshNode(id) {
   nodeTypeCache.delete(id);
   const button = nodeButtons.get(id);
@@ -134,6 +212,8 @@ function refreshNode(id) {
   const data = getHubData(id);
   const configured = isConfigured(data);
   button.dataset.active = String(configured);
+  button.dataset.linkUrl = data?.url || '';
+  button.dataset.linkKind = data?.kind || (data?.html ? 'html' : '');
   button.setAttribute('aria-pressed', String(configured));
   const badge = button.querySelector('.node-badge');
   if (!configured) {
@@ -258,8 +338,8 @@ function createNodeElements() {
   let id = 1;
   NODE_LEVELS.forEach((count, level) => {
     const label = document.createElement('span');
-    label.className = 'network-level-label';
-    label.textContent = `المستوى ${level + 1} · ${count} عقدة`;
+    label.className = `network-level-label${level < 6 ? ' network-level-intro' : ''}`;
+    label.textContent = level < 6 ? `المستوى ${level + 1} · ${count} ${count === 1 ? 'عقدة' : count === 2 ? 'عقدتان' : 'عقد'}` : `المستوى ${level + 1} · ${count} عقدة`;
     label.dataset.level = String(level);
     nodeNetwork.appendChild(label);
     levelLabels.push(label);
@@ -297,6 +377,8 @@ function createNodeElements() {
       refreshNode(currentId);
     }
   });
+  calculateNodeCentrality();
+  renderNodeCentrality();
   updateStats();
 }
 
@@ -390,8 +472,11 @@ function renderCanvasNetwork() {
   canvasContext.scale(zoom, zoom);
   canvasContext.translate(-offsetX / zoom, -offsetY / zoom);
   canvasContext.lineWidth = 2.5 / zoom;
-  for (let id = 2; id <= NODE_TOTAL; id += 1) {
-    const parentId = getNodeParent(id); const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
+  for (const edgeKey of visibleEdgeIds) {
+    const [parentRaw, childRaw] = edgeKey.split(':');
+    const id = Number(childRaw);
+    const parentId = Number(parentRaw);
+    const parent = nodePositions.get(parentId); const child = nodePositions.get(id);
     const parentButton = nodeButtons.get(parentId); const childButton = nodeButtons.get(id);
     if (!parent || !child || parentButton?.hidden || childButton?.hidden) continue;
     const visibleLeft = offsetX / zoom - NODE_SIZE;
@@ -400,12 +485,38 @@ function renderCanvasNetwork() {
     const visibleBottom = (offsetY + nodeViewport.clientHeight) / zoom + NODE_SIZE;
     if (Math.max(parent.x, child.x) < visibleLeft || Math.min(parent.x, child.x) > visibleRight || Math.max(parent.y, child.y) < visibleTop || Math.min(parent.y, child.y) > visibleBottom) continue;
     const type = relationType(parentId, id); canvasContext.strokeStyle = colors[type === 'software' ? 'software' : type === 'content' ? 'content' : 'hierarchy'];
+    const emphasized = parentButton.classList.contains('is-path') && childButton.classList.contains('is-path');
+    canvasContext.globalAlpha = emphasized ? .9 : .12;
     const style = readJson(RELATION_STYLE_KEY, {})[type === 'software' ? 'software' : type] || {};
-    canvasContext.setLineDash(style.style === 'dashed' ? [10, 7] : style.style === 'dotted' ? [2, 7] : []);
-    canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.quadraticCurveTo((parent.x + child.x) / 2, (parent.y + child.y) / 2, child.x, child.y); canvasContext.stroke();
+    canvasContext.setLineDash(style.style === 'dashed' ? [7, 6] : style.style === 'dotted' ? [2, 6] : []);
+    const midY = parent.y + (child.y - parent.y) * .5;
+    canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.lineTo(parent.x, midY); canvasContext.lineTo(child.x, midY); canvasContext.lineTo(child.x, child.y); canvasContext.stroke();
+    canvasContext.globalAlpha = 1;
   }
   canvasContext.setLineDash([]);
-  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+  const introLevels = NODE_LEVELS.slice(0, 6);
+  let introCursor = 1;
+  introLevels.forEach((count, level) => {
+    const first = nodePositions.get(introCursor);
+    const last = nodePositions.get(introCursor + count - 1);
+    if (first && last) {
+      const y = first.y;
+      canvasContext.save();
+      canvasContext.strokeStyle = 'rgba(89, 224, 163, .16)';
+      canvasContext.setLineDash([5, 8]);
+      canvasContext.lineWidth = 1;
+      canvasContext.beginPath(); canvasContext.moveTo(34, y); canvasContext.lineTo(mapWidth - 34, y); canvasContext.stroke();
+      canvasContext.setLineDash([]);
+      canvasContext.fillStyle = 'rgba(168, 255, 211, .82)';
+      canvasContext.font = '800 12px system-ui,sans-serif';
+      canvasContext.textAlign = 'start'; canvasContext.textBaseline = 'middle';
+      const countLabel = count === 1 ? 'عقدة' : count === 2 ? 'عقدتان' : 'عقد';
+      canvasContext.fillText(`المستوى ${level + 1} · ${count} ${countLabel}`, 38, y - 31);
+      canvasContext.restore();
+    }
+    introCursor += count;
+  });
+  for (const id of visibleNodeIds) {
     const button = nodeButtons.get(id); const point = nodePositions.get(id); if (!button || button.hidden || !point) continue;
     const visibleLeft = offsetX / zoom - NODE_SIZE;
     const visibleTop = offsetY / zoom - NODE_SIZE;
@@ -413,7 +524,10 @@ function renderCanvasNetwork() {
     const visibleBottom = (offsetY + nodeViewport.clientHeight) / zoom + NODE_SIZE;
     if (point.x < visibleLeft || point.x > visibleRight || point.y < visibleTop || point.y > visibleBottom) continue;
     const active = button.dataset.active === 'true'; const highlighted = button.classList.contains('is-highlighted') || button.classList.contains('is-path');
-    canvasContext.beginPath(); canvasContext.arc(point.x, point.y, NODE_SIZE / 2, 0, Math.PI * 2);
+    const introNode = Number(button.dataset.level) < 6;
+    const nodeRadius = introNode ? 25 : NODE_SIZE / 2;
+    canvasContext.beginPath(); canvasContext.arc(point.x, point.y, nodeRadius, 0, Math.PI * 2);
+    if (introNode) { canvasContext.fillStyle = 'rgba(89, 224, 163, .08)'; canvasContext.fill(); canvasContext.beginPath(); canvasContext.arc(point.x, point.y, nodeRadius + 5, 0, Math.PI * 2); canvasContext.strokeStyle = 'rgba(244, 206, 114, .38)'; canvasContext.lineWidth = 1.5; canvasContext.stroke(); canvasContext.beginPath(); canvasContext.arc(point.x, point.y, nodeRadius, 0, Math.PI * 2); }
     canvasContext.fillStyle = active ? '#17140b' : '#081411'; canvasContext.fill(); canvasContext.lineWidth = highlighted ? 4 : 2; canvasContext.strokeStyle = active ? '#f4ce72' : highlighted ? '#f4ce72' : '#59e0a3'; canvasContext.stroke();
     canvasContext.fillStyle = '#59e0a3'; canvasContext.font = '900 16px system-ui,sans-serif'; canvasContext.textAlign = 'center'; canvasContext.textBaseline = 'middle'; canvasContext.fillText('+', point.x, point.y - 4);
     canvasContext.fillStyle = '#e5fff3'; canvasContext.font = '900 7px system-ui,sans-serif'; canvasContext.fillText(nodeLabel(id), point.x, point.y + 10);
@@ -428,7 +542,7 @@ function setupCanvasInteraction() {
     const pointerY = event.clientY - rect.top;
     const worldX = (pointerX + nodeViewport.scrollLeft) / zoom;
     const worldY = (pointerY + nodeViewport.scrollTop) / zoom;
-    zoom = Math.max(.35, Math.min(1.5, Math.round((zoom + (event.deltaY < 0 ? .1 : -.1)) * 10) / 10));
+    zoom = Math.max(.05, Math.min(1.5, Math.round((zoom + (event.deltaY < 0 ? .1 : -.1)) * 10) / 10));
     applyZoom();
     nodeViewport.scrollLeft = Math.max(0, worldX * zoom - pointerX);
     nodeViewport.scrollTop = Math.max(0, worldY * zoom - pointerY);
@@ -444,10 +558,54 @@ function setupCanvasInteraction() {
     if (Math.abs(dx) + Math.abs(dy) > 4) canvasPointer.moved = true;
     if (!canvasPointer.moved) return;
     position.x = Math.max(NODE_SIZE / 2, position.x + dx); position.y = Math.max(NODE_SIZE / 2, position.y + dy); canvasPointer.startX = point.x; canvasPointer.startY = point.y;
-    const button = nodeButtons.get(canvasPointer.id); button.style.left = `${position.x - NODE_SIZE / 2}px`; button.style.top = `${position.y - NODE_SIZE / 2}px`; fitMapToPositions(); drawEdges(); renderCanvasNetwork();
+    const button = nodeButtons.get(canvasPointer.id); button.style.left = `${position.x - NODE_SIZE / 2}px`; button.style.top = `${position.y - NODE_SIZE / 2}px`; fitMapToPositions(); updateEdgesForNode(canvasPointer.id); renderCanvasNetwork();
   });
   const end = (event) => { if (!canvasPointer) return; const id = canvasPointer.id; const moved = canvasPointer.moved; canvasPointer = null; if (!moved) openHubNode(id, nodeButtons.get(id)); else saveNodePositions(); networkCanvas.releasePointerCapture?.(event.pointerId); };
   networkCanvas.addEventListener('pointerup', end); networkCanvas.addEventListener('pointercancel', end);
+}
+function scheduleEdgeVisibilityUpdate() {
+  const token = ++edgeVisibilityToken;
+  if (edgeVisibilityFrame) cancelAnimationFrame(edgeVisibilityFrame);
+  visibleEdgeIds.clear();
+  const paths = [...lines.querySelectorAll('.network-connection')];
+  let cursor = 0;
+  const processBatch = () => {
+    if (token !== edgeVisibilityToken) return;
+    const startedAt = performance.now();
+    const batchEnd = Math.min(paths.length, cursor + 240);
+    while (cursor < batchEnd && performance.now() - startedAt < 6) {
+      const path = paths[cursor];
+      const from = nodeButtons.get(Number(path.dataset.from));
+      const to = nodeButtons.get(Number(path.dataset.to));
+      const visible = !from?.hidden && !to?.hidden;
+      path.hidden = !visible;
+      if (visible) visibleEdgeIds.add(`${path.dataset.from}:${path.dataset.to}`);
+      cursor += 1;
+    }
+    if (cursor < paths.length) {
+      edgeVisibilityFrame = requestAnimationFrame(processBatch);
+      return;
+    }
+    edgeVisibilityFrame = 0;
+    renderCanvasNetwork();
+  };
+  edgeVisibilityFrame = requestAnimationFrame(processBatch);
+}
+function updateEdgeGeometry(path, parentId, childId) {
+  const parent = nodePositions.get(parentId);
+  const child = nodePositions.get(childId);
+  if (!parent || !child) return;
+  const startY = parent.y + NODE_SIZE * .43;
+  const endY = child.y - NODE_SIZE * .43;
+  const curve = Math.max(18, Math.abs(endY - startY) * .38);
+  path.setAttribute('d', `M ${parent.x} ${startY} C ${parent.x} ${startY + curve}, ${child.x} ${endY - curve}, ${child.x} ${endY}`);
+}
+function updateEdgesForNode(id) {
+  const paths = new Set([
+    ...lines.querySelectorAll(`[data-from="${id}"]`),
+    ...lines.querySelectorAll(`[data-to="${id}"]`)
+  ]);
+  paths.forEach((path) => updateEdgeGeometry(path, Number(path.dataset.from), Number(path.dataset.to)));
 }
 function drawEdges() {
   const svgNamespace = 'http://www.w3.org/2000/svg';
@@ -458,9 +616,6 @@ function drawEdges() {
     const child = nodePositions.get(id);
     if (!parent || !child) continue;
     const path = document.createElementNS(svgNamespace, 'path');
-    const startY = parent.y + NODE_SIZE * .43;
-    const endY = child.y - NODE_SIZE * .43;
-    const curve = Math.max(18, Math.abs(endY - startY) * .38);
     const edgeType = relationType(parentId, id);
     path.setAttribute('class', `network-connection edge-${edgeType}`);
     path.dataset.relation = edgeType;
@@ -469,7 +624,7 @@ function drawEdges() {
     path.setAttribute('role', 'button');
     path.setAttribute('tabindex', '0');
     path.setAttribute('aria-label', `علاقة من ${nodeLabel(parentId)} إلى ${nodeLabel(id)}`);
-    path.setAttribute('d', `M ${parent.x} ${startY} C ${parent.x} ${startY + curve}, ${child.x} ${endY - curve}, ${child.x} ${endY}`);
+    updateEdgeGeometry(path, parentId, id);
     path.addEventListener('pointerenter', () => focusEdge(path, parentId, id));
     path.addEventListener('pointerleave', () => { if (focusedEdge?.path === path) clearEdgeFocus(); });
     path.addEventListener('focus', () => focusEdge(path, parentId, id));
@@ -485,6 +640,8 @@ function drawEdges() {
   lines.setAttribute('height', String(mapHeight));
   lines.style.width = `${mapWidth}px`;
   lines.style.height = `${mapHeight}px`;
+  visibleEdgeIds.clear();
+  scheduleEdgeVisibilityUpdate();
   renderCanvasNetwork();
 }
 
@@ -499,7 +656,9 @@ function applyZoom() {
 }
 
 function centerMapViewport(behavior = 'auto') {
-  nodeViewport.scrollTo({ left: Math.max(0, (mapWidth - nodeViewport.clientWidth) / 2), top: Math.max(0, (mapHeight - nodeViewport.clientHeight) / 2), behavior });
+  // يبدأ المسار من الجذر في أعلى الخريطة؛ تمركز الارتفاع الكامل كان يضع
+  // المستخدم في منتصف شبكة بارتفاع آلاف البكسلات، فيبدو أن الشبكة فارغة.
+  nodeViewport.scrollTo({ left: Math.max(0, (mapWidth - nodeViewport.clientWidth) / 2), top: 0, behavior });
 }
 function resetNodeLayout() {
   localStorage.removeItem(POSITIONS_KEY);
@@ -510,8 +669,8 @@ function resetNodeLayout() {
 }
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));
-  const gridCell = 86;
-  const columns = 72;
+  const gridCell = 112;
+  const columns = 60;
   const sidePadding = 60;
   const storedPositions = readNodePositions();
   const rowsByLevel = NODE_LEVELS.map((count) => Math.max(1, Math.ceil(count / columns)));
@@ -569,12 +728,163 @@ function nodeContentType(data, id = null) {
   if (id !== null) nodeTypeCache.set(id, type);
   return type;
 }
+function getNodeSearchTerms(query) {
+  const terms = [];
+  const matcher = /"([^"]+)"|(\S+)/g;
+  let match;
+  while ((match = matcher.exec(query.toLocaleLowerCase()))) terms.push((match[1] || match[2]).trim());
+  return terms.filter(Boolean);
+}
+function nodeSearchText(id, data, typeLabel) {
+  return `${nodeLabel(id)} ${id} ${data?.label || ''} ${data?.url || ''} ${data?.html ? 'html محلي' : ''} ${typeLabel}`.toLocaleLowerCase();
+}
+function renderAdvancedNodeResults(ids, query) {
+  const container = $('#advanced-node-results');
+  if (!container) return;
+  const limit = Number($('#node-result-limit')?.value || 16);
+  const shown = ids.slice(0, limit);
+  container.replaceChildren();
+  if (!query.trim() && ids.length === NODE_TOTAL) {
+    const hint = document.createElement('p');
+    hint.className = 'advanced-node-result-empty';
+    hint.textContent = `اكتب كلمات البحث لعرض بطاقات مطابقة من أصل ${NODE_TOTAL} عقدة.`;
+    container.appendChild(hint);
+    return;
+  }
+  if (!shown.length) {
+    const empty = document.createElement('p');
+    empty.className = 'advanced-node-result-empty';
+    empty.textContent = 'لا توجد عقد مطابقة لهذه الشروط.';
+    container.appendChild(empty);
+    return;
+  }
+  shown.forEach((id) => {
+    const data = getHubData(id);
+    const type = nodeContentType(data, id);
+    const result = document.createElement('button');
+    result.type = 'button';
+    result.className = 'advanced-node-result';
+    const title = document.createElement('strong');
+    title.textContent = `${nodeLabel(id)} · المستوى ${Number(nodeButtons.get(id)?.dataset.level || 0) + 1}`;
+    const detail = document.createElement('span');
+    detail.textContent = data?.label || data?.url || (data?.html ? 'HTML محلي' : `عقدة ${type}`);
+    result.append(title, detail);
+    result.addEventListener('click', () => {
+      const button = nodeButtons.get(id);
+      if (!button) return;
+      nodeViewport.scrollTo({ left: Math.max(0, (nodePositions.get(id)?.x || 0) * zoom - nodeViewport.clientWidth / 2), top: Math.max(0, (nodePositions.get(id)?.y || 0) * zoom - nodeViewport.clientHeight / 2), behavior: 'smooth' });
+      button.focus({ preventScroll: true });
+      button.classList.add('is-highlighted');
+      window.setTimeout(() => button.classList.remove('is-highlighted'), 1800);
+      openHubNode(id, button);
+    });
+    container.appendChild(result);
+  });
+}
+function buildNodeFilterIndex() {
+  const records = [];
+  for (let id = 1; id <= NODE_TOTAL; id += 1) {
+    const data = getHubData(id);
+    const type = nodeContentType(data, id);
+    records.push({
+      id,
+      level: Number(nodeButtons.get(id)?.dataset.level || 0),
+      configured: isConfigured(data),
+      type,
+      searchText: nodeSearchText(id, data, type)
+    });
+  }
+  return records;
+}
+function initializeNodeFilterWorker() {
+  if (!nodeFilterWorker) return;
+  nodeFilterWorker.addEventListener('message', handleNodeFilterWorkerMessage);
+  nodeFilterWorker.addEventListener('error', () => {
+    nodeFilterWorkerReady = false;
+    setNodeStatus('تعذر تشغيل Worker؛ تم الرجوع إلى التصفية المحلية.', false);
+  });
+  sendNodeFilterIndex();
+}
+function sendNodeFilterIndex() {
+  if (!nodeFilterWorker) return;
+  nodeFilterIndexVersion += 1;
+  nodeFilterWorkerReady = false;
+  nodeFilterWorker.postMessage({ type: 'init', records: buildNodeFilterIndex(), indexVersion: nodeFilterIndexVersion });
+}
+function requestNodeFilterWorker() {
+  if (!nodeFilterWorker || !nodeFilterWorkerReady) {
+    applyNodeFiltersOnMainThread();
+    return;
+  }
+  const requestId = ++nodeFilterRequestId;
+  latestNodeFilterRequestId = requestId;
+  nodeFilterWorker.postMessage({
+    type: 'filter',
+    requestId,
+    query: $('#node-search').value.trim(),
+    searchMode: $('#node-search-mode')?.value || 'all',
+    sort: $('#node-sort')?.value || 'id',
+    nodeFilter: $('#node-filter').value,
+    softwareFilter: $('#software-filter').value,
+    levelFilter: $('#level-filter').value
+  });
+}
+function applyVisibleNodeIdsInBatches(visibleIds, visibleLevels) {
+  const token = ++visibleNodeUpdateToken;
+  if (visibleNodeUpdateFrame) cancelAnimationFrame(visibleNodeUpdateFrame);
+  const visibleSet = new Set(visibleIds);
+  visibleNodeIds.clear();
+  visibleIds.forEach((id) => visibleNodeIds.add(id));
+  let cursor = 1;
+  const processBatch = () => {
+    if (token !== visibleNodeUpdateToken) return;
+    const end = Math.min(NODE_TOTAL + 1, cursor + 240);
+    for (; cursor < end; cursor += 1) {
+      const button = nodeButtons.get(cursor);
+      if (!button) continue;
+      const visible = visibleSet.has(cursor);
+      button.hidden = !visible;
+      button.classList.toggle('is-highlighted', visible && Boolean($('#node-search').value.trim()));
+    }
+    if (cursor < NODE_TOTAL + 1) {
+      visibleNodeUpdateFrame = requestAnimationFrame(processBatch);
+      return;
+    }
+    visibleNodeUpdateFrame = 0;
+    levelLabels.forEach((label, level) => { label.hidden = !visibleLevels.has(level); });
+    const query = $('#node-search').value.trim();
+    renderAdvancedNodeResults(visibleIds, query);
+    scheduleEdgeVisibilityUpdate();
+    $('#node-status').textContent = `يعرض ${visibleIds.length} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
+    renderCanvasNetwork();
+    persistUiSettings();
+  };
+  visibleNodeUpdateFrame = requestAnimationFrame(processBatch);
+}
+function handleNodeFilterWorkerMessage(event) {
+  const message = event.data || {};
+  if (message.type === 'ready') {
+    nodeFilterWorkerReady = true;
+    requestNodeFilterWorker();
+    return;
+  }
+  if (message.type !== 'result' || message.requestId !== latestNodeFilterRequestId) return;
+  $('#node-status').dataset.filterCache = message.cached ? 'hit' : 'miss';
+  applyVisibleNodeIdsInBatches(message.visibleIds || [], new Set(message.visibleLevels || []));
+}
 function applyNodeFilters() {
-  const query = $('#node-search').value.trim().toLowerCase();
+  requestNodeFilterWorker();
+}
+function applyNodeFiltersOnMainThread() {
+  const query = $('#node-search').value.trim();
+  const terms = getNodeSearchTerms(query);
+  const searchMode = $('#node-search-mode')?.value || 'all';
+  const sort = $('#node-sort')?.value || 'id';
   const activeFilter = $('#node-filter').value;
   const softwareFilter = $('#software-filter').value;
   const levelFilter = $('#level-filter').value;
-  let visible = 0;
+  const visibleIds = [];
+  visibleNodeIds.clear();
   for (let id = 1; id <= NODE_TOTAL; id += 1) {
     const button = nodeButtons.get(id);
     const data = getHubData(id);
@@ -583,21 +893,23 @@ function applyNodeFilters() {
     const stateMatches = activeFilter === 'all' || (activeFilter === 'active' ? configured : !configured);
     const typeLabel = nodeContentType(data, id);
     const typeMatches = softwareFilter === 'all' || typeLabel === softwareFilter;
-    const haystack = `${nodeLabel(id)} ${data?.url || ''} ${data?.html ? 'html' : ''} ${typeLabel}`.toLowerCase();
-    const queryMatches = !query || haystack.includes(query);
+    const haystack = nodeSearchText(id, data, typeLabel);
+    const queryMatches = !terms.length || (searchMode === 'any' ? terms.some((term) => haystack.includes(term)) : terms.every((term) => haystack.includes(term)));
     const show = levelMatches && stateMatches && typeMatches && queryMatches;
     button.hidden = !show;
-    button.classList.toggle('is-highlighted', Boolean(query && queryMatches && show));
-    if (show) visible += 1;
+    button.classList.toggle('is-highlighted', Boolean(terms.length && queryMatches && show));
+    if (show) {
+      visibleIds.push(id);
+      visibleNodeIds.add(id);
+    }
   }
-  for (const path of lines.querySelectorAll('.network-connection')) {
-    path.hidden = Boolean(nodeButtons.get(Number(path.dataset.from))?.hidden || nodeButtons.get(Number(path.dataset.to))?.hidden);
-  }
-  levelLabels.forEach((label, level) => {
-    const anyVisible = [...nodeButtons.values()].some((button) => Number(button.dataset.level) === level && !button.hidden);
-    label.hidden = !anyVisible;
-  });
-  $('#node-status').textContent = `يعرض ${visible} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
+  if (sort === 'level') visibleIds.sort((a, b) => Number(nodeButtons.get(a).dataset.level) - Number(nodeButtons.get(b).dataset.level) || a - b);
+  if (sort === 'active') visibleIds.sort((a, b) => Number(isConfigured(getHubData(b))) - Number(isConfigured(getHubData(a))) || a - b);
+  renderAdvancedNodeResults(visibleIds, query);
+  scheduleEdgeVisibilityUpdate();
+  const visibleLevels = new Set(visibleIds.map((id) => Number(nodeButtons.get(id)?.dataset.level)));
+  levelLabels.forEach((label, level) => { label.hidden = !visibleLevels.has(level); });
+  $('#node-status').textContent = `يعرض ${visibleIds.length} من ${NODE_TOTAL} عقدة · ${NODE_TOTAL - 1} علاقة في الشبكة.`;
   renderCanvasNetwork();
   persistUiSettings();
 }
@@ -682,7 +994,7 @@ function classifySoftwareUrl(url) {
 function softwareDownloadPreview(link, info) {
   const safeUrl = link.url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const safeHost = (info.host || link.host || 'مصدر خارجي').replace(/[&<>"']/g, '');
-  return `<main style="box-sizing:border-box;min-height:100vh;padding:clamp(24px,6vw,72px);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#e8f0ee;background:#071014;direction:rtl"><div style="max-width:720px;margin:auto;border:1px solid #315d57;border-radius:24px;padding:clamp(24px,5vw,48px);background:linear-gradient(145deg,#102127,#0b171b);box-shadow:0 20px 60px #0008"><div style="font-size:42px;color:#59e0a3">⌘</div><p style="color:#59e0a3;font-size:12px;font-weight:800;letter-spacing:.12em">SOFTWARE PREVIEW</p><h1 style="font-size:clamp(24px,5vw,42px);margin:.4em 0">${info.label}</h1><p style="color:#9cb0b2;line-height:1.8">هذا رابط ملف برمجي. يمكن عرض معلوماته داخل الموقع، لكن لا يمكن للمتصفح تشغيل ملف تنفيذي مباشرة لأسباب أمنية.</p><p style="color:#f4ce72;overflow-wrap:anywhere">المصدر: ${safeHost}</p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:16px;border-radius:12px;padding:12px 18px;color:#052117;background:#59e0a3;font-weight:800;text-decoration:none">فتح ملف البرنامج خارجيًا ↗</a></div></main>`;
+  return `<main style="box-sizing:border-box;min-height:100vh;padding:clamp(24px,6vw,72px);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#e8f0ee;background:#071014;direction:rtl"><div style="max-width:720px;margin:auto;border:1px solid #315d57;border-radius:24px;padding:clamp(24px,5vw,48px);background:linear-gradient(145deg,#102127,#0b171b);box-shadow:0 20px 60px #0008"><div style="font-size:42px;color:#59e0a3">⌘</div><p style="color:#59e0a3;font-size:12px;font-weight:800;letter-spacing:.12em">SOFTWARE PREVIEW</p><h1 style="font-size:clamp(24px,5vw,42px);margin:.4em 0">${info.label}</h1><p style="color:#9cb0b2;line-height:1.8">هذا رابط ملف برمجي. يمكن عرض معلوماته داخل الموقع، لكن لا يمكن للمتصفح تشغيل ملف تنفيذي مباشرة لأسباب أمنية.</p><p style="color:#f4ce72;overflow-wrap:anywhere">المصدر: ${safeHost}</p><a href="${safeUrl}" data-preview-url="${safeUrl}" style="display:inline-block;margin-top:16px;border-radius:12px;padding:12px 18px;color:#052117;background:#59e0a3;font-weight:800;text-decoration:none">فتح ملف البرنامج خارجيًا ↗</a></div></main>`;
 }
 function summarizeHtml(html, source = 'HTML محلي') {
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -730,8 +1042,18 @@ function fetchNodePayload(id) {
 function updateNodeStatsAndFilters(id) {
   refreshNode(id);
   updateStats();
+  sendNodeFilterIndex();
   applyNodeFilters();
 }
+
+window.addEventListener('knowledge-nodes-synced', () => {
+  nodeButtons.forEach((_, id) => refreshNode(id));
+  updateStats();
+  sendNodeFilterIndex();
+  applyNodeFilters();
+  nodeChatRoomRecords.forEach((_, id) => updateNodeChatRoomRecord(id));
+  renderNodeChatRoom();
+});
 
 const hubModal = $('#hub-modal');
 const hubDialog = $('#hub-dialog');
@@ -741,17 +1063,117 @@ const hubSearchQuery = $('#hub-search-query');
 const hubSearchEngine = $('#hub-search-engine');
 const hubPreview = $('#hub-preview');
 const hubAddress = $('#hub-address');
+const PREVIEW_WORKER = 'https://github-oauth-proxy.elazzouz4.workers.dev/preview';
 
 const SEARCH_ENGINES = Object.freeze({
   google: 'https://www.google.com/search?q=', bing: 'https://www.bing.com/search?q=', duckduckgo: 'https://duckduckgo.com/?q=', brave: 'https://search.brave.com/search?q=', yahoo: 'https://search.yahoo.com/search?p=', ecosia: 'https://www.ecosia.org/search?q=', startpage: 'https://www.startpage.com/sp/search?query=', qwant: 'https://www.qwant.com/?q=', kagi: 'https://kagi.com/search?q=', yandex: 'https://yandex.com/search/?text=', baidu: 'https://www.baidu.com/s?wd='
 });
-function searchWithSelectedEngine() {
+async function searchWithSelectedEngine() {
   const query = hubSearchQuery.value.trim();
   if (!query) { setHubStatus('اكتب عبارة بحث أولًا.', false); hubSearchQuery.focus(); return; }
   const base = SEARCH_ENGINES[hubSearchEngine.value] || SEARCH_ENGINES.google;
   const url = `${base}${encodeURIComponent(query)}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
-  setHubStatus(`تم فتح البحث عبر ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'}.`);
+  hubUrl.value = url;
+  await buildHub();
+  setHubStatus(`تظهر نتائج ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'} داخل Slaks دون مغادرة الصفحة.`);
+}
+
+const FEDERATED_SEARCH_ENGINES = Object.freeze([
+  ['Google', SEARCH_ENGINES.google], ['Bing', SEARCH_ENGINES.bing], ['DuckDuckGo', SEARCH_ENGINES.duckduckgo],
+  ['Brave Search', SEARCH_ENGINES.brave], ['Yahoo', SEARCH_ENGINES.yahoo], ['Ecosia', SEARCH_ENGINES.ecosia],
+  ['Startpage', SEARCH_ENGINES.startpage], ['Qwant', SEARCH_ENGINES.qwant], ['Kagi', SEARCH_ENGINES.kagi],
+  ['Yandex', SEARCH_ENGINES.yandex], ['Baidu', SEARCH_ENGINES.baidu]
+]);
+
+async function fetchSearchJson(url, timeoutMs = 4500) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+async function searchWikipedia(query) {
+  const endpoint = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=5&format=json&origin=*`;
+  const data = await fetchSearchJson(endpoint);
+  return (data.query?.search || []).map(item => ({ title: item.title, url: `https://en.wikipedia.org/?curid=${item.pageid}`, text: item.snippet?.replace(/<[^>]+>/g, '') || '', kind: 'مقالة' }));
+}
+
+async function searchStackOverflow(query) {
+  const endpoint = `https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${encodeURIComponent(query)}&site=stackoverflow&pagesize=5&filter=default`;
+  const data = await fetchSearchJson(endpoint);
+  return (data.items || []).map(item => ({ title: item.title, url: item.link, text: `إجابات برمجية · ${item.answer_count || 0} إجابة`, kind: 'Stack Overflow' }));
+}
+
+async function searchMdn(query) {
+  const data = await fetchSearchJson(`https://developer.mozilla.org/api/v1/search?q=${encodeURIComponent(query)}&size=5`);
+  const documents = data.documents || data.results || [];
+  return documents.slice(0, 5).map(item => ({ title: item.title || item.name, url: item.mdn_url || item.url || item.slug, text: item.summary || item.description || 'مرجع ويب وتقنيات.', kind: 'MDN' })).filter(item => item.url);
+}
+
+async function searchGithub(query) {
+  const [codeResult, repositoryResult] = await Promise.allSettled([
+    fetchSearchJson(`https://api.github.com/search/code?q=${encodeURIComponent(query)}&per_page=5`),
+    fetchSearchJson(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&per_page=5`)
+  ]);
+  const codeItems = codeResult.status === 'fulfilled' ? (codeResult.value.items || []) : [];
+  if (codeItems.length) return codeItems.map(item => ({ title: item.name, url: item.html_url, text: `ملف برمجي في ${item.repository?.full_name || 'GitHub'}`, kind: 'GitHub Code' }));
+  const repositoryItems = repositoryResult.status === 'fulfilled' ? (repositoryResult.value.items || []) : [];
+  return repositoryItems.map(item => ({ title: item.full_name, url: item.html_url, text: item.description || 'مستودع برمجي.', kind: 'GitHub Repository' }));
+}
+
+async function searchNpm(query) {
+  const data = await fetchSearchJson(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(query)}&size=5`);
+  return (data.objects || []).map(item => ({ title: item.package?.name, url: item.package?.links?.npm, text: item.package?.description || 'حزمة JavaScript قابلة لإعادة الاستخدام.', kind: 'npm' })).filter(item => item.url);
+}
+
+function renderFederatedResults(query, reports) {
+  const engineCards = FEDERATED_SEARCH_ENGINES.map(([name, base]) => `<a class="federated-search-engine" href="${escapeXml(`${base}${encodeURIComponent(query)}`)}" data-preview-url="${escapeXml(`${base}${encodeURIComponent(query)}`)}">${escapeXml(name)} ↗</a>`).join('');
+  const resultCards = reports.flatMap(report => (report.items || []).map(item => `<article class="federated-search-card"><span>${escapeXml(item.kind)}</span><h3><a href="${escapeXml(item.url)}" data-preview-url="${escapeXml(item.url)}">${escapeXml(item.title || 'نتيجة بلا عنوان')}</a></h3><p>${escapeXml(item.text || '')}</p></article>`)).join('');
+  const message = resultCards ? 'تم العثور على نتائج من مصادر المقالات والبرمجة. افتح أي نتيجة، أو انتقل إلى أحد محركات البحث.' : 'لم تُرجع المصادر المتخصصة نتيجة مباشرة؛ جرّب أحد محركات البحث العامة أدناه.';
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e7f2f0;background:#071014;line-height:1.7}h1{font-size:1.35rem;margin:0 0 8px}p{color:#9cb0b2}.federated-search-engines{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.federated-search-engine{display:inline-block;padding:7px 10px;border:1px solid #315d57;border-radius:999px;color:#59e0a3;text-decoration:none;font-size:.82rem}.federated-search-results{display:grid;gap:10px}.federated-search-card{border:1px solid #25443f;border-radius:14px;padding:14px;background:#102127}.federated-search-card span{color:#f4ce72;font-size:.75rem;font-weight:700}.federated-search-card h3{font-size:1rem;margin:4px 0}.federated-search-card h3 a{color:#e8f7f2}.federated-search-card p{margin:0;font-size:.86rem}</style></head><body><h1>بحث شامل: ${escapeXml(query)}</h1><p>${escapeXml(message)}</p><div class="federated-search-engines">${engineCards}</div><section class="federated-search-results">${resultCards || '<p>لم نجد نتيجة متخصصة بعد. استخدم روابط المحركات أعلاه لتوسيع البحث.</p>'}</section><script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'hub-preview-url',url:link.getAttribute('data-preview-url')},'*');});</script></body></html>`;
+}
+
+async function searchEverywhere() {
+  const query = hubSearchQuery.value.trim();
+  if (!query) { setHubStatus('اكتب عبارة بحث أولًا.', false); hubSearchQuery.focus(); return; }
+  const button = $('#hub-search-all');
+  button.disabled = true;
+  button.textContent = 'جارٍ البحث في كل المصادر…';
+  hubPreview.hidden = false;
+  hubAddress.textContent = `بحث شامل · ${query}`;
+  hubPreview.removeAttribute('src');
+  hubPreview.srcdoc = renderFederatedResults(query, []);
+  renderExtraction({ title: `بحث شامل: ${query}`, text: 'بدأ البحث المتوازي. ستظهر النتائج تدريجيًا عند وصول كل مصدر دون انتظار بقية المصادر.', source: 'البحث متعدد المصادر', kind: 'search' });
+  setHubStatus('بدأ البحث بالتوازي؛ تظهر النتائج تدريجيًا…');
+  const tasks = [
+    ['Wikipedia', searchWikipedia], ['Stack Overflow', searchStackOverflow], ['MDN', searchMdn], ['GitHub', searchGithub], ['npm', searchNpm]
+  ];
+  const reports = [];
+  let completed = 0;
+  const settled = await Promise.allSettled(tasks.map(([source, search], index) => search(query).then(items => {
+    reports[index] = { source, items };
+    completed += 1;
+    hubPreview.srcdoc = renderFederatedResults(query, reports.filter(Boolean));
+    setHubStatus(`وصلت نتائج ${completed} من ${tasks.length} مصادر…`);
+    return items;
+  }).catch(() => {
+    reports[index] = { source, items: [] };
+    completed += 1;
+    hubPreview.srcdoc = renderFederatedResults(query, reports.filter(Boolean));
+    setHubStatus(`اكتمل مصدر ${completed} من ${tasks.length}؛ ما زال البحث مستمرًا…`);
+    return [];
+  })));
+  const total = reports.reduce((sum, report) => sum + report.items.length, 0);
+  hubPreview.srcdoc = renderFederatedResults(query, reports);
+  renderExtraction({ title: `بحث شامل: ${query}`, text: `تم فحص ${tasks.length} مصادر متخصصة وإعداد روابط ${FEDERATED_SEARCH_ENGINES.length} محرك بحث. عدد النتائج المباشرة: ${total}.`, source: 'البحث متعدد المصادر', kind: 'search' });
+  setHubStatus(total ? `اكتمل البحث الشامل؛ عُثر على ${total} نتيجة مباشرة مع روابط كل المحركات.` : 'اكتمل البحث الشامل؛ لم تُرجع المصادر المتخصصة نتيجة مباشرة، وجميع المحركات العامة متاحة للتجربة.');
+  button.disabled = false;
+  button.textContent = 'بحث شامل في كل المصادر';
 }
 function clearPreview() {
   hubPreview.removeAttribute('srcdoc');
@@ -784,8 +1206,21 @@ async function buildHub(silent = false) {
       }
       hubPreview.removeAttribute('srcdoc');
       hubPreview.src = link.url;
-      renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر الفتح المباشر عند الحاجة.', source: software.label, kind: software.kind });
-      setHubStatus(`جارية معاينة ${software.label} داخل الموقع. إذا رفض الموقع العرض، استخدم الفتح الخارجي.`);
+      renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر العرض داخل Slaks عند الحاجة.', source: software.label, kind: software.kind });
+      setHubStatus(`جارية معاينة ${software.label} داخل Slaks عبر Relay عند توفره…`);
+      try {
+        const response = await fetch(`${PREVIEW_WORKER}?url=${encodeURIComponent(link.url)}`, { headers: { Accept: 'application/json' } });
+        const payload = await response.json();
+        if (response.ok && payload.html) {
+          hubPreview.removeAttribute('src');
+          hubPreview.srcdoc = payload.html;
+          hubAddress.textContent = `${software.label} · ${payload.finalUrl || link.url}`;
+          renderExtraction({ title: payload.title || link.host, text: payload.description || payload.text || 'تم جلب نسخة HTML عبر Relay داخل Slaks.', elements: payload.elements, links: payload.links?.length, source: 'Cloudflare Preview Relay', kind: software.kind });
+          setHubStatus('ظهرت نسخة الموقع داخل Slaks عبر Relay؛ يمكنك متابعة الروابط من نفس بطاقة المعاينة.');
+        }
+      } catch {
+        setHubStatus('تعذر استخدام Relay حاليًا؛ بقيت المعاينة المباشرة داخل Slaks مفعلة.', false);
+      }
       return;
     }
     if (localHtml.trim()) {
@@ -815,7 +1250,8 @@ function openHubNode(id, button) {
   activeHub = { id, node: button };
   highlightNodePath(id);
   $('#hub-node-number').textContent = `#${String(id).padStart(3, '0')}`;
-  const data = getHubData(id);
+  const storedData = getHubData(id);
+  const data = storedData || (button?.dataset.linkUrl ? { url: button.dataset.linkUrl, kind: button.dataset.linkKind || '' } : null);
   hubUrl.value = data?.url || '';
   hubHtml.value = data?.html || '';
   hubSearchQuery.value = data?.searchQuery || '';
@@ -919,21 +1355,22 @@ async function transferNodeData() {
   }
 }
 
-function openExternally() {
+async function openExternally() {
   const raw = hubUrl.value.trim() || getHubData(activeHub.id)?.url || '';
   try {
     const link = parseNodeLink(raw);
-    // الروابط العامة تُفتح في تبويب مستقل حتى تبقى شبكة العقد والتحليل مفتوحين.
-    // روابط التطبيقات والبريد والهاتف تُسلّم للنظام مباشرة على الهاتف.
     if (link.kind === 'web') {
-      const opened = window.open(link.url, '_blank', 'noopener,noreferrer');
-      if (!opened) window.location.assign(link.url);
-    } else {
-      window.location.assign(link.url);
+      hubUrl.value = link.url;
+      await buildHub();
+      setHubStatus('تم تحويل هذا الإجراء إلى معاينة داخل Slaks؛ لن تغادر الصفحة.');
+      return;
     }
-    setHubStatus('فُتح الرابط الخارجي. يمكنك العودة إلى شبكة العقد في التبويب الحالي.');
+    clearPreview();
+    hubAddress.textContent = link.url;
+    renderExtraction({ title: link.display, text: 'هذا رابط تطبيق أو اتصال. أبقيناه داخل Slaks بدل نقل المستخدم تلقائيًا خارج الصفحة. يمكن للجهاز تشغيله فقط عند اختيارك من نظام التشغيل.', source: 'معاينة رابط اتصال', kind: link.kind });
+    setHubStatus('الرابط محفوظ داخل العقدة، والمعاينة الخارجية التلقائية معطّلة حتى لا تغادر الصفحة.');
   } catch (error) {
-    setHubStatus(error?.message || 'أدخل رابطًا صالحًا للفتح الخارجي.', false);
+    setHubStatus(error?.message || 'أدخل رابطًا صالحًا للمعاينة.', false);
   }
 }
 
@@ -1267,6 +1704,7 @@ function importNodes(file) {
       if (!writeJson(LINK_KEY, index)) throw new Error('تعذر تحديث فهرس العقد.');
       nodeButtons.forEach((_, id) => refreshNode(id));
       updateStats();
+      sendNodeFilterIndex();
       applyNodeFilters();
       setNodeStatus(`تم استيراد ${imported.length} عقدة بنجاح.`);
     } catch (error) { setNodeStatus(error?.message || 'تعذر استيراد ملف JSON.', false); }
@@ -1285,9 +1723,15 @@ function exportReport() {
   window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 }
 
-function scheduleNodeFilters() {
+function scheduleNodeFilters(immediate = false) {
+  if (filterDebounceTimer) window.clearTimeout(filterDebounceTimer);
   if (filterFrame) cancelAnimationFrame(filterFrame);
-  filterFrame = requestAnimationFrame(() => { filterFrame = 0; applyNodeFilters(); });
+  const run = () => {
+    filterDebounceTimer = 0;
+    filterFrame = requestAnimationFrame(() => { filterFrame = 0; applyNodeFilters(); });
+  };
+  if (immediate) run();
+  else filterDebounceTimer = window.setTimeout(run, FILTER_DEBOUNCE_MS);
 }
 function jumpToNodeFromSearch() {
   const raw = $('#node-search').value.trim();
@@ -1302,6 +1746,9 @@ function jumpToNodeFromSearch() {
   $('#node-filter').value = 'all';
   $('#software-filter').value = 'all';
   $('#level-filter').value = 'all';
+  $('#node-search-mode').value = 'all';
+  $('#node-sort').value = 'id';
+  $('#node-result-limit').value = '16';
   applyNodeFilters();
   const point = nodePositions.get(id);
   const button = nodeButtons.get(id);
@@ -1318,14 +1765,27 @@ function showAllNodes() {
   $('#node-filter').value = 'all';
   $('#software-filter').value = 'all';
   $('#level-filter').value = 'all';
+  $('#node-search-mode').value = 'all';
+  $('#node-sort').value = 'id';
+  $('#node-result-limit').value = '16';
   applyNodeFilters();
   centerMapViewport('smooth');
   setNodeStatus(`يعرض الآن جميع العقد الـ${NODE_TOTAL} في الشبكة.`);
 }
+function populateLevelFilter() {
+  const select = $('#level-filter');
+  if (!select) return;
+  select.replaceChildren(new Option('كل المستويات', 'all'));
+  NODE_LEVELS.forEach((count, level) => {
+    select.appendChild(new Option(`المستوى ${level + 1} · ${count} عقدة`, String(level)));
+  });
+}
 function initializeNetwork() {
+  populateLevelFilter();
   restoreUiSettings();
   setupRelationCustomization();
   createNodeElements();
+  initializeNodeFilterWorker();
   setupCanvasInteraction();
   nodeViewport.addEventListener('scroll', renderCanvasNetwork, { passive: true });
   setupNodeChatRoom();
@@ -1354,10 +1814,11 @@ function initializeNetwork() {
   $('#node-filter').addEventListener('change', applyNodeFilters);
   $('#software-filter').addEventListener('change', applyNodeFilters);
   $('#level-filter').addEventListener('change', applyNodeFilters);
-  $('#map-zoom-in').addEventListener('click', () => { zoom = Math.min(1.5, Math.round((zoom + .1) * 10) / 10); applyZoom(); persistUiSettings(); });
-  $('#map-zoom-out').addEventListener('click', () => { zoom = Math.max(.6, Math.round((zoom - .1) * 10) / 10); applyZoom(); persistUiSettings(); });
+  $('#node-search-mode').addEventListener('change', applyNodeFilters);
+  $('#node-sort').addEventListener('change', applyNodeFilters);
+  $('#node-result-limit').addEventListener('change', applyNodeFilters);
   $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
-  $('#map-fit').addEventListener('click', () => { zoom = Math.max(.35, Math.min(1, Math.round(Math.min((nodeViewport.clientWidth - 24) / mapWidth, (nodeViewport.clientHeight - 24) / mapHeight) * 10) / 10)); applyZoom(); centerMapViewport('smooth'); persistUiSettings(); });
+  $('#map-fit').addEventListener('click', () => { zoom = Math.max(.05, Math.min(1, Math.round(Math.min((nodeViewport.clientWidth - 24) / mapWidth, (nodeViewport.clientHeight - 24) / mapHeight) * 10) / 10)); applyZoom(); centerMapViewport('smooth'); persistUiSettings(); });
   $('#map-layout-reset').addEventListener('click', resetNodeLayout);
   $('#show-all-nodes').addEventListener('click', showAllNodes);
   $('#map-root').addEventListener('click', () => {
@@ -1368,7 +1829,7 @@ function initializeNetwork() {
     $('#software-filter').value = 'all';
     $('#level-filter').value = 'all';
     applyNodeFilters();
-    nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    nodeViewport.scrollTo({ top: 0, left: Math.max(0, (mapWidth - nodeViewport.clientWidth) / 2), behavior: 'smooth' });
     root.focus({ preventScroll: true });
   });
   $('#export-nodes').addEventListener('click', exportNodes);
@@ -1386,6 +1847,7 @@ function setupHubModal() {
   $('#hub-close').addEventListener('click', closeHub);
   $('#hub-build').addEventListener('click', () => buildHub());
   $('#hub-search').addEventListener('click', searchWithSelectedEngine);
+  $('#hub-search-all').addEventListener('click', searchEverywhere);
   $('#hub-save').addEventListener('click', saveHub);
   let autoSaveTimer = 0;
   hubUrl.addEventListener('input', () => {
@@ -1403,6 +1865,16 @@ function setupHubModal() {
     }, 650);
   });
   $('#hub-fetch').addEventListener('click', transferNodeData);
+  window.addEventListener('message', (event) => {
+    if (event.source !== hubPreview.contentWindow || event.data?.type !== 'hub-preview-url') return;
+    const nextUrl = String(event.data.url || '');
+    try {
+      const parsed = parseNodeLink(nextUrl);
+      if (parsed.kind !== 'web') return;
+      hubUrl.value = parsed.url;
+      buildHub();
+    } catch { setHubStatus('تعذر فتح نتيجة المقال داخل المعاينة.', false); }
+  });
   $('#hub-open').addEventListener('click', openExternally);
   $('#hub-stop').addEventListener('click', stopHub);
   $('#hub-clear').addEventListener('click', clearHub);
@@ -1603,12 +2075,57 @@ function setupOrbit() {
   sync();
 }
 
+function setupPinchZoom() {
+  const viewport = $('#node-viewport');
+  if (!viewport) return;
+  let gesture = null;
+  const distance = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  const midpoint = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
+  viewport.addEventListener('touchstart', (event) => {
+    if (event.touches.length !== 2) return;
+    // Reserve the two-finger gesture for the map instead of page navigation
+    // or browser zoom, while leaving one-finger scrolling unchanged.
+    event.preventDefault();
+    const [first, second] = event.touches;
+    const center = midpoint(first, second);
+    const rect = viewport.getBoundingClientRect();
+    viewport.style.touchAction = 'none';
+    gesture = {
+      startDistance: Math.max(1, distance(first, second)),
+      startZoom: zoom,
+      worldX: (center.x - rect.left + viewport.scrollLeft) / zoom,
+      worldY: (center.y - rect.top + viewport.scrollTop) / zoom
+    };
+  }, { passive: true });
+  viewport.addEventListener('touchmove', (event) => {
+    if (!gesture || event.touches.length !== 2) return;
+    event.preventDefault();
+    const [first, second] = event.touches;
+    const center = midpoint(first, second);
+    const rect = viewport.getBoundingClientRect();
+    zoom = Math.max(.05, Math.min(1.5, Math.round((gesture.startZoom * distance(first, second) / gesture.startDistance) * 100) / 100));
+    applyZoom();
+    viewport.scrollLeft = Math.max(0, gesture.worldX * zoom - (center.x - rect.left));
+    viewport.scrollTop = Math.max(0, gesture.worldY * zoom - (center.y - rect.top));
+  }, { passive: false });
+  const endGesture = (event) => {
+    if (event.touches.length < 2 && gesture) {
+      gesture = null;
+      viewport.style.touchAction = 'pan-x pan-y';
+      persistUiSettings();
+    }
+  };
+  viewport.addEventListener('touchend', endGesture, { passive: true });
+  viewport.addEventListener('touchcancel', endGesture, { passive: true });
+}
+
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
   $('#clear-report-cache').addEventListener('click', clearReportCache);
   refreshReportCacheStatus();
   $('#export-report').addEventListener('click', exportReport);
   setupHubModal();
+  setupPinchZoom();
   setupValidator();
   setupMobileNavigation();
   setupExternalLinkModal();

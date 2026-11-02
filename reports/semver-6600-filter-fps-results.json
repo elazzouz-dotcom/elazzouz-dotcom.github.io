@@ -1,0 +1,50 @@
+{
+  "testedAt": "2026-11-01",
+  "url": "https://elazzouz-dotcom.github.io/semver-bnf/",
+  "nodes": 6600,
+  "edges": 6599,
+  "environment": "Manus Sandbox browser",
+  "warmup": {
+    "stableMs": 2.5,
+    "hiddenEdges": 0,
+    "visibleNodes": 6600
+  },
+  "scenarios": [
+    {
+      "name": "idle-after-stabilization",
+      "durationMs": 1200,
+      "frames": 10,
+      "fps": 8.33,
+      "avgFrameMs": 168.02,
+      "p95FrameMs": 453.6,
+      "maxFrameMs": 453.6,
+      "over20ms": 10,
+      "over33ms": 10
+    },
+    {
+      "name": "rapid-filtering",
+      "durationMs": 2800,
+      "frames": 12,
+      "fps": 4.29,
+      "avgFrameMs": 249.22,
+      "p95FrameMs": 924.1,
+      "maxFrameMs": 924.1,
+      "over20ms": 12,
+      "over33ms": 12,
+      "intervalMs": 120,
+      "operations": [
+        "search:N-600 VSAT",
+        "level:8",
+        "state:active",
+        "search:N-6600",
+        "level:2",
+        "state:empty",
+        "search:"
+      ]
+    }
+  ],
+  "postTest": {
+    "hiddenEdges": 0,
+    "visibleNodes": 6600
+  }
+}

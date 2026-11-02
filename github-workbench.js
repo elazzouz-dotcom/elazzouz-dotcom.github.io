@@ -180,7 +180,24 @@
     if (!terminalOutput) return;
     const line = document.createElement('div'); line.className = `terminal-line ${kind}`; line.textContent = text; terminalOutput.appendChild(line); terminalOutput.scrollTop = terminalOutput.scrollHeight;
   }
-  function terminalList() { return ['help                 عرض الأوامر الآمنة', 'status               حالة المستودع الحالي', 'whoami               حساب GitHub المتصل', 'branches             عرض فروع المستودع', 'branch               عرض الفرع النشط', 'compare SRC TARGET   عرض الملفات بين فرعين', 'load PATH            تحميل ملف إلى المحرر', 'clef                 تحليل الملف الحالي عبر Space', 'preview              تحديث المعاينة الحية', 'clear                مسح الطرفية']; }
+  function terminalList() { return ['help                 عرض الأوامر الآمنة', 'status               حالة المستودع الحالي', 'whoami               حساب GitHub المتصل', 'branches             عرض فروع المستودع', 'branch               عرض الفرع النشط', 'search QUERY        البحث في مستودعات GitHub', 'ai PROMPT            مساعد AI محلي لاقتراح الأمر الآمن', 'compare SRC TARGET   عرض الملفات بين فرعين', 'load PATH            تحميل ملف إلى المحرر', 'clef                 تحليل الملف الحالي عبر Space', 'preview              تحديث المعاينة الحية', 'clear                مسح الطرفية']; }
+  async function terminalSearch(query) {
+    if (!query) throw new Error('الاستخدام: search QUERY');
+    terminalPrint(`جاري البحث في GitHub عن: ${query}`, 'terminal-info');
+    const data = await request(`/search/repositories?q=${encodeURIComponent(query)}&sort=updated&per_page=5`);
+    const items = data.items || [];
+    if (!items.length) return terminalPrint('لم يتم العثور على مستودعات مطابقة.', 'terminal-muted');
+    terminalPrint(`نتائج البحث (${data.total_count || items.length}):`, 'terminal-success');
+    items.forEach((item, index) => terminalPrint(`${index + 1}. ${item.full_name} · ★ ${item.stargazers_count || 0} · ${item.html_url}`, 'terminal-info'));
+  }
+  function terminalAi(prompt) {
+    if (!prompt) throw new Error('الاستخدام: ai PROMPT — مثال: ai اعرض حالة المستودع');
+    const text = prompt.toLowerCase();
+    const suggestions = text.includes('بحث') || text.includes('search') ? ['search ' + prompt.replace(/^(ابحث|search)\s*/i, '').trim()] : text.includes('فرع') || text.includes('branch') ? ['branches', 'branch'] : text.includes('حالة') || text.includes('status') ? ['status'] : text.includes('مستخدم') || text.includes('whoami') ? ['whoami'] : text.includes('معاينة') || text.includes('preview') ? ['preview'] : text.includes('ملف') || text.includes('load') ? ['load PATH'] : ['help', 'status', 'branches', 'search QUERY'];
+    terminalPrint('AI Assist · تحليل محلي آمن (لا يتم إرسال النص إلى خدمة خارجية)', 'terminal-success');
+    terminalPrint(`أقرب اقتراح: ${suggestions[0]}`, 'terminal-info');
+    if (suggestions.length > 1) terminalPrint(`بدائل آمنة: ${suggestions.slice(1).join(' · ')}`, 'terminal-info');
+  }
   async function runTerminalCommand(raw) {
     const command = raw.trim(); if (!command) return;
     terminalPrint(`studio@github:~$ ${command}`, 'terminal-command');
@@ -192,6 +209,8 @@
       else if (lower === 'branches') { await loadBranches(); terminalPrint('تم تحديث قائمة الفروع أعلى اللوحة.', 'terminal-success'); }
       else if (lower === 'whoami') { const user = await request('/user'); terminalPrint(`متصل باسم @${user.login || user.name || 'unknown'}`, 'terminal-success'); }
       else if (lower === 'status') { const data = await request(repoPath()); terminalPrint(`${data.full_name || 'المستودع'} · default: ${data.default_branch || 'غير معروف'} · visibility: ${data.visibility || 'unknown'}`, 'terminal-success'); }
+      else if (lower === 'search') { await terminalSearch(args.join(' ')); }
+      else if (lower === 'ai') { terminalAi(args.join(' ')); }
       else if (lower === 'compare') { if (args.length < 2) throw new Error('الاستخدام: compare SRC TARGET'); const data = await request(`${repoPath()}/compare/${encodeURIComponent(args[1])}...${encodeURIComponent(args[0])}`); terminalPrint(`${data.status || 'unknown'} · ${data.ahead_by || 0} commits ahead · ${data.files?.length || 0} files changed`, 'terminal-success'); }
       else if (lower === 'load') { if (!args[0]) throw new Error('الاستخدام: load PATH'); $('ghw-path').value = args.join(' '); await loadFile(); terminalPrint(`تم تحميل ${$('ghw-path').value}`, 'terminal-success'); }
       else if (lower === 'clef') { await analyzeWithClef(); terminalPrint('تم إرسال الملف إلى Clef. راجع Console Logs للنتيجة.', 'terminal-success'); }
