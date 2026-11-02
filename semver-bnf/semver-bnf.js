@@ -597,7 +597,9 @@ function applyZoom() {
 }
 
 function centerMapViewport(behavior = 'auto') {
-  nodeViewport.scrollTo({ left: Math.max(0, (mapWidth - nodeViewport.clientWidth) / 2), top: Math.max(0, (mapHeight - nodeViewport.clientHeight) / 2), behavior });
+  // يبدأ المسار من الجذر في أعلى الخريطة؛ تمركز الارتفاع الكامل كان يضع
+  // المستخدم في منتصف شبكة بارتفاع آلاف البكسلات، فيبدو أن الشبكة فارغة.
+  nodeViewport.scrollTo({ left: Math.max(0, (mapWidth - nodeViewport.clientWidth) / 2), top: 0, behavior });
 }
 function resetNodeLayout() {
   localStorage.removeItem(POSITIONS_KEY);
@@ -1768,7 +1770,7 @@ function initializeNetwork() {
     $('#software-filter').value = 'all';
     $('#level-filter').value = 'all';
     applyNodeFilters();
-    nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    nodeViewport.scrollTo({ top: 0, left: Math.max(0, (mapWidth - nodeViewport.clientWidth) / 2), behavior: 'smooth' });
     root.focus({ preventScroll: true });
   });
   $('#export-nodes').addEventListener('click', exportNodes);
