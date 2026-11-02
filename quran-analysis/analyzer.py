@@ -11,11 +11,12 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import scipy
-from scipy.stats import chi2_contingency, random_table
+from scipy.stats import chi2_contingency, kruskal, random_table
 
 CIVIL_SURAHS = {2, 3, 4, 5, 8, 9, 13, 22, 24, 33, 47, 48, 49, 55, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 76, 98, 99, 110}
 DEFAULT_SEED = 12345
 DEFAULT_B = 200_000
+KRUSKAL_COLUMNS = ("surah_number", "ayahs_count", "combined_value", "abjad_value")
 
 ABJAD_MAP = {
     "أ": 1, "إ": 1, "آ": 1, "ا": 1, "ب": 2, "ج": 3, "د": 4, "ه": 5,
@@ -61,6 +62,7 @@ class ScientificQuranAnalyzer:
                 "type": "مدنية" if number in CIVIL_SURAHS else "مكية",
                 "surah_number_root": digital_root(number),
                 "ayahs_count_root": digital_root(ayahs),
+                "combined_value": number + ayahs,
                 "combined_root": digital_root(number + ayahs),
                 "abjad_value": abjad_value,
                 "abjad_root": digital_root(abjad_value),
@@ -105,6 +107,25 @@ class ScientificQuranAnalyzer:
             "rng_algorithm": "PCG64",
         }
 
+    def run_kruskal_wallis_test(self, column: str) -> dict[str, Any]:
+        """Compare a numeric feature across the predefined Makki/Madani groups."""
+        if column not in KRUSKAL_COLUMNS:
+            raise ValueError(f"Unsupported Kruskal-Wallis column: {column}")
+        groups = [self.df.loc[self.df["type"] == label, column].to_numpy(dtype=float)
+                  for label in ("مكية", "مدنية")]
+        statistic, p_value = kruskal(*groups)
+        degrees_of_freedom = len(groups) - 1
+        epsilon_squared = max(0.0, float((statistic - degrees_of_freedom) / (len(self.df) - degrees_of_freedom)))
+        return {
+            "column": column,
+            "test": "Kruskal-Wallis H",
+            "groups": {"مكية": int(len(groups[0])), "مدنية": int(len(groups[1]))},
+            "H_statistic": float(statistic),
+            "degrees_of_freedom": int(degrees_of_freedom),
+            "p_value": float(p_value),
+            "epsilon_squared": epsilon_squared,
+        }
+
     def build_report(self, B: int = DEFAULT_B, seed: int = DEFAULT_SEED) -> dict[str, Any]:
         columns = ["surah_number_root", "ayahs_count_root", "combined_root", "abjad_root"]
         return {
@@ -121,5 +142,6 @@ class ScientificQuranAnalyzer:
                 "normalization_rules": NORMALIZATION_RULES,
             },
             "tests": {column: self.run_monte_carlo_test(column, B=B, seed=seed) for column in columns},
+            "kruskal_wallis": {column: self.run_kruskal_wallis_test(column) for column in KRUSKAL_COLUMNS},
             "rows": self.df.to_dict(orient="records"),
         }

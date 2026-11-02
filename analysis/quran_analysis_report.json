@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp_utc": "2026-11-02T01:38:05.901336+00:00",
+    "timestamp_utc": "2026-11-02T01:43:46.790662+00:00",
     "total_surahs": 114,
     "civil_surahs": 28,
     "simulations_B": 200000,
@@ -235,6 +235,64 @@
       }
     }
   },
+  "kruskal_wallis": {
+    "surah_number": {
+      "column": "surah_number",
+      "test": "Kruskal-Wallis H",
+      "groups": {
+        "مكية": 86,
+        "مدنية": 28
+      },
+      "statistical_metrics": {
+        "H_statistic": 3.6443738263758405,
+        "degrees_of_freedom": 1,
+        "p_value": 0.05625895536980014,
+        "epsilon_squared": 0.023401538286511862
+      }
+    },
+    "ayahs_count": {
+      "column": "ayahs_count",
+      "test": "Kruskal-Wallis H",
+      "groups": {
+        "مكية": 86,
+        "مدنية": 28
+      },
+      "statistical_metrics": {
+        "H_statistic": 0.1408406208436597,
+        "degrees_of_freedom": 1,
+        "p_value": 0.7074467475134982,
+        "epsilon_squared": 0.0
+      }
+    },
+    "combined_value": {
+      "column": "combined_value",
+      "test": "Kruskal-Wallis H",
+      "groups": {
+        "مكية": 86,
+        "مدنية": 28
+      },
+      "statistical_metrics": {
+        "H_statistic": 9.844143537353983,
+        "degrees_of_freedom": 1,
+        "p_value": 0.0017037329575853427,
+        "epsilon_squared": 0.07826675696773436
+      }
+    },
+    "abjad_value": {
+      "column": "abjad_value",
+      "test": "Kruskal-Wallis H",
+      "groups": {
+        "مكية": 86,
+        "مدنية": 28
+      },
+      "statistical_metrics": {
+        "H_statistic": 0.6717284926852053,
+        "degrees_of_freedom": 1,
+        "p_value": 0.4124496241931557,
+        "epsilon_squared": 0.0
+      }
+    }
+  },
   "rows": [
     {
       "surah_number": 1,
@@ -243,6 +301,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 7,
+      "combined_value": 8,
       "combined_root": 8,
       "abjad_value": 525,
       "abjad_root": 3
@@ -254,6 +313,7 @@
       "type": "مدنية",
       "surah_number_root": 2,
       "ayahs_count_root": 7,
+      "combined_value": 288,
       "combined_root": 9,
       "abjad_value": 338,
       "abjad_root": 5
@@ -265,6 +325,7 @@
       "type": "مدنية",
       "surah_number_root": 3,
       "ayahs_count_root": 2,
+      "combined_value": 203,
       "combined_root": 5,
       "abjad_value": 392,
       "abjad_root": 5
@@ -276,6 +337,7 @@
       "type": "مدنية",
       "surah_number_root": 4,
       "ayahs_count_root": 5,
+      "combined_value": 180,
       "combined_root": 9,
       "abjad_value": 142,
       "abjad_root": 7
@@ -287,6 +349,7 @@
       "type": "مدنية",
       "surah_number_root": 5,
       "ayahs_count_root": 3,
+      "combined_value": 125,
       "combined_root": 8,
       "abjad_value": 91,
       "abjad_root": 1
@@ -298,6 +361,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 3,
+      "combined_value": 171,
       "combined_root": 9,
       "abjad_value": 193,
       "abjad_root": 4
@@ -309,6 +373,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 8,
+      "combined_value": 213,
       "combined_root": 6,
       "abjad_value": 383,
       "abjad_root": 5
@@ -320,6 +385,7 @@
       "type": "مدنية",
       "surah_number_root": 8,
       "ayahs_count_root": 3,
+      "combined_value": 83,
       "combined_root": 2,
       "abjad_value": 193,
       "abjad_root": 4
@@ -331,6 +397,7 @@
       "type": "مدنية",
       "surah_number_root": 9,
       "ayahs_count_root": 3,
+      "combined_value": 138,
       "combined_root": 3,
       "abjad_value": 444,
       "abjad_root": 3
@@ -342,6 +409,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 1,
+      "combined_value": 119,
       "combined_root": 2,
       "abjad_value": 126,
       "abjad_root": 9
@@ -353,6 +421,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 6,
+      "combined_value": 134,
       "combined_root": 8,
       "abjad_value": 15,
       "abjad_root": 6
@@ -364,6 +433,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 3,
+      "combined_value": 123,
       "combined_root": 6,
       "abjad_value": 156,
       "abjad_root": 3
@@ -375,6 +445,7 @@
       "type": "مدنية",
       "surah_number_root": 4,
       "ayahs_count_root": 7,
+      "combined_value": 56,
       "combined_root": 2,
       "abjad_value": 305,
       "abjad_root": 8
@@ -386,6 +457,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 7,
+      "combined_value": 66,
       "combined_root": 3,
       "abjad_value": 259,
       "abjad_root": 7
@@ -397,6 +469,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 9,
+      "combined_value": 114,
       "combined_root": 6,
       "abjad_value": 242,
       "abjad_root": 8
@@ -408,6 +481,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 2,
+      "combined_value": 144,
       "combined_root": 9,
       "abjad_value": 119,
       "abjad_root": 2
@@ -419,6 +493,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 3,
+      "combined_value": 128,
       "combined_root": 2,
       "abjad_value": 293,
       "abjad_root": 5
@@ -430,6 +505,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 2,
+      "combined_value": 128,
       "combined_root": 2,
       "abjad_value": 136,
       "abjad_root": 1
@@ -441,6 +517,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 8,
+      "combined_value": 117,
       "combined_root": 9,
       "abjad_value": 290,
       "abjad_root": 2
@@ -452,6 +529,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 9,
+      "combined_value": 155,
       "combined_root": 2,
       "abjad_value": 14,
       "abjad_root": 5
@@ -463,6 +541,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 4,
+      "combined_value": 133,
       "combined_root": 7,
       "abjad_value": 95,
       "abjad_root": 5
@@ -474,6 +553,7 @@
       "type": "مدنية",
       "surah_number_root": 4,
       "ayahs_count_root": 6,
+      "combined_value": 100,
       "combined_root": 1,
       "abjad_value": 42,
       "abjad_root": 6
@@ -485,6 +565,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 1,
+      "combined_value": 141,
       "combined_root": 6,
       "abjad_value": 223,
       "abjad_root": 7
@@ -496,6 +577,7 @@
       "type": "مدنية",
       "surah_number_root": 6,
       "ayahs_count_root": 1,
+      "combined_value": 88,
       "combined_root": 7,
       "abjad_value": 287,
       "abjad_root": 8
@@ -507,6 +589,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 5,
+      "combined_value": 102,
       "combined_root": 3,
       "abjad_value": 462,
       "abjad_root": 3
@@ -518,6 +601,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 2,
+      "combined_value": 253,
       "combined_root": 1,
       "abjad_value": 602,
       "abjad_root": 8
@@ -529,6 +613,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 3,
+      "combined_value": 120,
       "combined_root": 3,
       "abjad_value": 151,
       "abjad_root": 7
@@ -540,6 +625,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 7,
+      "combined_value": 116,
       "combined_root": 8,
       "abjad_value": 311,
       "abjad_root": 5
@@ -551,6 +637,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 6,
+      "combined_value": 98,
       "combined_root": 8,
       "abjad_value": 579,
       "abjad_root": 3
@@ -562,6 +649,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 6,
+      "combined_value": 90,
       "combined_root": 9,
       "abjad_value": 277,
       "abjad_root": 7
@@ -573,6 +661,7 @@
       "type": "مكية",
       "surah_number_root": 4,
       "ayahs_count_root": 7,
+      "combined_value": 65,
       "combined_root": 2,
       "abjad_value": 221,
       "abjad_root": 5
@@ -584,6 +673,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 3,
+      "combined_value": 62,
       "combined_root": 8,
       "abjad_value": 103,
       "abjad_root": 4
@@ -595,6 +685,7 @@
       "type": "مدنية",
       "surah_number_root": 6,
       "ayahs_count_root": 1,
+      "combined_value": 106,
       "combined_root": 7,
       "abjad_value": 50,
       "abjad_root": 5
@@ -606,6 +697,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 9,
+      "combined_value": 88,
       "combined_root": 7,
       "abjad_value": 63,
       "abjad_root": 9
@@ -617,6 +709,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 9,
+      "combined_value": 80,
       "combined_root": 8,
       "abjad_value": 290,
       "abjad_root": 2
@@ -628,6 +721,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 2,
+      "combined_value": 119,
       "combined_root": 2,
       "abjad_value": 70,
       "abjad_root": 7
@@ -639,6 +733,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 2,
+      "combined_value": 219,
       "combined_root": 3,
       "abjad_value": 603,
       "abjad_root": 9
@@ -650,6 +745,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 7,
+      "combined_value": 126,
       "combined_root": 9,
       "abjad_value": 90,
       "abjad_root": 9
@@ -661,6 +757,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 3,
+      "combined_value": 114,
       "combined_root": 6,
       "abjad_value": 278,
       "abjad_root": 8
@@ -672,6 +769,7 @@
       "type": "مكية",
       "surah_number_root": 4,
       "ayahs_count_root": 4,
+      "combined_value": 125,
       "combined_root": 8,
       "abjad_value": 1281,
       "abjad_root": 3
@@ -683,6 +781,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 9,
+      "combined_value": 95,
       "combined_root": 5,
       "abjad_value": 600,
       "abjad_root": 6
@@ -694,6 +793,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 8,
+      "combined_value": 95,
       "combined_root": 5,
       "abjad_value": 547,
       "abjad_root": 7
@@ -705,6 +805,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 8,
+      "combined_value": 132,
       "combined_root": 6,
       "abjad_value": 918,
       "abjad_root": 9
@@ -716,6 +817,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 5,
+      "combined_value": 103,
       "combined_root": 4,
       "abjad_value": 686,
       "abjad_root": 2
@@ -727,6 +829,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 1,
+      "combined_value": 82,
       "combined_root": 1,
       "abjad_value": 550,
       "abjad_root": 1
@@ -738,6 +841,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 8,
+      "combined_value": 81,
       "combined_root": 9,
       "abjad_value": 221,
       "abjad_root": 5
@@ -749,6 +853,7 @@
       "type": "مدنية",
       "surah_number_root": 2,
       "ayahs_count_root": 2,
+      "combined_value": 85,
       "combined_root": 4,
       "abjad_value": 92,
       "abjad_root": 2
@@ -760,6 +865,7 @@
       "type": "مدنية",
       "surah_number_root": 3,
       "ayahs_count_root": 2,
+      "combined_value": 77,
       "combined_root": 5,
       "abjad_value": 519,
       "abjad_root": 6
@@ -771,6 +877,7 @@
       "type": "مدنية",
       "surah_number_root": 4,
       "ayahs_count_root": 9,
+      "combined_value": 67,
       "combined_root": 4,
       "abjad_value": 643,
       "abjad_root": 4
@@ -782,6 +889,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 9,
+      "combined_value": 95,
       "combined_root": 5,
       "abjad_value": 100,
       "abjad_root": 1
@@ -793,6 +901,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 6,
+      "combined_value": 111,
       "combined_root": 3,
       "abjad_value": 1343,
       "abjad_root": 2
@@ -804,6 +913,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 4,
+      "combined_value": 101,
       "combined_root": 2,
       "abjad_value": 246,
       "abjad_root": 3
@@ -815,6 +925,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 8,
+      "combined_value": 115,
       "combined_root": 7,
       "abjad_value": 124,
       "abjad_root": 7
@@ -826,6 +937,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 1,
+      "combined_value": 109,
       "combined_root": 1,
       "abjad_value": 371,
       "abjad_root": 2
@@ -837,6 +949,7 @@
       "type": "مدنية",
       "surah_number_root": 1,
       "ayahs_count_root": 6,
+      "combined_value": 133,
       "combined_root": 7,
       "abjad_value": 329,
       "abjad_root": 5
@@ -848,6 +961,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 6,
+      "combined_value": 152,
       "combined_root": 8,
       "abjad_value": 213,
       "abjad_root": 6
@@ -859,6 +973,7 @@
       "type": "مدنية",
       "surah_number_root": 3,
       "ayahs_count_root": 2,
+      "combined_value": 86,
       "combined_root": 5,
       "abjad_value": 57,
       "abjad_root": 3
@@ -870,6 +985,7 @@
       "type": "مدنية",
       "surah_number_root": 4,
       "ayahs_count_root": 4,
+      "combined_value": 80,
       "combined_root": 8,
       "abjad_value": 114,
       "abjad_root": 6
@@ -881,6 +997,7 @@
       "type": "مدنية",
       "surah_number_root": 5,
       "ayahs_count_root": 6,
+      "combined_value": 83,
       "combined_root": 2,
       "abjad_value": 539,
       "abjad_root": 8
@@ -892,6 +1009,7 @@
       "type": "مدنية",
       "surah_number_root": 6,
       "ayahs_count_root": 4,
+      "combined_value": 73,
       "combined_root": 1,
       "abjad_value": 574,
       "abjad_root": 7
@@ -903,6 +1021,7 @@
       "type": "مدنية",
       "surah_number_root": 7,
       "ayahs_count_root": 5,
+      "combined_value": 75,
       "combined_root": 3,
       "abjad_value": 201,
       "abjad_root": 3
@@ -914,6 +1033,7 @@
       "type": "مدنية",
       "surah_number_root": 8,
       "ayahs_count_root": 2,
+      "combined_value": 73,
       "combined_root": 1,
       "abjad_value": 149,
       "abjad_root": 5
@@ -925,6 +1045,7 @@
       "type": "مدنية",
       "surah_number_root": 9,
       "ayahs_count_root": 2,
+      "combined_value": 74,
       "combined_root": 2,
       "abjad_value": 358,
       "abjad_root": 7
@@ -936,6 +1057,7 @@
       "type": "مدنية",
       "surah_number_root": 1,
       "ayahs_count_root": 9,
+      "combined_value": 82,
       "combined_root": 1,
       "abjad_value": 1484,
       "abjad_root": 8
@@ -947,6 +1069,7 @@
       "type": "مدنية",
       "surah_number_root": 2,
       "ayahs_count_root": 3,
+      "combined_value": 77,
       "combined_root": 5,
       "abjad_value": 171,
       "abjad_root": 9
@@ -958,6 +1081,7 @@
       "type": "مدنية",
       "surah_number_root": 3,
       "ayahs_count_root": 3,
+      "combined_value": 78,
       "combined_root": 6,
       "abjad_value": 689,
       "abjad_root": 5
@@ -969,6 +1093,7 @@
       "type": "مكية",
       "surah_number_root": 4,
       "ayahs_count_root": 3,
+      "combined_value": 97,
       "combined_root": 7,
       "abjad_value": 121,
       "abjad_root": 4
@@ -980,6 +1105,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 7,
+      "combined_value": 120,
       "combined_root": 3,
       "abjad_value": 201,
       "abjad_root": 3
@@ -991,6 +1117,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 7,
+      "combined_value": 121,
       "combined_root": 4,
       "abjad_value": 145,
       "abjad_root": 1
@@ -1002,6 +1129,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 8,
+      "combined_value": 114,
       "combined_root": 6,
       "abjad_value": 345,
       "abjad_root": 3
@@ -1013,6 +1141,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 1,
+      "combined_value": 99,
       "combined_root": 9,
       "abjad_value": 64,
       "abjad_root": 1
@@ -1024,6 +1153,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 1,
+      "combined_value": 100,
       "combined_root": 1,
       "abjad_value": 84,
       "abjad_root": 3
@@ -1035,6 +1165,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 2,
+      "combined_value": 93,
       "combined_root": 3,
       "abjad_value": 148,
       "abjad_root": 4
@@ -1046,6 +1177,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 2,
+      "combined_value": 130,
       "combined_root": 4,
       "abjad_value": 775,
       "abjad_root": 1
@@ -1057,6 +1189,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 4,
+      "combined_value": 115,
       "combined_root": 7,
       "abjad_value": 187,
       "abjad_root": 7
@@ -1068,6 +1201,7 @@
       "type": "مدنية",
       "surah_number_root": 4,
       "ayahs_count_root": 4,
+      "combined_value": 107,
       "combined_root": 8,
       "abjad_value": 193,
       "abjad_root": 4
@@ -1079,6 +1213,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 5,
+      "combined_value": 127,
       "combined_root": 1,
       "abjad_value": 762,
       "abjad_root": 6
@@ -1090,6 +1225,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 4,
+      "combined_value": 118,
       "combined_root": 1,
       "abjad_value": 84,
       "abjad_root": 3
@@ -1101,6 +1237,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 1,
+      "combined_value": 125,
       "combined_root": 8,
       "abjad_value": 560,
       "abjad_root": 2
@@ -1112,6 +1249,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 6,
+      "combined_value": 122,
       "combined_root": 5,
       "abjad_value": 132,
       "abjad_root": 6
@@ -1123,6 +1261,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 2,
+      "combined_value": 110,
       "combined_root": 2,
       "abjad_value": 667,
       "abjad_root": 1
@@ -1134,6 +1273,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 1,
+      "combined_value": 101,
       "combined_root": 2,
       "abjad_value": 372,
       "abjad_root": 3
@@ -1145,6 +1285,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 9,
+      "combined_value": 119,
       "combined_root": 2,
       "abjad_value": 300,
       "abjad_root": 3
@@ -1156,6 +1297,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 7,
+      "combined_value": 109,
       "combined_root": 1,
       "abjad_value": 583,
       "abjad_root": 7
@@ -1167,6 +1309,7 @@
       "type": "مكية",
       "surah_number_root": 4,
       "ayahs_count_root": 4,
+      "combined_value": 107,
       "combined_root": 8,
       "abjad_value": 242,
       "abjad_root": 8
@@ -1178,6 +1321,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 8,
+      "combined_value": 103,
       "combined_root": 4,
       "abjad_value": 341,
       "abjad_root": 8
@@ -1189,6 +1333,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 1,
+      "combined_value": 106,
       "combined_root": 7,
       "abjad_value": 142,
       "abjad_root": 7
@@ -1200,6 +1345,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 8,
+      "combined_value": 114,
       "combined_root": 6,
       "abjad_value": 1347,
       "abjad_root": 6
@@ -1211,6 +1357,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 3,
+      "combined_value": 119,
       "combined_root": 2,
       "abjad_value": 314,
       "abjad_root": 8
@@ -1222,6 +1369,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 2,
+      "combined_value": 110,
       "combined_root": 2,
       "abjad_value": 67,
       "abjad_root": 4
@@ -1233,6 +1381,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 6,
+      "combined_value": 106,
       "combined_root": 7,
       "abjad_value": 431,
       "abjad_root": 8
@@ -1244,6 +1393,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 3,
+      "combined_value": 113,
       "combined_root": 5,
       "abjad_value": 101,
       "abjad_root": 2
@@ -1255,6 +1405,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 2,
+      "combined_value": 104,
       "combined_root": 5,
       "abjad_value": 849,
       "abjad_root": 3
@@ -1266,6 +1417,7 @@
       "type": "مكية",
       "surah_number_root": 4,
       "ayahs_count_root": 8,
+      "combined_value": 102,
       "combined_root": 3,
       "abjad_value": 539,
       "abjad_root": 8
@@ -1277,6 +1429,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 8,
+      "combined_value": 103,
       "combined_root": 4,
       "abjad_value": 491,
       "abjad_root": 5
@@ -1288,6 +1441,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 1,
+      "combined_value": 115,
       "combined_root": 7,
       "abjad_value": 231,
       "abjad_root": 6
@@ -1299,6 +1453,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 5,
+      "combined_value": 102,
       "combined_root": 3,
       "abjad_value": 335,
       "abjad_root": 2
@@ -1310,6 +1465,7 @@
       "type": "مدنية",
       "surah_number_root": 8,
       "ayahs_count_root": 8,
+      "combined_value": 106,
       "combined_root": 7,
       "abjad_value": 98,
       "abjad_root": 8
@@ -1321,6 +1477,7 @@
       "type": "مدنية",
       "surah_number_root": 9,
       "ayahs_count_root": 8,
+      "combined_value": 107,
       "combined_root": 8,
       "abjad_value": 110,
       "abjad_root": 2
@@ -1332,6 +1489,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 2,
+      "combined_value": 111,
       "combined_root": 3,
       "abjad_value": 517,
       "abjad_root": 4
@@ -1343,6 +1501,7 @@
       "type": "مكية",
       "surah_number_root": 2,
       "ayahs_count_root": 2,
+      "combined_value": 112,
       "combined_root": 4,
       "abjad_value": 407,
       "abjad_root": 2
@@ -1354,6 +1513,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 8,
+      "combined_value": 110,
       "combined_root": 2,
       "abjad_value": 1152,
       "abjad_root": 9
@@ -1365,6 +1525,7 @@
       "type": "مكية",
       "surah_number_root": 4,
       "ayahs_count_root": 3,
+      "combined_value": 106,
       "combined_root": 7,
       "abjad_value": 391,
       "abjad_root": 4
@@ -1376,6 +1537,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 9,
+      "combined_value": 113,
       "combined_root": 5,
       "abjad_value": 88,
       "abjad_root": 7
@@ -1387,6 +1549,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 5,
+      "combined_value": 110,
       "combined_root": 2,
       "abjad_value": 151,
       "abjad_root": 7
@@ -1398,6 +1561,7 @@
       "type": "مكية",
       "surah_number_root": 7,
       "ayahs_count_root": 4,
+      "combined_value": 110,
       "combined_root": 2,
       "abjad_value": 610,
       "abjad_root": 7
@@ -1409,6 +1573,7 @@
       "type": "مكية",
       "surah_number_root": 8,
       "ayahs_count_root": 7,
+      "combined_value": 114,
       "combined_root": 6,
       "abjad_value": 198,
       "abjad_root": 9
@@ -1420,6 +1585,7 @@
       "type": "مكية",
       "surah_number_root": 9,
       "ayahs_count_root": 3,
+      "combined_value": 111,
       "combined_root": 3,
       "abjad_value": 757,
       "abjad_root": 1
@@ -1431,6 +1597,7 @@
       "type": "مكية",
       "surah_number_root": 1,
       "ayahs_count_root": 6,
+      "combined_value": 115,
       "combined_root": 7,
       "abjad_value": 388,
       "abjad_root": 1
@@ -1442,6 +1609,7 @@
       "type": "مدنية",
       "surah_number_root": 2,
       "ayahs_count_root": 3,
+      "combined_value": 113,
       "combined_root": 5,
       "abjad_value": 371,
       "abjad_root": 2
@@ -1453,6 +1621,7 @@
       "type": "مكية",
       "surah_number_root": 3,
       "ayahs_count_root": 5,
+      "combined_value": 116,
       "combined_root": 8,
       "abjad_value": 135,
       "abjad_root": 9
@@ -1464,6 +1633,7 @@
       "type": "مكية",
       "surah_number_root": 4,
       "ayahs_count_root": 4,
+      "combined_value": 116,
       "combined_root": 8,
       "abjad_value": 753,
       "abjad_root": 6
@@ -1475,6 +1645,7 @@
       "type": "مكية",
       "surah_number_root": 5,
       "ayahs_count_root": 5,
+      "combined_value": 118,
       "combined_root": 1,
       "abjad_value": 241,
       "abjad_root": 7
@@ -1486,6 +1657,7 @@
       "type": "مكية",
       "surah_number_root": 6,
       "ayahs_count_root": 6,
+      "combined_value": 120,
       "combined_root": 3,
       "abjad_value": 142,
       "abjad_root": 7
