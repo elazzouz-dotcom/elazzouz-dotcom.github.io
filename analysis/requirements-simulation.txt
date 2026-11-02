@@ -1,0 +1,4 @@
+# Python 3.12.x recommended
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.16.2
