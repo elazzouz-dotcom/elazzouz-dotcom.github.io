@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import { NODE_LEVELS, NODE_TOTAL, getNodeChildren, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
 import { BUILTIN_NODES } from './builtin-nodes.mjs';
+
+const require = createRequire(import.meta.url);
+const SwarmModel = require('./swarm-simulation/swarm-simulation-model.js');
 
 test('الشبكة تضم 6600 عقدة بمستويات متزايدة تبدأ من 1 ثم 2 ثم 3', () => {
   assert.deepEqual(NODE_LEVELS.slice(0, 6), [1, 2, 3, 4, 5, 6]);
@@ -23,10 +27,39 @@ test('محاكاة السرب مدمجة في العقدة الطرفية 6600 �
 
   const page = await readFile(new URL('./swarm-simulation/index.html', import.meta.url), 'utf8');
   const script = await readFile(new URL('./swarm-simulation/swarm-simulation.js', import.meta.url), 'utf8');
+  const modelSource = await readFile(new URL('./swarm-simulation/swarm-simulation-model.js', import.meta.url), 'utf8');
   assert.match(page, /<html lang="ar" dir="rtl">/);
   assert.match(page, /محاكاة تعليمية فقط/);
-  assert.match(script, /const LIMIT = 300/);
+  assert.match(page, /swarm-simulation-model\.js/);
+  assert.match(modelSource, /MAX_AGENTS = 300/);
   assert.doesNotMatch(script, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
+  assert.doesNotMatch(modelSource, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
+});
+
+test('مقياس توازن الأدوار يعكس التوزيع لا قيمة عشوائية', () => {
+  assert.equal(SwarmModel.calculateBalancePercent({ explore: 19, inspect: 19, protect: 19 }), 100);
+  assert.equal(SwarmModel.calculateBalancePercent({ explore: 57, inspect: 0, protect: 0 }), 0);
+  assert.ok(SwarmModel.calculateBalancePercent({ explore: 34, inspect: 12, protect: 11 }) < 100);
+});
+
+test('توزيع السيناريوهات وحدود الوكلاء ثابتة ضمن المجال المحلي', () => {
+  assert.equal(SwarmModel.clampAgentCount(1), SwarmModel.MIN_AGENTS);
+  assert.equal(SwarmModel.clampAgentCount(301), SwarmModel.MAX_AGENTS);
+  assert.equal(SwarmModel.createRoleAssignments(57, 'balanced').length, 57);
+  const focused = SwarmModel.countRoles(SwarmModel.createRoleAssignments(57, 'explore-heavy'));
+  assert.ok(focused.explore >= 34);
+  for (const [scenario, role] of [['inspect-heavy', 'inspect'], ['protect-heavy', 'protect']]) {
+    assert.ok(SwarmModel.countRoles(SwarmModel.createRoleAssignments(57, scenario))[role] >= 34);
+  }
+  assert.equal(SwarmModel.createRoleAssignments(57, 'random', () => 0.5).length, 57);
+});
+
+test('عناصر واجهة محاكاة السرب تطابق المحددات التي يستعملها السكربت', async () => {
+  const page = await readFile(new URL('./swarm-simulation/index.html', import.meta.url), 'utf8');
+  const script = await readFile(new URL('./swarm-simulation/swarm-simulation.js', import.meta.url), 'utf8');
+  const ids = new Set([...script.matchAll(/(?:\$|querySelector)\(['"]#([\w-]+)['"]\)/g)].map((match) => match[1]));
+  assert.ok(ids.size > 10);
+  for (const id of ids) assert.match(page, new RegExp(`id="${id}"`), `العنصر #${id} غير موجود في صفحة المحاكاة`);
 });
 
 test('لكل عقدة غير الجذر أب سابق صالح ولا توجد حلقات ذاتية', () => {

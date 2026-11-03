@@ -1,78 +1,42 @@
 (() => {
   'use strict';
 
-  const LIMIT = 300;
-  const ROLES = [
-    { id: 'explore', label: 'استكشاف', color: '#59e0a3' },
-    { id: 'inspect', label: 'فحص تعليمي', color: '#f4ce72' },
-    { id: 'protect', label: 'حماية افتراضية', color: '#70a7ff' }
-  ];
+  const Model = window.SwarmSimulationModel;
+  if (!Model) {
+    const status = document.querySelector('#swarm-state');
+    if (status) status.textContent = 'تعذر تحميل نموذج المحاكاة المحلي.';
+    return;
+  }
   const canvas = document.querySelector('#swarm-canvas');
   const context = canvas?.getContext('2d');
   const logList = document.querySelector('#swarm-log');
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+  const $ = (selector) => document.querySelector(selector);
+  const { ROLES, SCENARIOS, MIN_AGENTS, MAX_AGENTS, DEFAULT_AGENTS } = Model;
   let agents = [];
   let nextId = 1;
+  let tickCursor = 0;
   let running = !reduceMotion;
-  let stability = 75;
+  let speed = 1;
   let logicalWidth = 0;
   let logicalHeight = 0;
   let drawFrame = 0;
   let simulationTimer = 0;
 
   const countNodes = {
-    total: document.querySelector('#agent-count'),
-    explore: document.querySelector('#explore-count'),
-    inspect: document.querySelector('#inspect-count'),
-    protect: document.querySelector('#protect-count')
+    total: $('#agent-count'),
+    explore: $('#explore-count'),
+    inspect: $('#inspect-count'),
+    protect: $('#protect-count')
   };
   const meterNodes = {
-    total: document.querySelector('#agent-meter'),
-    explore: document.querySelector('#explore-meter'),
-    inspect: document.querySelector('#inspect-meter'),
-    protect: document.querySelector('#protect-meter'),
-    stability: document.querySelector('#stability-meter')
+    total: $('#agent-meter'),
+    explore: $('#explore-meter'),
+    inspect: $('#inspect-meter'),
+    protect: $('#protect-meter'),
+    balance: $('#balance-meter')
   };
-
-  function countByRole() {
-    const counts = Object.fromEntries(ROLES.map((role) => [role.id, 0]));
-    for (const agent of agents) counts[agent.role] += 1;
-    return counts;
-  }
-
-  function smallestRole(counts = countByRole()) {
-    return [...ROLES].sort((left, right) => counts[left.id] - counts[right.id])[0].id;
-  }
-
-  function addAgent(role = smallestRole()) {
-    if (agents.length >= LIMIT) return false;
-    const roleData = ROLES.find((candidate) => candidate.id === role) || ROLES[0];
-    agents.push({
-      id: nextId++,
-      role: roleData.id,
-      energy: 95 + Math.random() * 15,
-      age: 0,
-      x: Math.random() * logicalWidth,
-      y: Math.random() * logicalHeight,
-      vx: (Math.random() - 0.5) * 1.25,
-      vy: (Math.random() - 0.5) * 1.25
-    });
-    return true;
-  }
-
-  function updateMetrics() {
-    const counts = countByRole();
-    countNodes.total.textContent = String(agents.length);
-    countNodes.explore.textContent = String(counts.explore);
-    countNodes.inspect.textContent = String(counts.inspect);
-    countNodes.protect.textContent = String(counts.protect);
-    meterNodes.total.style.width = `${Math.min(100, agents.length / LIMIT * 100)}%`;
-    for (const role of ROLES) {
-      meterNodes[role.id].style.width = `${agents.length ? counts[role.id] / agents.length * 100 : 0}%`;
-    }
-    document.querySelector('#stability-value').textContent = `${stability.toFixed(1)}%`;
-    meterNodes.stability.style.width = `${stability}%`;
-  }
+  const roleCounts = () => Model.countRoles(agents);
 
   function logEvent(message) {
     const item = document.createElement('li');
@@ -80,6 +44,54 @@
     logList.appendChild(item);
     while (logList.children.length > 60) logList.firstElementChild.remove();
     logList.scrollTop = logList.scrollHeight;
+  }
+
+  function updateMetrics(syncPopulationControl = false) {
+    const counts = roleCounts();
+    const balance = Model.calculateBalancePercent(counts);
+    countNodes.total.textContent = String(agents.length);
+    countNodes.explore.textContent = String(counts.explore);
+    countNodes.inspect.textContent = String(counts.inspect);
+    countNodes.protect.textContent = String(counts.protect);
+    meterNodes.total.style.width = `${agents.length / MAX_AGENTS * 100}%`;
+    for (const role of ROLES) meterNodes[role.id].style.width = `${agents.length ? counts[role.id] / agents.length * 100 : 0}%`;
+    $('#balance-value').textContent = `${balance}%`;
+    meterNodes.balance.style.width = `${balance}%`;
+    if (syncPopulationControl) {
+      $('#swarm-count').value = String(agents.length);
+      $('#swarm-count-value').value = String(agents.length);
+      $('#swarm-count-value').textContent = String(agents.length);
+    }
+  }
+
+  function makeAgent(role) {
+    return {
+      id: nextId++,
+      role,
+      energy: 95 + Math.random() * 15,
+      age: 0,
+      x: Math.random() * logicalWidth,
+      y: Math.random() * logicalHeight,
+      vx: (Math.random() - 0.5) * 1.25,
+      vy: (Math.random() - 0.5) * 1.25
+    };
+  }
+
+  function applyAssignments(assignments) {
+    agents.forEach((agent, index) => { agent.role = assignments[index]; });
+    updateMetrics();
+    requestDraw();
+  }
+
+  function setPopulation(value, scenario = $('#swarm-scenario').value) {
+    const target = Model.clampAgentCount(value);
+    if (target === agents.length) return target;
+    const assignments = Model.createRoleAssignments(target, scenario);
+    if (target < agents.length) agents.length = target;
+    while (agents.length < target) agents.push(makeAgent(assignments[agents.length]));
+    applyAssignments(assignments);
+    updateMetrics(true);
+    return target;
   }
 
   function resizeCanvas() {
@@ -119,8 +131,8 @@
     }
     for (const agent of agents) {
       if (running && !reduceMotion) {
-        agent.x += agent.vx;
-        agent.y += agent.vy;
+        agent.x += agent.vx * speed;
+        agent.y += agent.vy * speed;
         if (agent.x < 3 || agent.x > logicalWidth - 3) agent.vx *= -1;
         if (agent.y < 3 || agent.y > logicalHeight - 3) agent.vy *= -1;
         agent.x = Math.min(logicalWidth - 3, Math.max(3, agent.x));
@@ -145,65 +157,122 @@
     });
   }
 
+  function smallestRole(counts) {
+    return [...ROLES].sort((left, right) => counts[left.id] - counts[right.id])[0].id;
+  }
+
   function tick() {
-    const batch = agents.slice(0, 7);
+    const counts = roleCounts();
+    const average = agents.length / ROLES.length;
+    const batchSize = Math.min(10, agents.length);
+    const batch = Array.from({ length: batchSize }, (_, offset) => agents[(tickCursor + offset) % agents.length]);
+    tickCursor = (tickCursor + batchSize) % agents.length;
     for (const agent of batch) {
       agent.age += 1;
       agent.energy -= 0.25;
       if (agent.energy < 30) agent.energy += 8;
-      if (Math.random() < 0.035) {
-        const counts = countByRole();
-        const average = agents.length / ROLES.length;
-        if (counts[agent.role] > average + 4 && Math.random() < 0.35) agent.role = smallestRole(counts);
-      }
-      if (agent.role === 'protect' && Math.random() < 0.04) {
-        stability = Math.min(90, Math.max(60, stability * 0.92 + 75 * 0.08 + (Math.random() - 0.5)));
+      if (counts[agent.role] > average + 4 && Math.random() < 0.12) {
+        const previousRole = agent.role;
+        const nextRole = smallestRole(counts);
+        if (nextRole !== previousRole) {
+          counts[previousRole] -= 1;
+          counts[nextRole] += 1;
+          agent.role = nextRole;
+        }
       }
     }
     updateMetrics();
     requestDraw();
+  }
+
+  function intervalForSpeed() {
+    return Math.max(120, Math.round(360 / speed));
+  }
+
+  function syncTimer() {
+    if (simulationTimer) window.clearInterval(simulationTimer);
+    simulationTimer = running ? window.setInterval(tick, intervalForSpeed()) : 0;
   }
 
   function setRunning(value) {
     running = value;
-    const button = document.querySelector('#swarm-toggle');
-    const status = document.querySelector('#swarm-state');
+    const button = $('#swarm-toggle');
+    const status = $('#swarm-state');
     button.setAttribute('aria-pressed', String(running));
     button.textContent = running ? 'إيقاف المحاكاة' : 'تشغيل المحاكاة';
-    status.textContent = running ? 'المحاكاة تعمل محليًا' : 'المحاكاة متوقفة';
-    if (running) {
-      if (!simulationTimer) simulationTimer = window.setInterval(tick, 360);
-      requestDraw();
-    } else if (simulationTimer) {
-      window.clearInterval(simulationTimer);
-      simulationTimer = 0;
-      requestDraw();
-    }
-  }
-
-  function rebalance() {
-    const startAt = nextId % ROLES.length;
-    agents.forEach((agent, index) => { agent.role = ROLES[(index + startAt) % ROLES.length].id; });
-    stability = 75;
-    updateMetrics();
+    status.textContent = running
+      ? (reduceMotion ? 'الحسابات تعمل؛ الحركة المرئية متوقفة لتقليل الحركة' : `المحاكاة تعمل محليًا · ${speed}×`)
+      : 'المحاكاة متوقفة';
+    syncTimer();
     requestDraw();
-    logEvent(`أُعيد توزيع ${agents.length} وكيلًا على الأدوار الثلاثة بالتساوي قدر الإمكان.`);
   }
 
-  document.querySelector('#swarm-toggle').addEventListener('click', () => {
+  function applyScenario() {
+    const scenario = $('#swarm-scenario').value;
+    const assignments = Model.createRoleAssignments(agents.length, scenario);
+    applyAssignments(assignments);
+    logEvent(`طُبق سيناريو «${SCENARIOS[scenario].label}» على ${agents.length} وكيلًا.`);
+  }
+
+  function setSpeed(value, announce = false) {
+    speed = Math.min(3, Math.max(0.5, Number(value) || 1));
+    const shown = `${speed}×`;
+    $('#swarm-speed-value').value = shown;
+    $('#swarm-speed-value').textContent = shown;
+    if (running) {
+      syncTimer();
+      $('#swarm-state').textContent = reduceMotion
+        ? 'الحسابات تعمل؛ الحركة المرئية متوقفة لتقليل الحركة'
+        : `المحاكاة تعمل محليًا · ${speed}×`;
+    }
+    requestDraw();
+    if (announce) logEvent(`ضُبطت سرعة خطوات المحاكاة على ${shown}.`);
+  }
+
+  function resetSimulation() {
+    setRunning(false);
+    nextId = 1;
+    tickCursor = 0;
+    agents = [];
+    $('#swarm-scenario').value = 'balanced';
+    setSpeed(1);
+    setPopulation(DEFAULT_AGENTS, 'balanced');
+    logEvent('أُعيدت التجربة إلى 57 وكيلًا وتوزيع متوازن وسرعة 1×.');
+  }
+
+  $('#swarm-toggle').addEventListener('click', () => {
     setRunning(!running);
     logEvent(running ? 'استؤنفت المحاكاة المحلية.' : 'أُوقفت الحركة مؤقتًا.');
   });
-  document.querySelector('#swarm-rebalance').addEventListener('click', rebalance);
-  document.querySelector('#swarm-add').addEventListener('click', () => {
-    const before = agents.length;
-    for (let count = 0; count < 10 && agents.length < LIMIT; count += 1) addAgent();
-    updateMetrics();
-    requestDraw();
-    const added = agents.length - before;
-    logEvent(added ? `أُضيف ${added} وكلاء؛ العدد الحالي ${agents.length} من ${LIMIT}.` : `وصل السرب إلى الحد الأعلى ${LIMIT}؛ لم يُضف وكلاء جدد.`);
+  $('#swarm-rebalance').addEventListener('click', () => {
+    $('#swarm-scenario').value = 'balanced';
+    applyScenario();
   });
-  document.querySelector('#swarm-clear').addEventListener('click', () => {
+  $('#swarm-apply-scenario').addEventListener('click', applyScenario);
+  $('#swarm-add').addEventListener('click', () => {
+    const target = Model.clampAgentCount(agents.length + 10);
+    const previous = agents.length;
+    setPopulation(target);
+    logEvent(target === previous ? `وصل السرب إلى الحد الأعلى ${MAX_AGENTS}؛ لم يُضف وكلاء.` : `أُضيف ${target - previous} وكلاء؛ العدد الحالي ${target}.`);
+  });
+  $('#swarm-remove').addEventListener('click', () => {
+    const target = Model.clampAgentCount(agents.length - 10);
+    const previous = agents.length;
+    setPopulation(target);
+    logEvent(target === previous ? `الحد الأدنى هو ${MIN_AGENTS} وكلاء؛ لم يُحذف المزيد.` : `أُزيل ${previous - target} وكلاء؛ العدد الحالي ${target}.`);
+  });
+  $('#swarm-apply-count').addEventListener('click', () => {
+    const target = setPopulation($('#swarm-count').value);
+    logEvent(`ضُبط حجم السرب على ${target} وكيلًا ضمن الحد ${MIN_AGENTS}–${MAX_AGENTS}.`);
+  });
+  $('#swarm-count').addEventListener('input', (event) => {
+    $('#swarm-count-value').value = event.currentTarget.value;
+    $('#swarm-count-value').textContent = event.currentTarget.value;
+  });
+  $('#swarm-speed').addEventListener('input', (event) => setSpeed(event.currentTarget.value));
+  $('#swarm-speed').addEventListener('change', (event) => setSpeed(event.currentTarget.value, true));
+  $('#swarm-reset').addEventListener('click', resetSimulation);
+  $('#swarm-clear').addEventListener('click', () => {
     logList.replaceChildren();
     logEvent('مُسح سجل الأحداث من الصفحة الحالية.');
   });
@@ -211,9 +280,9 @@
   if ('ResizeObserver' in window) new ResizeObserver(resizeCanvas).observe(canvas);
   else window.addEventListener('resize', resizeCanvas, { passive: true });
   resizeCanvas();
-  for (let index = 0; index < 57; index += 1) addAgent(ROLES[index % ROLES.length].id);
-  updateMetrics();
-  logEvent('بدأت المحاكاة من 57 وكيلًا موزعين بالتساوي بين ثلاثة أدوار افتراضية.');
+  setPopulation(DEFAULT_AGENTS, 'balanced');
+  updateMetrics(true);
+  logEvent('بدأت التجربة من 57 وكيلًا بتوزيع متوازن بين ثلاثة أدوار افتراضية.');
   logEvent('لا تُجرى اتصالات أو عمليات فحص خارج هذه الصفحة.');
   setRunning(running);
   if (reduceMotion) logEvent('بدأت متوقفة احترامًا لتفضيل تقليل الحركة في الجهاز.');

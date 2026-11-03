@@ -3,23 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="محاكاة بصرية عربية محلية لتوازن أدوار سرب تعليمي؛ لا تفحص مواقع ولا ترسل بيانات ولا توفر حماية فعلية.">
+  <meta name="description" content="محاكاة بصرية عربية محلية لتوزيع أدوار سرب تعليمي؛ لا تفحص مواقع ولا ترسل بيانات ولا توفر حماية فعلية.">
   <title>محاكاة السرب المتوازن | Slaks</title>
   <link rel="canonical" href="https://elazzouz-dotcom.github.io/semver-bnf/swarm-simulation/">
   <meta property="og:title" content="محاكاة السرب المتوازن | Slaks">
-  <meta property="og:description" content="عرض تعليمي محلي لتوزيع أدوار السرب، بلا فحص شبكة أو إرسال بيانات.">
+  <meta property="og:description" content="محاكاة تعليمية محلية لسيناريوهات توزيع الأدوار وعدد الوكلاء وسرعة الحركة.">
   <meta property="og:url" content="https://elazzouz-dotcom.github.io/semver-bnf/swarm-simulation/">
   <meta property="og:site_name" content="Slaks">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="محاكاة السرب المتوازن | Slaks">
-  <meta name="twitter:description" content="عرض تعليمي محلي لتوزيع أدوار السرب، بلا فحص شبكة أو إرسال بيانات.">
+  <meta name="twitter:description" content="محاكاة تعليمية محلية لسيناريوهات توزيع الأدوار وعدد الوكلاء وسرعة الحركة.">
   <meta name="twitter:image" content="https://elazzouz-dotcom.github.io/assets/slaks-logo.jpg">
   <link rel="stylesheet" href="/theme.css">
   <link rel="stylesheet" href="/semver-bnf/semver-bnf.css">
   <link rel="stylesheet" href="/semver-bnf/swarm-simulation/swarm-simulation.css">
   <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
+  <script src="/semver-bnf/swarm-simulation/swarm-simulation-model.js" defer></script>
   <script src="/semver-bnf/swarm-simulation/swarm-simulation.js" defer></script>
 </head>
 <body class="semver-page swarm-simulation-page">
@@ -39,7 +40,7 @@
     <section class="swarm-tool-heading" aria-labelledby="swarm-title">
       <p class="semver-kicker">العقدة N-6600 · تجربة محلية</p>
       <h1 id="swarm-title">محاكاة السرب المتوازن</h1>
-      <p>شاهد كيف يتغيّر توزيع ثلاثة أدوار تعليمية في سرب صغير. كل الحركة والحسابات تجري داخل هذه الصفحة فقط.</p>
+      <p>قارن بين توزيع متوازن وتوزيعات مائلة، غيّر عدد الوكلاء والسرعة، ثم راقب كيف تتغير الأعداد ومؤشر التوازن.</p>
     </section>
 
     <section class="semver-card swarm-tool-shell" aria-label="لوحة المحاكاة">
@@ -53,13 +54,41 @@
         <article class="swarm-stat"><span>استكشاف</span><strong id="explore-count">19</strong><i class="swarm-meter"><i id="explore-meter"></i></i></article>
         <article class="swarm-stat"><span>فحص تعليمي</span><strong id="inspect-count">19</strong><i class="swarm-meter swarm-meter-gold"><i id="inspect-meter"></i></i></article>
         <article class="swarm-stat"><span>حماية افتراضية</span><strong id="protect-count">19</strong><i class="swarm-meter swarm-meter-blue"><i id="protect-meter"></i></i></article>
-        <article class="swarm-stat"><span>مؤشر التوازن</span><strong id="stability-value">75%</strong><i class="swarm-meter"><i id="stability-meter"></i></i></article>
+        <article class="swarm-stat"><span>توازن الأدوار</span><strong id="balance-value">100%</strong><i class="swarm-meter"><i id="balance-meter"></i></i></article>
       </div>
+      <p class="swarm-metric-note">مؤشر 100% يعني أن الأعداد موزعة بالتساوي بين الأدوار الثلاثة. هو وصف رياضي مبسط للتوزيع، وليس مقياسًا للأمن أو الحماية.</p>
+
+      <section class="swarm-settings" aria-label="إعدادات التجربة">
+        <div class="swarm-setting-card">
+          <label class="swarm-setting-label" for="swarm-scenario">سيناريو توزيع الأدوار</label>
+          <select id="swarm-scenario" class="semver-select">
+            <option value="balanced">توزيع متوازن</option>
+            <option value="explore-heavy">تركيز الاستكشاف</option>
+            <option value="inspect-heavy">تركيز الفحص التعليمي</option>
+            <option value="protect-heavy">تركيز الحماية الافتراضية</option>
+            <option value="random">توزيع عشوائي</option>
+          </select>
+          <button id="swarm-apply-scenario" class="semver-button" type="button">تطبيق السيناريو</button>
+        </div>
+        <div class="swarm-setting-card">
+          <label class="swarm-setting-label" for="swarm-count">عدد الوكلاء: <output id="swarm-count-value" for="swarm-count">57</output></label>
+          <input id="swarm-count" class="swarm-range" type="range" min="3" max="300" step="1" value="57" aria-describedby="swarm-count-help">
+          <p id="swarm-count-help" class="swarm-setting-help">من 3 إلى 300 وكيل</p>
+          <button id="swarm-apply-count" class="semver-button" type="button">تطبيق العدد</button>
+        </div>
+        <div class="swarm-setting-card">
+          <label class="swarm-setting-label" for="swarm-speed">سرعة المحاكاة: <output id="swarm-speed-value" for="swarm-speed">1×</output></label>
+          <input id="swarm-speed" class="swarm-range" type="range" min="0.5" max="3" step="0.5" value="1" aria-describedby="swarm-speed-help">
+          <p id="swarm-speed-help" class="swarm-setting-help">غيّر معدل خطوات المحاكاة</p>
+        </div>
+      </section>
 
       <div class="swarm-controls" role="group" aria-label="أوامر المحاكاة">
         <button id="swarm-toggle" class="semver-button semver-button-primary" type="button" aria-pressed="false">تشغيل المحاكاة</button>
         <button id="swarm-rebalance" class="semver-button" type="button">إعادة توازن الأدوار</button>
         <button id="swarm-add" class="semver-button" type="button">إضافة 10 وكلاء</button>
+        <button id="swarm-remove" class="semver-button" type="button">تقليل 10 وكلاء</button>
+        <button id="swarm-reset" class="semver-button" type="button">إعادة ضبط التجربة</button>
         <button id="swarm-clear" class="semver-button semver-button-danger" type="button">مسح سجل الأحداث</button>
       </div>
 
@@ -78,9 +107,9 @@
 
       <div class="swarm-lower-grid">
         <section class="swarm-explanation" aria-labelledby="swarm-about-title">
-          <h2 id="swarm-about-title">ما الذي تمثله هذه الأداة؟</h2>
-          <p>كل نقطة وكيل افتراضي يتحرك على لوحة الرسم. الأعداد ومؤشر التوازن ناتجة عن قواعد عشوائية مبسطة لأغراض الشرح فقط، وليست قياسًا أمنيًا أو علميًا.</p>
-          <p class="swarm-limit">الحد الأعلى هو 300 وكيل؛ ويمكن إيقاف الحركة أو إعادة توزيع الأدوار في أي وقت.</p>
+          <h2 id="swarm-about-title">كيف يُحسب التوازن؟</h2>
+          <p>يقارن المؤشر أعداد الأدوار بالتوزيع المتساوي الممكن لعدد الوكلاء الحالي؛ 100% تعني توازنًا كاملًا، ويقل الرقم كلما تركزت الوكلاء في أدوار أقل.</p>
+          <p class="swarm-limit">هذا نموذج تعليمي مبسط، لا يقيس جودة الفحص ولا فاعلية الحماية. الحد الأعلى 300 وكيل، ويمكن تشغيل التجربة أو إيقافها في أي وقت.</p>
         </section>
         <section class="swarm-log-section" aria-labelledby="swarm-log-title">
           <div class="swarm-log-heading"><h2 id="swarm-log-title">سجل الأحداث</h2><span>محلي في الصفحة</span></div>
