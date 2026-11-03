@@ -5,7 +5,7 @@
  */
 class SovereignBugSwarm {
   constructor() {
-    this.reportKey = 'slaks-sovereign-swarm-reports-v1';
+    this.reportKey = 'azzouz-sovereign-swarm-reports-v1';
     this.maxReports = 500;
     this.bugs = [
       { id: 'Bug-01', label: 'الهيكل', delay: 1100, offset: 0 },
@@ -75,7 +75,7 @@ class SovereignBugSwarm {
       if (typeof window.inspectNodeAlgebraically === 'function') {
         window.inspectNodeAlgebraically(detail.id, detail.name, detail.value);
       } else {
-        window.dispatchEvent(new CustomEvent('slaks:swarm-node', { detail }));
+        window.dispatchEvent(new CustomEvent('azzouz:swarm-node', { detail }));
       }
       this.recordReport({
         agent: bug.id,
@@ -122,7 +122,7 @@ class SovereignBugSwarm {
     this.reports = this.reports.slice(-this.maxReports);
     this.saveReports();
     this.renderReports();
-    window.dispatchEvent(new CustomEvent('slaks:swarm-report', { detail: report }));
+    window.dispatchEvent(new CustomEvent('azzouz:swarm-report', { detail: report }));
   }
 
   setupReportControls() {
@@ -155,7 +155,7 @@ class SovereignBugSwarm {
   }
 
   exportReports(format) {
-    const filename = `slaks-swarm-report-${new Date().toISOString().replace(/[:.]/g, '-')}.${format}`;
+    const filename = `azzouz-swarm-report-${new Date().toISOString().replace(/[:.]/g, '-')}.${format}`;
     let content;
     let type;
     if (format === 'csv') {
@@ -164,7 +164,7 @@ class SovereignBugSwarm {
       content = [fields.join(','), ...this.reports.map((row) => fields.map((field) => quote(row[field])).join(','))].join('\n');
       type = 'text/csv;charset=utf-8';
     } else {
-      content = JSON.stringify({ format: 'slaks-sovereign-swarm-periodic-report', generatedAt: new Date().toISOString(), totalRecords: this.reports.length, records: this.reports }, null, 2);
+      content = JSON.stringify({ format: 'azzouz-sovereign-swarm-periodic-report', generatedAt: new Date().toISOString(), totalRecords: this.reports.length, records: this.reports }, null, 2);
       type = 'application/json;charset=utf-8';
     }
     const blob = new Blob([content], { type });

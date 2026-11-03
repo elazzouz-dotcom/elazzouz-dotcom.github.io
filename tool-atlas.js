@@ -63,7 +63,7 @@
   };
 
   const examples = {
-    JSON: { label: 'ألصق JSON هنا', action: 'format-json', placeholder: '{"name":"Slaks","tools":520}' },
+    JSON: { label: 'ألصق JSON هنا', action: 'format-json', placeholder: '{"name":"Azzouz","tools":520}' },
     'Base64': { label: 'النص المراد ترميزه أو فكّه', action: 'base64', placeholder: 'اكتب النص هنا...' },
     'النص': { label: 'النص للتحليل', action: 'text-stats', placeholder: 'اكتب أو ألصق النص هنا...' },
     'الألوان': { label: 'لون بصيغة HEX', action: 'color', placeholder: '#3ddc97' },

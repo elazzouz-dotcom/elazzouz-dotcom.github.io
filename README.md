@@ -1,6 +1,6 @@
-# Slaks
+# Azzouz
 
-المستودع الرسمي لموقع **Slaks** المنشور عبر GitHub Pages.
+المستودع الرسمي لموقع **Azzouz** المنشور عبر GitHub Pages.
 
 ## المصدر الرئيسي
 

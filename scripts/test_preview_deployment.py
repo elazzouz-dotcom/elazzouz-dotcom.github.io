@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and optionally deploy the Slaks Cloudflare Preview Worker.
+"""Validate and optionally deploy the Azzouz Cloudflare Preview Worker.
 
 Examples:
   python3 scripts/test_preview_deployment.py
@@ -69,7 +69,7 @@ def local_audit(worker_file: Path, wrangler_file: Path) -> list[Result]:
 
 
 def http_json(url: str, timeout: float) -> tuple[int, dict[str, str], Any]:
-    request = Request(url, headers={"Accept": "application/json", "User-Agent": "Slaks-preview-deployment-test/1.0"})
+    request = Request(url, headers={"Accept": "application/json", "User-Agent": "Azzouz-preview-deployment-test/1.0"})
     try:
         with urlopen(request, timeout=timeout) as response:
             raw = response.read(2_000_000)
@@ -182,7 +182,7 @@ def deploy(wrangler_file: Path, timeout: float) -> Result:
 
 
 def print_report(results: list[Result]) -> None:
-    print("Slaks Preview deployment test")
+    print("Azzouz Preview deployment test")
     print("=" * 31)
     for result in results:
         marker = "PASS" if result.ok else "FAIL"
@@ -196,7 +196,7 @@ def print_report(results: list[Result]) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Audit, optionally deploy, and probe the Slaks Cloudflare Preview Worker.")
+    parser = argparse.ArgumentParser(description="Audit, optionally deploy, and probe the Azzouz Cloudflare Preview Worker.")
     parser.add_argument("--worker-url", default=os.getenv("PREVIEW_WORKER_URL", DEFAULT_WORKER_URL), help="Published Worker base URL")
     parser.add_argument("--target-url", default=os.getenv("PREVIEW_TEST_TARGET", DEFAULT_TARGET_URL), help="Public URL fetched by /preview")
     parser.add_argument("--worker-file", type=Path, default=ROOT / "cloudflare-worker-oauth-proxy.js")

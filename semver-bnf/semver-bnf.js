@@ -10,8 +10,8 @@ const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v5-8cm';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
 const REPORT_CACHE_TTL = 10 * 60 * 1000;
-const QURAN_API_BASE_KEY = 'slaks-quran-api-base';
-const LINK_CACHE_DB = 'slaks-link-cache-db';
+const QURAN_API_BASE_KEY = 'azzouz-quran-api-base';
+const LINK_CACHE_DB = 'azzouz-link-cache-db';
 const LINK_CACHE_STORE = 'payloads';
 const pendingLinkLoads = new Map();
 const NODE_SIZE = 60;
@@ -886,17 +886,17 @@ function renderQuickSearchResults(query) {
   container.appendChild(meta);
   local.forEach((item) => appendQuickSearchResult(container, item));
   const request = ++quickSearchRequest;
-  if (window.SlaksKnowledge?.enabled) {
+  if (window.AzzouzKnowledge?.enabled) {
     quickSearchTimer = window.setTimeout(async () => {
       try {
-        const payload = await window.SlaksKnowledge.search(cleanQuery, 8);
+        const payload = await window.AzzouzKnowledge.search(cleanQuery, 8);
         if (request !== quickSearchRequest) return;
         const localIds = new Set(local.map((item) => item.id));
         (payload.items || []).filter((item) => !localIds.has(Number(item.id))).forEach((item) => appendQuickSearchResult(container, item, true));
       } catch { /* local search remains available when the central API is unavailable */ }
     }, 180);
   }
-  if (!local.length && !window.SlaksKnowledge?.enabled) {
+  if (!local.length && !window.AzzouzKnowledge?.enabled) {
     meta.textContent = 'لا توجد عقد مطابقة محليًا. اكتب N-001 أو أضف كلمات من الرابط أو المحتوى.';
   }
 }
@@ -1207,7 +1207,7 @@ async function searchWithSelectedEngine() {
   const url = `${base}${encodeURIComponent(query)}`;
   hubUrl.value = url;
   await buildHub();
-  setHubStatus(`تظهر نتائج ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'} داخل Slaks دون مغادرة الصفحة.`);
+  setHubStatus(`تظهر نتائج ${hubSearchEngine.options[hubSearchEngine.selectedIndex]?.text || 'المحرك المختار'} داخل Azzouz دون مغادرة الصفحة.`);
 }
 
 const FEDERATED_SEARCH_ENGINES = Object.freeze([
@@ -1333,7 +1333,7 @@ function addQuranFilteredDigest(doc, metric) {
     .slice(0, 12);
   if (!candidates.length) return;
   const digest = doc.createElement('section');
-  digest.setAttribute('data-slaks-quran-filter', 'true');
+  digest.setAttribute('data-azzouz-quran-filter', 'true');
   const heading = doc.createElement('h2');
   heading.textContent = `تصفية خوارزمية · ${metric.surah_name} · ${metric.type}`;
   const note = doc.createElement('p');
@@ -1370,7 +1370,7 @@ function sanitizeExternalPreview(html, baseUrl, metric = null) {
   });
   const safeBody = doc.body?.innerHTML || '<p>لم يُرجع المصدر محتوى قابلًا للعرض.</p>';
   const safeTitle = (doc.title || 'معاينة ويب').replace(/[<>]/g, '');
-  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; font-src https:; connect-src 'none'; frame-src 'none';"><title>${escapeXml(safeTitle)}</title><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e8f0ee;background:#071014;line-height:1.75}a{color:#59e0a3}img{max-width:100%;height:auto;border-radius:10px}pre{overflow:auto;background:#102127;padding:12px;border-radius:10px}[data-slaks-quran-filter]{margin-bottom:28px;padding:18px;border:1px solid #59e0a3;border-radius:16px;background:linear-gradient(145deg,#102127,#0b171b)}[data-slaks-quran-filter] h2{margin-top:0;color:#59e0a3}[data-slaks-quran-filter] p{color:#9cb0b2}[data-slaks-quran-filter] article{margin-top:10px;padding:10px;border-radius:10px;background:#071014;border-inline-start:3px solid #f4ce72}[data-slaks-quran-filter] strong{color:#f4ce72}</style></head><body>${safeBody}<script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'hub-preview-url',url:link.dataset.previewUrl},'*');});</script></body></html>`;
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; font-src https:; connect-src 'none'; frame-src 'none';"><title>${escapeXml(safeTitle)}</title><style>body{font-family:system-ui,Arial,sans-serif;margin:0;padding:24px;color:#e8f0ee;background:#071014;line-height:1.75}a{color:#59e0a3}img{max-width:100%;height:auto;border-radius:10px}pre{overflow:auto;background:#102127;padding:12px;border-radius:10px}[data-azzouz-quran-filter]{margin-bottom:28px;padding:18px;border:1px solid #59e0a3;border-radius:16px;background:linear-gradient(145deg,#102127,#0b171b)}[data-azzouz-quran-filter] h2{margin-top:0;color:#59e0a3}[data-azzouz-quran-filter] p{color:#9cb0b2}[data-azzouz-quran-filter] article{margin-top:10px;padding:10px;border-radius:10px;background:#071014;border-inline-start:3px solid #f4ce72}[data-azzouz-quran-filter] strong{color:#f4ce72}</style></head><body>${safeBody}<script>document.addEventListener('click',function(event){var link=event.target.closest('a[data-preview-url]');if(!link)return;event.preventDefault();parent.postMessage({type:'hub-preview-url',url:link.dataset.previewUrl},'*');});</script></body></html>`;
 }
 
 async function buildHub(silent = false) {
@@ -1398,7 +1398,7 @@ async function buildHub(silent = false) {
           source: 'أداة محلية في شبكة 6600 عقدة',
           kind: 'محاكاة تعليمية'
         });
-        setHubStatus('تعمل المحاكاة داخل Slaks من ملفات الموقع المحلية؛ لم يُطلب محتوى من خدمة معاينة خارجية.');
+        setHubStatus('تعمل المحاكاة داخل Azzouz من ملفات الموقع المحلية؛ لم يُطلب محتوى من خدمة معاينة خارجية.');
         return;
       }
       const software = classifySoftwareUrl(link.url);
@@ -1412,8 +1412,8 @@ async function buildHub(silent = false) {
       }
       hubPreview.removeAttribute('srcdoc');
       hubPreview.src = link.url;
-      renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر العرض داخل Slaks عند الحاجة.', source: software.label, kind: software.kind });
-      setHubStatus(`جارية معاينة ${software.label} داخل Slaks عبر Relay عند توفره…`);
+      renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر العرض داخل Azzouz عند الحاجة.', source: software.label, kind: software.kind });
+      setHubStatus(`جارية معاينة ${software.label} داخل Azzouz عبر Relay عند توفره…`);
       try {
         const response = await fetch(`${PREVIEW_WORKER}?url=${encodeURIComponent(link.url)}`, { headers: { Accept: 'application/json' } });
         const payload = await response.json();
@@ -1421,11 +1421,11 @@ async function buildHub(silent = false) {
           hubPreview.removeAttribute('src');
           hubPreview.srcdoc = sanitizeExternalPreview(payload.html, payload.finalUrl || link.url, quranMetricForNode(activeHub.id));
           hubAddress.textContent = `${software.label} · ${payload.finalUrl || link.url}`;
-          renderExtraction({ title: payload.title || link.host, text: payload.description || payload.text || 'تم جلب نسخة HTML عبر Relay داخل Slaks.', elements: payload.elements, links: payload.links?.length, source: 'Cloudflare Preview Relay', kind: software.kind });
-          setHubStatus('ظهرت نسخة الموقع داخل Slaks عبر Relay؛ يمكنك متابعة الروابط من نفس بطاقة المعاينة.');
+          renderExtraction({ title: payload.title || link.host, text: payload.description || payload.text || 'تم جلب نسخة HTML عبر Relay داخل Azzouz.', elements: payload.elements, links: payload.links?.length, source: 'Cloudflare Preview Relay', kind: software.kind });
+          setHubStatus('ظهرت نسخة الموقع داخل Azzouz عبر Relay؛ يمكنك متابعة الروابط من نفس بطاقة المعاينة.');
         }
       } catch {
-        setHubStatus('تعذر استخدام Relay حاليًا؛ بقيت المعاينة المباشرة داخل Slaks مفعلة.', false);
+        setHubStatus('تعذر استخدام Relay حاليًا؛ بقيت المعاينة المباشرة داخل Azzouz مفعلة.', false);
       }
       return;
     }
@@ -1606,12 +1606,12 @@ async function openExternally() {
     if (link.kind === 'web') {
       hubUrl.value = link.url;
       await buildHub();
-      setHubStatus('تم تحويل هذا الإجراء إلى معاينة داخل Slaks؛ لن تغادر الصفحة.');
+      setHubStatus('تم تحويل هذا الإجراء إلى معاينة داخل Azzouz؛ لن تغادر الصفحة.');
       return;
     }
     clearPreview();
     hubAddress.textContent = link.url;
-    renderExtraction({ title: link.display, text: 'هذا رابط تطبيق أو اتصال. أبقيناه داخل Slaks بدل نقل المستخدم تلقائيًا خارج الصفحة. يمكن للجهاز تشغيله فقط عند اختيارك من نظام التشغيل.', source: 'معاينة رابط اتصال', kind: link.kind });
+    renderExtraction({ title: link.display, text: 'هذا رابط تطبيق أو اتصال. أبقيناه داخل Azzouz بدل نقل المستخدم تلقائيًا خارج الصفحة. يمكن للجهاز تشغيله فقط عند اختيارك من نظام التشغيل.', source: 'معاينة رابط اتصال', kind: link.kind });
     setHubStatus('الرابط محفوظ داخل العقدة، والمعاينة الخارجية التلقائية معطّلة حتى لا تغادر الصفحة.');
   } catch (error) {
     setHubStatus(error?.message || 'أدخل رابطًا صالحًا للمعاينة.', false);
@@ -1882,8 +1882,8 @@ function exportNetworkMapJson() {
     nodes.push({ id, label: nodeLabel(id), x: Math.round(position?.x || 0), y: Math.round(position?.y || 0), level: position?.level ?? null, parent: connectedNodeParent(id), type: nodeContentType(data, id), configured: isConfigured(data), url: data?.url || '', html: data?.html || '' });
   }
   const edges = nodes.filter((node) => node.parent).map((node) => ({ from: node.parent, to: node.id, relation: relationType(node.parent, node.id) }));
-  const payload = { format: 'slaks-semver-network-map', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, spacingCm: NODE_SPACING_CM, width: mapWidth, height: mapHeight, nodes, edges };
-  downloadBlob(JSON.stringify(payload, null, 2), 'slaks-network-map.json', 'application/json');
+  const payload = { format: 'azzouz-semver-network-map', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, spacingCm: NODE_SPACING_CM, width: mapWidth, height: mapHeight, nodes, edges };
+  downloadBlob(JSON.stringify(payload, null, 2), 'azzouz-network-map.json', 'application/json');
   setNodeStatus(`تم تصدير الخريطة كاملة: ${nodes.length} عقدة و${edges.length} علاقة.`);
 }
 function exportNetworkMapSvg() {
@@ -1905,12 +1905,12 @@ function exportNetworkMapSvg() {
     const data = getHubData(id); const active = isConfigured(data); const color = active ? '#f4ce72' : '#59e0a3';
     nodeShapes.push(`<g><circle cx="${point.x}" cy="${point.y}" r="22" fill="#081411" stroke="${color}" stroke-width="2"/><text x="${point.x}" y="${point.y + 5}" fill="#dfffee" font-family="system-ui,sans-serif" font-size="12" font-weight="800" text-anchor="middle">+</text><text x="${point.x}" y="${point.y + 36}" fill="#adc5bb" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">${escapeXml(nodeLabel(id))}</text></g>`);
   }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${mapWidth}" height="${mapHeight}" viewBox="0 0 ${mapWidth} ${mapHeight}"><title>Slaks network map · ${NODE_TOTAL} nodes</title><rect width="100%" height="100%" fill="#071014"/>${edgeLines.join('')}${nodeShapes.join('')}</svg>`;
-  downloadBlob(svg, 'slaks-network-map.svg', 'image/svg+xml');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${mapWidth}" height="${mapHeight}" viewBox="0 0 ${mapWidth} ${mapHeight}"><title>Azzouz network map · ${NODE_TOTAL} nodes</title><rect width="100%" height="100%" fill="#071014"/>${edgeLines.join('')}${nodeShapes.join('')}</svg>`;
+  downloadBlob(svg, 'azzouz-network-map.svg', 'image/svg+xml');
   setNodeStatus(`تم تصدير صورة SVG عالية الدقة: ${NODE_TOTAL} عقدة.`);
 }
 function exportNodes() {
-  const payload = { format: 'slaks-semver-node-data', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, nodes: configuredNodeData() };
+  const payload = { format: 'azzouz-semver-node-data', version: 1, exportedAt: new Date().toISOString(), totalNodes: NODE_TOTAL, nodes: configuredNodeData() };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -1926,7 +1926,7 @@ function importNodes(file) {
   reader.onload = () => {
     try {
       const payload = JSON.parse(String(reader.result || ''));
-      if (!payload || payload.format !== 'slaks-semver-node-data' || !payload.nodes || typeof payload.nodes !== 'object') throw new Error('ملف JSON ليس ملف عقد صالحًا.');
+      if (!payload || payload.format !== 'azzouz-semver-node-data' || !payload.nodes || typeof payload.nodes !== 'object') throw new Error('ملف JSON ليس ملف عقد صالحًا.');
       const imported = [];
       for (const [rawId, rawData] of Object.entries(payload.nodes)) {
         const id = Number(rawId);
@@ -2584,7 +2584,7 @@ function setupSovereignDashboard() {
 }
 
 function setupBugSwarmBridge() {
-  document.addEventListener('slaks:swarm-node', (event) => {
+  document.addEventListener('azzouz:swarm-node', (event) => {
     const detail = event.detail || {};
     const id = Number(detail.id);
     if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL) return;

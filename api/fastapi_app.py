@@ -21,7 +21,7 @@ REPORT_PATH = Path(os.getenv("QURAN_REPORT_PATH", ROOT / "analysis" / "quran_ana
 API_VERSION = "1.0.0"
 
 app = FastAPI(
-    title="Slaks Quran Statistical API",
+    title="Azzouz Quran Statistical API",
     version=API_VERSION,
     description="Read-only JSON API for Kruskal-Wallis results and multiple-comparison corrections.",
 )

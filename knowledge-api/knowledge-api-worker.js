@@ -72,7 +72,7 @@ function requireAdmin(request, env) {
 
 async function health(request, env) {
   const row = await env.DB.prepare('SELECT COUNT(*) AS count FROM nodes').first();
-  return reply(request, env, { ok: true, service: 'slaks-knowledge-api', nodeCount: Number(row?.count || 0), timestamp: new Date().toISOString() });
+  return reply(request, env, { ok: true, service: 'azzouz-knowledge-api', nodeCount: Number(row?.count || 0), timestamp: new Date().toISOString() });
 }
 
 async function listNodes(request, env, url) {

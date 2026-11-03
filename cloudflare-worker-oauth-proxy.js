@@ -105,7 +105,7 @@ function buildUrl(baseUrl, searchParams) {
 }
 
 
-// ===== Slaks External Preview Relay =====
+// ===== Azzouz External Preview Relay =====
 function previewPublicHost(hostname) {
   const host = String(hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
   if (!host || host === 'localhost' || host.endsWith('.local') || host.endsWith('.localhost') || host.endsWith('.internal') || host === 'metadata' || host === 'metadata.google.internal') return false;
@@ -150,7 +150,7 @@ async function writePreviewCache(targetUrl, payload) {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
         'Cache-Control': `public, max-age=60, s-maxage=${PREVIEW_CACHE_TTL}`,
-        'Cache-Tag': 'slaks-preview'
+        'Cache-Tag': 'azzouz-preview'
       }
     });
     await caches.default.put(previewCacheKey(targetUrl), response);
@@ -158,7 +158,7 @@ async function writePreviewCache(targetUrl, payload) {
     // A cache failure must never make a valid upstream preview fail.
   }
 }
-async function slaksPreview(searchParams, origin) {
+async function azzouzPreview(searchParams, origin) {
   let target;
   try { target = new URL(searchParams.get('url') || ''); if (!['http:', 'https:'].includes(target.protocol) || !previewPublicHost(target.hostname)) throw new Error('Only public HTTP/HTTPS URLs are allowed.'); }
   catch (error) { return json({ error: error.message || 'Invalid public URL.' }, 400, origin); }
@@ -172,7 +172,7 @@ async function slaksPreview(searchParams, origin) {
     }
   }
   try {
-    const upstream = await fetch(target.href, { redirect: 'follow', headers: { 'User-Agent': 'Slaks-Cloudflare-Preview/1.0', Accept: 'text/html,application/xhtml+xml' } });
+    const upstream = await fetch(target.href, { redirect: 'follow', headers: { 'User-Agent': 'Azzouz-Cloudflare-Preview/1.0', Accept: 'text/html,application/xhtml+xml' } });
     const finalUrl = new URL(upstream.url || target.href);
     if (!previewPublicHost(finalUrl.hostname)) throw new Error('The destination redirected to a private or local host.');
     const raw = await upstream.text();
@@ -197,7 +197,7 @@ async function handle(request) {
   const method = request.method;
   const sp = url.searchParams;
 
-  if (path === '/preview' && method === 'GET') return slaksPreview(sp, origin);
+  if (path === '/preview' && method === 'GET') return azzouzPreview(sp, origin);
 
   try {
     // --- Health Check ---

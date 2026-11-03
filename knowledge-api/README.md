@@ -1,4 +1,4 @@
-# Slaks Knowledge API
+# Azzouz Knowledge API
 
 هذه خدمة Worker مستقلة عن `github-oauth-proxy`. هدفها تحويل شبكة 6600 عقدة من تخزين محلي في المتصفح إلى قاعدة معرفة مركزية قابلة للبحث.
 
@@ -17,10 +17,10 @@
 ```bash
 cd knowledge-api
 python3 seed_nodes.py
-wrangler d1 create slaks-knowledge
+wrangler d1 create azzouz-knowledge
 # ضع database_id الناتج في wrangler.toml بدل القيمة الوهمية
-wrangler d1 migrations apply slaks-knowledge --remote
-wrangler d1 execute slaks-knowledge --remote --file=0002_seed_nodes.sql
+wrangler d1 migrations apply azzouz-knowledge --remote
+wrangler d1 execute azzouz-knowledge --remote --file=0002_seed_nodes.sql
 wrangler secret put ADMIN_TOKEN
 wrangler deploy
 ```
