@@ -2,9 +2,10 @@
   'use strict';
 
   const Model = window.SwarmSimulationModel;
-  if (!Model) {
+  const NumpyPCG64 = window.NumpyPCG64;
+  if (!Model || !NumpyPCG64) {
     const status = document.querySelector('#swarm-state');
-    if (status) status.textContent = 'تعذر تحميل نموذج المحاكاة المحلي.';
+    if (status) status.textContent = 'تعذر تحميل نموذج المحاكاة أو مولّد الأعداد المحلي.';
     return;
   }
   const canvas = document.querySelector('#swarm-canvas');
@@ -13,6 +14,9 @@
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
   const $ = (selector) => document.querySelector(selector);
   const { ROLES, SCENARIOS, MIN_AGENTS, MAX_AGENTS, DEFAULT_AGENTS } = Model;
+  const RNG_SEED = 12345;
+  let rng = new NumpyPCG64(RNG_SEED);
+  const random = () => rng.random();
   let agents = [];
   let nextId = 1;
   let tickCursor = 0;
@@ -68,12 +72,12 @@
     return {
       id: nextId++,
       role,
-      energy: 95 + Math.random() * 15,
+      energy: 95 + random() * 15,
       age: 0,
-      x: Math.random() * logicalWidth,
-      y: Math.random() * logicalHeight,
-      vx: (Math.random() - 0.5) * 1.25,
-      vy: (Math.random() - 0.5) * 1.25
+      x: random() * logicalWidth,
+      y: random() * logicalHeight,
+      vx: (random() - 0.5) * 1.25,
+      vy: (random() - 0.5) * 1.25
     };
   }
 
@@ -86,7 +90,7 @@
   function setPopulation(value, scenario = $('#swarm-scenario').value) {
     const target = Model.clampAgentCount(value);
     if (target === agents.length) return target;
-    const assignments = Model.createRoleAssignments(target, scenario);
+    const assignments = Model.createRoleAssignments(target, scenario, random);
     if (target < agents.length) agents.length = target;
     while (agents.length < target) agents.push(makeAgent(assignments[agents.length]));
     applyAssignments(assignments);
@@ -171,7 +175,7 @@
       agent.age += 1;
       agent.energy -= 0.25;
       if (agent.energy < 30) agent.energy += 8;
-      if (counts[agent.role] > average + 4 && Math.random() < 0.12) {
+      if (counts[agent.role] > average + 4 && random() < 0.12) {
         const previousRole = agent.role;
         const nextRole = smallestRole(counts);
         if (nextRole !== previousRole) {
@@ -209,7 +213,7 @@
 
   function applyScenario() {
     const scenario = $('#swarm-scenario').value;
-    const assignments = Model.createRoleAssignments(agents.length, scenario);
+    const assignments = Model.createRoleAssignments(agents.length, scenario, random);
     applyAssignments(assignments);
     logEvent(`طُبق سيناريو «${SCENARIOS[scenario].label}» على ${agents.length} وكيلًا.`);
   }
@@ -234,6 +238,7 @@
     nextId = 1;
     tickCursor = 0;
     agents = [];
+    rng = new NumpyPCG64(RNG_SEED);
     $('#swarm-scenario').value = 'balanced';
     setSpeed(1);
     setPopulation(DEFAULT_AGENTS, 'balanced');
@@ -282,7 +287,7 @@
   resizeCanvas();
   setPopulation(DEFAULT_AGENTS, 'balanced');
   updateMetrics(true);
-  logEvent('بدأت التجربة من 57 وكيلًا بتوزيع متوازن بين ثلاثة أدوار افتراضية.');
+  logEvent('بدأت التجربة من 57 وكيلًا ببذرة NumPy PCG64 الثابتة 12345.');
   logEvent('لا تُجرى اتصالات أو عمليات فحص خارج هذه الصفحة.');
   setRunning(running);
   if (reduceMotion) logEvent('بدأت متوقفة احترامًا لتفضيل تقليل الحركة في الجهاز.');
