@@ -1,0 +1,10 @@
+name = "slaks-pages-cache"
+main = "cloudflare-cache-worker.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# Use the GitHub Pages origin. Attach this Worker to a custom Cloudflare hostname.
+ORIGIN_URL = "https://elazzouz-dotcom.github.io"
+
+# Add a route or custom domain in the Cloudflare Dashboard after deployment.
+# Do not route the existing GitHub OAuth Worker through this configuration.

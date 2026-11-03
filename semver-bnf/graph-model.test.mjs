@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { readFile } from 'node:fs/promises';
 import { NODE_LEVELS, NODE_TOTAL, getNodeChildren, getNodeLevelInfo, getNodeParent, isPrivateHost, mapConcurrent, parseNodeLink } from './graph-model.mjs';
+import { BUILTIN_NODES } from './builtin-nodes.mjs';
+
+const require = createRequire(import.meta.url);
+const SwarmModel = require('./swarm-simulation/swarm-simulation-model.js');
+const { NumpyPCG64 } = require('./swarm-simulation/numpy-pcg64.js');
 
 test('الشبكة تضم 6600 عقدة بمستويات متزايدة تبدأ من 1 ثم 2 ثم 3', () => {
   assert.deepEqual(NODE_LEVELS.slice(0, 6), [1, 2, 3, 4, 5, 6]);
@@ -9,6 +16,144 @@ test('الشبكة تضم 6600 عقدة بمستويات متزايدة تبدأ
   assert.equal(NODE_TOTAL, 6600);
   assert.equal(getNodeLevelInfo(200).level, 19);
   assert.equal(getNodeLevelInfo(0), null);
+});
+
+test('محاكاة السرب مدمجة في العقدة الطرفية 6600 دون توسيع الشبكة أو الاتصال بالشبكة', async () => {
+  const node = BUILTIN_NODES[6600];
+  assert.equal(NODE_TOTAL, 6600);
+  assert.equal(getNodeChildren(6600).length, 0);
+  assert.equal(node.kind, 'local-tool');
+  assert.equal(node.label, 'محاكاة السرب المتوازن');
+  assert.equal(node.url, 'https://elazzouz-dotcom.github.io/semver-bnf/swarm-simulation/');
+
+  const page = await readFile(new URL('./swarm-simulation/index.html', import.meta.url), 'utf8');
+  const script = await readFile(new URL('./swarm-simulation/swarm-simulation.js', import.meta.url), 'utf8');
+  const modelSource = await readFile(new URL('./swarm-simulation/swarm-simulation-model.js', import.meta.url), 'utf8');
+  const rngSource = await readFile(new URL('./swarm-simulation/numpy-pcg64.js', import.meta.url), 'utf8');
+  assert.match(page, /<html lang="ar" dir="rtl">/);
+  assert.match(page, /محاكاة تعليمية فقط/);
+  assert.match(page, /تسلسل NumPy PCG64 بالبذرة 12345/);
+  assert.ok(page.indexOf('numpy-pcg64.js') < page.indexOf('swarm-simulation-model.js'));
+  assert.ok(page.indexOf('swarm-simulation-model.js') < page.indexOf('swarm-simulation.js'));
+  assert.match(page, /swarm-simulation-model\.js/);
+  assert.match(modelSource, /MAX_AGENTS = 300/);
+  assert.doesNotMatch(script, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
+  assert.doesNotMatch(modelSource, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
+  assert.doesNotMatch(`${script}\n${modelSource}\n${rngSource}`, /Math\.random\s*\(/);
+  assert.doesNotMatch(rngSource, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
+});
+
+// Expected state and stream values verified against NumPy 2.5.4.
+test('PCG64 بالبذرة 12345 يطابق حالة NumPy وrandom_raw وGenerator.random', () => {
+  const rawRng = new NumpyPCG64(12345);
+  const state = rawRng.getState();
+  assert.equal(state.state, 33261208707367790463622745601869196757n);
+  assert.equal(state.inc, 268209174141567072605526753992732310247n);
+  assert.deepEqual(Array.from({ length: 12 }, () => rawRng.nextUint64()), [
+    4193609425186963869n,
+    5843160025838961886n,
+    14708796524633321433n,
+    12474696839993944336n,
+    7214697784736971533n,
+    6139333351517228867n,
+    11036848454483043741n,
+    3444637731644279391n,
+    12410158567978999341n,
+    17373196423520889855n,
+    4579325165166831839n,
+    17503767764235957903n
+  ]);
+
+  const floatRng = new NumpyPCG64(12345);
+  assert.deepEqual(Array.from({ length: 12 }, () => floatRng.random()), [
+    0.22733602246716966,
+    0.31675833970975287,
+    0.7973654573327341,
+    0.6762546707509746,
+    0.391109550601909,
+    0.33281392786638453,
+    0.5983087535871898,
+    0.18673418560371335,
+    0.6727560440146213,
+    0.9418028652699372,
+    0.248245714629571,
+    0.9488811518333182
+  ]);
+  const first = new NumpyPCG64(12345).random();
+  floatRng.reset();
+  assert.equal(floatRng.random(), first);
+});
+
+test('مقياس توازن الأدوار يعكس التوزيع لا قيمة عشوائية', () => {
+  assert.equal(SwarmModel.calculateBalancePercent({ explore: 19, inspect: 19, protect: 19 }), 100);
+  assert.equal(SwarmModel.calculateBalancePercent({ explore: 57, inspect: 0, protect: 0 }), 0);
+  assert.ok(SwarmModel.calculateBalancePercent({ explore: 34, inspect: 12, protect: 11 }) < 100);
+});
+
+test('توزيع السيناريوهات وحدود الوكلاء ثابتة ضمن المجال المحلي', () => {
+  assert.equal(SwarmModel.clampAgentCount(1), SwarmModel.MIN_AGENTS);
+  assert.equal(SwarmModel.clampAgentCount(301), SwarmModel.MAX_AGENTS);
+  assert.equal(SwarmModel.createRoleAssignments(57, 'balanced').length, 57);
+  const focused = SwarmModel.countRoles(SwarmModel.createRoleAssignments(57, 'explore-heavy'));
+  assert.ok(focused.explore >= 34);
+  for (const [scenario, role] of [['inspect-heavy', 'inspect'], ['protect-heavy', 'protect']]) {
+    assert.ok(SwarmModel.countRoles(SwarmModel.createRoleAssignments(57, scenario))[role] >= 34);
+  }
+  assert.throws(() => SwarmModel.createRoleAssignments(57, 'random'), /seeded random source/);
+  assert.equal(SwarmModel.createRoleAssignments(57, 'random', () => 0.5).length, 57);
+});
+
+test('عينات Gaussian وPoisson والمنتظم قابلة لإعادة الإنتاج وتقترب من إحصاءاتها المتوقعة', () => {
+  const uniform = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'uniform', 5000, { minimum: -2, maximum: 4 });
+  const uniformAgain = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'uniform', 5000, { minimum: -2, maximum: 4 });
+  assert.deepEqual(uniformAgain, uniform);
+  assert.ok(uniform.every((value) => value >= -2 && value < 4));
+  const uniformStats = SwarmModel.summarizeSamples(uniform);
+  assert.ok(Math.abs(uniformStats.mean - 1) < 0.08);
+  assert.ok(Math.abs(uniformStats.variance - 3) < 0.15);
+
+  const gaussian = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'gaussian', 5000, { mean: -3, standardDeviation: 2 });
+  const gaussianAgain = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'gaussian', 5000, { mean: -3, standardDeviation: 2 });
+  assert.deepEqual(gaussianAgain, gaussian);
+  const gaussianStats = SwarmModel.summarizeSamples(gaussian);
+  assert.ok(Math.abs(gaussianStats.mean + 3) < 0.12);
+  assert.ok(Math.abs(gaussianStats.variance - 4) < 0.3);
+
+  const poisson = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'poisson', 5000, { lambda: 4.5 });
+  const poissonAgain = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'poisson', 5000, { lambda: 4.5 });
+  assert.deepEqual(poissonAgain, poisson);
+  assert.ok(poisson.every((value) => Number.isInteger(value) && value >= 0));
+  const poissonStats = SwarmModel.summarizeSamples(poisson);
+  assert.ok(Math.abs(poissonStats.mean - 4.5) < 0.15);
+  assert.ok(Math.abs(poissonStats.variance - 4.5) < 0.35);
+  assert.deepEqual(SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'poisson', 20, { lambda: 0 }), Array(20).fill(0));
+
+  const highRatePoisson = SwarmModel.sampleDistribution(new NumpyPCG64(2026n), 'poisson', 5000, { lambda: 100 });
+  const highRateStats = SwarmModel.summarizeSamples(highRatePoisson);
+  assert.ok(highRatePoisson.every((value) => Number.isInteger(value) && value >= 0));
+  assert.ok(Math.abs(highRateStats.mean - 100) < 1.2);
+  assert.ok(Math.abs(highRateStats.variance - 100) < 8);
+});
+
+test('معاملات التوزيعات وحدود العينات غير الصالحة تُرفض قبل السحب', () => {
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'gaussian', 10, { standardDeviation: -1 }), /standard deviation within/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'poisson', 10, { lambda: 101 }), /between 0 and 100/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'uniform', 10, { minimum: 2, maximum: 2 }), /above minimum/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'uniform', 10, { minimum: -1001, maximum: 1 }), /within ±1000/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'gaussian', 10, { mean: 1001 }), /within ±1000/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'poisson', 5001, { lambda: 4 }), /Sample count/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'binomial', 10), /Distribution must/);
+});
+
+test('عناصر واجهة محاكاة السرب تطابق المحددات التي يستعملها السكربت', async () => {
+  const page = await readFile(new URL('./swarm-simulation/index.html', import.meta.url), 'utf8');
+  const script = await readFile(new URL('./swarm-simulation/swarm-simulation.js', import.meta.url), 'utf8');
+  const ids = new Set([...script.matchAll(/(?:\$|querySelector)\(['"]#([\w-]+)['"]\)/g)].map((match) => match[1]));
+  assert.ok(ids.size > 10);
+  for (const id of ids) assert.match(page, new RegExp(`id="${id}"`), `العنصر #${id} غير موجود في صفحة المحاكاة`);
+  assert.match(page, /Generator\.normal\(\).*Generator\.poisson\(\)/);
+  assert.match(page, /المختبر مستقل عن حركة السرب/);
+  assert.match(script, /const sampleRng = new NumpyPCG64\(seed\)/);
 });
 
 test('لكل عقدة غير الجذر أب سابق صالح ولا توجد حلقات ذاتية', () => {

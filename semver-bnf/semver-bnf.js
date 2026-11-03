@@ -1,28 +1,20 @@
 import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } from './graph-model.mjs';
-import { QURAN_STATISTICS, quranMetricForNode } from './quran-node-metrics.mjs';
+import { BUILTIN_NODES } from './builtin-nodes.mjs';
+import { QURAN_STATISTICS, QURAN_SURAH_METRICS, quranMetricForNode } from './quran-node-metrics.mjs';
 
 const $ = (selector) => document.querySelector(selector);
 const LINK_KEY = 'semver-bnf-node-links';
 const UI_SETTINGS_KEY = 'semver-bnf-ui-settings';
-const VIEW_STATE_VERSION = 6;
-const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v4';
+const VIEW_STATE_VERSION = 7;
+const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v5-8cm';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
 const REPORT_CACHE_TTL = 10 * 60 * 1000;
 const LINK_CACHE_DB = 'slaks-link-cache-db';
 const LINK_CACHE_STORE = 'payloads';
 const pendingLinkLoads = new Map();
-const BUILTIN_NODES = Object.freeze({
-  600: {
-    url: 'https://elazzouz-dotcom.github.io/satellite/',
-    html: '',
-    active: true,
-    builtIn: true,
-    label: 'VSAT Gateway'
-  }
-});
 const NODE_SIZE = 60;
-const NODE_SPACING_CM = 10;
+const NODE_SPACING_CM = 8;
 const NODE_SPACING_PX = NODE_SPACING_CM * 37.7952755906;
 const ROW_GAP = NODE_SPACING_PX;
 const LEVEL_GAP = NODE_SPACING_PX;
@@ -68,6 +60,11 @@ let nodeChatRoomSelected = null;
 let draggedNode = null;
 let suppressNodeClick = false;
 let focusedEdge = null;
+let pipeFlowEnabled = true;
+let pipeFlowFrame = 0;
+let pipeFlowStartedAt = performance.now();
+let quickSearchTimer = 0;
+let quickSearchRequest = 0;
 
 function readJson(key, fallback) {
   try {
@@ -351,7 +348,11 @@ function createNodeElements() {
       button.type = 'button';
       button.className = 'network-node';
       button.dataset.id = String(currentId);
+      button.dataset.nodeNumber = String(currentId);
       button.dataset.level = String(level);
+      const nodeMetric = quranMetricForNode(currentId);
+      button.dataset.nodeName = nodeMetric.surah_name;
+      button.dataset.nodeAbjad = String(nodeMetric.abjad_value);
       button.setAttribute('aria-label', `${nodeLabel(currentId)}، المستوى ${level + 1}، افتح الإعدادات`);
       button.setAttribute('aria-pressed', 'false');
       const plus = document.createElement('span');
@@ -365,10 +366,6 @@ function createNodeElements() {
       badge.className = 'node-badge';
       badge.hidden = true;
       button.append(plus, number, badge);
-      button.addEventListener('click', () => {
-        if (suppressNodeClick) return;
-        openHubNode(currentId, button);
-      });
       button.addEventListener('pointerdown', (event) => beginNodeDrag(event, currentId, button));
       button.addEventListener('pointermove', moveNodeDrag);
       button.addEventListener('pointerup', endNodeDrag);
@@ -462,6 +459,50 @@ function resizeNetworkCanvas() {
   networkCanvas.style.top = `${nodeViewport.scrollTop}px`;
   canvasContext.setTransform(ratio, 0, 0, ratio, 0, 0);
 }
+function pointOnPolyline(points, progress) {
+  const lengths = [];
+  let total = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    const length = Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
+    lengths.push(length);
+    total += length;
+  }
+  let distance = total * Math.max(0, Math.min(1, progress));
+  for (let index = 0; index < lengths.length; index += 1) {
+    if (distance <= lengths[index]) {
+      const start = points[index]; const end = points[index + 1];
+      const ratio = lengths[index] ? distance / lengths[index] : 0;
+      return { x: start.x + (end.x - start.x) * ratio, y: start.y + (end.y - start.y) * ratio };
+    }
+    distance -= lengths[index];
+  }
+  return points.at(-1);
+}
+function drawPipePump(parent, child, seed) {
+  if (!pipeFlowEnabled) return;
+  const midY = parent.y + (child.y - parent.y) * .5;
+  const points = [{ x: parent.x, y: parent.y }, { x: parent.x, y: midY }, { x: child.x, y: midY }, { x: child.x, y: child.y }];
+  const center = pointOnPolyline(points, .5);
+  const pulse = pointOnPolyline(points, ((performance.now() - pipeFlowStartedAt) / 1800 + seed * .013) % 1);
+  canvasContext.save();
+  canvasContext.globalAlpha = .82;
+  canvasContext.strokeStyle = '#f4ce72';
+  canvasContext.fillStyle = '#f4ce72';
+  canvasContext.lineWidth = 1.5 / zoom;
+  canvasContext.beginPath(); canvasContext.arc(center.x, center.y, 5 / zoom, 0, Math.PI * 2); canvasContext.stroke();
+  canvasContext.beginPath(); canvasContext.arc(pulse.x, pulse.y, 2.7 / zoom, 0, Math.PI * 2); canvasContext.fill();
+  canvasContext.restore();
+}
+function requestPipeFlowFrame() {
+  if (pipeFlowFrame) return;
+  pipeFlowFrame = window.requestAnimationFrame(() => {
+    pipeFlowFrame = 0;
+    if (pipeFlowEnabled) {
+      renderCanvasNetwork();
+      requestPipeFlowFrame();
+    }
+  });
+}
 function renderCanvasNetwork() {
   if (!networkCanvas || !canvasContext) return;
   resizeNetworkCanvas();
@@ -473,7 +514,9 @@ function renderCanvasNetwork() {
   canvasContext.save();
   canvasContext.scale(zoom, zoom);
   canvasContext.translate(-offsetX / zoom, -offsetY / zoom);
-  canvasContext.lineWidth = 2.5 / zoom;
+  canvasContext.lineWidth = 4 / zoom;
+  canvasContext.lineCap = 'round';
+  canvasContext.lineJoin = 'round';
   for (const edgeKey of visibleEdgeIds) {
     const [parentRaw, childRaw] = edgeKey.split(':');
     const id = Number(childRaw);
@@ -493,6 +536,7 @@ function renderCanvasNetwork() {
     canvasContext.setLineDash(style.style === 'dashed' ? [7, 6] : style.style === 'dotted' ? [2, 6] : []);
     const midY = parent.y + (child.y - parent.y) * .5;
     canvasContext.beginPath(); canvasContext.moveTo(parent.x, parent.y); canvasContext.lineTo(parent.x, midY); canvasContext.lineTo(child.x, midY); canvasContext.lineTo(child.x, child.y); canvasContext.stroke();
+    drawPipePump(parent, child, id);
     canvasContext.globalAlpha = 1;
   }
   canvasContext.setLineDash([]);
@@ -534,6 +578,7 @@ function renderCanvasNetwork() {
     canvasContext.fillStyle = '#59e0a3'; canvasContext.font = '900 16px system-ui,sans-serif'; canvasContext.textAlign = 'center'; canvasContext.textBaseline = 'middle'; canvasContext.fillText('+', point.x, point.y - 4);
     canvasContext.fillStyle = '#e5fff3'; canvasContext.font = '900 7px system-ui,sans-serif'; canvasContext.fillText(nodeLabel(id), point.x, point.y + 10);
   }
+  canvasContext.restore();
 }
 function setupCanvasInteraction() {
   networkCanvas.addEventListener('wheel', (event) => {
@@ -667,43 +712,46 @@ function resetNodeLayout() {
   nodePositions.clear();
   layoutNodes();
   centerMapViewport('smooth');
-  setNodeStatus('تمت استعادة ترتيب 6600 عقدة بمسافة 10 سم ومسارات متماسكة.');
+  setNodeStatus('تمت استعادة ترتيب 6600 عقدة بمسافة 8 سم ومسارات هرمية متماسكة.');
 }
 function layoutNodes() {
   const viewportWidth = Math.max(280, Math.floor(nodeViewport.clientWidth - 8 || 720));
-  const gridCell = 112;
+  const gridCell = NODE_SPACING_PX;
   const columns = 60;
-  const sidePadding = 60;
+  const sidePadding = Math.max(NODE_SPACING_PX, 2 * gridCell);
   const storedPositions = readNodePositions();
   const rowsByLevel = NODE_LEVELS.map((count) => Math.max(1, Math.ceil(count / columns)));
-  const totalRows = rowsByLevel.reduce((sum, rows) => sum + rows, 0) + NODE_LEVELS.length + 1;
+  const totalRows = rowsByLevel.reduce((sum, rows) => sum + rows, 0) + NODE_LEVELS.length * .35 + 1;
   mapWidth = Math.max(viewportWidth, columns * gridCell + sidePadding * 2);
   mapHeight = Math.max(nodeViewport.clientHeight, totalRows * gridCell + sidePadding * 2);
   let cursor = 1;
-  let rowCursor = 1;
+  let rowCursor = 0;
   nodePositions.clear();
   NODE_LEVELS.forEach((count, level) => {
     const rows = rowsByLevel[level];
     const levelWidth = Math.min(columns, count) * gridCell;
     const startX = Math.max(sidePadding, (mapWidth - levelWidth) / 2 + gridCell / 2);
     const label = levelLabels[level];
-    label.style.top = `${sidePadding + rowCursor * gridCell - 28}px`;
+    const levelTop = sidePadding + rowCursor * gridCell;
+    label.style.top = `${levelTop - gridCell * .48}px`;
     label.style.insetInlineStart = `${Math.max(12, startX - gridCell / 2)}px`;
     for (let position = 0; position < count; position += 1, cursor += 1) {
       const col = position % columns;
       const row = Math.floor(position / columns);
-      const gridX = startX + col * gridCell;
-      const gridY = sidePadding + (rowCursor + row) * gridCell;
+      // Alternate row lanes by half a cell to reduce long vertical collisions.
+      const rowOffset = row % 2 === 0 ? 0 : gridCell / 2;
+      const gridX = startX + col * gridCell + rowOffset;
+      const gridY = levelTop + row * gridCell;
       const saved = storedPositions[cursor];
       const point = saved && Number.isFinite(saved.x) && Number.isFinite(saved.y) && saved.x <= mapWidth && saved.y <= mapHeight
         ? { x: Math.max(NODE_SIZE / 2, saved.x), y: Math.max(NODE_SIZE / 2, saved.y), level, row, col }
-        : { x: gridX, y: gridY, level, row, col };
+        : { x: gridX, y: gridY, level, row, col, rowOffset };
       nodePositions.set(cursor, point);
       const button = nodeButtons.get(cursor);
       button.style.left = `${point.x - NODE_SIZE / 2}px`;
       button.style.top = `${point.y - NODE_SIZE / 2}px`;
     }
-    rowCursor += rows + 1;
+    rowCursor += rows + 1.35;
   });
   fitMapToPositions();
   drawEdges();
@@ -738,7 +786,7 @@ function getNodeSearchTerms(query) {
   return terms.filter(Boolean);
 }
 function nodeSearchText(id, data, typeLabel) {
-  return `${nodeLabel(id)} ${id} ${data?.label || ''} ${data?.url || ''} ${data?.html ? 'html محلي' : ''} ${typeLabel}`.toLocaleLowerCase();
+  return `${nodeLabel(id)} ${id} ${data?.label || ''} ${data?.url || ''} ${data?.description || ''} ${data?.content || ''} ${data?.domain || ''} ${data?.html ? 'html محلي' : ''} ${typeLabel}`.toLocaleLowerCase();
 }
 function renderAdvancedNodeResults(ids, query) {
   const container = $('#advanced-node-results');
@@ -782,6 +830,73 @@ function renderAdvancedNodeResults(ids, query) {
     });
     container.appendChild(result);
   });
+}
+function focusNodeFromQuickSearch(id) {
+  const numericId = Number(id);
+  const button = nodeButtons.get(numericId);
+  const point = nodePositions.get(numericId);
+  if (!button || !point) return;
+  $('#node-search').value = '';
+  $('#node-search-clear').hidden = true;
+  $('#node-filter').value = 'all';
+  $('#software-filter').value = 'all';
+  $('#level-filter').value = 'all';
+  applyNodeFilters();
+  nodeViewport.scrollTo({ left: Math.max(0, point.x * zoom - nodeViewport.clientWidth / 2), top: Math.max(0, point.y * zoom - nodeViewport.clientHeight / 2), behavior: 'smooth' });
+  button.focus({ preventScroll: true });
+  button.classList.add('is-highlighted');
+  window.setTimeout(() => button.classList.remove('is-highlighted'), 1800);
+  openHubNode(numericId, button);
+}
+function appendQuickSearchResult(container, item, central = false) {
+  const id = Number(item.id);
+  if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL) return;
+  const result = document.createElement('button');
+  result.type = 'button';
+  result.className = 'quick-node-result';
+  const title = document.createElement('strong');
+  title.textContent = `${item.nodeKey || nodeLabel(id)}${central ? ' · مركزي' : ''}`;
+  const detail = document.createElement('span');
+  detail.textContent = item.title || item.url || item.description || `عقدة ${id}`;
+  result.append(title, detail);
+  result.addEventListener('click', () => focusNodeFromQuickSearch(id));
+  container.appendChild(result);
+}
+function renderQuickSearchResults(query) {
+  const container = $('#quick-node-results');
+  if (!container) return;
+  const cleanQuery = query.trim();
+  window.clearTimeout(quickSearchTimer);
+  if (!cleanQuery) { container.hidden = true; container.replaceChildren(); return; }
+  const terms = getNodeSearchTerms(cleanQuery);
+  const local = [];
+  for (let id = 1; id <= NODE_TOTAL && local.length < 8; id += 1) {
+    const data = getHubData(id);
+    const type = nodeContentType(data, id);
+    const haystack = nodeSearchText(id, data, type);
+    if (terms.every((term) => haystack.includes(term))) local.push({ id, nodeKey: nodeLabel(id), title: data?.label || '', url: data?.url || '', description: data?.description || '' });
+  }
+  container.replaceChildren();
+  container.hidden = false;
+  const meta = document.createElement('p');
+  meta.className = 'quick-node-result-meta';
+  meta.textContent = `نتائج سريعة من شبكة ${NODE_TOTAL} عقدة`;
+  container.appendChild(meta);
+  local.forEach((item) => appendQuickSearchResult(container, item));
+  const request = ++quickSearchRequest;
+  if (window.SlaksKnowledge?.enabled) {
+    quickSearchTimer = window.setTimeout(async () => {
+      try {
+        const payload = await window.SlaksKnowledge.search(cleanQuery, 8);
+        if (request !== quickSearchRequest) return;
+        const localIds = new Set(local.map((item) => item.id));
+        (payload.items || []).filter((item) => !localIds.has(Number(item.id))).forEach((item) => appendQuickSearchResult(container, item, true));
+      } catch { /* local search remains available when the central API is unavailable */ }
+    }, 180);
+  }
+  if (!local.length && !window.SlaksKnowledge?.enabled) {
+    meta.textContent = 'لا توجد عقد مطابقة محليًا. اكتب N-001 أو أضف كلمات من الرابط أو المحتوى.';
+  }
 }
 function buildNodeFilterIndex() {
   const records = [];
@@ -1015,6 +1130,19 @@ function fetchNodePayload(id) {
   const data = getHubData(id);
   if (!data) return null;
   if (data.url) {
+    const builtIn = BUILTIN_NODES[id];
+    if (builtIn?.kind === 'local-tool' && data.url === builtIn.url) {
+      return {
+        id,
+        kind: 'local-tool',
+        url: data.url,
+        title: builtIn.label,
+        text: `${builtIn.description} لا يُجلب محتوى من خادم ولا تُجرى اتصالات خارجية.`,
+        source: 'أداة محلية',
+        status: 'ok',
+        previewable: true
+      };
+    }
     let link;
     try { link = parseNodeLink(data.url); }
     catch (error) {
@@ -1257,6 +1385,20 @@ async function buildHub(silent = false) {
         setHubStatus(link.kind === 'matrix' ? 'غرفة Matrix جاهزة للفتح عبر matrix.to.' : 'الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
         return;
       }
+      const builtIn = BUILTIN_NODES[activeHub.id];
+      if (builtIn?.kind === 'local-tool' && link.url === builtIn.url) {
+        hubAddress.textContent = `${builtIn.label} · ${nodeLabel(activeHub.id)}`;
+        hubPreview.removeAttribute('srcdoc');
+        hubPreview.src = link.url;
+        renderExtraction({
+          title: builtIn.label,
+          text: `${builtIn.description} تُعرض الأداة من GitHub Pages داخل إطار معزول، من دون استخدام Relay المعاينة أو طلب بيانات من مصدر خارجي.`,
+          source: 'أداة محلية في شبكة 6600 عقدة',
+          kind: 'محاكاة تعليمية'
+        });
+        setHubStatus('تعمل المحاكاة داخل Slaks من ملفات الموقع المحلية؛ لم يُطلب محتوى من خدمة معاينة خارجية.');
+        return;
+      }
       const software = classifySoftwareUrl(link.url);
       hubAddress.textContent = `${software.label} · ${link.url}`;
       if (software.kind === 'download') {
@@ -1347,6 +1489,7 @@ function openHubNode(id, button) {
   highlightNodePath(id);
   $('#hub-node-number').textContent = `#${String(id).padStart(3, '0')}`;
   renderQuranNodeAnalysis(id);
+  setMod9NodeContext(id);
   const storedData = getHubData(id);
   const data = storedData || (button?.dataset.linkUrl ? { url: button.dataset.linkUrl, kind: button.dataset.linkKind || '' } : null);
   hubUrl.value = data?.url || '';
@@ -1877,6 +2020,21 @@ function populateLevelFilter() {
     select.appendChild(new Option(`المستوى ${level + 1} · ${count} عقدة`, String(level)));
   });
 }
+function setPipeFlowEnabled(enabled) {
+  pipeFlowEnabled = Boolean(enabled);
+  if (pipeFlowEnabled) pipeFlowStartedAt = performance.now();
+  const toggle = $('#pipe-flow-toggle');
+  const status = $('#pipe-flow-status');
+  const indicator = document.querySelector('.pipe-flow-indicator');
+  if (toggle) {
+    toggle.setAttribute('aria-pressed', String(pipeFlowEnabled));
+    toggle.textContent = pipeFlowEnabled ? 'إيقاف المضخات' : 'تشغيل المضخات';
+  }
+  if (status) status.textContent = pipeFlowEnabled ? 'التدفق يعمل عبر الأنابيب الظاهرة' : 'تدفق المعلومات متوقف';
+  indicator?.classList.toggle('is-off', !pipeFlowEnabled);
+  renderCanvasNetwork();
+  if (pipeFlowEnabled) requestPipeFlowFrame();
+}
 function initializeNetwork() {
   populateLevelFilter();
   restoreUiSettings();
@@ -1892,6 +2050,7 @@ function initializeNetwork() {
   observer.observe(nodeViewport);
   $('#node-search').addEventListener('input', () => {
     $('#node-search-clear').hidden = !$('#node-search').value;
+    renderQuickSearchResults($('#node-search').value);
     scheduleNodeFilters();
   });
   $('#node-search-jump').addEventListener('click', jumpToNodeFromSearch);
@@ -1899,6 +2058,7 @@ function initializeNetwork() {
   $('#node-search-clear').addEventListener('click', () => {
     $('#node-search').value = '';
     $('#node-search-clear').hidden = true;
+    renderQuickSearchResults('');
     scheduleNodeFilters();
     $('#node-search').focus();
   });
@@ -1914,6 +2074,7 @@ function initializeNetwork() {
   $('#node-search-mode').addEventListener('change', applyNodeFilters);
   $('#node-sort').addEventListener('change', applyNodeFilters);
   $('#node-result-limit').addEventListener('change', applyNodeFilters);
+  $('#pipe-flow-toggle').addEventListener('click', () => setPipeFlowEnabled(!pipeFlowEnabled));
   $('#map-reset').addEventListener('click', () => { zoom = 1; applyZoom(); persistUiSettings(); nodeViewport.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); });
   $('#map-fit').addEventListener('click', () => { zoom = Math.max(.05, Math.min(1, Math.round(Math.min((nodeViewport.clientWidth - 24) / mapWidth, (nodeViewport.clientHeight - 24) / mapHeight) * 10) / 10)); applyZoom(); centerMapViewport('smooth'); persistUiSettings(); });
   $('#map-layout-reset').addEventListener('click', resetNodeLayout);
@@ -1938,6 +2099,7 @@ function initializeNetwork() {
     event.target.value = '';
   });
   showAllNodes();
+  setPipeFlowEnabled(true);
 }
 
 function setupHubModal() {
@@ -2216,6 +2378,190 @@ function setupPinchZoom() {
   viewport.addEventListener('touchcancel', endGesture, { passive: true });
 }
 
+function digitalRootBigInt(value) {
+  const absolute = value < 0n ? -value : value;
+  if (absolute === 0n) return 0n;
+  const remainder = absolute % 9n;
+  return remainder === 0n ? 9n : remainder;
+}
+function formatBigInt(value) {
+  return value.toString();
+}
+let mod9AnalyzeCurrent = null;
+function inspectNodeAlgebraically(nodeNumber, nodeName, nodeAbjad) {
+  const input = $('#mod9-input');
+  const context = $('#mod9-context');
+  if (!input || !context) {
+    console.warn('[Mod 9] حقل التحليل غير موجود.');
+    return;
+  }
+  const valueToInject = String(nodeAbjad || nodeNumber || '');
+  input.value = valueToInject;
+  context.value = 'active-node';
+  const option = context.querySelector('option[value="active-node"]');
+  if (option) option.textContent = `العقدة النشطة N-${String(nodeNumber).padStart(3, '0')} · ${nodeName || 'بدون اسم'}`;
+  const help = $('#mod9-help');
+  if (help) help.textContent = `السياق النشط: ${nodeName || 'بدون اسم'} · الرقم ${nodeNumber} · قيمة التحليل ${valueToInject}.`;
+  mod9AnalyzeCurrent?.();
+  console.log(`[فحص جبري نشط] العقدة: ${nodeName || 'Unnamed Node'} | الرقم: ${nodeNumber} | القيمة: ${valueToInject}`);
+}
+window.inspectNodeAlgebraically = inspectNodeAlgebraically;
+function setMod9NodeContext(id) {
+  const metric = quranMetricForNode(id);
+  inspectNodeAlgebraically(id, metric.surah_name, metric.abjad_value);
+}
+function setupAlgebraBridge() {
+  document.addEventListener('click', (event) => {
+    const targetNode = event.target.closest?.('[data-node-number]');
+    if (!targetNode) return;
+    const nodeNumber = Number(targetNode.dataset.nodeNumber || 0);
+    const nodeName = targetNode.dataset.nodeName || 'عقدة غير معنونة';
+    const nodeAbjad = targetNode.dataset.nodeAbjad || '';
+    if (targetNode.classList.contains('network-node') && !suppressNodeClick) openHubNode(nodeNumber, targetNode);
+    else inspectNodeAlgebraically(nodeNumber, nodeName, nodeAbjad);
+  });
+}
+function setupMod9Lab() {
+  const input = $('#mod9-input');
+  const context = $('#mod9-context');
+  const run = $('#mod9-run');
+  const results = $('#mod9-results');
+  if (!input || !context || !run || !results) return;
+  const presetValues = { year: '2025', levels: '114', nodes: '6600', fatiha: '525' };
+  const renderOperation = (name, expression, value, exact = true) => {
+    const row = document.createElement('div');
+    row.className = 'mod9-operation';
+    const title = document.createElement('strong');
+    title.textContent = name;
+    const calculation = document.createElement('code');
+    calculation.textContent = expression;
+    const root = document.createElement('span');
+    root.className = `mod9-root${exact && digitalRootBigInt(value) === 9n ? '' : ' is-neutral'}`;
+    root.textContent = exact ? `الجذر الرقمي: ${digitalRootBigInt(value).toString()}` : 'قسمة غير تامة';
+    row.append(title, calculation, root);
+    return row;
+  };
+  const analyze = () => {
+    const raw = input.value.trim();
+    results.replaceChildren();
+    results.removeAttribute('data-state');
+    if (!/^-?\d+$/.test(raw)) {
+      results.dataset.state = 'error';
+      results.textContent = 'الرجاء إدخال عدد صحيح صالح دون كسور أو فواصل.';
+      return;
+    }
+    let number;
+    try { number = BigInt(raw); } catch { results.dataset.state = 'error'; results.textContent = 'تعذر قراءة العدد.'; return; }
+    const root = digitalRootBigInt(number);
+    const summary = document.createElement('div');
+    summary.className = 'mod9-summary';
+    [['العدد', formatBigInt(number)], ['الجذر الرقمي', root.toString()], ['الباقي Mod 9', (number % 9n).toString()]].forEach(([label, value]) => {
+      const item = document.createElement('span'); item.textContent = `${label}: ${value}`; summary.appendChild(item);
+    });
+    results.appendChild(summary);
+    results.appendChild(renderOperation('الضرب في 9', `${formatBigInt(number)} × 9 = ${formatBigInt(number * 9n)}`, number * 9n));
+    results.appendChild(renderOperation('طرح 9', `${formatBigInt(number)} − 9 = ${formatBigInt(number - 9n)}`, number - 9n));
+    const divisible = number % 9n === 0n;
+    results.appendChild(renderOperation('القسمة على 9', divisible ? `${formatBigInt(number)} ÷ 9 = ${formatBigInt(number / 9n)}` : `${formatBigInt(number)} ÷ 9`, divisible ? number / 9n : 0n, divisible));
+    results.appendChild(renderOperation('جمع 9', `${formatBigInt(number)} + 9 = ${formatBigInt(number + 9n)}`, number + 9n));
+    const explanation = document.createElement('p');
+    explanation.className = 'mod9-explanation';
+    explanation.textContent = root === 9n ? 'هذا العدد من مضاعفات 9؛ لذلك تحافظ الإضافة والطرح بمقدار 9 على الصنف نفسه، بينما تكون القسمة على 9 صحيحة.' : 'العدد ليس من مضاعفات 9؛ الإضافة والطرح بمقدار 9 يحافظان على باقي القسمة، لكن الجذر الرقمي لا يكون بالضرورة 9.';
+    results.appendChild(explanation);
+  };
+  mod9AnalyzeCurrent = analyze;
+  context.addEventListener('change', () => {
+    if (context.value === 'active-node') {
+      if (!activeHub?.id) {
+        input.value = '2025';
+        context.value = 'year';
+        const help = $('#mod9-help');
+        if (help) help.textContent = 'افتح عقدة من الشبكة أولًا لتفعيل سياق العقدة النشطة.';
+      }
+    } else if (presetValues[context.value]) {
+      input.value = presetValues[context.value];
+    }
+    analyze();
+  });
+  input.addEventListener('input', () => {
+    if (context.value === 'active-node' || context.value !== 'manual') context.value = 'manual';
+    analyze();
+  });
+  run.addEventListener('click', analyze);
+  input.addEventListener('keydown', (event) => { if (event.key === 'Enter') analyze(); });
+  analyze();
+}
+function setupQuranAnalysis() {
+  const select = $('#quran-surah-select');
+  const summary = $('#quran-analysis-summary');
+  const analyzeButton = $('#quran-analyze');
+  if (!select || !summary || !analyzeButton) return;
+  QURAN_SURAH_METRICS.forEach((surah) => {
+    select.appendChild(new Option(`${surah.surah_number}. ${surah.surah_name} · ${surah.type}`, String(surah.surah_number)));
+  });
+  const render = () => {
+    const surah = QURAN_SURAH_METRICS.find((item) => item.surah_number === Number(select.value)) || QURAN_SURAH_METRICS[0];
+    summary.replaceChildren();
+    [['الآيات', surah.ayahs_count], ['النوع', surah.type], ['القيمة المركبة', `${surah.combined_value} · جذر ${surah.combined_root}`], ['قيمة الجُمّل', `${surah.abjad_value} · جذر ${surah.abjad_root}`]].forEach(([label, value]) => {
+      const item = document.createElement('span'); item.textContent = `${label}: ${value}`; summary.appendChild(item);
+    });
+  };
+  select.addEventListener('change', render);
+  analyzeButton.addEventListener('click', () => {
+    const surah = QURAN_SURAH_METRICS.find((item) => item.surah_number === Number(select.value)) || QURAN_SURAH_METRICS[0];
+    if (window.sovereignBugs?.running) window.sovereignBugs.stop();
+    const input = $('#mod9-input');
+    const context = $('#mod9-context');
+    if (!input || !context) return;
+    input.value = String(surah.abjad_value);
+    context.value = 'manual';
+    const help = $('#mod9-help');
+    if (help) help.textContent = `تحليل سورة ${surah.surah_name} · قيمة الجُمّل ${surah.abjad_value} · ${surah.ayahs_count} آية.`;
+    mod9AnalyzeCurrent?.();
+    $('#mod9-lab')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  select.value = '1';
+  render();
+}
+function setupSovereignDashboard() {
+  const lines = [...document.querySelectorAll('[data-agent-line]')];
+  const radar = $('#surah-radar');
+  const name = $('#radar-name');
+  const details = $('#radar-details');
+  const indexLabel = $('#radar-index');
+  const meter = $('#radar-meter-fill');
+  const status = $('#agent-code-status');
+  if (!lines.length || !radar || !name || !details || !indexLabel || !meter) return;
+  let lineIndex = 0;
+  let surahIndex = 0;
+  const update = () => {
+    lines.forEach((line, index) => line.classList.toggle('is-active', index === lineIndex));
+    const surah = QURAN_SURAH_METRICS[surahIndex % QURAN_SURAH_METRICS.length];
+    name.textContent = `سورة ${surah.surah_name} (${surah.surah_number})`;
+    details.textContent = `الآيات: ${surah.ayahs_count} · النوع: ${surah.type} · الجذر المركب: ${surah.combined_root} · الجمل: ${surah.abjad_value}`;
+    radar.dataset.nodeNumber = String(surah.surah_number);
+    radar.dataset.nodeName = surah.surah_name;
+    radar.dataset.nodeAbjad = String(surah.abjad_value);
+    indexLabel.textContent = `${surah.surah_number} / ${QURAN_SURAH_METRICS.length}`;
+    meter.style.width = `${Math.max(1, Math.round(surah.surah_number / QURAN_SURAH_METRICS.length * 100))}%`;
+    status.textContent = `الدورة ${lineIndex + 1}/5 · الرادار يقرأ السجل ${surah.surah_number} محليًا.`;
+    lineIndex = (lineIndex + 1) % lines.length;
+    surahIndex = (surahIndex + 1) % QURAN_SURAH_METRICS.length;
+  };
+  radar.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspectNodeAlgebraically(radar.dataset.nodeNumber, radar.dataset.nodeName, radar.dataset.nodeAbjad); } });
+  update();
+  window.setInterval(update, 1400);
+}
+
+function setupBugSwarmBridge() {
+  document.addEventListener('slaks:swarm-node', (event) => {
+    const detail = event.detail || {};
+    const id = Number(detail.id);
+    if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL) return;
+    inspectNodeAlgebraically(id, detail.name || `عقدة N-${String(id).padStart(3, '0')}`, detail.value || id);
+  });
+}
+
 function setupActions() {
   $('#collect-report').addEventListener('click', collectReport);
   $('#clear-report-cache').addEventListener('click', clearReportCache);
@@ -2227,6 +2573,11 @@ function setupActions() {
   setupMobileNavigation();
   setupExternalLinkModal();
   setupOrbit();
+  setupMod9Lab();
+  setupQuranAnalysis();
+  setupAlgebraBridge();
+  setupSovereignDashboard();
+  setupBugSwarmBridge();
   // تشغيل نفق المعلومات تلقائيًا عند وجود عقد مهيأة، دون طلب إضافي من المستخدم.
   window.setTimeout(() => collectReport(), 250);
 }

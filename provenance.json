@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "provenance_schema": "https://elazzouz-dotcom.github.io/schemas/provenance.schema.json",
+  "schema_version": "1.0.0",
+  "record_type": "reproducible_analysis_run",
+  "status": "design_template",
+  "run": {
+    "run_id": "replace-with-utc-run-id",
+    "created_at": "2026-11-02T02:25:48Z",
+    "trigger": "manual",
+    "actor": "replace-with-actor-or-ci",
+    "purpose": "Record the exact source, runtime, randomness, inputs, parameters, outputs, and performance of one reproducible analysis run."
+  },
+  "source": {
+    "repository": "https://github.com/elazzouz-dotcom/elazzouz-dotcom.github.io",
+    "commit": "600593b1eb6c6777a179bc2d6a6b004e9d586379",
+    "branch": "main",
+    "working_tree_dirty": false,
+    "generator": "replace-with-pipeline-script-and-version"
+  },
+  "runtime": {
+    "language": "Python",
+    "python_version": null,
+    "platform": null,
+    "architecture": null,
+    "dependencies": {
+      "numpy": null,
+      "scipy": null,
+      "pandas": null
+    },
+    "dependency_lockfile": null
+  },
+  "randomness": {
+    "seed": 12345,
+    "seed_type": "integer",
+    "bit_generator": "PCG64",
+    "random_stream_policy": "single-explicit-stream",
+    "deterministic": true
+  },
+  "analysis": {
+    "simulation": {
+      "method": "Monte Carlo",
+      "replications": 200000,
+      "batch_size": null,
+      "statistic": null
+    },
+    "tests": [
+      {
+        "name": "Kruskal-Wallis",
+        "implementation": "replace-with-library-and-version",
+        "correction": null,
+        "alternative": null
+      }
+    ],
+    "parameters": {},
+    "confidence_level": null
+  },
+  "inputs": [],
+  "outputs": [
+    {
+      "path": "replace-with-relative-output-path",
+      "kind": "other",
+      "sha256": null,
+      "bytes": null
+    }
+  ],
+  "performance": {
+    "wall_time_seconds": null,
+    "cpu_time_seconds": null,
+    "peak_memory_bytes": null,
+    "started_at": null,
+    "finished_at": null
+  },
+  "validation": {
+    "checks": [],
+    "all_passed": null,
+    "reproducibility_reference": null
+  },
+  "integrity": {
+    "record_sha256": "9203dd6ec259150848cf3aebd5106989e967a9feaa87b168b92c14c6b079b2f1",
+    "canonicalization": "deterministic-json-v1 (UTF-8, sorted keys, compact separators, trailing LF)",
+    "signed": true,
+    "signature": {
+      "algorithm": "Ed25519",
+      "encoding": "base64",
+      "value": "9CpYhcuN9dEHEtMrDzEYhy1lUoP/q7sjwOuM8AKxn+oTd19DKpoCACmqWucZWd/rEsED69WYczIgLRLvm+AwDw==",
+      "public_key_sha256": "b1aa8ffc4055b1e4aee5e06e2d3b4f462e7f17a26cee7950bc9080359ebe69b7"
+    }
+  },
+  "notes": [
+    "Replace every null or replace-with-* value during a real pipeline run.",
+    "The file is metadata only; it must not contain credentials, access tokens, or private user data."
+  ]
+}
