@@ -373,6 +373,12 @@ body.semver-page a { color: inherit; }
 .hub-quran-tests { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; }
 .hub-quran-tests span { border-inline-start: 3px solid var(--semver-gold); border-radius: 8px; padding: .42rem .55rem; color: var(--semver-text); background: rgba(244, 206, 114, .06); font-size: .7rem; }
 .hub-quran-tests small { grid-column: 1 / -1; }
+.hub-quran-api-controls { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.hub-quran-api-controls input { min-width: 220px; flex: 1; border: 1px solid rgba(89, 224, 163, .24); border-radius: 8px; padding: .5rem .6rem; color: var(--semver-text); background: rgba(7, 16, 20, .75); }
+.hub-quran-api-controls input:focus { outline: 2px solid rgba(89, 224, 163, .5); outline-offset: 1px; }
+.hub-quran-api-controls span { color: var(--semver-muted); font-size: .68rem; }
+.hub-quran-api-controls span[data-state="ok"] { color: var(--semver-green); }
+.hub-quran-api-controls span[data-state="error"] { color: #f3a6a6; }
 .hub-dialog .browser-frame { border-color: #cbdde1; }
 .hub-dialog .browser-toolbar { color: #38606b; background: #f1f8f9; }
 .hub-dialog .hub-extraction { border-color: #cfe5ea; color: #60767d; background: #f7fbfc; }

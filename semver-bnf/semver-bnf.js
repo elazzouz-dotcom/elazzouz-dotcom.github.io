@@ -1,4 +1,4 @@
-import { NODE_LEVELS, NODE_TOTAL, getNodeParent, mapConcurrent, parseNodeLink } from './graph-model.mjs';
+import { NODE_LEVELS, NODE_TOTAL, fetchQuranStatistics, getNodeParent, mapConcurrent, parseNodeLink } from './graph-model.mjs';
 import { BUILTIN_NODES } from './builtin-nodes.mjs';
 import { QURAN_STATISTICS, QURAN_SURAH_METRICS, quranMetricForNode } from './quran-node-metrics.mjs';
 
@@ -10,6 +10,7 @@ const POSITIONS_KEY = 'semver-bnf-node-positions-grid-v5-8cm';
 const RELATION_STYLE_KEY = 'semver-bnf-relation-styles';
 const REPORT_CACHE_KEY = 'semver-bnf-report-cache';
 const REPORT_CACHE_TTL = 10 * 60 * 1000;
+const QURAN_API_BASE_KEY = 'slaks-quran-api-base';
 const LINK_CACHE_DB = 'slaks-link-cache-db';
 const LINK_CACHE_STORE = 'payloads';
 const pendingLinkLoads = new Map();
@@ -33,6 +34,7 @@ const nodeCentrality = new Map();
 const nodeTypeCache = new Map();
 let filterFrame = 0;
 let filterDebounceTimer = 0;
+let activeQuranStatistics = QURAN_STATISTICS;
 const FILTER_DEBOUNCE_MS = 100;
 const nodeFilterWorker = typeof Worker === 'function'
   ? new Worker(new URL('./node-filter-worker.js', import.meta.url), { type: 'module' })
@@ -1450,7 +1452,7 @@ function renderQuranNodeAnalysis(id) {
   const host = $('#hub-quran-analysis');
   if (!host) return;
   const metric = quranMetricForNode(id);
-  const combined = QURAN_STATISTICS.kruskal_wallis?.combined_value?.statistical_metrics;
+  const combined = activeQuranStatistics.kruskal_wallis?.combined_value?.statistical_metrics;
   host.replaceChildren();
   const title = document.createElement('strong');
   title.textContent = `السورة المرتبطة: ${metric.surah_name} · ${metric.type} · عقدة ${nodeLabel(id)}`;
@@ -1464,17 +1466,19 @@ function renderQuranNodeAnalysis(id) {
   const tests = document.createElement('div');
   tests.className = 'hub-quran-tests';
   const labels = { surah_number_root: 'جذر رقم السورة', ayahs_count_root: 'جذر الآيات', combined_root: 'الجذر المركب', abjad_root: 'جذر الجُمّل' };
-  Object.entries(QURAN_STATISTICS.tests || {}).forEach(([key, item]) => {
+  Object.entries(activeQuranStatistics.tests || QURAN_STATISTICS.tests || {}).forEach(([key, item]) => {
     const metrics = item.statistical_metrics;
     const correctionKey = key === 'combined_root' ? 'combined_value' : key;
-    const correction = QURAN_STATISTICS.multiple_comparison?.results?.[correctionKey];
+    const correction = activeQuranStatistics.multiple_comparison?.results?.[correctionKey] || QURAN_STATISTICS.multiple_comparison?.results?.[correctionKey];
     const card = document.createElement('span');
     card.textContent = `χ² ${labels[key] || key}: ${metrics.chi2_observed.toFixed(3)} · p=${metrics.p_value_monte_carlo.toFixed(5)}${correction ? ` · Holm=${correction.p_holm.toFixed(5)} · BH=${correction.p_benjamini_hochberg.toFixed(5)}` : ''}`;
     tests.appendChild(card);
   });
   if (combined) {
     const kw = document.createElement('small');
-    kw.textContent = `Kruskal-Wallis للقيمة المركبة: H=${combined.H_statistic.toFixed(4)} · p=${combined.p_value.toFixed(5)} · ε²=${combined.epsilon_squared.toFixed(4)} · B=200,000 · seed=12345`;
+    const sourceLabel = activeQuranStatistics === QURAN_STATISTICS ? 'محلي' : 'FastAPI';
+    const correction = activeQuranStatistics.multiple_comparison?.results?.combined_value || QURAN_STATISTICS.multiple_comparison?.results?.combined_value;
+    kw.textContent = `Kruskal-Wallis للقيمة المركبة: H=${combined.H_statistic.toFixed(4)} · p=${combined.p_value.toFixed(5)} · ε²=${combined.epsilon_squared.toFixed(4)} · Holm=${Number(correction?.p_holm ?? 0).toFixed(5)} · BH=${Number(correction?.p_benjamini_hochberg ?? 0).toFixed(5)} · المصدر=${sourceLabel}`;
     tests.appendChild(kw);
   }
   host.append(title, values, tests);
@@ -2523,6 +2527,32 @@ function setupQuranAnalysis() {
   select.value = '1';
   render();
 }
+function setupQuranApiBridge() {
+  const input = $('#hub-quran-api-base');
+  const button = $('#hub-quran-api-sync');
+  const status = $('#hub-quran-api-status');
+  if (!input || !button || !status) return;
+  input.value = localStorage.getItem(QURAN_API_BASE_KEY) || '';
+  const setStatus = (text, ok = true) => { status.textContent = text; status.dataset.state = ok ? 'ok' : 'error'; };
+  const sync = async () => {
+    const base = input.value.trim();
+    button.disabled = true;
+    setStatus('جارٍ جلب نتائج FastAPI…');
+    try {
+      activeQuranStatistics = await fetchQuranStatistics(base);
+      localStorage.setItem(QURAN_API_BASE_KEY, base);
+      setStatus('متصل بـ FastAPI · النتائج الحية مفعّلة');
+      if (activeHub?.id) renderQuranNodeAnalysis(activeHub.id);
+    } catch (error) {
+      activeQuranStatistics = QURAN_STATISTICS;
+      setStatus(`تعذر الاتصال؛ يعمل المصدر المحلي · ${error.message}`, false);
+    } finally {
+      button.disabled = false;
+    }
+  };
+  button.addEventListener('click', sync);
+  input.addEventListener('keydown', (event) => { if (event.key === 'Enter') sync(); });
+}
 function setupSovereignDashboard() {
   const lines = [...document.querySelectorAll('[data-agent-line]')];
   const radar = $('#surah-radar');
@@ -2575,6 +2605,7 @@ function setupActions() {
   setupOrbit();
   setupMod9Lab();
   setupQuranAnalysis();
+  setupQuranApiBridge();
   setupAlgebraBridge();
   setupSovereignDashboard();
   setupBugSwarmBridge();
