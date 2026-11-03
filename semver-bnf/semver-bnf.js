@@ -149,8 +149,17 @@ function getHubData(id) {
     const stored = localStorage.getItem(`${LINK_KEY}-${id}`);
     if (stored) {
       const value = JSON.parse(stored);
-      if (typeof value === 'string') return { url: sanitizeNodeText(value), html: '', active: true };
-      return value && typeof value === 'object' ? sanitizeNodeData(value) : null;
+      if (typeof value === 'string') {
+        const clean = { url: sanitizeNodeText(value), html: '', active: true };
+        if (clean.url !== value) writeJson(`${LINK_KEY}-${id}`, clean);
+        return clean;
+      }
+      if (value && typeof value === 'object') {
+        const clean = sanitizeNodeData(value);
+        if (JSON.stringify(clean) !== JSON.stringify(value)) writeJson(`${LINK_KEY}-${id}`, clean);
+        return clean;
+      }
+      return null;
     }
   } catch {
     return null;
