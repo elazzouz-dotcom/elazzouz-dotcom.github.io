@@ -7,6 +7,7 @@ import { BUILTIN_NODES } from './builtin-nodes.mjs';
 
 const require = createRequire(import.meta.url);
 const SwarmModel = require('./swarm-simulation/swarm-simulation-model.js');
+const { NumpyPCG64 } = require('./swarm-simulation/numpy-pcg64.js');
 
 test('الشبكة تضم 6600 عقدة بمستويات متزايدة تبدأ من 1 ثم 2 ثم 3', () => {
   assert.deepEqual(NODE_LEVELS.slice(0, 6), [1, 2, 3, 4, 5, 6]);
@@ -28,12 +29,59 @@ test('محاكاة السرب مدمجة في العقدة الطرفية 6600 �
   const page = await readFile(new URL('./swarm-simulation/index.html', import.meta.url), 'utf8');
   const script = await readFile(new URL('./swarm-simulation/swarm-simulation.js', import.meta.url), 'utf8');
   const modelSource = await readFile(new URL('./swarm-simulation/swarm-simulation-model.js', import.meta.url), 'utf8');
+  const rngSource = await readFile(new URL('./swarm-simulation/numpy-pcg64.js', import.meta.url), 'utf8');
   assert.match(page, /<html lang="ar" dir="rtl">/);
   assert.match(page, /محاكاة تعليمية فقط/);
+  assert.match(page, /تسلسل NumPy PCG64 بالبذرة 12345/);
+  assert.ok(page.indexOf('numpy-pcg64.js') < page.indexOf('swarm-simulation-model.js'));
+  assert.ok(page.indexOf('swarm-simulation-model.js') < page.indexOf('swarm-simulation.js'));
   assert.match(page, /swarm-simulation-model\.js/);
   assert.match(modelSource, /MAX_AGENTS = 300/);
   assert.doesNotMatch(script, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
   assert.doesNotMatch(modelSource, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
+  assert.doesNotMatch(`${script}\n${modelSource}\n${rngSource}`, /Math\.random\s*\(/);
+  assert.doesNotMatch(rngSource, /\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
+});
+
+// Expected state and stream values verified against NumPy 2.5.4.
+test('PCG64 بالبذرة 12345 يطابق حالة NumPy وrandom_raw وGenerator.random', () => {
+  const rawRng = new NumpyPCG64(12345);
+  const state = rawRng.getState();
+  assert.equal(state.state, 33261208707367790463622745601869196757n);
+  assert.equal(state.inc, 268209174141567072605526753992732310247n);
+  assert.deepEqual(Array.from({ length: 12 }, () => rawRng.nextUint64()), [
+    4193609425186963869n,
+    5843160025838961886n,
+    14708796524633321433n,
+    12474696839993944336n,
+    7214697784736971533n,
+    6139333351517228867n,
+    11036848454483043741n,
+    3444637731644279391n,
+    12410158567978999341n,
+    17373196423520889855n,
+    4579325165166831839n,
+    17503767764235957903n
+  ]);
+
+  const floatRng = new NumpyPCG64(12345);
+  assert.deepEqual(Array.from({ length: 12 }, () => floatRng.random()), [
+    0.22733602246716966,
+    0.31675833970975287,
+    0.7973654573327341,
+    0.6762546707509746,
+    0.391109550601909,
+    0.33281392786638453,
+    0.5983087535871898,
+    0.18673418560371335,
+    0.6727560440146213,
+    0.9418028652699372,
+    0.248245714629571,
+    0.9488811518333182
+  ]);
+  const first = new NumpyPCG64(12345).random();
+  floatRng.reset();
+  assert.equal(floatRng.random(), first);
 });
 
 test('مقياس توازن الأدوار يعكس التوزيع لا قيمة عشوائية', () => {
@@ -51,6 +99,7 @@ test('توزيع السيناريوهات وحدود الوكلاء ثابتة �
   for (const [scenario, role] of [['inspect-heavy', 'inspect'], ['protect-heavy', 'protect']]) {
     assert.ok(SwarmModel.countRoles(SwarmModel.createRoleAssignments(57, scenario))[role] >= 34);
   }
+  assert.throws(() => SwarmModel.createRoleAssignments(57, 'random'), /seeded random source/);
   assert.equal(SwarmModel.createRoleAssignments(57, 'random', () => 0.5).length, 57);
 });
 

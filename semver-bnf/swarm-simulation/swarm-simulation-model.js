@@ -44,10 +44,11 @@
     return Math.round(Math.min(100, Math.max(0, score)) * 10) / 10;
   }
 
-  function createRoleAssignments(count, scenario = 'balanced', random = Math.random) {
+  function createRoleAssignments(count, scenario = 'balanced', random) {
     const total = clampAgentCount(count);
     const selected = SCENARIOS[scenario] || SCENARIOS.balanced;
     if (selected.role === 'random') {
+      if (typeof random !== 'function') throw new TypeError('A seeded random source is required for this scenario.');
       return Array.from({ length: total }, () => ROLES[Math.min(ROLES.length - 1, Math.floor(random() * ROLES.length))].id);
     }
     if (!selected.role) {

@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="/semver-bnf/semver-bnf.css">
   <link rel="stylesheet" href="/semver-bnf/swarm-simulation/swarm-simulation.css">
   <link rel="icon" type="image/jpeg" href="/assets/slaks-logo.jpg">
+  <script src="/semver-bnf/swarm-simulation/numpy-pcg64.js" defer></script>
   <script src="/semver-bnf/swarm-simulation/swarm-simulation-model.js" defer></script>
   <script src="/semver-bnf/swarm-simulation/swarm-simulation.js" defer></script>
 </head>
@@ -47,6 +48,7 @@
       <div class="swarm-notice" role="note">
         <strong>محاكاة تعليمية فقط</strong>
         <span>لا تفحص مواقع أو شبكات خارجية، ولا ترسل بيانات، ولا تمثل نظام حماية حقيقيًا.</span>
+        <span>تستخدم تسلسل NumPy PCG64 بالبذرة 12345؛ إعادة الضبط تعيد التسلسل إلى بدايته.</span>
       </div>
 
       <div class="swarm-metrics" aria-label="إحصاءات المحاكاة">
