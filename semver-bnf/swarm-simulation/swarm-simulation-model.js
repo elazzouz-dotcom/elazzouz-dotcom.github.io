@@ -18,6 +18,10 @@
   const MIN_AGENTS = 3;
   const MAX_AGENTS = 300;
   const DEFAULT_AGENTS = 57;
+  const MAX_DISTRIBUTION_SAMPLES = 5000;
+  const MAX_DISTRIBUTION_BOUND = 1000;
+  const MAX_GAUSSIAN_DEVIATION = 100;
+  const MAX_POISSON_RATE = 100;
 
   function clampAgentCount(value) {
     const numeric = Number(value);
@@ -61,6 +65,88 @@
     return assignments;
   }
 
+  function finiteParameter(value, name) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) throw new TypeError(`${name} must be a finite number.`);
+    return numeric;
+  }
+
+  function nextUniform(rng) {
+    if (!rng || typeof rng.random !== 'function') throw new TypeError('A seeded random generator is required.');
+    const value = rng.random();
+    if (!(value >= 0 && value < 1)) throw new RangeError('The random generator must return values in [0, 1).');
+    return value;
+  }
+
+  function sampleDistribution(rng, type, count, parameters = {}) {
+    const total = Number(count);
+    if (!Number.isSafeInteger(total) || total < 1 || total > MAX_DISTRIBUTION_SAMPLES) {
+      throw new RangeError(`Sample count must be an integer from 1 to ${MAX_DISTRIBUTION_SAMPLES}.`);
+    }
+    let draw;
+    if (type === 'uniform') {
+      const minimum = finiteParameter(parameters.minimum ?? 0, 'minimum');
+      const maximum = finiteParameter(parameters.maximum ?? 1, 'maximum');
+      if (minimum < -MAX_DISTRIBUTION_BOUND || maximum > MAX_DISTRIBUTION_BOUND || minimum >= maximum) {
+        throw new RangeError(`Uniform bounds must be within ±${MAX_DISTRIBUTION_BOUND}, with maximum above minimum.`);
+      }
+      draw = () => minimum + nextUniform(rng) * (maximum - minimum);
+    } else if (type === 'gaussian') {
+      const mean = finiteParameter(parameters.mean ?? 0, 'mean');
+      const standardDeviation = finiteParameter(parameters.standardDeviation ?? 1, 'standardDeviation');
+      if (mean < -MAX_DISTRIBUTION_BOUND || mean > MAX_DISTRIBUTION_BOUND
+        || standardDeviation < 0 || standardDeviation > MAX_GAUSSIAN_DEVIATION) {
+        throw new RangeError(`Gaussian mean must be within ±${MAX_DISTRIBUTION_BOUND} and standard deviation within 0–${MAX_GAUSSIAN_DEVIATION}.`);
+      }
+      draw = () => {
+        if (standardDeviation === 0) return mean;
+        const first = Math.max(nextUniform(rng), Number.MIN_VALUE);
+        const second = nextUniform(rng);
+        const standardNormal = Math.sqrt(-2 * Math.log(first)) * Math.cos(2 * Math.PI * second);
+        return mean + standardDeviation * standardNormal;
+      };
+    } else if (type === 'poisson') {
+      const rate = finiteParameter(parameters.lambda ?? 4, 'lambda');
+      if (rate < 0 || rate > MAX_POISSON_RATE) {
+        throw new RangeError(`Poisson lambda must be between 0 and ${MAX_POISSON_RATE}.`);
+      }
+      draw = () => {
+        if (rate === 0) return 0;
+        const target = nextUniform(rng);
+        let probability = Math.exp(-rate);
+        let cumulative = probability;
+        let value = 0;
+        const iterationLimit = Math.ceil(rate + 16 * Math.sqrt(rate + 1) + 100);
+        while (target > cumulative) {
+          value += 1;
+          probability *= rate / value;
+          cumulative = Math.min(1, cumulative + probability);
+          if (probability === 0 || value >= iterationLimit) return value;
+        }
+        return value;
+      };
+    } else {
+      throw new RangeError('Distribution must be uniform, gaussian, or poisson.');
+    }
+    return Array.from({ length: total }, draw);
+  }
+
+  function summarizeSamples(values) {
+    if (!Array.isArray(values) || values.length === 0 || values.some((value) => !Number.isFinite(value))) {
+      throw new TypeError('Samples must be a non-empty array of finite numbers.');
+    }
+    const count = values.length;
+    const mean = values.reduce((sum, value) => sum + value, 0) / count;
+    const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / count;
+    return Object.freeze({
+      count,
+      mean,
+      variance,
+      minimum: Math.min(...values),
+      maximum: Math.max(...values)
+    });
+  }
+
   return Object.freeze({
     ROLES,
     SCENARIOS,
@@ -70,6 +156,12 @@
     clampAgentCount,
     countRoles,
     calculateBalancePercent,
-    createRoleAssignments
+    createRoleAssignments,
+    MAX_DISTRIBUTION_SAMPLES,
+    MAX_DISTRIBUTION_BOUND,
+    MAX_GAUSSIAN_DEVIATION,
+    MAX_POISSON_RATE,
+    sampleDistribution,
+    summarizeSamples
   });
 });
