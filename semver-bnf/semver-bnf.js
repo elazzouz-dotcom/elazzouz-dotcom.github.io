@@ -1324,8 +1324,10 @@ function renderQuranNodeAnalysis(id) {
   const labels = { surah_number_root: 'جذر رقم السورة', ayahs_count_root: 'جذر الآيات', combined_root: 'الجذر المركب', abjad_root: 'جذر الجُمّل' };
   Object.entries(QURAN_STATISTICS.tests || {}).forEach(([key, item]) => {
     const metrics = item.statistical_metrics;
+    const correctionKey = key === 'combined_root' ? 'combined_value' : key;
+    const correction = QURAN_STATISTICS.multiple_comparison?.results?.[correctionKey];
     const card = document.createElement('span');
-    card.textContent = `χ² ${labels[key] || key}: ${metrics.chi2_observed.toFixed(3)} · p=${metrics.p_value_monte_carlo.toFixed(5)}`;
+    card.textContent = `χ² ${labels[key] || key}: ${metrics.chi2_observed.toFixed(3)} · p=${metrics.p_value_monte_carlo.toFixed(5)}${correction ? ` · Holm=${correction.p_holm.toFixed(5)} · BH=${correction.p_benjamini_hochberg.toFixed(5)}` : ''}`;
     tests.appendChild(card);
   });
   if (combined) {

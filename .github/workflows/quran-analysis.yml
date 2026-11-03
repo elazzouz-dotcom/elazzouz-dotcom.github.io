@@ -80,12 +80,20 @@ jobs:
           assert meta["simulations_B"] == 200000
           assert set(report["tests"]) == {"surah_number_root", "ayahs_count_root", "combined_root", "abjad_root"}
           assert set(report["kruskal_wallis"]) == {"surah_number", "ayahs_count", "combined_value", "abjad_value"}
+          assert report["multiple_comparison"]["alpha"] == 0.05
+          assert report["multiple_comparison"]["methods"] == ["Holm step-down", "Benjamini-Hochberg"]
+          assert set(report["multiple_comparison"]["results"]) == set(report["kruskal_wallis"])
           for item in report["tests"].values():
               metrics = item["statistical_metrics"]
               assert 0 <= metrics["p_value_monte_carlo"] <= 1
               assert metrics["standard_error_se"] >= 0
           for item in report["kruskal_wallis"].values():
               assert 0 <= item["statistical_metrics"]["p_value"] <= 1
+              correction = item["multiple_comparison"]
+              assert 0 <= correction["p_holm"] <= 1
+              assert 0 <= correction["p_benjamini_hochberg"] <= 1
+              assert correction["reject_holm"] == (correction["p_holm"] <= 0.05)
+              assert correction["reject_benjamini_hochberg"] == (correction["p_benjamini_hochberg"] <= 0.05)
           print("Quran report schema: OK")
           PY
 

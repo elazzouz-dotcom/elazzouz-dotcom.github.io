@@ -41,6 +41,7 @@ jobs:
           assert report["metadata"]["random_seed"] == 12345
           assert report["metadata"]["simulations_B"] == 200000
           assert "kruskal_wallis" in report and len(report["kruskal_wallis"]) == 4
+          assert report["multiple_comparison"]["methods"] == ["Holm step-down", "Benjamini-Hochberg"]
           print("Quran report and Kruskal-Wallis checks: OK")
           PY
       - name: Set up pnpm
