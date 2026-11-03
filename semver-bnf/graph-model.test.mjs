@@ -103,12 +103,57 @@ test('توزيع السيناريوهات وحدود الوكلاء ثابتة �
   assert.equal(SwarmModel.createRoleAssignments(57, 'random', () => 0.5).length, 57);
 });
 
+test('عينات Gaussian وPoisson والمنتظم قابلة لإعادة الإنتاج وتقترب من إحصاءاتها المتوقعة', () => {
+  const uniform = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'uniform', 5000, { minimum: -2, maximum: 4 });
+  const uniformAgain = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'uniform', 5000, { minimum: -2, maximum: 4 });
+  assert.deepEqual(uniformAgain, uniform);
+  assert.ok(uniform.every((value) => value >= -2 && value < 4));
+  const uniformStats = SwarmModel.summarizeSamples(uniform);
+  assert.ok(Math.abs(uniformStats.mean - 1) < 0.08);
+  assert.ok(Math.abs(uniformStats.variance - 3) < 0.15);
+
+  const gaussian = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'gaussian', 5000, { mean: -3, standardDeviation: 2 });
+  const gaussianAgain = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'gaussian', 5000, { mean: -3, standardDeviation: 2 });
+  assert.deepEqual(gaussianAgain, gaussian);
+  const gaussianStats = SwarmModel.summarizeSamples(gaussian);
+  assert.ok(Math.abs(gaussianStats.mean + 3) < 0.12);
+  assert.ok(Math.abs(gaussianStats.variance - 4) < 0.3);
+
+  const poisson = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'poisson', 5000, { lambda: 4.5 });
+  const poissonAgain = SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'poisson', 5000, { lambda: 4.5 });
+  assert.deepEqual(poissonAgain, poisson);
+  assert.ok(poisson.every((value) => Number.isInteger(value) && value >= 0));
+  const poissonStats = SwarmModel.summarizeSamples(poisson);
+  assert.ok(Math.abs(poissonStats.mean - 4.5) < 0.15);
+  assert.ok(Math.abs(poissonStats.variance - 4.5) < 0.35);
+  assert.deepEqual(SwarmModel.sampleDistribution(new NumpyPCG64(777n), 'poisson', 20, { lambda: 0 }), Array(20).fill(0));
+
+  const highRatePoisson = SwarmModel.sampleDistribution(new NumpyPCG64(2026n), 'poisson', 5000, { lambda: 100 });
+  const highRateStats = SwarmModel.summarizeSamples(highRatePoisson);
+  assert.ok(highRatePoisson.every((value) => Number.isInteger(value) && value >= 0));
+  assert.ok(Math.abs(highRateStats.mean - 100) < 1.2);
+  assert.ok(Math.abs(highRateStats.variance - 100) < 8);
+});
+
+test('معاملات التوزيعات وحدود العينات غير الصالحة تُرفض قبل السحب', () => {
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'gaussian', 10, { standardDeviation: -1 }), /standard deviation within/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'poisson', 10, { lambda: 101 }), /between 0 and 100/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'uniform', 10, { minimum: 2, maximum: 2 }), /above minimum/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'uniform', 10, { minimum: -1001, maximum: 1 }), /within ±1000/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'gaussian', 10, { mean: 1001 }), /within ±1000/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'poisson', 5001, { lambda: 4 }), /Sample count/);
+  assert.throws(() => SwarmModel.sampleDistribution(new NumpyPCG64(1), 'binomial', 10), /Distribution must/);
+});
+
 test('عناصر واجهة محاكاة السرب تطابق المحددات التي يستعملها السكربت', async () => {
   const page = await readFile(new URL('./swarm-simulation/index.html', import.meta.url), 'utf8');
   const script = await readFile(new URL('./swarm-simulation/swarm-simulation.js', import.meta.url), 'utf8');
   const ids = new Set([...script.matchAll(/(?:\$|querySelector)\(['"]#([\w-]+)['"]\)/g)].map((match) => match[1]));
   assert.ok(ids.size > 10);
   for (const id of ids) assert.match(page, new RegExp(`id="${id}"`), `العنصر #${id} غير موجود في صفحة المحاكاة`);
+  assert.match(page, /Generator\.normal\(\).*Generator\.poisson\(\)/);
+  assert.match(page, /المختبر مستقل عن حركة السرب/);
+  assert.match(script, /const sampleRng = new NumpyPCG64\(seed\)/);
 });
 
 test('لكل عقدة غير الجذر أب سابق صالح ولا توجد حلقات ذاتية', () => {

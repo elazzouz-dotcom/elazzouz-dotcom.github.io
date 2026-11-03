@@ -10,6 +10,8 @@
   }
   const canvas = document.querySelector('#swarm-canvas');
   const context = canvas?.getContext('2d');
+  const distributionCanvas = document.querySelector('#swarm-distribution-canvas');
+  const distributionContext = distributionCanvas?.getContext('2d');
   const logList = document.querySelector('#swarm-log');
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
   const $ = (selector) => document.querySelector(selector);
@@ -26,6 +28,14 @@
   let logicalHeight = 0;
   let drawFrame = 0;
   let simulationTimer = 0;
+  let distributionValues = [];
+  let distributionType = 'gaussian';
+
+  const DISTRIBUTION_LABELS = Object.freeze({
+    uniform: 'المنتظم',
+    gaussian: 'الطبيعي (Gaussian)',
+    poisson: 'بواسون (Poisson)'
+  });
 
   const countNodes = {
     total: $('#agent-count'),
@@ -233,6 +243,151 @@
     if (announce) logEvent(`ضُبطت سرعة خطوات المحاكاة على ${shown}.`);
   }
 
+  function formatDistributionNumber(value) {
+    return Number(value).toLocaleString('en-US', { maximumFractionDigits: 3 });
+  }
+
+  function drawDistributionHistogram(values, type) {
+    if (!distributionCanvas || !distributionContext || values.length === 0) return;
+    const bounds = distributionCanvas.getBoundingClientRect();
+    const width = Math.max(1, bounds.width);
+    const height = Math.max(180, bounds.height);
+    const ratio = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    distributionCanvas.width = Math.round(width * ratio);
+    distributionCanvas.height = Math.round(height * ratio);
+    distributionContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+    distributionContext.clearRect(0, 0, width, height);
+
+    let bins;
+    let minimum;
+    let maximum;
+    if (type === 'poisson') {
+      minimum = 0;
+      maximum = Math.max(0, ...values);
+      const binWidth = Math.max(1, Math.ceil((maximum + 1) / 36));
+      bins = Array.from({ length: Math.ceil((maximum + 1) / binWidth) }, () => 0);
+      for (const value of values) bins[Math.min(bins.length - 1, Math.floor(value / binWidth))] += 1;
+    } else {
+      const observedMinimum = Math.min(...values);
+      const observedMaximum = Math.max(...values);
+      const padding = observedMinimum === observedMaximum
+        ? Math.max(0.5, Math.abs(observedMinimum) * 0.05)
+        : (observedMaximum - observedMinimum) * 0.025;
+      minimum = observedMinimum - padding;
+      maximum = observedMaximum + padding;
+      bins = Array.from({ length: 28 }, () => 0);
+      const span = Math.max(Number.EPSILON, maximum - minimum);
+      for (const value of values) {
+        const index = Math.min(bins.length - 1, Math.max(0, Math.floor((value - minimum) / span * bins.length)));
+        bins[index] += 1;
+      }
+    }
+
+    const padding = { top: 16, right: 12, bottom: 34, left: 42 };
+    const chartWidth = Math.max(1, width - padding.left - padding.right);
+    const chartHeight = Math.max(1, height - padding.top - padding.bottom);
+    const chartBottom = padding.top + chartHeight;
+    const peak = Math.max(1, ...bins);
+    const ctx = distributionContext;
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.direction = 'ltr';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let tick = 0; tick <= 3; tick += 1) {
+      const y = chartBottom - chartHeight * tick / 3;
+      const value = Math.round(peak * tick / 3);
+      ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(width - padding.right, y);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(226,238,234,0.66)';
+      ctx.fillText(String(value), padding.left - 7, y);
+    }
+    const barWidth = chartWidth / bins.length;
+    bins.forEach((value, index) => {
+      const barHeight = value / peak * chartHeight;
+      const x = padding.left + index * barWidth;
+      ctx.fillStyle = type === 'poisson' ? 'rgba(244,206,114,0.82)' : 'rgba(89,224,163,0.82)';
+      ctx.fillRect(x + 1, chartBottom - barHeight, Math.max(1, barWidth - 2), barHeight);
+    });
+    ctx.fillStyle = 'rgba(226,238,234,0.7)';
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+    ctx.fillText(formatDistributionNumber(minimum), padding.left, height - 9);
+    ctx.textAlign = 'right';
+    ctx.fillText(formatDistributionNumber(maximum), width - padding.right, height - 9);
+    distributionCanvas.setAttribute('aria-label', `مخطط تكراري لتوزيع ${DISTRIBUTION_LABELS[type]} لعدد ${values.length} عينة.`);
+  }
+
+  function readDistributionNumber(selector) {
+    const raw = $(selector).value.trim();
+    if (!raw) throw new RangeError('أكمل معاملات التوزيع قبل توليد العينة.');
+    const numeric = Number(raw);
+    if (!Number.isFinite(numeric)) throw new RangeError('اكتب قيمة رقمية صالحة في معاملات التوزيع.');
+    return numeric;
+  }
+
+  function distributionParameters(type) {
+    if (type === 'uniform') {
+      const minimum = readDistributionNumber('#swarm-uniform-min');
+      const maximum = readDistributionNumber('#swarm-uniform-max');
+      if (minimum < -Model.MAX_DISTRIBUTION_BOUND || maximum > Model.MAX_DISTRIBUTION_BOUND || minimum >= maximum) {
+        throw new RangeError(`حدود Uniform ضمن ±${Model.MAX_DISTRIBUTION_BOUND}، ويجب أن يكون الأعلى أكبر من الأدنى.`);
+      }
+      return { minimum, maximum };
+    }
+    if (type === 'gaussian') {
+      const mean = readDistributionNumber('#swarm-gaussian-mean');
+      const standardDeviation = readDistributionNumber('#swarm-gaussian-deviation');
+      if (mean < -Model.MAX_DISTRIBUTION_BOUND || mean > Model.MAX_DISTRIBUTION_BOUND
+        || standardDeviation < 0 || standardDeviation > Model.MAX_GAUSSIAN_DEVIATION) {
+        throw new RangeError(`يجب أن يكون متوسط Gaussian ضمن ±${Model.MAX_DISTRIBUTION_BOUND} وانحرافه بين 0 و${Model.MAX_GAUSSIAN_DEVIATION}.`);
+      }
+      return { mean, standardDeviation };
+    }
+    const lambda = readDistributionNumber('#swarm-poisson-lambda');
+    if (!Number.isFinite(lambda) || lambda < 0 || lambda > Model.MAX_POISSON_RATE) {
+      throw new RangeError(`يجب أن يكون معدل Poisson بين 0 و${Model.MAX_POISSON_RATE}.`);
+    }
+    return { lambda };
+  }
+
+  function updateDistributionParameters() {
+    const type = $('#swarm-distribution').value;
+    $('#swarm-uniform-parameters').hidden = type !== 'uniform';
+    $('#swarm-gaussian-parameters').hidden = type !== 'gaussian';
+    $('#swarm-poisson-parameters').hidden = type !== 'poisson';
+    $('#swarm-distribution-state').textContent = `التوزيع المحدد: ${DISTRIBUTION_LABELS[type]}. اضغط توليد العينة لعرضها.`;
+  }
+
+  function generateDistributionSample(announce = true) {
+    const state = $('#swarm-distribution-state');
+    try {
+      const seedText = $('#swarm-distribution-seed').value.trim();
+      if (!/^\d{1,256}$/.test(seedText)) throw new RangeError('اكتب بذرة صحيحة غير سالبة مكوّنة من أرقام فقط.');
+      const seed = BigInt(seedText);
+      const count = Number($('#swarm-sample-count').value);
+      const type = $('#swarm-distribution').value;
+      const parameters = distributionParameters(type);
+      const sampleRng = new NumpyPCG64(seed);
+      distributionValues = Model.sampleDistribution(sampleRng, type, count, parameters);
+      distributionType = type;
+      const summary = Model.summarizeSamples(distributionValues);
+      $('#swarm-distribution-count-result').textContent = String(summary.count);
+      $('#swarm-distribution-mean-result').textContent = formatDistributionNumber(summary.mean);
+      $('#swarm-distribution-variance-result').textContent = formatDistributionNumber(summary.variance);
+      $('#swarm-distribution-range-result').textContent = `${formatDistributionNumber(summary.minimum)} / ${formatDistributionNumber(summary.maximum)}`;
+      drawDistributionHistogram(distributionValues, distributionType);
+      state.textContent = `تم توليد ${summary.count} عينة من ${DISTRIBUTION_LABELS[type]} بالبذرة ${seedText}.`;
+      if (announce) logEvent(`وُلّدت عينة ${DISTRIBUTION_LABELS[type]} من ${summary.count} قيمة؛ بقي تيار حركة السرب مستقلًا.`);
+    } catch (error) {
+      state.textContent = error instanceof RangeError
+        ? error.message
+        : 'تعذر توليد العينة؛ تحقّق من البذرة والمعاملات المدخلة.';
+    }
+  }
+
   function resetSimulation() {
     setRunning(false);
     nextId = 1;
@@ -282,11 +437,27 @@
     logEvent('مُسح سجل الأحداث من الصفحة الحالية.');
   });
 
-  if ('ResizeObserver' in window) new ResizeObserver(resizeCanvas).observe(canvas);
-  else window.addEventListener('resize', resizeCanvas, { passive: true });
+  $('#swarm-distribution').addEventListener('change', updateDistributionParameters);
+  $('#swarm-sample-count').addEventListener('input', (event) => {
+    $('#swarm-sample-count-value').value = event.currentTarget.value;
+    $('#swarm-sample-count-value').textContent = event.currentTarget.value;
+  });
+  $('#swarm-generate-samples').addEventListener('click', () => generateDistributionSample(true));
+
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(resizeCanvas).observe(canvas);
+    new ResizeObserver(() => drawDistributionHistogram(distributionValues, distributionType)).observe(distributionCanvas);
+  } else {
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      drawDistributionHistogram(distributionValues, distributionType);
+    }, { passive: true });
+  }
   resizeCanvas();
   setPopulation(DEFAULT_AGENTS, 'balanced');
   updateMetrics(true);
+  updateDistributionParameters();
+  generateDistributionSample(false);
   logEvent('بدأت التجربة من 57 وكيلًا ببذرة NumPy PCG64 الثابتة 12345.');
   logEvent('لا تُجرى اتصالات أو عمليات فحص خارج هذه الصفحة.');
   setRunning(running);
