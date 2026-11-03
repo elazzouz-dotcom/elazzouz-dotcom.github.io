@@ -21,6 +21,7 @@ const ROW_GAP = NODE_SPACING_PX;
 const LEVEL_GAP = NODE_SPACING_PX;
 const MAX_HTML_CHARS = 300_000;
 const MAX_STORAGE_CHARS = 650_000;
+const UNICODE_NONCHARACTER_POLICY = 'U+FDD0–U+FDEF وU+xxFFFE/U+xxFFFF حتى U+10FFFF';
 const nodeViewport = $('#node-viewport');
 const stageWrap = $('#network-stage-wrap');
 const stage = $('#network-stage');
@@ -67,6 +68,25 @@ let pipeFlowFrame = 0;
 let pipeFlowStartedAt = performance.now();
 let quickSearchTimer = 0;
 let quickSearchRequest = 0;
+
+function isUnicodeNoncharacter(codePoint) {
+  return (codePoint >= 0xFDD0 && codePoint <= 0xFDEF) || (codePoint <= 0x10FFFF && (codePoint & 0xFFFF) >= 0xFFFE);
+}
+
+function sanitizeNodeText(value) {
+  let clean = '';
+  for (const character of String(value ?? '')) {
+    if (!isUnicodeNoncharacter(character.codePointAt(0))) clean += character;
+  }
+  return clean;
+}
+
+function sanitizeNodeData(value) {
+  if (typeof value === 'string') return sanitizeNodeText(value);
+  if (Array.isArray(value)) return value.map(sanitizeNodeData);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeNodeData(item)]));
+  return value;
+}
 
 function readJson(key, fallback) {
   try {
@@ -129,16 +149,16 @@ function getHubData(id) {
     const stored = localStorage.getItem(`${LINK_KEY}-${id}`);
     if (stored) {
       const value = JSON.parse(stored);
-      if (typeof value === 'string') return { url: value, html: '', active: true };
-      return value && typeof value === 'object' ? value : null;
+      if (typeof value === 'string') return { url: sanitizeNodeText(value), html: '', active: true };
+      return value && typeof value === 'object' ? sanitizeNodeData(value) : null;
     }
   } catch {
     return null;
   }
   const index = readJson(LINK_KEY, {});
   const legacy = index?.[id];
-  if (typeof legacy === 'string' && /^https?:\/\//i.test(legacy)) return { url: legacy, html: '', active: true };
-  return BUILTIN_NODES[id] || null;
+  if (typeof legacy === 'string' && /^https?:\/\//i.test(legacy)) return { url: sanitizeNodeText(legacy), html: '', active: true };
+  return sanitizeNodeData(BUILTIN_NODES[id] || null);
 }
 
 function isConfigured(data) {
@@ -1090,12 +1110,12 @@ function renderExtraction(payload) {
     return;
   }
   const title = document.createElement('strong');
-  title.textContent = `العنوان: ${payload.title || 'بدون عنوان'}`;
+  title.textContent = `العنوان: ${sanitizeNodeText(payload.title || 'بدون عنوان')}`;
   const detail = document.createElement('p');
-  detail.textContent = `المصدر: ${payload.source || 'غير محدد'} · النوع: ${payload.contentType || payload.kind || 'HTML'} · العناصر: ${payload.elements || 0} · الروابط: ${payload.links || 0}`;
+  detail.textContent = `المصدر: ${sanitizeNodeText(payload.source || 'غير محدد')} · النوع: ${sanitizeNodeText(payload.contentType || payload.kind || 'HTML')} · العناصر: ${payload.elements || 0} · الروابط: ${payload.links || 0}`;
   detail.style.margin = '.35rem 0';
   const text = document.createElement('pre');
-  text.textContent = payload.text || payload.error || 'لم يُعثر على نص قابل للاستخراج.';
+  text.textContent = sanitizeNodeText(payload.text || payload.error || 'لم يُعثر على نص قابل للاستخراج.');
   container.append(title, detail, text);
 }
 
@@ -1349,7 +1369,7 @@ function addQuranFilteredDigest(doc, metric) {
 }
 
 function sanitizeExternalPreview(html, baseUrl, metric = null) {
-  const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+  const doc = new DOMParser().parseFromString(sanitizeNodeText(html || ''), 'text/html');
   doc.querySelectorAll('script,iframe,object,embed,form,base,meta[http-equiv="refresh"]').forEach((element) => element.remove());
   addQuranFilteredDigest(doc, metric);
   doc.querySelectorAll('*').forEach((element) => {
@@ -1519,8 +1539,8 @@ function closeHub() {
 
 function saveHub() {
   let link = null;
-  const rawUrl = hubUrl.value.trim();
-  const html = hubHtml.value;
+  const rawUrl = sanitizeNodeText(hubUrl.value).trim();
+  const html = sanitizeNodeText(hubHtml.value);
   try {
     if (rawUrl) link = parseNodeLink(rawUrl);
     if (html.length > MAX_HTML_CHARS) throw new Error('حجم HTML أكبر من الحد المحلي البالغ 300 كيلوبايت.');
@@ -1528,7 +1548,7 @@ function saveHub() {
       clearHub();
       return;
     }
-    const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, searchQuery: hubSearchQuery.value.trim(), searchEngine: hubSearchEngine.value, active: true, savedAt: new Date().toISOString() };
+    const data = { url: sanitizeNodeText(link?.url || ''), kind: link?.kind || (html ? 'html' : ''), html, searchQuery: sanitizeNodeText(hubSearchQuery.value).trim(), searchEngine: sanitizeNodeText(hubSearchEngine.value), active: true, savedAt: new Date().toISOString() };
     const storageKey = `${LINK_KEY}-${activeHub.id}`;
     const serialized = JSON.stringify(data);
     if (semverStorageChars(storageKey) + storageKey.length + serialized.length > MAX_STORAGE_CHARS) throw new Error('وصلت بيانات مختبر العقد إلى سقف التخزين المحلي (نحو 650 كيلوبايت). امسح بعض العقد أو صغّر HTML.');
@@ -1872,7 +1892,7 @@ function downloadBlob(content, filename, type) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function escapeXml(value) {
-  return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[character]));
+  return sanitizeNodeText(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[character]));
 }
 function exportNetworkMapJson() {
   const nodes = [];
@@ -1931,13 +1951,13 @@ function importNodes(file) {
       for (const [rawId, rawData] of Object.entries(payload.nodes)) {
         const id = Number(rawId);
         if (!Number.isInteger(id) || id < 1 || id > NODE_TOTAL || !rawData || typeof rawData !== 'object') continue;
-        const rawUrl = String(rawData.url || '').trim();
-        const html = String(rawData.html || '');
+        const rawUrl = sanitizeNodeText(rawData.url || '').trim();
+        const html = sanitizeNodeText(rawData.html || '');
         let link = null;
         if (rawUrl) link = parseNodeLink(rawUrl);
         if (html.length > MAX_HTML_CHARS) throw new Error(`HTML العقدة ${id} يتجاوز الحد المسموح.`);
         if (!rawUrl && !html.trim()) continue;
-        const data = { url: link?.url || '', kind: link?.kind || (html ? 'html' : ''), html, searchQuery: hubSearchQuery.value.trim(), searchEngine: hubSearchEngine.value, active: true, savedAt: new Date().toISOString() };
+        const data = { url: sanitizeNodeText(link?.url || ''), kind: link?.kind || (html ? 'html' : ''), html, searchQuery: sanitizeNodeText(hubSearchQuery.value).trim(), searchEngine: sanitizeNodeText(hubSearchEngine.value), active: true, savedAt: new Date().toISOString() };
         const storageKey = `${LINK_KEY}-${id}`;
         if (semverStorageChars(storageKey) + storageKey.length + JSON.stringify(data).length > MAX_STORAGE_CHARS) throw new Error('تجاوزت بيانات العقد سقف التخزين المحلي.');
         if (!writeJson(storageKey, data)) throw new Error('تعذر حفظ بيانات العقد في المتصفح.');
