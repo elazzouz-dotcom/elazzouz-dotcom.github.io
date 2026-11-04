@@ -18,7 +18,11 @@ The component accepts these attributes:
 
 ## Advanced features
 
-The component includes five local roles (`استكشاف`, `فحص`, `حماية`, `نور`, `ميزان`), automatic role rebalancing when the spread reaches five, generation tracking, a local expansion model, نور and ميزان controls, a reset control, a central visual marker, and click inspection for individual agents. Selecting an agent dispatches a local `swarm-inspect` event; no data leaves the page.
+The component includes five local roles (`استكشاف`, `فحص`, `حماية`, `نور`, `ميزان`), automatic role rebalancing when the spread reaches five, generation tracking, a local expansion model, نور and ميزان controls, a reset control, a central visual marker, and click inspection for individual agents.
+
+It also includes a **quantum-overlap simulation panel**. The 5×5 matrix displays a local visual overlap score for every pair of roles. Scores combine population balance, phase similarity, and average energy similarity. Selecting a cell shows the pair's simulated coherence, population, energy, and phase details. These are educational simulation metrics, not measurements of physical quantum systems.
+
+Selecting an agent dispatches a local `swarm-inspect` event; no data leaves the page.
 
 ## NPM usage
 

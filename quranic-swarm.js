@@ -53,7 +53,7 @@
         .bar{position:absolute;inset:0 0 auto;z-index:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px;background:rgba(0,0,0,.76);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,255,136,.2)}
         .brand{color:#00ff88;font-weight:800}.stat{padding:3px 6px;border:1px solid rgba(255,255,255,.14);border-radius:6px;color:#aac1b2;font-size:10px}.stat b{color:#00ff88;font-size:12px}
         .button{border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:4px 7px;background:#0c1a12;color:#dff8e9;cursor:pointer;font:inherit;font-size:10px}.button[aria-pressed="true"]{background:#164d31;color:#fff}
-        .inspector{position:absolute;z-index:2;left:8px;bottom:8px;max-width:calc(100% - 16px);padding:7px 9px;border-right:3px solid #fff2a8;background:rgba(0,0,0,.78);color:#dff8e9;font:10px/1.6 ui-monospace,monospace;direction:rtl}
+        .inspector{position:absolute;z-index:2;left:8px;bottom:8px;max-width:calc(100% - 16px);padding:7px 9px;border-right:3px solid #fff2a8;background:rgba(0,0,0,.78);color:#dff8e9;font:10px/1.6 ui-monospace,monospace;direction:rtl}.quantum-panel{position:absolute;z-index:2;right:8px;top:52px;width:min(300px,calc(100% - 16px));padding:8px;border:1px solid rgba(217,140,255,.34);border-radius:10px;background:rgba(2,6,3,.84);backdrop-filter:blur(7px);direction:rtl}.quantum-title{color:#d98cff;font-weight:800;font-size:11px}.quantum-note{display:block;color:#9fb1a8;font-size:9px;line-height:1.5;margin:3px 0 6px}.quantum-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}.quantum-cell{min-width:0;border:1px solid rgba(255,255,255,.1);border-radius:4px;background:#0b1710;color:#dff8e9;padding:4px 2px;font:9px ui-monospace,monospace;cursor:pointer}.quantum-cell:hover,.quantum-cell[aria-pressed="true"]{border-color:#d98cff;background:#29183a}.quantum-detail{margin-top:6px;color:#e8d8f5;font:9px/1.5 ui-monospace,monospace;min-height:28px}
       `;
       const bar = document.createElement('div'); bar.className = 'bar';
       const brand = document.createElement('span'); brand.className = 'brand'; brand.textContent = 'TawhidOS · السرب الموحّد'; bar.appendChild(brand);
@@ -68,8 +68,14 @@
       });
       const canvas = document.createElement('canvas'); canvas.setAttribute('aria-label', 'محاكاة TawhidOS للسرب المتوازن');
       const inspector = document.createElement('div'); inspector.className = 'inspector'; inspector.hidden = true;
-      this.shadowRoot.append(style, bar, canvas, inspector);
-      this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.inspector = inspector;
+      const quantumPanel = document.createElement('section'); quantumPanel.className = 'quantum-panel'; quantumPanel.setAttribute('aria-label', 'لوحة محاكاة التداخل بين أدوار السرب');
+      const quantumTitle = document.createElement('strong'); quantumTitle.className = 'quantum-title'; quantumTitle.textContent = 'تداخل السرب الخماسي · محاكاة';
+      const quantumNote = document.createElement('span'); quantumNote.className = 'quantum-note'; quantumNote.textContent = 'المؤشرات التالية نموذج بصري محلي للتفاعل والتماسك، وليست قياسًا كموميًا حقيقيًا.';
+      const quantumGrid = document.createElement('div'); quantumGrid.className = 'quantum-grid';
+      const quantumDetail = document.createElement('div'); quantumDetail.className = 'quantum-detail'; quantumDetail.textContent = 'اختر خلية لعرض تفاصيل التداخل.';
+      quantumPanel.append(quantumTitle, quantumNote, quantumGrid, quantumDetail);
+      this.shadowRoot.append(style, bar, canvas, quantumPanel, inspector);
+      this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.inspector = inspector; this.quantumGrid = quantumGrid; this.quantumDetail = quantumDetail;
     }
 
     readOptions() {
@@ -86,6 +92,7 @@
       action('mizan-toggle').addEventListener('click', () => { this.mizanMode = !this.mizanMode; action('mizan-toggle').setAttribute('aria-pressed', String(this.mizanMode)); });
       action('reset').addEventListener('click', () => this.reset());
       this.canvas.addEventListener('click', (event) => this.inspectAt(event));
+      this.quantumGrid.addEventListener('click', (event) => { const cell = event.target.closest('[data-pair]'); if (!cell) return; this.showQuantumDetail(cell.dataset.pair); });
     }
 
     resize() {
@@ -132,7 +139,25 @@
 
     updateStats() {
       const root = this.shadowRoot; const counts = this.roleCounts(); const spread = Math.max(...Object.values(counts)) - Math.min(...Object.values(counts));
-      root.querySelector('#count').textContent = String(this.colony.length); root.querySelector('#max').textContent = String(this.maxCount); root.querySelector('#balance').textContent = `${Math.max(0, Math.round(100 - spread * 5))}%`; root.querySelector('#nur').textContent = this.nurActive ? 'نشط' : '19'; root.querySelector('#generation').textContent = String(this.generation); root.querySelector('#q').textContent = '210M';
+      root.querySelector('#count').textContent = String(this.colony.length); root.querySelector('#max').textContent = String(this.maxCount); root.querySelector('#balance').textContent = `${Math.max(0, Math.round(100 - spread * 5))}%`; root.querySelector('#nur').textContent = this.nurActive ? 'نشط' : '19'; root.querySelector('#generation').textContent = String(this.generation); root.querySelector('#q').textContent = '210M'; this.updateQuantumPanel();
+    }
+
+    quantumState(role) {
+      const items = this.colony.filter((item) => item.role === role); const energy = items.length ? items.reduce((sum, item) => sum + item.energy, 0) / items.length : 0; const phase = (Math.sin(this.time * .7 + ROLES.indexOf(role) * 1.256) + 1) / 2; return { count: items.length, energy, phase };
+    }
+
+    overlap(roleA, roleB) {
+      const a = this.quantumState(roleA); const b = this.quantumState(roleB); const population = Math.min(a.count, b.count) / Math.max(1, Math.max(a.count, b.count)); const phase = 1 - Math.abs(a.phase - b.phase); const energy = 1 - Math.min(1, Math.abs(a.energy - b.energy) / 120); return Math.max(0, Math.min(1, population * .45 + phase * .35 + energy * .20));
+    }
+
+    updateQuantumPanel() {
+      if (!this.quantumGrid) return; this.quantumGrid.replaceChildren();
+      ROLES.forEach((roleA) => ROLES.forEach((roleB) => { const cell = document.createElement('button'); cell.type = 'button'; cell.className = 'quantum-cell'; cell.dataset.pair = `${roleA}|${roleB}`; cell.setAttribute('aria-label', `تداخل ${roleA} و${roleB}`); cell.textContent = `${Math.round(this.overlap(roleA, roleB) * 100)}%`; this.quantumGrid.appendChild(cell); }));
+      this.quantumDetail.textContent = `التماسك العام: ${Math.round(ROLES.reduce((sum, role, index) => sum + this.overlap(role, ROLES[(index + 1) % ROLES.length]), 0) / ROLES.length * 100)}% · الزمن المحلي: ${this.time.toFixed(1)}s`;
+    }
+
+    showQuantumDetail(pair) {
+      const [roleA, roleB] = pair.split('|'); const a = this.quantumState(roleA); const b = this.quantumState(roleB); const value = Math.round(this.overlap(roleA, roleB) * 100); this.quantumDetail.textContent = `${roleA} ↔ ${roleB} · التداخل المحاكى: ${value}% · الوكلاء: ${a.count}/${b.count} · الطاقة: ${a.energy.toFixed(1)}/${b.energy.toFixed(1)} · الطور: ${a.phase.toFixed(2)}/${b.phase.toFixed(2)}`; this.quantumGrid.querySelectorAll('[data-pair]').forEach((cell) => cell.setAttribute('aria-pressed', String(cell.dataset.pair === pair)));
     }
 
     inspectAt(event) {
