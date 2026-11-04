@@ -1,9 +1,11 @@
-const CACHE = 'quranic-swarm-v2';
+const CACHE = 'slaks-swarm-v3';
 const CORE_ASSETS = [
   '/',
   '/quranic-cyber-swarm.html',
   '/quranic-swarm-demo.html',
-  '/quranic-swarm.js'
+  '/quranic-swarm.js',
+  '/semver-bnf/cosmic-law.html',
+  '/semver-bnf/sovereign-bug-swarm.js'
 ];
 
 self.addEventListener('install', (event) => {
