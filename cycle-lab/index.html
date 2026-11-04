@@ -6,7 +6,7 @@
   <meta name="description" content="Azzouz Full Cycle Lab — دورة تكامل مغلقة بين HTML وSecurity والآيات والتوازن وCSS وJavaScript.">
   <title>Azzouz Full Cycle Lab · كل في فلك يسبحون</title>
   <style>
-    :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#000;color:#fff;font-family:Consolas,"Courier New",monospace;overflow:hidden}#hud{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.92);padding:9px;text-align:center;z-index:10;border-bottom:1px solid #00ff88}#cycle{font-size:13px;color:#00ff88;line-height:1.8;direction:rtl}#layers{color:#b9ffd9;font-size:11px;max-width:980px;margin:3px auto}#alert{display:inline-block;margin:4px auto 0;border:1px solid #00ff88;border-radius:6px;padding:3px 8px;color:#00ff88;font-size:11px}#alert.broken{border-color:#ff4d6d;color:#ff879b;background:rgba(120,0,30,.25)}#notify{margin-inline-start:6px;background:#00ff88;color:#00150b;border:0;border-radius:5px;padding:3px 7px;font:inherit;font-size:10px;cursor:pointer}canvas{width:100vw;height:100vh;display:block}#log{position:fixed;bottom:0;left:0;right:0;height:76px;overflow:auto;background:rgba(0,0,0,.9);font-size:11px;padding:5px;z-index:5}.back{position:fixed;top:10px;inset-inline-start:10px;color:#00ff88;text-decoration:none;border:1px solid #00ff88;border-radius:6px;padding:4px 8px;font-size:11px;z-index:12}@media(max-width:700px){#cycle{font-size:11px}.back{top:auto;bottom:84px}}
+    :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#000;color:#fff;font-family:Consolas,"Courier New",monospace;overflow:hidden}#hud{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.92);padding:9px;text-align:center;z-index:10;border-bottom:1px solid #00ff88}#cycle{font-size:13px;color:#00ff88;line-height:1.8;direction:rtl}#layers{color:#b9ffd9;font-size:11px;max-width:980px;margin:3px auto}#alert{display:inline-block;margin:4px auto 0;border:1px solid #00ff88;border-radius:6px;padding:3px 8px;color:#00ff88;font-size:11px}#alert.broken{border-color:#ff4d6d;color:#ff879b;background:rgba(120,0,30,.25)}#notify,#gate button{margin-inline-start:6px;background:#00ff88;color:#00150b;border:0;border-radius:5px;padding:3px 7px;font:inherit;font-size:10px;cursor:pointer}#gate{position:fixed;top:132px;inset-inline-end:10px;width:min(390px,calc(100vw - 20px));background:rgba(0,0,0,.9);border:1px solid rgba(0,255,136,.5);border-radius:9px;padding:8px;z-index:7;font-size:11px}#gate summary{cursor:pointer;color:#00ff88;font-weight:800}#gate input[type=text],#gate select{width:100%;margin:4px 0;padding:5px;background:#081411;color:#fff;border:1px solid #315d57;border-radius:4px;font:inherit}#gate label{display:block;margin-top:5px;color:#b9ffd9}#gate .filter{display:flex;justify-content:space-between;gap:8px;border-top:1px solid #243a31;padding:3px 0}.pass{color:#00ff88}.fail{color:#ff6b8a}.neutral{color:#ffff88}#gate-status{margin-top:5px;line-height:1.6}canvas{width:100vw;height:100vh;display:block}#log{position:fixed;bottom:0;left:0;right:0;height:76px;overflow:auto;background:rgba(0,0,0,.9);font-size:11px;padding:5px;z-index:5}.back{position:fixed;top:10px;inset-inline-start:10px;color:#00ff88;text-decoration:none;border:1px solid #00ff88;border-radius:6px;padding:4px 8px;font-size:11px;z-index:12}@media(max-width:700px){#cycle{font-size:11px}#gate{top:160px}.back{top:auto;bottom:84px}}
   </style>
 </head>
 <body>
@@ -19,6 +19,22 @@
     <div style="color:#b9ffd9;font-size:10px">الطاقة الكلية = مجموع الطاقات + (الدورات × 30) − (الاستهلاك × الزمن)</div>
     <div id="alert" role="status" aria-live="assertive">الجسر سليم · مراقبة الحلقات مفعّلة <button id="notify" type="button">تفعيل تنبيهات الجهاز</button> <button id="simulate" type="button">اختبار انقطاع الحماية</button></div>
   </header>
+  <details id="gate" open>
+    <summary>بوابة المعلومة · ثلاثة فلاتر قبل عقل Azzouz</summary>
+    <label for="gate-input">المعلومة</label>
+    <input id="gate-input" type="text" placeholder="اكتب معلومة لاختبار مسارها">
+    <label for="balance-score">الفلتر 1 · الميزان: <output id="balance-value">75</output>%</label>
+    <input id="balance-score" type="range" min="0" max="100" value="75">
+    <label for="light-check">الفلتر 2 · النور 19</label>
+    <select id="light-check"><option value="auto">فحص تجريبي من النص</option><option value="yes">مؤشر عددي موجود</option><option value="no">لا يوجد مؤشر</option></select>
+    <label for="unity-check">الفلتر 3 · التوحيد</label>
+    <select id="unity-check"><option value="near">تقرب إلى الله</option><option value="neutral">محايدة</option><option value="far">تبعد عن الله</option></select>
+    <button id="run-gate" type="button">مرّر المعلومة</button>
+    <div class="filter"><span>1 · الميزان 75%</span><strong id="gate-balance" class="neutral">بانتظار الفحص</strong></div>
+    <div class="filter"><span>2 · النور 19</span><strong id="gate-light" class="neutral">بانتظار الفحص</strong></div>
+    <div class="filter"><span>3 · التوحيد</span><strong id="gate-unity" class="neutral">بانتظار الفحص</strong></div>
+    <div id="gate-status" aria-live="polite">تمر المعلومة من الفلاتر بالترتيب، والنتيجة تجريبية قابلة للتفسير.</div>
+  </details>
   <canvas id="cv" aria-label="محاكاة الدورة المغلقة"></canvas>
   <div id="log" aria-live="polite"></div>
   <script>
@@ -29,6 +45,21 @@
     function enableNotifications(){if(!('Notification' in window)){log('هذا المتصفح لا يدعم تنبيهات الجهاز.');return}Notification.requestPermission().then((permission)=>{document.getElementById('notify').textContent=permission==='granted'?'تنبيهات الجهاز مفعّلة':'السماح بالتنبيهات';log(permission==='granted'?'تم تفعيل تنبيهات انكسار الجسر.':'لم يُمنح إذن تنبيهات الجهاز.')}).catch(()=>log('تعذر طلب إذن التنبيهات.'))}
     document.getElementById('notify').addEventListener('click',enableNotifications);
     document.getElementById('simulate').addEventListener('click',()=>simulateBreak('حماية'));
+    const gateInput=document.getElementById('gate-input'),balanceScore=document.getElementById('balance-score');
+    balanceScore.addEventListener('input',()=>document.getElementById('balance-value').textContent=balanceScore.value);
+    function gateResult(id,ok,text){const element=document.getElementById(id);element.textContent=text;element.className=ok?'pass':'fail';return ok}
+    function runInformationGate(){
+      const information=gateInput.value.trim();
+      if(!information){document.getElementById('gate-status').textContent='اكتب معلومة أولًا لتشغيل الفلاتر.';return}
+      const balance=Number(balanceScore.value),lightMode=document.getElementById('light-check').value,unity=document.getElementById('unity-check').value;
+      const numericSignal=lightMode==='yes'||(lightMode==='auto'&&(/19|تسعة عشر/.test(information)||[...information].filter(c=>/\d/.test(c)).reduce((sum,c)=>sum+Number(c),0)%19===0));
+      const balanceOk=gateResult('gate-balance',balance>=75,`${balance}% · ${balance>=75?'متوازنة':'غير متوازنة'}`);
+      const lightOk=gateResult('gate-light',numericSignal,numericSignal?'مؤشر 19 موجود':'لا يوجد مؤشر 19');
+      const unityOk=gateResult('gate-unity',unity==='near',unity==='near'?'تقرب · يمر':'لا يمر · '+(unity==='far'?'يبعد':'محايدة'));
+      const status=document.getElementById('gate-status');
+      if(balanceOk&&lightOk&&unityOk){status.textContent='دازت من 3 فلاتر → دخلت إلى عقل Azzouz. هذه نتيجة مسار تجريبي وليست حكمًا دينيًا.';log(`بوابة معلومة: قُبلت بعد الميزان والنور 19 والتوحيد · ${information.slice(0,80)}`)}else{status.textContent='ما دازتش من 3 → رُفضت من البوابة ولم تدخل عقل Azzouz · وأما الزبد فيذهب جفاء.';log(`بوابة معلومة: رُفضت · الميزان=${balanceOk?'نعم':'لا'} · النور=${lightOk?'نعم':'لا'} · التوحيد=${unityOk?'نعم':'لا'}`)}
+    }
+    document.getElementById('run-gate').addEventListener('click',runInformationGate);
     function sendSystemAlert(title,body){if('Notification' in window&&Notification.permission==='granted')new Notification(title,{body,tag:'azzouz-bridge-integrity'})}
     function monitorIntegrity(integration){
       const missing=ORDER.filter((role)=>simulatedBreakRole===role||!colony.some((insect)=>insect.role===role));
