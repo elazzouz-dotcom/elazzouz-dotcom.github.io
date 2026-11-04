@@ -11,6 +11,7 @@
 - `POST /api/nodes` — إضافة أو تحديث عقدة؛ محمي بـ `ADMIN_TOKEN`.
 - `POST /api/conversations` — حفظ سؤال وإجابة ومصادرها.
 - `GET /api/conversations?sessionId=...` — قراءة تاريخ جلسة.
+- `POST /api/swarm/join` — تسجيل طلب انضمام موقع إلى السرب دون زيارة الموقع أو فحصه.
 
 ## الإعداد والنشر
 
@@ -35,5 +36,15 @@ curl -X POST https://YOUR_WORKER.workers.dev/api/nodes \
   -H 'Content-Type: application/json' \
   -d '{"id":42,"title":"مصدر عربي","description":"وصف مختصر","content":"نص المصدر الكامل","url":"https://example.com","domain":"technology","trustScore":0.9}'
 ```
+
+## مثال انضمام السرب
+
+```bash
+curl -X POST https://YOUR_WORKER.workers.dev/api/swarm/join \
+  -H 'Content-Type: application/json' \
+  -d '{"site":"example.com","count":57,"role":"استكشاف"}'
+```
+
+يُحفظ فقط اسم الموقع النصي حتى 100 حرفًا، والعدد بين 1 و300، والدور حتى 50 حرفًا. لا ينفّذ الخادم أي طلب إلى الموقع المرسل ولا يخزّن بيانات التصفح أو عنوان IP.
 
 هذه المرحلة لا تولّد إجابة بالذكاء الاصطناعي بعد. هي تؤسس التخزين المركزي، البحث، المصادر، وسجل المحادثة. المرحلة التالية ستضيف واجهة `POST /api/answer` التي تختار المصادر ثم تمررها إلى مزود نموذج آمن من الخادم.
