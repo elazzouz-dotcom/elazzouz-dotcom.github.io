@@ -60,6 +60,7 @@ let activeHub = { id: null, node: null };
 let focusReturn = null;
 const nodeChatRoomRecords = new Map();
 let nodeChatRoomSelected = null;
+let nodeAiConversation = [];
 let draggedNode = null;
 let suppressNodeClick = false;
 let focusedEdge = null;
@@ -404,13 +405,14 @@ function localNodeAiAnswer(query) {
   lines.push('هذه إجابة استرجاع محلية من بيانات العقد، وليست ادعاءً بأن رابطًا خارجيًا سليم ما لم تظهر حالته «سليم ومتوفر».');
   return lines.join('\n');
 }
-async function askOllamaLocally(query, context) {
+async function askOllamaLocally(query, context, history = []) {
   const endpoint = $('#node-ai-endpoint')?.value.trim() || '';
   const model = $('#node-ai-model')?.value.trim() || 'llama3.2';
   let parsed;
   try { parsed = new URL(endpoint); } catch { throw new Error('عنوان النموذج المحلي غير صالح.'); }
   if (!['localhost', '127.0.0.1', '::1'].includes(parsed.hostname) && !parsed.hostname.endsWith('.local')) throw new Error('لأمان البيانات، يجب أن يشير نموذج الذكاء إلى localhost أو جهاز محلي .local.');
-  const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model, stream: false, messages: [{ role: 'system', content: 'أجب بالعربية اعتمادًا على سياق العقد المرفق فقط. القيود الستة إلزامية: ست عقد كحد أقصى، العقدة المطابقة أولًا، العلاقات المباشرة فقط، بيانات محلية فقط، لا تجلب روابط، واذكر أرقام العقد التي استندت إليها. إذا لم توجد معلومة فقل ذلك بوضوح.' }, { role: 'user', content: `السؤال: ${query}\n\nسياق العقد المسموح (حد أقصى 6):\n${context}` }] }) });
+  const messages = [{ role: 'system', content: 'أنت مساعد محادثة محلي. أجب بالعربية اعتمادًا على سياق العقد المرفق فقط. حافظ على سياق الحوار السابق، لكن لا تتجاوز القيود الستة: ست عقد كحد أقصى، العقدة المطابقة أولًا، العلاقات المباشرة فقط، بيانات محلية فقط، لا تجلب روابط، واذكر أرقام العقد التي استندت إليها. إذا لم توجد معلومة فقل ذلك بوضوح.' }, ...history.slice(-10), { role: 'user', content: `السؤال الجديد: ${query}\n\nسياق العقد المسموح (حد أقصى 6):\n${context}` }];
+  const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model, stream: false, messages }) });
   if (!response.ok) throw new Error(`تعذر الوصول إلى النموذج المحلي (${response.status}).`);
   const payload = await response.json();
   return payload.message?.content || payload.response || 'أعاد النموذج المحلي استجابة فارغة.';
@@ -425,14 +427,17 @@ async function askNodeAi() {
   const mode = $('#node-ai-mode')?.value || 'local';
   const matches = retrieveNodeKnowledge(query);
   const context = matches.map(({ record, registry }) => `${nodeLabel(record.id)} | ${record.quran.surah_name} | المستوى ${record.level} | الرابط ${record.url || 'محلي'} | الحالة ${registry.status || 'local-only'} | الجذر ${record.quran.combined_root}`).join('\n');
+  const history = nodeAiConversation.slice(-10);
   if (status) status.textContent = mode === 'ollama' ? 'جارٍ سؤال النموذج المحلي مع تزويده بسياق العقد…' : `جارٍ استرجاع المعلومات من ${nodeChatRoomRecords.size} عقدة محليًا…`;
   try {
     let answer = localNodeAiAnswer(query);
     if (mode === 'ollama') {
-      try { answer = await askOllamaLocally(query, context || 'لا توجد نتائج مطابقة.'); $('#node-ai-engine').textContent = '● نموذج محلي'; }
+      try { answer = await askOllamaLocally(query, context || 'لا توجد نتائج مطابقة.', history); $('#node-ai-engine').textContent = '● نموذج محلي'; }
       catch (error) { answer += `\n\nتعذر الاتصال بالنموذج المحلي، لذلك أُعيدت الإجابة من محرك العقد: ${error.message}`; $('#node-ai-engine').textContent = '● رجوع محلي'; }
     }
     appendNodeAiMessage('assistant', answer);
+    nodeAiConversation.push({ role: 'user', content: query }, { role: 'assistant', content: answer });
+    nodeAiConversation = nodeAiConversation.slice(-10);
     if (status) status.textContent = mode === 'ollama' ? 'اكتملت الإجابة؛ البيانات أُرسلت إلى عنوان النموذج المحلي الذي أدخلته فقط.' : 'اكتملت الإجابة محليًا؛ لم تُرسل بيانات العقد إلى الخارج.';
   } catch (error) { appendNodeAiMessage('assistant', error.message || 'تعذر إنشاء الإجابة.'); if (status) status.textContent = 'حدث خطأ في محرك الدردشة المحلي.'; }
 }
@@ -441,6 +446,7 @@ function setupNodeChatRoom() {
   $('#node-chat-room-search').addEventListener('input', renderNodeChatRoom);
   renderNodeChatRoom();
   $('#node-ai-send')?.addEventListener('click', askNodeAi);
+  $('#node-ai-new-chat')?.addEventListener('click', () => { nodeAiConversation = []; $('#node-ai-chat-log')?.replaceChildren(); appendNodeAiMessage('assistant', 'بدأت محادثة جديدة. أنا جاهز للاستمرار مع سياق العقد المسموح.'); $('#node-ai-status').textContent = 'محادثة جديدة؛ لم تُرسل بيانات إلى Ollama.'; });
   $('#node-ai-query')?.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); askNodeAi(); } });
   appendNodeAiMessage('assistant', 'أنا متصل بسجل العقد المحلي. اسأل عن عقدة، رابط، حالة معاينة، سورة مرتبطة، أو عدد العقد.');
 }
