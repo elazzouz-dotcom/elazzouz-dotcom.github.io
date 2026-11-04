@@ -40,3 +40,7 @@ No install or publish action is performed by the website.
 The component uses local animation state only. It does not use `fetch`, `innerHTML`, cross-origin scraping, hidden background execution, cryptocurrency mining, or telemetry. Offline caching is handled separately by the Slaks site Service Worker and only after the user visits the site.
 
 This simulation is educational and visual; its labels and numerical constants are presentation metadata, not scientific validation or a religious ruling.
+
+## Access orbits
+
+The component follows Slaks’ three-orbit model: first-party site logic is local; external providers are accessed only through official, authorized APIs; and third-party previews belong in an isolated Sandbox/iframe with explicit message boundaries. The package itself does not scrape websites, bypass login, or proxy CORS.
