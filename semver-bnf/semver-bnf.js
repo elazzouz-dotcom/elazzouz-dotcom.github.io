@@ -1225,6 +1225,45 @@ const hubSearchEngine = $('#hub-search-engine');
 const hubPreview = $('#hub-preview');
 const hubAddress = $('#hub-address');
 const PREVIEW_WORKER = 'https://github-oauth-proxy.elazzouz4.workers.dev/preview';
+const HUB_LINK_REGISTRY_KEY = 'semver-node-link-registry-v1';
+const HUB_PREVIEW_CACHE_KEY = 'semver-node-preview-cache-v1';
+const HUB_PREVIEW_CACHE_TTL = 6 * 60 * 60 * 1000;
+const HUB_PREVIEW_CACHE_LIMIT = 12;
+const HUB_PREVIEW_MAX_CHARS = 160_000;
+const LINK_STATUS_LABELS = { checking: 'قيد الفحص', healthy: 'سليم ومتوفر', 'needs-review': 'يحتاج مراجعة', 'cors-blocked': 'محجوب أو تعذر جلبه', 'local-only': 'معاينة محلية فقط' };
+function readStorageObject(key) {
+  try { const value = JSON.parse(localStorage.getItem(key) || '{}'); return value && typeof value === 'object' ? value : {}; } catch { return {}; }
+}
+function writeStorageObject(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; }
+}
+function setHubLinkState(state, patch = {}) {
+  const element = $('#hub-link-state');
+  if (element) { element.dataset.state = state; element.textContent = `حالة الرابط: ${LINK_STATUS_LABELS[state] || state}${patch.checkedAt ? ` · آخر فحص ${new Date(patch.checkedAt).toLocaleString('ar')}` : ''}`; }
+}
+function updateHubLinkRecord(id, patch) {
+  if (!id) return;
+  const registry = readStorageObject(HUB_LINK_REGISTRY_KEY);
+  registry[id] = { ...(registry[id] || {}), ...patch, updatedAt: new Date().toISOString() };
+  writeStorageObject(HUB_LINK_REGISTRY_KEY, registry);
+  if (activeHub?.id === id) setHubLinkState(registry[id].status || 'local-only', registry[id]);
+}
+function previewCacheKey(url) { return encodeURIComponent(url); }
+function getCachedPreview(url) {
+  const cache = readStorageObject(HUB_PREVIEW_CACHE_KEY);
+  const entry = cache[previewCacheKey(url)];
+  if (!entry || Date.now() - Number(entry.cachedAt || 0) > HUB_PREVIEW_CACHE_TTL) { if (entry) delete cache[previewCacheKey(url)]; writeStorageObject(HUB_PREVIEW_CACHE_KEY, cache); return null; }
+  entry.usedAt = Date.now(); writeStorageObject(HUB_PREVIEW_CACHE_KEY, cache); return entry.payload;
+}
+function cachePreview(url, payload) {
+  if (!payload?.html || payload.html.length > HUB_PREVIEW_MAX_CHARS) return;
+  const cache = readStorageObject(HUB_PREVIEW_CACHE_KEY);
+  const key = previewCacheKey(url);
+  cache[key] = { payload: { ...payload, html: payload.html.slice(0, HUB_PREVIEW_MAX_CHARS) }, cachedAt: Date.now(), usedAt: Date.now() };
+  const keys = Object.keys(cache).sort((a, b) => Number(cache[a]?.usedAt || 0) - Number(cache[b]?.usedAt || 0));
+  keys.slice(0, Math.max(0, keys.length - HUB_PREVIEW_CACHE_LIMIT)).forEach((oldKey) => delete cache[oldKey]);
+  writeStorageObject(HUB_PREVIEW_CACHE_KEY, cache);
+}
 
 const SEARCH_ENGINES = Object.freeze({
   google: 'https://www.google.com/search?q=', bing: 'https://www.bing.com/search?q=', duckduckgo: 'https://duckduckgo.com/?q=', brave: 'https://search.brave.com/search?q=', yahoo: 'https://search.yahoo.com/search?p=', ecosia: 'https://www.ecosia.org/search?q=', startpage: 'https://www.startpage.com/sp/search?query=', qwant: 'https://www.qwant.com/?q=', kagi: 'https://kagi.com/search?q=', yandex: 'https://yandex.com/search/?text=', baidu: 'https://www.baidu.com/s?wd='
@@ -1412,12 +1451,14 @@ async function buildHub(silent = false) {
       if (link.kind !== 'web') {
         clearPreview();
         hubAddress.textContent = link.kind === 'matrix' ? `Matrix.org · ${link.display}` : link.url;
+        updateHubLinkRecord(activeHub?.id, { url: link.url, source: 'user', status: 'local-only', previewStatus: 'external-only' });
         renderExtraction({ title: link.display, text: link.kind === 'matrix' ? 'تم التعرف على غرفة Matrix. استخدم زر الفتح لفتحها في matrix.to أو عميل Matrix المثبت على جهازك.' : 'هذا الرابط يفتح في تطبيق خارجي ولا يمكن معاينته أو جلب محتواه داخل الشبكة.', source: link.kind === 'matrix' ? 'Matrix.org' : 'فتح خارجي فقط', kind: link.kind });
         setHubStatus(link.kind === 'matrix' ? 'غرفة Matrix جاهزة للفتح عبر matrix.to.' : 'الرابط صالح للفتح الخارجي، لكن المعاينة متاحة لصفحات HTTP/HTTPS فقط.');
         return;
       }
       const builtIn = BUILTIN_NODES[activeHub.id];
       if (builtIn?.kind === 'local-tool' && link.url === builtIn.url) {
+        updateHubLinkRecord(activeHub.id, { url: link.url, source: 'built-in', status: 'healthy', previewStatus: 'local' });
         hubAddress.textContent = `${builtIn.label} · ${nodeLabel(activeHub.id)}`;
         hubPreview.removeAttribute('srcdoc');
         hubPreview.src = link.url;
@@ -1431,8 +1472,10 @@ async function buildHub(silent = false) {
         return;
       }
       const software = classifySoftwareUrl(link.url);
+      updateHubLinkRecord(activeHub.id, { url: link.url, source: 'user', status: 'checking', previewStatus: 'pending' });
       hubAddress.textContent = `${software.label} · ${link.url}`;
       if (software.kind === 'download') {
+        updateHubLinkRecord(activeHub.id, { status: 'local-only', previewStatus: 'safe-download-card' });
         hubPreview.removeAttribute('src');
         hubPreview.srcdoc = softwareDownloadPreview(link, software);
         renderExtraction({ title: software.label, text: 'تم التعرف على ملف برمجي وعرض بطاقة آمنة داخل المعاينة. لا يتم تشغيل الملفات التنفيذية داخل المتصفح.', source: 'معاينة برمجية آمنة', kind: 'software' });
@@ -1444,16 +1487,29 @@ async function buildHub(silent = false) {
       renderExtraction({ title: link.host || link.display, text: software.kind === 'software' ? 'هذه صفحة برمجية أو متجر تطبيقات وتُعرض داخل إطار المعاينة. قد يمنع الموقع الخارجي التضمين.' : 'جرت محاولة عرض الصفحة الخارجية داخل إطار معزول. قد تمنع بعض المواقع العرض داخل الإطارات؛ استخدم زر العرض داخل Azzouz عند الحاجة.', source: software.label, kind: software.kind });
       setHubStatus(`جارية معاينة ${software.label} داخل Azzouz عبر Relay عند توفره…`);
       try {
+        const cachedPayload = getCachedPreview(link.url);
+        if (cachedPayload?.html) {
+          hubPreview.removeAttribute('src');
+          hubPreview.srcdoc = sanitizeExternalPreview(cachedPayload.html, cachedPayload.finalUrl || link.url, quranMetricForNode(activeHub.id));
+          hubAddress.textContent = `${software.label} · ${cachedPayload.finalUrl || link.url}`;
+          renderExtraction({ title: cachedPayload.title || link.host, text: cachedPayload.description || cachedPayload.text || 'تم تحميل نسخة HTML من الذاكرة المؤقتة المحلية.', elements: cachedPayload.elements, links: cachedPayload.links?.length, source: 'ذاكرة المعاينة المحلية', kind: software.kind });
+          updateHubLinkRecord(activeHub.id, { status: 'healthy', previewStatus: 'cached', checkedAt: new Date().toISOString() });
+          setHubStatus('ظهرت نسخة الموقع من الذاكرة المؤقتة المحلية؛ لم يُرسل طلب جديد.');
+          return;
+        }
         const response = await fetch(`${PREVIEW_WORKER}?url=${encodeURIComponent(link.url)}`, { headers: { Accept: 'application/json' } });
         const payload = await response.json();
         if (response.ok && payload.html) {
+          cachePreview(link.url, payload);
           hubPreview.removeAttribute('src');
           hubPreview.srcdoc = sanitizeExternalPreview(payload.html, payload.finalUrl || link.url, quranMetricForNode(activeHub.id));
           hubAddress.textContent = `${software.label} · ${payload.finalUrl || link.url}`;
           renderExtraction({ title: payload.title || link.host, text: payload.description || payload.text || 'تم جلب نسخة HTML عبر Relay داخل Azzouz.', elements: payload.elements, links: payload.links?.length, source: 'Cloudflare Preview Relay', kind: software.kind });
+          updateHubLinkRecord(activeHub.id, { status: 'healthy', previewStatus: 'fresh', checkedAt: new Date().toISOString() });
           setHubStatus('ظهرت نسخة الموقع داخل Azzouz عبر Relay؛ يمكنك متابعة الروابط من نفس بطاقة المعاينة.');
-        }
+        } else { updateHubLinkRecord(activeHub.id, { status: 'needs-review', previewStatus: 'no-html', checkedAt: new Date().toISOString() }); }
       } catch {
+        updateHubLinkRecord(activeHub.id, { status: 'cors-blocked', previewStatus: 'relay-error', checkedAt: new Date().toISOString() });
         setHubStatus('تعذر استخدام Relay حاليًا؛ بقيت المعاينة المباشرة داخل Azzouz مفعلة.', false);
       }
       return;
@@ -1461,6 +1517,7 @@ async function buildHub(silent = false) {
     if (localHtml.trim()) {
       if (localHtml.length > MAX_HTML_CHARS) throw new Error('حجم HTML أكبر من الحد المحلي البالغ 300 كيلوبايت.');
       hubAddress.textContent = `HTML محلي · ${nodeLabel(activeHub.id)}`;
+      updateHubLinkRecord(activeHub.id, { url: '', source: 'user', status: 'local-only', previewStatus: 'local-html' });
       hubPreview.removeAttribute('src');
       hubPreview.srcdoc = localHtml;
       renderExtraction(summarizeHtml(localHtml));
@@ -1548,6 +1605,8 @@ function openHubNode(id, button) {
   hubDialog.classList.remove('is-minimized', 'is-fullscreen');
   $('#hub-minimize').textContent = 'تصغير';
   hubModal.hidden = false;
+  const registryRecord = readStorageObject(HUB_LINK_REGISTRY_KEY)[id];
+  setHubLinkState(registryRecord?.status || (data ? 'needs-review' : 'local-only'), registryRecord || {});
   renderExtraction(data?.extracted || null);
   if (data?.url || data?.html) buildHub(true);
   else {
@@ -1555,6 +1614,7 @@ function openHubNode(id, button) {
     hubPreview.removeAttribute('src');
     hubPreview.srcdoc = renderAutomaticNodeSite(id);
     hubAddress.textContent = `موقع محلي تلقائي · ${nodeLabel(id)}`;
+    updateHubLinkRecord(id, { url: '', source: 'generated', status: 'local-only', previewStatus: 'generated-local' });
     renderExtraction({ title: `موقع ${nodeLabel(id)}`, text: 'تم إنشاء صفحة معاينة محلية تلقائيًا من بيانات العقدة دون طلب خارجي.', source: 'مولّد موقع العقدة', kind: 'node-site' });
     setHubStatus('تم عرض موقع المعاينة المحلي للعقدة تلقائيًا.');
   }
@@ -1588,6 +1648,7 @@ function saveHub() {
     const index = readJson(LINK_KEY, {});
     index[activeHub.id] = data.url || `#node-${String(activeHub.id).padStart(3, '0')}`;
     if (!writeJson(LINK_KEY, index)) throw new Error('تعذر تحديث فهرس الروابط المحلي.');
+    updateHubLinkRecord(activeHub.id, { url: data.url, source: 'user', status: data.url ? 'needs-review' : 'local-only', previewStatus: data.url ? 'saved-not-checked' : 'local-html' });
     updateNodeStatsAndFilters(activeHub.id);
     updateNodeChatRoomRecord(activeHub.id);
     renderNodeChatRoom();
@@ -1604,6 +1665,9 @@ function clearHub() {
     const index = readJson(LINK_KEY, {});
     delete index[activeHub.id];
     writeJson(LINK_KEY, index);
+    const registry = readStorageObject(HUB_LINK_REGISTRY_KEY);
+    delete registry[activeHub.id];
+    writeStorageObject(HUB_LINK_REGISTRY_KEY, registry);
     localStorage.removeItem(`semver-ai-analysis-${activeHub.id}`);
     const central = readJson('semver-hub-stem-data', {});
     delete central[activeHub.id];

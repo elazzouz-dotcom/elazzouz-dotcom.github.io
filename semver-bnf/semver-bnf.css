@@ -352,6 +352,11 @@ body.semver-page a { color: inherit; }
 .hub-dialog .semver-input, .hub-dialog .semver-textarea { color: #16343f; border-color: #cbdde1; background: #fbfdfd; }
 .hub-dialog .semver-input::placeholder, .hub-dialog .semver-textarea::placeholder { color: #8aa0a5; }
 .hub-dialog .semver-field-label { color: #52717a; }
+.hub-link-state { margin-top: .7rem; padding: .55rem .75rem; border: 1px solid #d5e8ed; border-radius: 10px; color: #52717a; background: #f7fbfc; font-size: .76rem; }
+.hub-link-state[data-state="healthy"] { color: #147a56; border-color: #9ad9bd; background: #effbf5; }
+.hub-link-state[data-state="checking"] { color: #8a6714; border-color: #ead69a; background: #fff9e7; }
+.hub-link-state[data-state="needs-review"], .hub-link-state[data-state="cors-blocked"] { color: #9a4e22; border-color: #efc49d; background: #fff7ef; }
+.hub-link-state[data-state="local-only"] { color: #52717a; }
 .hub-analysis { margin-top: 1rem; border: 1px solid #d5e8ed; border-radius: 16px; padding: 1rem; background: linear-gradient(145deg, #fff, #f2f9fb); }
 .hub-analysis-heading { display: flex; align-items: baseline; justify-content: space-between; gap: .7rem; border-bottom: 1px solid #dbe8eb; padding-bottom: .65rem; }
 .hub-analysis-label { color: #248eae; font-size: .66rem; font-weight: 900; letter-spacing: .12em; }
