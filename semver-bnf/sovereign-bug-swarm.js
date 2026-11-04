@@ -7,6 +7,7 @@ class SovereignBugSwarm {
   constructor() {
     this.reportKey = 'azzouz-sovereign-swarm-reports-v1';
     this.maxReports = 500;
+    this.quranicConfig = Object.freeze({ count: 57, max: 300, balance: 0.33, stability: 0.75, quran: 320015 });
     this.bugs = [
       { id: 'Bug-01', label: 'الهيكل', delay: 1100, offset: 0 },
       { id: 'Bug-02', label: 'Mod 9', delay: 1600, offset: 180 },
@@ -65,7 +66,7 @@ class SovereignBugSwarm {
     this.cosmicContext = this.cosmicCanvas.getContext('2d');
     const resize = () => { const dpr = Math.min(2, window.devicePixelRatio || 1); const r = this.cosmicCanvas.getBoundingClientRect(); this.cosmicCanvas.width = Math.max(1, Math.round(r.width * dpr)); this.cosmicCanvas.height = Math.max(1, Math.round(r.height * dpr)); this.cosmicContext.setTransform(dpr, 0, 0, dpr, 0, 0); };
     resize(); window.addEventListener('resize', resize, { passive: true });
-    if (!this.cosmicAgents.length) this.cosmicAgents = this.bugs.map((bug, index) => ({ bug, nodeId: this.nodeIds[index] || 1, x: .25 + index * .25, y: .5, vx: (index - 1) * .0015, vy: .001, role: index }));
+    if (!this.cosmicAgents.length) this.cosmicAgents = Array.from({ length: this.quranicConfig.count }, (_, index) => ({ bug: this.bugs[index % this.bugs.length], nodeId: this.nodeIds[(index * 113) % this.nodeIds.length] || 1, x: .08 + ((index * 0.071) % .84), y: .12 + ((index * 0.137) % .76), vx: (index % 3 - 1) * .0012, vy: ((index + 1) % 3 - 1) * .0012, role: index % 3 }));
     this.drawCosmicBridge();
   }
 
@@ -84,7 +85,7 @@ class SovereignBugSwarm {
     const colors = ['#59e0a3', '#f4ce72', '#55b8e8'];
     this.cosmicAgents.forEach((agent) => { if (this.running) { agent.x += agent.vx; agent.y += agent.vy; if (agent.x < .03 || agent.x > .97) agent.vx *= -1; if (agent.y < .06 || agent.y > .94) agent.vy *= -1; } const node = document.querySelector(`.network-node[data-id="${agent.nodeId}"]`); const configured = node?.dataset.active === 'true'; const color = colors[agent.role % colors.length]; ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = configured ? 12 : 6; ctx.beginPath(); ctx.arc(agent.x * w, agent.y * h, configured ? 6 : 4, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; });
     const configuredCount = this.nodeIds.filter((id) => document.querySelector(`.network-node[data-id="${id}"]`)?.dataset.active === 'true').length;
-    const stats = document.querySelector('#cosmic-bridge-stats'); if (stats) stats.textContent = `${this.cosmicAgents.length} وكلاء · ${this.cosmicScans} زيارة · ${this.nodeIds.length ? Math.round(configuredCount / this.nodeIds.length * 100) : 0}% بيانات`;
+    const stats = document.querySelector('#cosmic-bridge-stats'); if (stats) stats.textContent = `${this.quranicConfig.count} وكلاء · ${this.cosmicScans} زيارة · ${this.nodeIds.length ? Math.round(configuredCount / this.nodeIds.length * 100) : 0}% بيانات`;
     this.cosmicFrame = requestAnimationFrame(() => this.drawCosmicBridge());
   }
 
