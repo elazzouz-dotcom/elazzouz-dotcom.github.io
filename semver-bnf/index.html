@@ -260,6 +260,13 @@
           <label class="node-chat-room-search" for="node-chat-room-search">بحث سريع داخل الدردشة<input id="node-chat-room-search" class="semver-input" type="search" placeholder="N-042 أو رابط أو نوع برمجية" autocomplete="off"></label>
           <div id="node-chat-room-log" class="node-chat-room-log" role="log" aria-live="polite"></div>
           <p id="node-chat-room-status" class="node-chat-room-status">جارٍ ربط العقد بالدردشة…</p>
+          <section class="node-ai-panel" aria-labelledby="node-ai-title">
+            <div class="node-ai-heading"><div><p class="semver-kicker">LOCAL NODE INTELLIGENCE</p><h3 id="node-ai-title">اسأل ذكاء العقد المحلي</h3><p>يبحث أولًا في بيانات العقد الـ6600 داخل المتصفح. ويمكنه استخدام Ollama أو LM Studio محليًا عند توفير عنوان النموذج.</p></div><span id="node-ai-engine" class="info-chat-live">● محلي</span></div>
+            <div class="node-ai-controls"><label for="node-ai-query" class="sr-only">سؤال الذكاء المحلي</label><input id="node-ai-query" class="semver-input" type="search" placeholder="مثال: ما حالة العقدة N-600؟" autocomplete="off"><button id="node-ai-send" class="semver-button semver-button-primary" type="button">اسأل</button></div>
+            <details class="node-ai-local-model"><summary>إعداد نموذج محلي اختياري</summary><div class="node-ai-model-grid"><label>النمط<select id="node-ai-mode" class="semver-select"><option value="local">محرك العقد المحلي</option><option value="ollama">Ollama / LM Studio</option></select></label><label>عنوان API المحلي<input id="node-ai-endpoint" class="semver-input" value="http://127.0.0.1:11434/api/chat" inputmode="url"></label><label>اسم النموذج<input id="node-ai-model" class="semver-input" value="llama3.2" autocomplete="off"></label></div></details>
+            <div id="node-ai-chat-log" class="node-ai-chat-log" role="log" aria-live="polite"></div>
+            <p id="node-ai-status" class="node-chat-room-status">المحرك المحلي جاهز؛ لم تُرسل بيانات العقد إلى الخارج.</p>
+          </section>
         </div>
       </div>
     </section>

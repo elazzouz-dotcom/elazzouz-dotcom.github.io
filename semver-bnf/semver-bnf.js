@@ -359,10 +359,90 @@ function renderNodeChatRoom() {
   const active = [...nodeChatRoomRecords.values()].filter((record) => record.configured).length;
   $('#node-chat-room-status').textContent = `تم ربط ${nodeChatRoomRecords.size} عقدة · ${active} مهيأة · يعرض ${visible.length}${records.length > visible.length ? ` من ${records.length}` : ''} · البيانات محلية`;
 }
+function nodeAiTokens(value) {
+  return String(value || '').toLocaleLowerCase().split(/[^\p{L}\p{N}#.-]+/u).filter((token) => token.length > 1);
+}
+function retrieveNodeKnowledge(query, limit = 8) {
+  const tokens = nodeAiTokens(query);
+  const explicit = query.match(/(?:n[-\s]?)?(\d{1,4})/i)?.[1];
+  const results = [...nodeChatRoomRecords.values()].map((record) => {
+    const registry = readStorageObject(HUB_LINK_REGISTRY_KEY)[record.id] || {};
+    const haystack = `${nodeLabel(record.id)} ${record.id} ${record.type} ${record.url} ${record.html ? 'html محلي' : ''} ${record.quran.surah_name} ${record.quran.combined_root} ${registry.status || ''} ${registry.previewStatus || ''}`.toLocaleLowerCase();
+    let score = tokens.reduce((sum, token) => sum + (haystack.includes(token) ? 2 : 0), 0);
+    if (explicit && Number(explicit) === record.id) score += 100;
+    if (!tokens.length && !explicit) score = record.id === (nodeChatRoomSelected || 1) ? 10 : 0;
+    return { record, registry, score };
+  }).filter((item) => item.score > 0).sort((a, b) => b.score - a.score || a.record.id - b.record.id).slice(0, limit);
+  return results;
+}
+function appendNodeAiMessage(role, text) {
+  const log = $('#node-ai-chat-log');
+  if (!log) return;
+  const article = document.createElement('article');
+  article.className = `node-ai-message ${role}`;
+  const heading = document.createElement('strong');
+  heading.textContent = role === 'user' ? 'أنت' : 'ذكاء العقد المحلي';
+  const body = document.createElement('span');
+  body.textContent = text;
+  article.append(heading, body);
+  log.appendChild(article);
+  log.scrollTop = log.scrollHeight;
+}
+function localNodeAiAnswer(query) {
+  const clean = query.trim();
+  const records = [...nodeChatRoomRecords.values()];
+  const matches = retrieveNodeKnowledge(clean);
+  if (!clean) return 'اكتب سؤالًا عن عقدة أو رابط أو حالة معاينة. مثال: ما حالة N-600؟';
+  if (/كم|عدد|إجمالي|كل العقد/.test(clean)) return `الشبكة تحتوي على ${NODE_TOTAL} عقدة و${NODE_TOTAL - 1} علاقة عبر ${NODE_LEVELS.length} مستوى. تم تحميل سجل ${records.length} عقدة داخل المحرك المحلي.`;
+  if (!matches.length) return `لم أجد تطابقًا مباشرًا داخل سجل العقد المحلي. جرّب رقمًا مثل N-600، اسم سورة، أو كلمة مثل رابط، معاينة، HTML، أو محلية.`;
+  const lines = [`وجدت ${matches.length} نتيجة مرتبطة بسؤالك داخل ذاكرة العقد:`];
+  matches.slice(0, 5).forEach(({ record, registry }) => {
+    const state = registry.status || (record.configured ? 'needs-review' : 'local-only');
+    const source = record.url || (record.html ? 'HTML محلي' : 'موقع محلي مولّد');
+    lines.push(`${nodeLabel(record.id)} · المستوى ${record.level} · ${record.quran.surah_name} · المصدر: ${source} · الحالة: ${LINK_STATUS_LABELS[state] || state} · الجذر المركب: ${record.quran.combined_root}`);
+  });
+  lines.push('هذه إجابة استرجاع محلية من بيانات العقد، وليست ادعاءً بأن رابطًا خارجيًا سليم ما لم تظهر حالته «سليم ومتوفر».');
+  return lines.join('\n');
+}
+async function askOllamaLocally(query, context) {
+  const endpoint = $('#node-ai-endpoint')?.value.trim() || '';
+  const model = $('#node-ai-model')?.value.trim() || 'llama3.2';
+  let parsed;
+  try { parsed = new URL(endpoint); } catch { throw new Error('عنوان النموذج المحلي غير صالح.'); }
+  if (!['localhost', '127.0.0.1', '::1'].includes(parsed.hostname) && !parsed.hostname.endsWith('.local')) throw new Error('لأمان البيانات، يجب أن يشير نموذج الذكاء إلى localhost أو جهاز محلي .local.');
+  const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model, stream: false, messages: [{ role: 'system', content: 'أجب بالعربية اعتمادًا على سياق عقد الشبكة فقط. إذا لم توجد معلومة في السياق فقل ذلك بوضوح.' }, { role: 'user', content: `السؤال: ${query}\n\nسياق العقد:\n${context}` }] }) });
+  if (!response.ok) throw new Error(`تعذر الوصول إلى النموذج المحلي (${response.status}).`);
+  const payload = await response.json();
+  return payload.message?.content || payload.response || 'أعاد النموذج المحلي استجابة فارغة.';
+}
+async function askNodeAi() {
+  const input = $('#node-ai-query');
+  const query = input?.value.trim() || '';
+  if (!query) { input?.focus(); return; }
+  appendNodeAiMessage('user', query);
+  input.value = '';
+  const status = $('#node-ai-status');
+  const mode = $('#node-ai-mode')?.value || 'local';
+  const matches = retrieveNodeKnowledge(query);
+  const context = matches.map(({ record, registry }) => `${nodeLabel(record.id)} | ${record.quran.surah_name} | المستوى ${record.level} | الرابط ${record.url || 'محلي'} | الحالة ${registry.status || 'local-only'} | الجذر ${record.quran.combined_root}`).join('\n');
+  if (status) status.textContent = mode === 'ollama' ? 'جارٍ سؤال النموذج المحلي مع تزويده بسياق العقد…' : `جارٍ استرجاع المعلومات من ${nodeChatRoomRecords.size} عقدة محليًا…`;
+  try {
+    let answer = localNodeAiAnswer(query);
+    if (mode === 'ollama') {
+      try { answer = await askOllamaLocally(query, context || 'لا توجد نتائج مطابقة.'); $('#node-ai-engine').textContent = '● نموذج محلي'; }
+      catch (error) { answer += `\n\nتعذر الاتصال بالنموذج المحلي، لذلك أُعيدت الإجابة من محرك العقد: ${error.message}`; $('#node-ai-engine').textContent = '● رجوع محلي'; }
+    }
+    appendNodeAiMessage('assistant', answer);
+    if (status) status.textContent = mode === 'ollama' ? 'اكتملت الإجابة؛ البيانات أُرسلت إلى عنوان النموذج المحلي الذي أدخلته فقط.' : 'اكتملت الإجابة محليًا؛ لم تُرسل بيانات العقد إلى الخارج.';
+  } catch (error) { appendNodeAiMessage('assistant', error.message || 'تعذر إنشاء الإجابة.'); if (status) status.textContent = 'حدث خطأ في محرك الدردشة المحلي.'; }
+}
 function setupNodeChatRoom() {
   for (let id = 1; id <= NODE_TOTAL; id += 1) updateNodeChatRoomRecord(id);
   $('#node-chat-room-search').addEventListener('input', renderNodeChatRoom);
   renderNodeChatRoom();
+  $('#node-ai-send')?.addEventListener('click', askNodeAi);
+  $('#node-ai-query')?.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); askNodeAi(); } });
+  appendNodeAiMessage('assistant', 'أنا متصل بسجل العقد المحلي. اسأل عن عقدة، رابط، حالة معاينة، سورة مرتبطة، أو عدد العقد.');
 }
 function createNodeElements() {
   let id = 1;
