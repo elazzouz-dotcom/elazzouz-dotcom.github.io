@@ -24,6 +24,10 @@ class SovereignBugSwarm {
     this.cosmicAgents = [];
     this.cosmicFrame = 0;
     this.cosmicScans = 0;
+    this.cosmicTime = 0;
+    this.cosmicScale = 1;
+    this.cosmicGrowthTarget = 57;
+    this.cosmicStability = 0.75;
     this.reports = this.readReports();
     this.setupReportControls();
     this.renderReports();
@@ -60,13 +64,27 @@ class SovereignBugSwarm {
     return this.running;
   }
 
+  createCosmicAgent(index) {
+    return { bug: this.bugs[index % this.bugs.length], nodeId: this.nodeIds[(index * 113) % this.nodeIds.length] || 1, x: .08 + ((index * 0.071) % .84), y: .12 + ((index * 0.137) % .76), vx: (index % 3 - 1) * .0012, vy: ((index + 1) % 3 - 1) * .0012, role: index % 3 };
+  }
+
+  rebalanceCosmicAgents() {
+    const counts = [0, 0, 0];
+    this.cosmicAgents.forEach((agent) => { counts[agent.role] += 1; });
+    const order = this.cosmicAgents.slice().sort((a, b) => counts[b.role] - counts[a.role]);
+    order.forEach((agent) => { const max = Math.max(...counts), min = Math.min(...counts); if (max - min >= this.quranicConfig.balance * 15) { const from = counts.indexOf(max), to = counts.indexOf(min); if (agent.role === from) { agent.role = to; counts[from] -= 1; counts[to] += 1; } } });
+    const gap = Math.max(...counts) - Math.min(...counts);
+    this.cosmicStability = gap < 5 ? this.quranicConfig.stability : Math.max(0, this.quranicConfig.stability - 0.08);
+    return { counts, gap };
+  }
+
   setupCosmicBridge() {
     this.cosmicCanvas = document.querySelector('#cosmic-bridge-canvas');
     if (!this.cosmicCanvas || !this.nodeIds.length) return;
     this.cosmicContext = this.cosmicCanvas.getContext('2d');
     const resize = () => { const dpr = Math.min(2, window.devicePixelRatio || 1); const r = this.cosmicCanvas.getBoundingClientRect(); this.cosmicCanvas.width = Math.max(1, Math.round(r.width * dpr)); this.cosmicCanvas.height = Math.max(1, Math.round(r.height * dpr)); this.cosmicContext.setTransform(dpr, 0, 0, dpr, 0, 0); };
     resize(); window.addEventListener('resize', resize, { passive: true });
-    if (!this.cosmicAgents.length) this.cosmicAgents = Array.from({ length: this.quranicConfig.count }, (_, index) => ({ bug: this.bugs[index % this.bugs.length], nodeId: this.nodeIds[(index * 113) % this.nodeIds.length] || 1, x: .08 + ((index * 0.071) % .84), y: .12 + ((index * 0.137) % .76), vx: (index % 3 - 1) * .0012, vy: ((index + 1) % 3 - 1) * .0012, role: index % 3 }));
+    if (!this.cosmicAgents.length) this.cosmicAgents = Array.from({ length: this.quranicConfig.count }, (_, index) => this.createCosmicAgent(index));
     this.drawCosmicBridge();
   }
 
@@ -78,14 +96,15 @@ class SovereignBugSwarm {
   drawCosmicBridge() {
     if (!this.cosmicContext || !this.cosmicCanvas) return;
     const w = this.cosmicCanvas.clientWidth, h = this.cosmicCanvas.clientHeight, ctx = this.cosmicContext;
+    if (this.running) { this.cosmicTime += 0.016; this.cosmicScale = Math.exp(0.0007 * this.cosmicTime); this.cosmicGrowthTarget = Math.min(this.quranicConfig.max, Math.floor(this.quranicConfig.count * Math.exp(0.004 * this.cosmicTime))); while (this.cosmicAgents.length < this.cosmicGrowthTarget) this.cosmicAgents.push(this.createCosmicAgent(this.cosmicAgents.length)); if (this.cosmicAgents.length > this.quranicConfig.max) this.cosmicAgents.length = this.quranicConfig.max; if (Math.floor(this.cosmicTime * 60) % 60 === 0) this.rebalanceCosmicAgents(); }
     ctx.fillStyle = 'rgba(2,11,11,.28)'; ctx.fillRect(0, 0, w, h);
     ctx.strokeStyle = 'rgba(89,224,163,.12)'; ctx.lineWidth = 1;
     for (let x = 0; x < w; x += 42) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
     for (let y = 0; y < h; y += 42) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
     const colors = ['#59e0a3', '#f4ce72', '#55b8e8'];
-    this.cosmicAgents.forEach((agent) => { if (this.running) { agent.x += agent.vx; agent.y += agent.vy; if (agent.x < .03 || agent.x > .97) agent.vx *= -1; if (agent.y < .06 || agent.y > .94) agent.vy *= -1; } const node = document.querySelector(`.network-node[data-id="${agent.nodeId}"]`); const configured = node?.dataset.active === 'true'; const color = colors[agent.role % colors.length]; ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = configured ? 12 : 6; ctx.beginPath(); ctx.arc(agent.x * w, agent.y * h, configured ? 6 : 4, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; });
+    this.cosmicAgents.forEach((agent) => { if (this.running) { const dx = agent.x - .5, dy = agent.y - .5; agent.x += agent.vx + dx * 0.0007 * this.cosmicScale; agent.y += agent.vy + dy * 0.0007 * this.cosmicScale; if (agent.x < .03 || agent.x > .97) agent.vx *= -1; if (agent.y < .06 || agent.y > .94) agent.vy *= -1; } const node = document.querySelector(`.network-node[data-id="${agent.nodeId}"]`); const configured = node?.dataset.active === 'true'; const color = colors[agent.role % colors.length]; ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = configured ? 12 : 6; ctx.beginPath(); ctx.arc(agent.x * w, agent.y * h, configured ? 6 : 4, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; });
     const configuredCount = this.nodeIds.filter((id) => document.querySelector(`.network-node[data-id="${id}"]`)?.dataset.active === 'true').length;
-    const stats = document.querySelector('#cosmic-bridge-stats'); if (stats) stats.textContent = `${this.quranicConfig.count} وكلاء · ${this.cosmicScans} زيارة · ${this.nodeIds.length ? Math.round(configuredCount / this.nodeIds.length * 100) : 0}% بيانات`;
+    const balance = this.rebalanceCosmicAgents(); const stats = document.querySelector('#cosmic-bridge-stats'); if (stats) stats.textContent = `${this.cosmicAgents.length}/${this.quranicConfig.max} وكلاء · ${this.cosmicScans} زيارة · ${this.nodeIds.length ? Math.round(configuredCount / this.nodeIds.length * 100) : 0}% بيانات`; const equations = document.querySelector('#cosmic-bridge-equations'); if (equations) equations.textContent = `a(t)=e^(H₀t)=${this.cosmicScale.toFixed(3)}x · Q(t)=114×Ā×L̄=${(this.quranicConfig.quran / 1000).toFixed(0)}k حرف ثابت · N(t)=min(300,57×e^(kt))=${this.cosmicAgents.length} · Δ=${balance.gap}<5 · استقرار=${Math.round(this.cosmicStability * 100)}%`;
     this.cosmicFrame = requestAnimationFrame(() => this.drawCosmicBridge());
   }
 
