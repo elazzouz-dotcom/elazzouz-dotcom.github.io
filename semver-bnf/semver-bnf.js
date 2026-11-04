@@ -2420,6 +2420,24 @@ function digitalRootBigInt(value) {
 function formatBigInt(value) {
   return value.toString();
 }
+const MOD9_CACHE_KEY = 'slaks-mod9-result-cache-v1';
+const MOD9_CACHE_LIMIT = 48;
+function readMod9Cache() {
+  try {
+    const value = JSON.parse(localStorage.getItem(MOD9_CACHE_KEY) || '{}');
+    return value && typeof value === 'object' ? value : {};
+  } catch { return {}; }
+}
+function writeMod9Cache(cache) {
+  try { localStorage.setItem(MOD9_CACHE_KEY, JSON.stringify(cache)); return true; } catch { return false; }
+}
+function cacheMod9Result(key, html) {
+  const cache = readMod9Cache();
+  cache[key] = { html, usedAt: Date.now() };
+  const keys = Object.keys(cache).sort((a, b) => Number(cache[a]?.usedAt || 0) - Number(cache[b]?.usedAt || 0));
+  keys.slice(0, Math.max(0, keys.length - MOD9_CACHE_LIMIT)).forEach((oldKey) => delete cache[oldKey]);
+  writeMod9Cache(cache);
+}
 let mod9AnalyzeCurrent = null;
 function inspectNodeAlgebraically(nodeNumber, nodeName, nodeAbjad) {
   const input = $('#mod9-input');
@@ -2485,6 +2503,16 @@ function setupMod9Lab() {
     }
     let number;
     try { number = BigInt(raw); } catch { results.dataset.state = 'error'; results.textContent = 'تعذر قراءة العدد.'; return; }
+    const cached = readMod9Cache()[raw];
+    if (cached?.html) {
+      results.innerHTML = cached.html;
+      results.dataset.cache = 'hit';
+      cacheMod9Result(raw, cached.html);
+      const help = $('#mod9-help');
+      if (help) help.textContent = 'تم تحميل نتيجة Mod 9 من الذاكرة المؤقتة المحلية داخل المتصفح.';
+      return;
+    }
+    results.dataset.cache = 'miss';
     const root = digitalRootBigInt(number);
     const summary = document.createElement('div');
     summary.className = 'mod9-summary';
@@ -2501,6 +2529,7 @@ function setupMod9Lab() {
     explanation.className = 'mod9-explanation';
     explanation.textContent = root === 9n ? 'هذا العدد من مضاعفات 9؛ لذلك تحافظ الإضافة والطرح بمقدار 9 على الصنف نفسه، بينما تكون القسمة على 9 صحيحة.' : 'العدد ليس من مضاعفات 9؛ الإضافة والطرح بمقدار 9 يحافظان على باقي القسمة، لكن الجذر الرقمي لا يكون بالضرورة 9.';
     results.appendChild(explanation);
+    cacheMod9Result(raw, results.innerHTML);
   };
   mod9AnalyzeCurrent = analyze;
   context.addEventListener('change', () => {
