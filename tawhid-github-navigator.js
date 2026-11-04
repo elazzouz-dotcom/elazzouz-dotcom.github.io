@@ -46,7 +46,8 @@
     constructor({ token = '', timeout = DEFAULT_TIMEOUT, gap = DEFAULT_GAP, minRemaining = 1, researchDB = [] } = {}) {
       this.token = typeof token === 'string' ? token.trim() : '';
       this.timeout = Math.max(1_000, Number(timeout) || DEFAULT_TIMEOUT);
-      this.gap = Math.max(0, Number(gap) || DEFAULT_GAP);
+      const numericGap = Number(gap);
+      this.gap = Number.isFinite(numericGap) ? Math.max(0, numericGap) : DEFAULT_GAP;
       this.minRemaining = Math.max(0, Number(minRemaining) || 0);
       this.lastRequestAt = 0;
       this.rate = { core: null, search: null };

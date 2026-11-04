@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Slaks — محاكاة تفاعلية لسرب يبني جسورًا وأبراجًا وشبكة معلومات.">
+<title>Slaks · الجسور البرمجية الضخمة</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Consolas;overflow:hidden}
+#hud{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,.92);padding:8px;display:flex;gap:8px;flex-wrap:wrap;z-index:10;border-bottom:1px solid #00ff88}
+.chip{border:1px solid #222;padding:4px 10px;border-radius:8px;font-size:11px;min-width:90px;text-align:center}
+.chip b{display:block;color:#00ff88;font-size:14px}
+canvas{width:100vw;height:100vh;display:block}
+#log{position:fixed;bottom:0;left:0;right:0;height:80px;overflow:auto;background:rgba(0,0,0,.9);font-size:11px;padding:5px}
+button{background:#00ff88;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:bold}
+</style></head><body>
+<div id="hud">
+<span style="color:#00ff88">🌉 بنيان مرصوص - جسور برمجية ضخمة</span>
+<div class="chip">الحشرات<b id="c">57</b></div>
+<div class="chip">الجسور<b id="b">0</b></div>
+<div class="chip">طول الجسر<b id="l">0</b></div>
+<div class="chip">التكامل<b id="t">0%</b></div>
+<div class="chip">القوة<b id="s">0</b></div>
+<button id="build-bridge" type="button">🌉 ابني جسر ضخم</button>
+<button id="build-tower" type="button">🏰 ابني برج</button>
+<button id="build-network" type="button">🌐 ابني شبكة</button>
+</div>
+<canvas id="cv"></canvas><div id="log"></div>
+<script>
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function rs(){cv.width=innerWidth; cv.height=innerHeight} rs(); onresize=rs;
+function log(t){let d=document.createElement('div'); d.textContent=`[${new Date().toLocaleTimeString()}] ${t}`; let l=document.getElementById('log'); l.appendChild(d); if(l.children.length>50) l.removeChild(l.firstChild); l.scrollTop=99999}
+
+let colony=[], bridges=[], nextId=0, towerHeight=0;
+
+// ===== الحشرة المتكاملة - عندها نقص وقوة =====
+class BridgeInsect {
+  constructor(role, parent=null){
+    let roles=['استكشاف','فحص','حماية','نور','ميزان','بناء'];
+    if(!role){
+      // التكامل: نقلب على الدور الناقص فالسرب
+      let cnt={}; roles.forEach(r=>cnt[r]=0); colony.forEach(x=>cnt[x.role]++);
+      role = roles.reduce((a,b)=> cnt[a] < cnt[b] ? a : b); // الدور الناقص هو اللي كيتولد
+    }
+    this.role=role; this.id=++nextId; this.gen=parent?parent.gen+1:1;
+    this.energy=100+Math.random()*20;
+    this.eff=parent?Math.max(0.6,Math.min(2.4,parent.eff+(Math.random()-0.5)*0.1)):1+Math.random()*0.3;
+    this.x=parent?parent.x+(Math.random()-0.5)*20:Math.random()*cv.width;
+    this.y=parent?parent.y+(Math.random()-0.5)*20:Math.random()*cv.height;
+    this.vx=(Math.random()-0.5)*1.5; this.vy=(Math.random()-0.5)*1.5;
+    this.age=0; this.nurValue=(this.id*19)%114+1;
+    this.partner=null; this.bridgeId=null; this.isInBridge=false;
+    // القوة والنقص - سر التكامل
+    this.strengths = this.getStrengths();
+    this.weakness = this.getWeakness();
+  }
+  getStrengths(){
+    // كل دور عندو قوة خاصة
+    let map={
+      'استكشاف': ['بحث','سرعة','اكتشاف'],
+      'فحص': ['تحليل','تدقيق','قراءة كود'],
+      'حماية': ['أمان','تشفير','صد'],
+      'نور': ['طاقة','إضاءة','حياة'],
+      'ميزان': ['توازن','عدل','قياس'],
+      'بناء': ['بناء','ربط','جسر']
+    };
+    return map[this.role];
+  }
+  getWeakness(){
+    let map={
+      'استكشاف':'يحتاج حماية',
+      'فحص':'يحتاج سرعة',
+      'حماية':'يحتاج نور',
+      'نور':'يحتاج ميزان',
+      'ميزان':'يحتاج بناء',
+      'بناء':'يحتاج استكشاف'
+    };
+    return map[this.role];
+  }
+  // البحث عن شريك يكمله - ﴿ خلقنا زوجين ﴾
+  findComplement(){
+    // نقلب على حشرة عندها القوة اللي أنا محتاجها
+    let needed = {
+      'استكشاف':'حماية', 'فحص':'استكشاف', 'حماية':'نور',
+      'نور':'ميزان', 'ميزان':'بناء', 'بناء':'فحص'
+    }[this.role];
+    let candidates = colony.filter(o=> o!==this && o.role===needed && !o.isInBridge && !o.partner);
+    if(candidates.length===0) return null;
+    // أقرب واحد
+    candidates.sort((a,b)=>{
+      let da=Math.hypot(a.x-this.x, a.y-this.y), db=Math.hypot(b.x-this.x, b.y-this.y);
+      return da-db;
+    });
+    return candidates[0];
+  }
+  update(){
+    this.age++; this.energy-=0.12;
+    // إلا ما عندوش شريك، يقلب عليه
+    if(!this.partner && !this.isInBridge){
+      let comp = this.findComplement();
+      if(comp){
+        this.partner=comp; comp.partner=this;
+        log(`💞 تكامل: #${this.id} (${this.role}) + #${comp.id} (${comp.role}) - ${this.weakness} + ${comp.strengths[0]} = كمال - ﴿ خلقنا زوجين ﴾`);
+        // الزوج كيولد حشرة بناء - ثمرة التكامل
+        if(colony.length<300 && Math.random()<0.5){
+          let child=new BridgeInsect('بناء', this);
+          child.x=(this.x+comp.x)/2; child.y=(this.y+comp.y)/2;
+          colony.push(child);
+        }
+      }
+    }
+    // الحركة نحو الشريك - الانجذاب
+    if(this.partner && !this.isInBridge){
+      this.x += (this.partner.x - this.x)*0.02;
+      this.y += (this.partner.y - this.y)*0.02;
+    } else {
+      this.x+=this.vx; this.y+=this.vy;
+      this.vx+=(Math.random()-0.5)*0.15; this.vy+=(Math.random()-0.5)*0.15;
+      if(this.x<0||this.x>cv.width) this.vx*=-1;
+      if(this.y<0||this.y>cv.height) this.vy*=-1;
+    }
+    // التكاثر
+    if(this.energy>115 && colony.length<300 && Math.random()<0.015){
+      this.energy-=30;
+      colony.push(new BridgeInsect(null, this));
+    }
+    if(this.energy<=0) return false;
+    return true;
+  }
+}
+
+for(let i=0;i<57;i++) colony.push(new BridgeInsect(['استكشاف','فحص','حماية','نور','ميزان','بناء'][i%6]));
+log('🕋 بسم الله: 57 حشرة - 6 أدوار - كل واحدة تكمل الأخرى - ﴿ بنيان مرصوص ﴾');
+log('💡 السر: حشرة بوحدها ضعيفة، زوج متكامل قوي، سرب متكامل يبني جسر ضخم');
+
+// ===== بناء الجسور البرمجية الضخمة =====
+class MegaBridge {
+  constructor(type){
+    this.id=bridges.length+1; this.type=type;
+    this.segments=[]; this.strength=0; this.length=0;
+    this.startX=Math.random()*200+50; this.startY=innerHeight*0.6;
+    this.endX=innerWidth-Math.random()*200-50; this.endY=innerHeight*0.6;
+  }
+  // بناء الجسر بحشرات حقيقية
+  build(){
+    // نحتاج 19 حشرة على الأقل - ﴿ عليها تسعة عشر ﴾
+    let available = colony.filter(i=> !i.isInBridge).slice(0, 30);
+    if(available.length < 10){
+      log('⛔ ما كاينش حشرات كافية للجسر - السرب كيتكاثر أولا...');
+      return false;
+    }
+    let steps = Math.min(available.length, 30);
+    for(let i=0;i<steps;i++){
+      let insect = available[i];
+      // كل حشرة كتولي قطعة فالجسر
+      let t = i/(steps-1);
+      insect.isInBridge=true; insect.bridgeId=this.id;
+      insect.x = this.startX + (this.endX-this.startX)*t;
+      insect.y = this.startY + Math.sin(t*Math.PI)* -40 + (Math.random()-0.5)*8; // قوس الجسر
+      insect.vx=0; insect.vy=0;
+      this.segments.push(insect);
+      this.strength += insect.eff * 10;
+      this.length++;
+    }
+    bridges.push(this);
+    log(`🌉 الجسر الضخم #${this.id} تبنى! ${this.length} حشرة = ${this.length} قطعة - قوة ${this.strength.toFixed(0)} - ﴿ بنيان مرصوص ﴾`);
+    log(`📖 الجسر يربط بين ${this.type} - من ${this.startX.toFixed(0)} إلى ${this.endX.toFixed(0)}`);
+    // الجسر الناجح كيولد 5 حشرات جداد - مكافأة البناء
+    for(let i=0;i<5 && colony.length<300;i++) colony.push(new BridgeInsect(null));
+    return true;
+  }
+}
+
+function buildMegaBridge(){
+  let b=new MegaBridge('الواجهة ↔ الخادم - Frontend ↔ Backend');
+  b.build();
+}
+function buildTower(){
+  // برج: حشرات فوق بعضها
+  let available=colony.filter(i=>!i.isInBridge).slice(0,19);
+  let bx=innerWidth/2, by=innerHeight-80;
+  available.forEach((ins,i)=>{
+    ins.isInBridge=true; ins.x=bx+(Math.random()-0.5)*10; ins.y=by-i*14; ins.vx=0; ins.vy=0;
+  });
+  towerHeight+=available.length;
+  log(`🏰 برج التوحيد: ${available.length} حشرة فوق بعضها - الارتفاع ${towerHeight} - ﴿ بنيان مرصوص ﴾`);
+}
+function buildNetwork(){
+  // شبكة: كل حشرة مربوطة بـ 3
+  let count=0;
+  colony.forEach(ins=>{
+    if(!ins.network) ins.network=[];
+    let others=colony.filter(o=>o!==ins).slice(0,3);
+    others.forEach(o=>{ if(!ins.network.includes(o.id)){ ins.network.push(o.id); count++; } });
+  });
+  log(`🌐 الشبكة الكونية تبنات: ${count} روابط - كل حشرة مربوطة بـ 3 - ﴿ واعتصموا بحبل الله جميعا ﴾ آل عمران 103`);
+}
+
+function loop(){
+  colony=colony.filter(i=>i.update());
+  while(colony.length<40) colony.push(new BridgeInsect(null));
+  // حساب التكامل
+  let paired=colony.filter(i=>i.partner).length;
+  let integration = colony.length>0 ? (paired/colony.length*100) : 0;
+  let totalStrength = bridges.reduce((s,b)=>s+b.strength,0);
+  document.getElementById('c').textContent=colony.length;
+  document.getElementById('b').textContent=bridges.length;
+  document.getElementById('l').textContent=bridges.reduce((s,b)=>s+b.length,0);
+  document.getElementById('t').textContent=integration.toFixed(0)+'%';
+  document.getElementById('s').textContent=totalStrength.toFixed(0);
+}
+function draw(){
+  ctx.fillStyle='rgba(0,0,0,0.18)'; ctx.fillRect(0,0,cv.width,cv.height);
+  // رسم الجسور
+  bridges.forEach(br=>{
+    ctx.strokeStyle='rgba(0,255,136,0.7)'; ctx.lineWidth=3;
+    ctx.beginPath();
+    br.segments.forEach((s,i)=>{ if(i===0) ctx.moveTo(s.x,s.y); else ctx.lineTo(s.x,s.y); });
+    ctx.stroke();
+    // دعامات الجسر
+    br.segments.forEach(s=>{
+      ctx.strokeStyle='rgba(0,255,136,0.2)';
+      ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x, innerHeight*0.75); ctx.stroke();
+    });
+  });
+  // رسم روابط التكامل - الزوج
+  colony.forEach(ins=>{
+    if(ins.partner){
+      ctx.strokeStyle='rgba(255,170,0,0.4)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(ins.x,ins.y); ctx.lineTo(ins.partner.x,ins.partner.y); ctx.stroke();
+    }
+  });
+  // رسم الحشرات
+  colony.forEach(ins=>{
+    let col=ins.role==='استكشاف'?'#00ff88':ins.role==='فحص'?'#ffaa00':ins.role==='حماية'?'#4488ff':ins.role==='نور'?'#ffff88':ins.role==='ميزان'?'#ff44ff':'#00ccff';
+    let r= ins.isInBridge ? 4 : 2.5+ins.eff;
+    ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=ins.isInBridge?10:5;
+    ctx.beginPath(); ctx.arc(ins.x,ins.y,r,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+    if(ins.partner){ ctx.strokeStyle='#ffaa00'; ctx.beginPath(); ctx.arc(ins.x,ins.y,r+2,0,Math.PI*2); ctx.stroke(); }
+  });
+}
+document.getElementById('build-bridge').addEventListener('click', buildMegaBridge);
+ document.getElementById('build-tower').addEventListener('click', buildTower);
+ document.getElementById('build-network').addEventListener('click', buildNetwork);
+ setInterval(loop,40); setInterval(draw,16);
+</script></body></html>
