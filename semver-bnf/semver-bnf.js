@@ -1513,6 +1513,22 @@ function renderQuranNodeAnalysis(id) {
   host.append(title, values, tests);
 }
 
+function renderAutomaticNodeSite(id) {
+  const metric = quranMetricForNode(id);
+  const title = `موقع العقدة ${nodeLabel(id)} · ${metric.surah_name}`;
+  const rows = [
+    ['رقم العقدة', nodeLabel(id)],
+    ['المستوى', String(Number(nodeButtons.get(id)?.dataset.level || metric.surah_number))],
+    ['السورة المرتبطة', metric.surah_name],
+    ['عدد الآيات', String(metric.ayahs_count)],
+    ['الجذر المركب', String(metric.combined_root)],
+    ['قيمة الجُمّل', String(metric.abjad_value)],
+    ['حالة الرابط', 'موقع محلي مولّد من بيانات العقدة']
+  ].map(([label, value]) => `<div class="node-site-row"><span>${escapeXml(label)}</span><strong>${escapeXml(value)}</strong></div>`).join('');
+  const safeTitle = escapeXml(title);
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';"><title>${safeTitle}</title><style>body{margin:0;padding:28px;font-family:system-ui,Arial,sans-serif;color:#e8f5f1;background:radial-gradient(circle at 80% 0,#16433d,#071014 55%);line-height:1.7}main{max-width:720px;margin:auto}header{border:1px solid #59e0a3;border-radius:20px;padding:24px;background:#102127;box-shadow:0 18px 50px #0008}p{color:#a7c0bb}.node-site-grid{display:grid;gap:10px;margin-top:20px}.node-site-row{display:flex;justify-content:space-between;gap:16px;padding:12px 14px;border-radius:12px;background:#071014;border-inline-start:3px solid #59e0a3}.node-site-row span{color:#9cb0b2}.node-site-row strong{color:#f4ce72;text-align:left}.node-site-note{margin-top:18px;padding:12px;border-radius:12px;background:#0b171b;color:#9cb0b2;font-size:.9rem}</style></head><body><main><header><p>معاينة تلقائية محلية · SemVer Node Site</p><h1>${safeTitle}</h1><p>هذه صفحة موقع داخلية مخصصة للعقدة، مبنية مباشرة من سجل البيانات المحلي، ولا تحتاج إلى خادم خارجي.</p><section class="node-site-grid">${rows}</section><p class="node-site-note">يمكن إضافة رابط عام لهذه العقدة من نافذة العقدة؛ عندها ستستخدم المعاينة الرابط العام بدل هذه الصفحة المحلية.</p></header></main></body></html>`;
+}
+
 function openHubNode(id, button) {
   nodeChatRoomSelected = id;
   updateNodeChatRoomRecord(id);
@@ -1534,7 +1550,14 @@ function openHubNode(id, button) {
   hubModal.hidden = false;
   renderExtraction(data?.extracted || null);
   if (data?.url || data?.html) buildHub(true);
-  else setHubStatus('الجلسة محلية؛ لم تُحفظ إعدادات لهذه العقدة بعد.');
+  else {
+    hubPreview.hidden = false;
+    hubPreview.removeAttribute('src');
+    hubPreview.srcdoc = renderAutomaticNodeSite(id);
+    hubAddress.textContent = `موقع محلي تلقائي · ${nodeLabel(id)}`;
+    renderExtraction({ title: `موقع ${nodeLabel(id)}`, text: 'تم إنشاء صفحة معاينة محلية تلقائيًا من بيانات العقدة دون طلب خارجي.', source: 'مولّد موقع العقدة', kind: 'node-site' });
+    setHubStatus('تم عرض موقع المعاينة المحلي للعقدة تلقائيًا.');
+  }
   hubUrl.focus();
 }
 
