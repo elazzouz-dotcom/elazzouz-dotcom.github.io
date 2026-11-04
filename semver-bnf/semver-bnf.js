@@ -2174,7 +2174,7 @@ function exportNetworkMapSvg() {
     const data = getHubData(id); const active = isConfigured(data); const color = active ? '#f4ce72' : '#59e0a3';
     nodeShapes.push(`<g><circle cx="${point.x}" cy="${point.y}" r="22" fill="#081411" stroke="${color}" stroke-width="2"/><text x="${point.x}" y="${point.y + 5}" fill="#dfffee" font-family="system-ui,sans-serif" font-size="12" font-weight="800" text-anchor="middle">+</text><text x="${point.x}" y="${point.y + 36}" fill="#adc5bb" font-family="system-ui,sans-serif" font-size="9" text-anchor="middle">${escapeXml(nodeLabel(id))}</text></g>`);
   }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${mapWidth}" height="${mapHeight}" viewBox="0 0 ${mapWidth} ${mapHeight}"><title>Azzouz network map · ${NODE_TOTAL} nodes</title><rect width="100%" height="100%" fill="#071014"/>${edgeLines.join('')}${nodeShapes.join('')}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${mapWidth}" height="${mapHeight}" viewBox="0 0 ${mapWidth} ${mapHeight}"><title>Slaks network map · ${NODE_TOTAL} nodes</title><rect width="100%" height="100%" fill="#071014"/>${edgeLines.join('')}${nodeShapes.join('')}</svg>`;
   downloadBlob(svg, 'azzouz-network-map.svg', 'image/svg+xml');
   setNodeStatus(`تم تصدير صورة SVG عالية الدقة: ${NODE_TOTAL} عقدة.`);
 }
@@ -2708,6 +2708,7 @@ function setupAlgebraBridge() {
     const nodeNumber = Number(targetNode.dataset.nodeNumber || 0);
     const nodeName = targetNode.dataset.nodeName || 'عقدة غير معنونة';
     const nodeAbjad = targetNode.dataset.nodeAbjad || '';
+    window.dispatchEvent(new CustomEvent('slaks:node-selected', { detail: { id: nodeNumber } }));
     if (targetNode.classList.contains('network-node') && !suppressNodeClick) openHubNode(nodeNumber, targetNode);
     else inspectNodeAlgebraically(nodeNumber, nodeName, nodeAbjad);
   });

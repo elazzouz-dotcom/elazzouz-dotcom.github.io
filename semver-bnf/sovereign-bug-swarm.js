@@ -18,6 +18,11 @@ class SovereignBugSwarm {
     this.scanned = 0;
     this.active = new Map();
     this.nodeIds = [];
+    this.cosmicCanvas = null;
+    this.cosmicContext = null;
+    this.cosmicAgents = [];
+    this.cosmicFrame = 0;
+    this.cosmicScans = 0;
     this.reports = this.readReports();
     this.setupReportControls();
     this.renderReports();
@@ -30,6 +35,7 @@ class SovereignBugSwarm {
       .sort((a, b) => a - b);
     if (!this.nodeIds.length) return false;
     this.running = true;
+    this.setupCosmicBridge();
     this.setUi('● سرب نشط', 'نشط');
     this.bugs.forEach((bug) => {
       window.setTimeout(() => this.tick(bug), bug.offset);
@@ -43,6 +49,7 @@ class SovereignBugSwarm {
     this.timers.clear();
     this.active.forEach((node) => node.classList.remove('is-swarm-active'));
     this.active.clear();
+    if (this.cosmicFrame) cancelAnimationFrame(this.cosmicFrame);
     this.setUi('○ سرب متوقف', 'متوقف');
   }
 
@@ -50,6 +57,35 @@ class SovereignBugSwarm {
     if (this.running) this.stop();
     else this.start();
     return this.running;
+  }
+
+  setupCosmicBridge() {
+    this.cosmicCanvas = document.querySelector('#cosmic-bridge-canvas');
+    if (!this.cosmicCanvas || !this.nodeIds.length) return;
+    this.cosmicContext = this.cosmicCanvas.getContext('2d');
+    const resize = () => { const dpr = Math.min(2, window.devicePixelRatio || 1); const r = this.cosmicCanvas.getBoundingClientRect(); this.cosmicCanvas.width = Math.max(1, Math.round(r.width * dpr)); this.cosmicCanvas.height = Math.max(1, Math.round(r.height * dpr)); this.cosmicContext.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    resize(); window.addEventListener('resize', resize, { passive: true });
+    if (!this.cosmicAgents.length) this.cosmicAgents = this.bugs.map((bug, index) => ({ bug, nodeId: this.nodeIds[index] || 1, x: .25 + index * .25, y: .5, vx: (index - 1) * .0015, vy: .001, role: index }));
+    this.drawCosmicBridge();
+  }
+
+  focusCosmicNode(id) {
+    const agent = this.cosmicAgents[this.cosmicScans % Math.max(1, this.cosmicAgents.length)];
+    if (agent && id > 0) { agent.nodeId = id; agent.x = .5; agent.y = .5; }
+  }
+
+  drawCosmicBridge() {
+    if (!this.cosmicContext || !this.cosmicCanvas) return;
+    const w = this.cosmicCanvas.clientWidth, h = this.cosmicCanvas.clientHeight, ctx = this.cosmicContext;
+    ctx.fillStyle = 'rgba(2,11,11,.28)'; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(89,224,163,.12)'; ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 42) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += 42) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    const colors = ['#59e0a3', '#f4ce72', '#55b8e8'];
+    this.cosmicAgents.forEach((agent) => { if (this.running) { agent.x += agent.vx; agent.y += agent.vy; if (agent.x < .03 || agent.x > .97) agent.vx *= -1; if (agent.y < .06 || agent.y > .94) agent.vy *= -1; } const node = document.querySelector(`.network-node[data-id="${agent.nodeId}"]`); const configured = node?.dataset.active === 'true'; const color = colors[agent.role % colors.length]; ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = configured ? 12 : 6; ctx.beginPath(); ctx.arc(agent.x * w, agent.y * h, configured ? 6 : 4, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; });
+    const configuredCount = this.nodeIds.filter((id) => document.querySelector(`.network-node[data-id="${id}"]`)?.dataset.active === 'true').length;
+    const stats = document.querySelector('#cosmic-bridge-stats'); if (stats) stats.textContent = `${this.cosmicAgents.length} وكلاء · ${this.cosmicScans} زيارة · ${this.nodeIds.length ? Math.round(configuredCount / this.nodeIds.length * 100) : 0}% بيانات`;
+    this.cosmicFrame = requestAnimationFrame(() => this.drawCosmicBridge());
   }
 
   nextNode(bug) {
@@ -70,6 +106,8 @@ class SovereignBugSwarm {
       this.active.set(bug.id, node);
       const configured = node.dataset.active === 'true';
       this.scanned += 1;
+      this.cosmicScans += 1;
+      this.focusCosmicNode(id);
       this.setUi(`● ${bug.id} يفحص ${node.dataset.id} · ${configured ? 'مهيأة' : 'فارغة'} · ${this.scanned} فحص`, 'نشط');
       const detail = { id, name: `عقدة N-${String(id).padStart(3, '0')}`, value: id, agent: bug.id, configured };
       if (typeof window.inspectNodeAlgebraically === 'function') {
