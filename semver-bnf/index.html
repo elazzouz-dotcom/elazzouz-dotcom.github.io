@@ -268,6 +268,7 @@
             <details class="node-ai-local-model"><summary>إعداد نموذج محلي اختياري</summary><div class="node-ai-model-grid"><label>النمط<select id="node-ai-mode" class="semver-select"><option value="local">محرك العقد المحلي</option><option value="ollama">Ollama / LM Studio</option></select></label><label>عنوان API المحلي<input id="node-ai-endpoint" class="semver-input" value="http://127.0.0.1:11434/api/chat" inputmode="url"></label><label>اسم النموذج<input id="node-ai-model" class="semver-input" value="llama3.2" autocomplete="off"></label></div></details>
             <div id="node-ai-chat-log" class="node-ai-chat-log" role="log" aria-live="polite"></div>
             <p id="node-ai-status" class="node-chat-room-status">المحرك المحلي جاهز؛ لم تُرسل بيانات العقد إلى الخارج.</p>
+            <div class="node-ai-constraints" aria-label="قيود سياق العقد الستة"><span>1 · ست عقد فقط</span><span>2 · العقدة المطابقة أولًا</span><span>3 · بيانات محلية فقط</span><span>4 · محتوى مقصوص</span><span>5 · لا جلب روابط</span><span>6 · ذكر المصادر</span></div>
           </section>
         </div>
       </div>
@@ -351,6 +352,13 @@
               <button id="quran-analyze" class="semver-button" type="button">تحليل السورة في Mod 9</button>
             </div>
             <div id="quran-analysis-summary" class="quran-analysis-summary" aria-live="polite"></div>
+            <div class="quran-ayah-search">
+              <label class="semver-field-label" for="quran-ayah-number">رقم الآية داخل السورة
+                <input id="quran-ayah-number" class="semver-input" type="number" min="1" step="1" inputmode="numeric" placeholder="مثال: 1">
+              </label>
+              <button id="quran-ayah-search" class="semver-button" type="button">بحث وتحليل الآية</button>
+            </div>
+            <div id="quran-ayah-result" class="quran-ayah-result" aria-live="polite">اختر سورة وأدخل رقم آية لعرض نصها عند توفر الاتصال وتحليلها رقميًا.</div>
             <p class="quran-analysis-note">يعرض هذا القسم بيانات السورة المحلية المستخدمة في التحليل: عدد الآيات، النوع، القيمة المركبة، وقيمة الجُمّل. لا يستبدل نص المصحف أو التفسير.</p>
           </section>
         </div>
