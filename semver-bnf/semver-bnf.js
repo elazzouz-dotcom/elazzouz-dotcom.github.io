@@ -61,6 +61,20 @@ let focusReturn = null;
 const nodeChatRoomRecords = new Map();
 let nodeChatRoomSelected = null;
 let nodeAiConversation = [];
+const QURAN_MEASURE_STATS = Object.freeze({ suwar: 114, ayat: 6236, ayatWithBasmala: 6348, words: 77439, letters: 320015, hizb: 60, juz: 30 });
+const QURAN_MEASURE_CONTEXT = `مرجع quran_measure.py المرفق: عدد السور ${QURAN_MEASURE_STATS.suwar}، الآيات دون البسملة المكررة ${QURAN_MEASURE_STATS.ayat}، الآيات مع البسملة ${QURAN_MEASURE_STATS.ayatWithBasmala}، الكلمات ${QURAN_MEASURE_STATS.words}، الحروف ${QURAN_MEASURE_STATS.letters}، الأحزاب ${QURAN_MEASURE_STATS.hizb}، الأجزاء ${QURAN_MEASURE_STATS.juz}. متوسط الآيات للسورة = ${QURAN_MEASURE_STATS.ayat / QURAN_MEASURE_STATS.suwar}، متوسط الحروف للآية = ${QURAN_MEASURE_STATS.letters / QURAN_MEASURE_STATS.ayat}، متوسط الحروف للكلمة = ${QURAN_MEASURE_STATS.letters / QURAN_MEASURE_STATS.words}. المعادلة التقريبية Q = S × متوسط الآيات × متوسط الحروف للآية، وتساوي تقريبًا ${Math.round(QURAN_MEASURE_STATS.suwar * (QURAN_MEASURE_STATS.ayat / QURAN_MEASURE_STATS.suwar) * (QURAN_MEASURE_STATS.letters / QURAN_MEASURE_STATS.ayat))} حرف. هذه أرقام إحصائية مرتبطة بمنهج العد المحدد وليست حكمًا تفسيريًا.`;
+const QURAN_METHOD_CONTEXT = `شرح المنهج القرآني المرفق: البنية هرمية من القرآن إلى 114 سورة، ثم الآيات، ثم الكلمات، ثم الحروف. وفق هذا المنهج: 114 سورة منها 86 مكية و28 مدنية، وأطول سورة البقرة 286 آية وأقصر سورة الكوثر 3 آيات. المتوسط 6236 ÷ 114 = 54.7 آية للسورة، ومتوسط الحروف 320015 ÷ 6236 = 51.3 حرفًا للآية، ومتوسط الحروف للكلمة 320015 ÷ 77439 = 4.1. المعادلة المتوازنة Q = S × Ā × L̄، أي عدد السور × متوسط الآيات × متوسط الحروف، وتعطي تقريبًا 320000 حرف. مثال الفاتحة: 7 آيات، 29 كلمة، 139 حرفًا وفق الإحصاء المرفق، وتُعاد صياغة الحساب من الآيات إلى الكلمات إلى الحروف. يتضمن الشرح أيضًا 114 = 19 × 6 و√57 × 57 = 430.34 بوصفهما ملاحظتين عدديتين في منهج المستخدم، وليسَا تفسيرًا شرعيًا أو إثباتًا علميًا مستقلًا. افهم الأسئلة بالعربية الفصحى والدارجة المغربية، وأجب بلغة المستخدم وبأسلوب واضح، واذكر أن الأرقام تختلف باختلاف الرواية ومنهج العد.`;
+
+function quranMeasureContextFor(query) {
+  const match = String(query || '').match(/(?:سورة|السورة|سوره)\s*(?:رقم\s*)?(\d{1,3})/i);
+  if (!match) return `${QURAN_MEASURE_CONTEXT}\n${QURAN_METHOD_CONTEXT}`;
+  const number = Number(match[1]);
+  const surah = QURAN_SURAH_METRICS.find((item) => item.surah_number === number);
+  if (!surah) return QURAN_MEASURE_CONTEXT;
+  const words = Math.round(surah.ayahs_count * QURAN_MEASURE_STATS.words / QURAN_MEASURE_STATS.ayat);
+  const letters = Math.round(surah.ayahs_count * QURAN_MEASURE_STATS.letters / QURAN_MEASURE_STATS.ayat);
+  return `${QURAN_MEASURE_CONTEXT}\n${QURAN_METHOD_CONTEXT}\nللسورة ${surah.surah_number} (${surah.surah_name}): ${surah.ayahs_count} آية، تقدير الكلمات ${words}، تقدير الحروف ${letters}.`;
+}
 let draggedNode = null;
 let suppressNodeClick = false;
 let focusedEdge = null;
@@ -394,6 +408,7 @@ function localNodeAiAnswer(query) {
   const records = [...nodeChatRoomRecords.values()];
   const matches = retrieveNodeKnowledge(clean);
   if (!clean) return 'اكتب سؤالًا عن عقدة أو رابط أو حالة معاينة. مثال: ما حالة N-600؟';
+  if (/قرآن|المصحف|سور|سورة|آيات|آية|حروف|كلمات|قياس|معادلة|quran/i.test(clean)) return `قرأت مرجع quran_measure.py.\n\n${quranMeasureContextFor(clean)}\n\nيمكنك أن تسألني مثلًا: كم عدد السور؟ أو ما متوسط الحروف في الآية؟ أو احسب قياس السورة رقم 2.`;
   if (/كم|عدد|إجمالي|كل العقد/.test(clean)) return `الشبكة تحتوي على ${NODE_TOTAL} عقدة و${NODE_TOTAL - 1} علاقة عبر ${NODE_LEVELS.length} مستوى. تم تحميل سجل ${records.length} عقدة داخل المحرك المحلي.`;
   if (!matches.length) return `لم أجد تطابقًا مباشرًا داخل سجل العقد المحلي. جرّب رقمًا مثل N-600، اسم سورة، أو كلمة مثل رابط، معاينة، HTML، أو محلية.`;
   const lines = [`وجدت ${matches.length} نتيجة مرتبطة بسؤالك داخل ذاكرة العقد:`];
@@ -411,7 +426,8 @@ async function askOllamaLocally(query, context, history = []) {
   let parsed;
   try { parsed = new URL(endpoint); } catch { throw new Error('عنوان النموذج المحلي غير صالح.'); }
   if (!['localhost', '127.0.0.1', '::1'].includes(parsed.hostname) && !parsed.hostname.endsWith('.local')) throw new Error('لأمان البيانات، يجب أن يشير نموذج الذكاء إلى localhost أو جهاز محلي .local.');
-  const messages = [{ role: 'system', content: 'أنت مساعد محادثة محلي. أجب بالعربية اعتمادًا على سياق العقد المرفق فقط. حافظ على سياق الحوار السابق، لكن لا تتجاوز القيود الستة: ست عقد كحد أقصى، العقدة المطابقة أولًا، العلاقات المباشرة فقط، بيانات محلية فقط، لا تجلب روابط، واذكر أرقام العقد التي استندت إليها. إذا لم توجد معلومة فقل ذلك بوضوح.' }, ...history.slice(-10), { role: 'user', content: `السؤال الجديد: ${query}\n\nسياق العقد المسموح (حد أقصى 6):\n${context}` }];
+  const quranContext = /قرآن|المصحف|سور|سورة|آيات|آية|حروف|كلمات|قياس|معادلة|quran/i.test(query) ? `\n\nمعرفة إضافية من quran_measure.py:\n${quranMeasureContextFor(query)}` : '';
+  const messages = [{ role: 'system', content: 'أنت مساعد محادثة محلي يفهم العربية الفصحى والدارجة المغربية، ويقرأ السؤال والسياق ويكتب جوابًا عربيًا واضحًا وبنبرة قريبة من لغة المستخدم. حافظ على سياق الحوار السابق. استخدم مرجع quran_measure.py عند السؤال عن إحصاءات القرآن، وميّز بين الرقم الإحصائي والتفسير الديني. بالنسبة للعقد، لا تتجاوز القيود الستة: ست عقد كحد أقصى، العقدة المطابقة أولًا، العلاقات المباشرة فقط، بيانات محلية فقط، لا تجلب روابط، واذكر أرقام العقد التي استندت إليها. إذا لم توجد معلومة فقل ذلك بوضوح.' }, ...history.slice(-10), { role: 'user', content: `السؤال الجديد: ${query}\n\nسياق العقد المسموح (حد أقصى 6):\n${context}${quranContext}` }];
   const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model, stream: false, messages }) });
   if (!response.ok) throw new Error(`تعذر الوصول إلى النموذج المحلي (${response.status}).`);
   const payload = await response.json();
