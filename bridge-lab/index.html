@@ -15,6 +15,10 @@
     .chip b { display: block; color: #00ff88; font-size: 14px; }
     canvas { width: 100vw; height: 100vh; display: block; }
     #log { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; overflow: auto; background: rgba(0,0,0,.9); font-size: 11px; padding: 5px; z-index: 5; }
+    #architecture { position: fixed; top: 74px; inset-inline-end: 10px; width: min(390px, calc(100vw - 20px)); max-height: 42vh; overflow: auto; background: rgba(0,0,0,.88); border: 1px solid rgba(0,255,136,.45); border-radius: 10px; padding: 8px 12px; z-index: 6; font-size: 11px; line-height: 1.8; }
+    #architecture summary { cursor: pointer; color: #00ff88; font-weight: 800; }
+    #architecture strong { color: #ffaa00; }
+    .cycle { color: #b9ffd9; }
     button { background: #00ff88; color: #00150b; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: bold; }
     button:hover { background: #7dffbd; }
     @media (max-width: 700px) { .brand { flex-basis: 100%; } .chip { min-width: 72px; } button { flex: 1; } }
@@ -32,6 +36,11 @@
     <button type="button" onclick="buildTower()">ابنِ برجًا</button>
     <button type="button" onclick="buildNetwork()">ابنِ شبكة</button>
   </div>
+  <details id="architecture" open>
+    <summary>بنيان Azzouz · دورة التكامل الكاملة</summary>
+    <div class="cycle">استكشاف (HTML · يحتاج حماية) → حماية (Security · يحتاج نور) → نور (الآيات · يحتاج ميزان) → ميزان (التوازن · يحتاج بناء) → بناء (CSS · يحتاج فحص) → فحص (JavaScript · يحتاج استكشاف)</div>
+    <p><strong>قاعدة الجسر:</strong> إذا حُذفت طبقة ضعفت البنية؛ وإذا اجتمعت الطبقات اكتمل الجسر.</p>
+  </details>
   <canvas id="cv" aria-label="محاكاة الجسور البرمجية"></canvas>
   <div id="log" aria-live="polite"></div>
   <script>
@@ -51,6 +60,8 @@
 
     let colony = [], bridges = [], nextId = 0, towerHeight = 0;
     const roles = ['استكشاف', 'فحص', 'حماية', 'نور', 'ميزان', 'بناء'];
+    const roleLayers = { 'استكشاف': 'HTML', 'فحص': 'JavaScript', 'حماية': 'Security', 'نور': 'الآيات', 'ميزان': 'التوازن', 'بناء': 'CSS' };
+    const complementCycle = { 'استكشاف': 'حماية', 'حماية': 'نور', 'نور': 'ميزان', 'ميزان': 'بناء', 'بناء': 'فحص', 'فحص': 'استكشاف' };
 
     class BridgeInsect {
       constructor(role, parent = null) {
@@ -83,7 +94,7 @@
         return { 'استكشاف': 'يحتاج حماية', 'فحص': 'يحتاج سرعة', 'حماية': 'يحتاج نور', 'نور': 'يحتاج ميزان', 'ميزان': 'يحتاج بناء', 'بناء': 'يحتاج استكشاف' }[this.role];
       }
       findComplement() {
-        const needed = { 'استكشاف': 'حماية', 'فحص': 'استكشاف', 'حماية': 'نور', 'نور': 'ميزان', 'ميزان': 'بناء', 'بناء': 'فحص' }[this.role];
+        const needed = complementCycle[this.role];
         return colony.filter((item) => item !== this && item.role === needed && !item.isInBridge && !item.partner).sort((a, b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y))[0] || null;
       }
       update() {
@@ -94,7 +105,7 @@
           if (complement) {
             this.partner = complement;
             complement.partner = this;
-            log(`تكامل: #${this.id} (${this.role}) + #${complement.id} (${complement.role}) · ${this.weakness} + ${complement.strengths[0]}`);
+            log(`تكامل: #${this.id} (${this.role}/${roleLayers[this.role]}) + #${complement.id} (${complement.role}/${roleLayers[complement.role]}) · ${this.weakness} + ${complement.strengths[0]}`);
             if (colony.length < 300 && Math.random() < .5) {
               const child = new BridgeInsect('بناء', this);
               child.x = (this.x + complement.x) / 2;
@@ -156,7 +167,7 @@
     }
 
     for (let i = 0; i < 57; i++) colony.push(new BridgeInsect(roles[i % roles.length]));
-    log('Azzouz Bridge Lab بدأ · 57 حشرة · 6 أدوار · التكامل يبني الجسر');
+    log('Azzouz Bridge Lab بدأ · 57 حشرة · 6 طبقات · كل واحدة تكمل الأخرى · خلقنا زوجين');
 
     function loop() {
       colony = colony.filter((insect) => insect.update());
