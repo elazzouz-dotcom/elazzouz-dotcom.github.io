@@ -57,7 +57,7 @@ async function syncKnowledgeNodes() {
   }
 }
 
-window.SlaksKnowledge = Object.freeze({ enabled: Boolean(KNOWLEDGE_API_BASE), sync: syncKnowledgeNodes, search: (query, limit = 10) => knowledgeApiFetch(`/api/search?q=${encodeURIComponent(query)}&limit=${encodeURIComponent(limit)}`) });
+window.AzzouzKnowledge = Object.freeze({ enabled: Boolean(KNOWLEDGE_API_BASE), sync: syncKnowledgeNodes, search: (query, limit = 10) => knowledgeApiFetch(`/api/search?q=${encodeURIComponent(query)}&limit=${encodeURIComponent(limit)}`) });
 
 document.addEventListener('DOMContentLoaded', () => {
   const button = document.querySelector('#knowledge-api-sync');

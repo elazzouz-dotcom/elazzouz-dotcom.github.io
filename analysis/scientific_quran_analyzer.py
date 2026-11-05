@@ -38,6 +38,32 @@ def abjad_value(text: str) -> int:
     return sum(ABJAD_MAP.get(char, 0) for char in text if not char.isspace())
 
 
+def adjust_multiple_comparisons(p_values: dict[str, float], alpha: float = 0.05) -> dict[str, dict[str, float | bool]]:
+    """Return Holm step-down and Benjamini-Hochberg adjusted p-values."""
+    items = sorted(p_values.items(), key=lambda item: item[1])
+    count = len(items)
+    holm: dict[str, float] = {}
+    running = 0.0
+    for rank, (name, p_value) in enumerate(items):
+        running = max(running, min(1.0, (count - rank) * p_value))
+        holm[name] = running
+    bh: dict[str, float] = {}
+    running = 1.0
+    for rank, (name, p_value) in reversed(list(enumerate(items, start=1))):
+        running = min(running, min(1.0, p_value * count / rank))
+        bh[name] = running
+    return {
+        name: {
+            "raw_p": float(p_values[name]),
+            "p_holm": float(holm[name]),
+            "p_benjamini_hochberg": float(bh[name]),
+            "reject_holm": bool(holm[name] <= alpha),
+            "reject_benjamini_hochberg": bool(bh[name] <= alpha),
+        }
+        for name in p_values
+    }
+
+
 class ScientificQuranAnalyzer:
     CIVIL_SURAHS = CIVIL_SURAHS
 
@@ -108,7 +134,11 @@ class ScientificQuranAnalyzer:
         }
 
     def build_report(self, config: SimulationConfig = SimulationConfig()) -> dict:
-        return {"metadata": {"timestamp_utc": datetime.now(timezone.utc).isoformat(), "total_surahs": int(len(self.df)), "civil_surahs": int((self.df["type"] == "مدنية").sum()), "simulations_B": config.samples, "random_seed": config.seed, "rng_algorithm": "PCG64", "numpy_version": np.__version__, "scipy_version": scipy.__version__, "pandas_version": pd.__version__, "normalization_rules": NORMALIZATION_RULES}, "tests": {column: self.run_monte_carlo_independence_test(column, config) for column in ANALYSIS_COLUMNS}, "kruskal_wallis": {column: self.run_kruskal_wallis_test(column) for column in KRUSKAL_COLUMNS}, "rows": self.df.to_dict(orient="records")}
+        kruskal_results = {column: self.run_kruskal_wallis_test(column) for column in KRUSKAL_COLUMNS}
+        corrections = adjust_multiple_comparisons({column: item["statistical_metrics"]["p_value"] for column, item in kruskal_results.items()})
+        for column, correction in corrections.items():
+            kruskal_results[column]["multiple_comparison"] = correction
+        return {"metadata": {"timestamp_utc": datetime.now(timezone.utc).isoformat(), "total_surahs": int(len(self.df)), "civil_surahs": int((self.df["type"] == "مدنية").sum()), "simulations_B": config.samples, "random_seed": config.seed, "rng_algorithm": "PCG64", "numpy_version": np.__version__, "scipy_version": scipy.__version__, "pandas_version": pd.__version__, "normalization_rules": NORMALIZATION_RULES}, "tests": {column: self.run_monte_carlo_independence_test(column, config) for column in ANALYSIS_COLUMNS}, "kruskal_wallis": kruskal_results, "multiple_comparison": {"scope": "kruskal_wallis", "alpha": 0.05, "methods": ["Holm step-down", "Benjamini-Hochberg"], "results": corrections}, "rows": self.df.to_dict(orient="records")}
 
     @staticmethod
     def export_report(report: dict, output: Path) -> None:

@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0",
-  "title": "قاعدة Slaks الذرية",
+  "title": "قاعدة Azzouz الذرية",
   "description": "بيانات تعليمية قابلة للبحث عن البنية الذرية وقواعد الحفظ والشحنة.",
-  "source": "Slaks local dataset",
+  "source": "Azzouz local dataset",
   "rules": [
     {"id":"charge","name":"الشحنة الكهربائية","statement":"الشحنة الكلية تساوي عدد البروتونات ناقص عدد الإلكترونات.","formula":"q = Z - e"},
     {"id":"mass","name":"العدد الكتلي","statement":"العدد الكتلي يساوي مجموع البروتونات والنيوترونات.","formula":"A = Z + N"},

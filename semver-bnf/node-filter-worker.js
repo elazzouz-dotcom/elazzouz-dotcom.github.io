@@ -3,11 +3,23 @@ let indexVersion = 0;
 const FILTER_CACHE_LIMIT = 80;
 const filterCache = new Map();
 
+function isUnicodeNoncharacter(codePoint) {
+  return (codePoint >= 0xFDD0 && codePoint <= 0xFDEF) || (codePoint <= 0x10FFFF && (codePoint & 0xFFFF) >= 0xFFFE);
+}
+
+function sanitizeUnicodeText(value) {
+  let clean = '';
+  for (const character of String(value ?? '')) {
+    if (!isUnicodeNoncharacter(character.codePointAt(0))) clean += character;
+  }
+  return clean;
+}
+
 function tokenize(query) {
   const terms = [];
   const matcher = /"([^"]+)"|(\S+)/g;
   let match;
-  const normalized = String(query || '').toLocaleLowerCase();
+  const normalized = sanitizeUnicodeText(query).toLocaleLowerCase();
   while ((match = matcher.exec(normalized))) {
     const term = (match[1] || match[2]).trim();
     if (term) terms.push(term);
@@ -25,7 +37,7 @@ function matchesQuery(text, terms, mode) {
 function filterCacheKey(message) {
   return JSON.stringify([
     indexVersion,
-    String(message.query || '').trim().toLocaleLowerCase(),
+    sanitizeUnicodeText(message.query).trim().toLocaleLowerCase(),
     message.searchMode === 'any' ? 'any' : 'all',
     message.sort || 'id',
     message.nodeFilter || 'all',
@@ -43,7 +55,7 @@ function cacheResult(key, result) {
 }
 
 function filterRecords(message) {
-  const query = String(message.query || '').trim();
+  const query = sanitizeUnicodeText(message.query).trim();
   const terms = tokenize(query);
   const searchMode = message.searchMode === 'any' ? 'any' : 'all';
   const nodeFilter = message.nodeFilter || 'all';

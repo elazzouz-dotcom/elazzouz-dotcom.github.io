@@ -37,7 +37,7 @@ export default {
     const headers = new Headers(upstream.headers);
     const policy = cachePolicy(upstreamUrl);
     headers.set('Cache-Control', isHtml(upstream) ? 'public, max-age=0, must-revalidate' : policy);
-    headers.set('X-Slaks-Cache-Policy', isHtml(upstream) ? 'html-revalidate' : policy);
+    headers.set('X-Azzouz-Cache-Policy', isHtml(upstream) ? 'html-revalidate' : policy);
     headers.delete('Set-Cookie');
     return new Response(upstream.body, { status: upstream.status, statusText: upstream.statusText, headers });
   }

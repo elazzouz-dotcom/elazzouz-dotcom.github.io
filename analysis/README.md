@@ -43,14 +43,14 @@ SE_MC = sqrt(p_MC * (1 - p_MC) / (B + 1))
 لتوليد تقرير ومعاينة فقط:
 
 ```bash
-python3 analysis/live_quantum_engine.py --output-dir /tmp/slaks-live-preview
+python3 analysis/live_quantum_engine.py --output-dir /tmp/azzouz-live-preview
 ```
 
 لتشغيل خادم المعاينة على `localhost`:
 
 ```bash
 python3 analysis/live_quantum_engine.py \
-  --output-dir /tmp/slaks-live-preview \
+  --output-dir /tmp/azzouz-live-preview \
   --serve --port 8767
 ```
 
@@ -59,7 +59,7 @@ python3 analysis/live_quantum_engine.py \
 ```bash
 python3 analysis/live_quantum_engine.py \
   --input-json /path/to/surahs.json \
-  --output-dir /tmp/slaks-live-preview \
+  --output-dir /tmp/azzouz-live-preview \
   --serve --watch --port 8767
 ```
 
