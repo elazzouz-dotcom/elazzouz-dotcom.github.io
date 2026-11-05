@@ -228,12 +228,29 @@ function appendManualSearchLink(query) {
   elements.chat.appendChild(paragraph);
 }
 
-function buildGroundedAnswer(query, citations) {
+const MEMORY_STOPWORDS = new Set('من في على إلى عن مع هذا هذه ذلك التي الذي هو هي من كان تكون يتم حول بين بعد قبل عند أو و ثم كما إن أن لا ما قد كل'.split(' '));
+function meaningfulTokens(value) {
+  return stripMarkup(value, 1200).toLocaleLowerCase('ar').replace(/[\u0640\u064b-\u065f\u06d6-\u06ed]/gu, '').split(/[^\p{L}\p{N}]+/u).filter((token) => token.length > 2 && !MEMORY_STOPWORDS.has(token));
+}
+function relatedMemories(memory, query) {
+  const queryTokens = new Set(meaningfulTokens(query));
+  if (!queryTokens.size) return [];
+  return memory.map((entry) => {
+    const entryTokens = new Set(meaningfulTokens(`${entry.question} ${entry.answer}`));
+    const overlap = [...queryTokens].filter((token) => entryTokens.has(token)).length;
+    return { entry, score: overlap / queryTokens.size };
+  }).filter((item) => item.score >= 0.34).sort((a, b) => b.score - a.score || Number(b.entry.createdAt || 0) - Number(a.entry.createdAt || 0)).slice(0, 3);
+}
+function buildGroundedAnswer(query, citations, previous = []) {
   if (!citations.length) return '';
   const usable = citations.filter((item) => item.excerpt).slice(0, 6);
   const sourceNames = [...new Set(citations.map((item) => sourceName(item.sourceId)))].join('، ');
+  const counts = new Map();
+  usable.forEach((item) => meaningfulTokens(item.excerpt).forEach((token) => counts.set(token, (counts.get(token) || 0) + 1)));
+  const sharedTerms = [...counts.entries()].filter(([, count]) => count >= Math.min(2, usable.length)).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([token]) => token);
   const points = usable.slice(0, 4).map((item) => `• ${stripMarkup(item.excerpt, 240)}`).join('\n');
-  return `ملخص Azzouz AI المقيّد بالمراجع حول «${stripMarkup(query, 180)}»:\n${points || 'تتوفر سجلات وعناوين، لكن لا يتوفر مقتطف نصي كافٍ لصياغة ملخص.'}\n\nالمصادر التي بُني عليها هذا الملخص: ${sourceNames}. هذا توليد لغوي من النتائج المسترجعة، وليس اقتباسًا حرفيًا ولا إثباتًا نهائيًا؛ راجع الروابط الأصلية قبل الاعتماد.`;
+  const memoryNote = previous.length ? `\n\nذاكرة سابقة مرتبطة بالسؤال:\n${previous.map(({ entry }) => `• ${stripMarkup(entry.answer, 220)}`).join('\n')}\nتمت مقارنة الذاكرة بالمصادر الجديدة وإضافة التحديث بدل استبدالها.` : '';
+  return `ملخص Azzouz AI المقيّد بالمراجع حول «${stripMarkup(query, 180)}»:\n\nالفكرة الجامعة التقريبية: ${sharedTerms.length ? `تتكرر بين المقتطفات مفاهيم ${sharedTerms.join('، ')}؛ لذلك يجمعها هذا المحور المشترك.` : 'لا توجد كلمات مشتركة كافية، لذا أعرض المقتطفات للمقارنة بدل اختلاق فكرة موحدة.'}\n\nالمقتطفات الداعمة:\n${points || 'تتوفر سجلات وعناوين، لكن لا يتوفر مقتطف نصي كافٍ لصياغة ملخص.'}${memoryNote}\n\nالمصادر: ${sourceNames}. هذا تركيب لغوي خوارزمي من النتائج المسترجعة، وليس اقتباسًا حرفيًا ولا إثباتًا نهائيًا؛ راجع الروابط الأصلية قبل الاعتماد.`;
 }
 
 function reserveSearchSlot() {
@@ -329,8 +346,10 @@ async function submitQuestion({ spoken = false } = {}) {
   }
 
   const memory = loadMemoryBeforeQuestion();
-  const match = findExactMemory(memory, query);
-  if (match) renderMemoryMatch(match);
+  const exactMatch = findExactMemory(memory, query);
+  const related = relatedMemories(memory, query);
+  if (exactMatch) renderMemoryMatch(exactMatch);
+  else if (related.length) appendMessage(`تذكرت ${related.length} إجابة مرتبطة بهذا السؤال، وسأقارنها بالمصادر الجديدة بدل البدء من الصفر.`, 'system');
 
   if (!elements.externalConsent.checked) {
     const explanation = 'لم أرسل السؤال إلى أي مصدر. فعّل موافقة البحث الخارجي ثم اضغط «ابحث بالمراجع» إذا أردت طلب نتائج جديدة.';
@@ -413,7 +432,7 @@ async function submitQuestion({ spoken = false } = {}) {
         ? `انتهى الاسترجاع: ${citations.length} نتيجة من ${successfulCount} مصادر استجابت. سيُبنى الملخص التالي من هذه المقتطفات فقط؛ افتح الروابط لمراجعة السياق الأصلي.`
         : `لم تُرجع المصادر نتائج قابلة للعرض. نجحت استجابة ${successfulCount} من أصل ${API_SOURCES.length} واجهات؛ افحص الحالة أعلاه وجرّب عبارة أدق لاحقًا.`;
     appendMessage(summary, wasCancelled || !citations.length ? 'warning' : 'system');
-    const groundedAnswer = !wasCancelled ? buildGroundedAnswer(query, citations) : '';
+    const groundedAnswer = !wasCancelled ? buildGroundedAnswer(query, citations, related) : '';
     if (groundedAnswer) appendMessage(groundedAnswer, 'system');
     if (citations.length) appendResultCards(citations);
     if (!wasCancelled) {
