@@ -14,7 +14,10 @@ import {
 } from './core.mjs';
 
 const MEMORY_KEY = 'azzouz-ai-memory-v1';
-const MAX_MEMORY_ENTRIES = 50;
+const MEMORY_DB = 'azzouz-ai-brain-db';
+const MEMORY_STORE = 'knowledge';
+const MAX_MEMORY_ENTRIES = 500;
+const MAX_LOCAL_MEMORY_ENTRIES = 100;
 const MAX_SEARCHES_PER_MINUTE = 5;
 const REQUEST_TIMEOUT_MS = 10000;
 const SOURCE_LABELS = Object.freeze(Object.fromEntries(API_SOURCES.map((source) => [source.id, source.label])));
@@ -35,6 +38,9 @@ const elements = {
   voiceRate: document.getElementById('voice-rate'),
   showMemory: document.getElementById('show-memory'),
   clearMemory: document.getElementById('clear-memory'),
+  exportMemory: document.getElementById('export-memory'),
+  importMemory: document.getElementById('import-memory'),
+  importMemoryFile: document.getElementById('import-memory-file'),
   sourceStatus: document.getElementById('source-status'),
   questionCount: document.getElementById('question-count'),
   citationCount: document.getElementById('citation-count'),
@@ -56,6 +62,7 @@ const state = {
   voiceSession: false,
   busy: false
 };
+let memoryDbPromise;
 
 function setStatus(message, kind = '') {
   elements.status.textContent = String(message);
@@ -144,29 +151,63 @@ function renderSourceStatuses(statuses) {
   }
 }
 
+function normalizeMemoryEntries(entries) {
+  return (Array.isArray(entries) ? entries : []).map((entry) => ({
+    question: stripMarkup(entry?.question, 300),
+    answer: stripMarkup(entry?.answer, 1000),
+    createdAt: Number.isFinite(Number(entry?.createdAt)) ? Number(entry.createdAt) : 0,
+    citations: Array.isArray(entry?.citations) ? entry.citations.map(normalizeStoredCitation).filter(Boolean).slice(0, 15) : []
+  })).filter((entry) => entry.question).slice(-MAX_MEMORY_ENTRIES);
+}
+function openMemoryDb() {
+  if (!('indexedDB' in window)) return Promise.resolve(null);
+  if (memoryDbPromise) return memoryDbPromise;
+  memoryDbPromise = new Promise((resolve) => {
+    const request = indexedDB.open(MEMORY_DB, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(MEMORY_STORE, { keyPath: 'question' });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+  });
+  return memoryDbPromise;
+}
+async function readBrainMemory() {
+  const db = await openMemoryDb();
+  if (!db) return [];
+  return new Promise((resolve) => {
+    const request = db.transaction(MEMORY_STORE, 'readonly').objectStore(MEMORY_STORE).getAll();
+    request.onsuccess = () => resolve(normalizeMemoryEntries(request.result));
+    request.onerror = () => resolve([]);
+  });
+}
+async function writeBrainMemory(entries) {
+  const db = await openMemoryDb();
+  if (!db) return;
+  await new Promise((resolve) => {
+    const tx = db.transaction(MEMORY_STORE, 'readwrite');
+    const store = tx.objectStore(MEMORY_STORE);
+    store.clear();
+    normalizeMemoryEntries(entries).forEach((entry) => store.put(entry));
+    tx.oncomplete = resolve;
+    tx.onerror = resolve;
+  });
+}
 function loadMemory() {
   if (state.memoryLoaded) return state.memory;
   state.memoryLoaded = true;
   try {
     const raw = localStorage.getItem(MEMORY_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    state.memory = Array.isArray(parsed)
-      ? parsed.slice(-MAX_MEMORY_ENTRIES).map((entry) => {
-          const citations = Array.isArray(entry?.citations)
-            ? entry.citations.map(normalizeStoredCitation).filter(Boolean).slice(0, 15)
-            : [];
-          return {
-            question: stripMarkup(entry?.question, 300),
-            answer: stripMarkup(entry?.answer, 700),
-            createdAt: Number.isFinite(Number(entry?.createdAt)) ? Number(entry.createdAt) : 0,
-            citations
-          };
-        }).filter((entry) => entry.question)
-      : [];
+    state.memory = normalizeMemoryEntries(parsed).slice(-MAX_LOCAL_MEMORY_ENTRIES);
   } catch {
     state.memory = [];
   }
   updateStats();
+  void readBrainMemory().then((brain) => {
+    if (!brain.length) return;
+    const merged = new Map([...state.memory, ...brain].map((entry) => [entry.question, entry]));
+    state.memory = [...merged.values()].sort((a, b) => a.createdAt - b.createdAt).slice(-MAX_MEMORY_ENTRIES);
+    updateStats();
+  });
   return state.memory;
 }
 
@@ -189,7 +230,8 @@ function saveMemory(question, answer, citations = []) {
   state.memory.push(record);
   state.memory = state.memory.slice(-MAX_MEMORY_ENTRIES);
   try {
-    localStorage.setItem(MEMORY_KEY, JSON.stringify(state.memory));
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(state.memory.slice(-MAX_LOCAL_MEMORY_ENTRIES)));
+    void writeBrainMemory(state.memory);
     updateStats();
     return true;
   } catch {
@@ -205,6 +247,38 @@ function renderMemoryMatch(record) {
     ? record.citations.map(normalizeStoredCitation).filter(Boolean)
     : [];
   if (citations.length) appendResultCards(citations, (id) => `ذاكرة محلية · ${sourceName(id)}`);
+}
+function exportMemory() {
+  const payload = { format: 'azzouz-brain', version: 1, exportedAt: new Date().toISOString(), entries: normalizeMemoryEntries(state.memory) };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = 'azzouz-brain.json'; link.click();
+  URL.revokeObjectURL(url);
+  setStatus(`تم تصدير ${payload.entries.length} ذاكرة إلى azzouz-brain.json.`);
+}
+async function importMemoryFile(file) {
+  if (!file) return;
+  try {
+    const payload = JSON.parse(await file.text());
+    const imported = normalizeMemoryEntries(payload?.entries || payload);
+    if (!imported.length) throw new Error('الملف لا يحتوي على ذاكرة صالحة.');
+    const merged = new Map([...state.memory, ...imported].map((entry) => [entry.question, entry]));
+    state.memory = [...merged.values()].sort((a, b) => a.createdAt - b.createdAt).slice(-MAX_MEMORY_ENTRIES);
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(state.memory.slice(-MAX_LOCAL_MEMORY_ENTRIES)));
+    await writeBrainMemory(state.memory);
+    state.memoryLoaded = true; updateStats();
+    setStatus(`تم استيراد ${imported.length} ذاكرة ودمجها مع عقل Azzouz.`);
+  } catch (error) { setStatus(error?.message || 'تعذر استيراد ملف الذاكرة.', 'warning'); }
+}
+
+function buildInternalAnalysis(query) {
+  const abjad = { ا: 1, أ: 1, إ: 1, آ: 1, ب: 2, ج: 3, د: 4, ه: 5, ة: 5, و: 6, ز: 7, ح: 8, ط: 9, ي: 10, ى: 10, ك: 20, ل: 30, م: 40, ن: 50, س: 60, ع: 70, ف: 80, ص: 90, ق: 100, ر: 200, ش: 300, ت: 400, ث: 500, خ: 600, ذ: 700, ض: 800, ظ: 900, غ: 1000 };
+  const value = [...String(query)].reduce((sum, letter) => sum + (abjad[letter] || 0), 0);
+  const number = Number(String(query).match(/\d+/u)?.[0] || 0);
+  const root = (n) => n ? 1 + ((n - 1) % 9) : 0;
+  const ayah = number >= 1 && number <= 114 ? `الرقم ${number} يمكن استخدامه كمؤشر سورة/آية داخل المختبر؛ لا يمثل تفسيرًا أو حكمًا.` : 'لم يُذكر رقم بين 1 و114 في السؤال.';
+  return { sourceId: 'internal', title: 'التحليل الداخلي · أبجد + آية', excerpt: `قيمة أبجد التقريبية لعبارة السؤال: ${value}. الجذر الرقمي: ${root(value)}. ${ayah}`, url: 'https://elazzouz-dotcom.github.io/azzouz-ai/#internal-analysis', metadata: 'حساب محلي قابل للتكرار · لا اتصال خارجي' };
 }
 
 function validateMathQuestion(question) {
@@ -356,7 +430,7 @@ async function submitQuestion({ spoken = false } = {}) {
     appendMessage(explanation, 'warning');
     elements.question.value = query;
     setStatus('البحث الخارجي متوقف حتى توافق صراحةً.', 'warning');
-    if (spoken) speakText(match?.answer || 'فعّل موافقة البحث الخارجي أولًا أو اكتب سؤالك محليًا.');
+    if (spoken) speakText(exactMatch?.answer || 'فعّل موافقة البحث الخارجي أولًا أو اكتب سؤالك محليًا.');
     return;
   }
 
@@ -376,7 +450,7 @@ async function submitQuestion({ spoken = false } = {}) {
   state.controllers.clear();
   elements.ask.disabled = true;
   elements.voiceStart.disabled = true;
-  elements.status.textContent = 'جارٍ البحث في خمس واجهات عامة؛ أُرسل نص السؤال فقط.';
+  elements.status.textContent = 'جارٍ البحث في المصادر العامة؛ أُرسل نص السؤال فقط.';
   const language = queryLanguage(query);
   const statuses = Object.fromEntries(API_SOURCES.map((source) => [source.id, { text: 'جارٍ البحث…', kind: '' }]));
   renderSourceStatuses(statuses);
@@ -420,7 +494,7 @@ async function submitQuestion({ spoken = false } = {}) {
       }
     });
 
-    citations = responses.flatMap((response) => response.results);
+    citations = [buildInternalAnalysis(query), ...responses.flatMap((response) => response.results)];
     state.successfulSources = successfulCount;
     state.citationCount += citations.length;
     updateStats();
@@ -473,6 +547,7 @@ function clearMemory() {
   if (!window.confirm('هل تريد مسح أسئلة ومراجع Azzouz AI المحفوظة على هذا الجهاز؟')) return;
   try {
     localStorage.removeItem(MEMORY_KEY);
+    void writeBrainMemory([]);
     state.memory = [];
     state.memoryLoaded = true;
     updateStats();
@@ -592,6 +667,9 @@ function initialize() {
   });
   elements.showMemory.addEventListener('click', renderMemory);
   elements.clearMemory.addEventListener('click', clearMemory);
+  elements.exportMemory.addEventListener('click', () => { loadMemory(); exportMemory(); });
+  elements.importMemory.addEventListener('click', () => elements.importMemoryFile.click());
+  elements.importMemoryFile.addEventListener('change', (event) => { void importMemoryFile(event.target.files?.[0]); event.target.value = ''; });
   elements.externalConsent.addEventListener('change', () => {
     if (!elements.externalConsent.checked) {
       if (state.busy) {

@@ -37,7 +37,12 @@ export const API_SOURCES = Object.freeze([
     description: 'اكتشاف مستودعات برمجية عامة؛ وصف المستودع ليس مرجعًا علميًا عامًا.',
     docsUrl: 'https://docs.github.com/en/rest/search/search#search-repositories',
     host: 'api.github.com'
-  })
+  }),
+  Object.freeze({ id: 'wikipedia-en', label: 'Wikipedia English', description: 'نتائج ويكيبيديا باللغة الإنجليزية للمقارنة عبر اللغات.', docsUrl: 'https://www.mediawiki.org/wiki/API:Search', host: 'en.wikipedia.org' }),
+  Object.freeze({ id: 'duckduckgo', label: 'DuckDuckGo · ملخص عام', description: 'ملخص عام من Instant Answer API؛ قد لا تتوفر إجابة لكل سؤال.', docsUrl: 'https://duckduckgo.com/api', host: 'api.duckduckgo.com' }),
+  Object.freeze({ id: 'openlibrary', label: 'Open Library · كتب', description: 'فهرس كتب ومؤلفين وبيانات نشر.', docsUrl: 'https://openlibrary.org/developers/api', host: 'openlibrary.org' }),
+  Object.freeze({ id: 'quotable', label: 'Quotable · حكمة', description: 'اقتباسات عامة قابلة للمقارنة وليست مصدرًا علميًا.', docsUrl: 'https://github.com/lukePeavey/quotable', host: 'api.quotable.io' }),
+  Object.freeze({ id: 'numbers', label: 'Numbers API · حقيقة رياضية', description: 'معلومة عددية عند وجود رقم في السؤال.', docsUrl: 'https://numbersapi.com/', host: 'numbersapi.com' })
 ]);
 
 export const LOCAL_AND_MANUAL_SOURCES = Object.freeze([
@@ -49,8 +54,9 @@ export const LOCAL_AND_MANUAL_SOURCES = Object.freeze([
   Object.freeze({
     id: 'duckduckgo-manual',
     label: 'DuckDuckGo · بحث يدوي',
-    description: 'يفتح صفحة بحث خارجية عند النقر؛ لا يستدعي التطبيق واجهة Instant Answer غير الموثقة حاليًا.'
-  })
+    description: 'يفتح صفحة بحث خارجية عند النقر.'
+  }),
+  Object.freeze({ id: 'internal', label: 'التحليل الداخلي · أبجد + آية', description: 'حساب محلي للجذر الرقمي وقيمة أبجد ومؤشرات الآية، دون اتصال.' })
 ]);
 
 const API_HOSTS = Object.freeze({
@@ -58,7 +64,13 @@ const API_HOSTS = Object.freeze({
   wikipedia: ['ar.wikipedia.org', 'en.wikipedia.org'],
   openalex: ['api.openalex.org', 'openalex.org', 'doi.org'],
   crossref: ['api.crossref.org', 'doi.org'],
-  github: ['api.github.com', 'github.com']
+  github: ['api.github.com', 'github.com'],
+  'wikipedia-en': ['en.wikipedia.org'],
+  duckduckgo: ['api.duckduckgo.com', 'duckduckgo.com', 'en.wikipedia.org', 'ar.wikipedia.org'],
+  openlibrary: ['openlibrary.org'],
+  quotable: ['api.quotable.io'],
+  numbers: ['numbersapi.com'],
+  internal: ['elazzouz-dotcom.github.io']
 });
 
 function checkedQuery(value) {
@@ -128,6 +140,31 @@ export function buildSearchUrl(sourceId, rawQuery, language = queryLanguage(rawQ
       order: 'desc'
     }).toString();
     return url;
+  }
+
+  if (sourceId === 'wikipedia-en') {
+    const url = new URL('https://en.wikipedia.org/w/api.php');
+    url.search = new URLSearchParams({ action: 'query', list: 'search', srsearch: query, srlimit: String(MAX_RESULTS_PER_SOURCE), srprop: 'snippet', format: 'json', origin: '*' }).toString();
+    return url;
+  }
+  if (sourceId === 'duckduckgo') {
+    const url = new URL('https://api.duckduckgo.com/');
+    url.search = new URLSearchParams({ q: query, format: 'json', no_html: '1', no_redirect: '1', skip_disambig: '1' }).toString();
+    return url;
+  }
+  if (sourceId === 'openlibrary') {
+    const url = new URL('https://openlibrary.org/search.json');
+    url.search = new URLSearchParams({ q: query, limit: String(MAX_RESULTS_PER_SOURCE), fields: 'key,title,author_name,first_publish_year' }).toString();
+    return url;
+  }
+  if (sourceId === 'quotable') {
+    const url = new URL('https://api.quotable.io/quotes');
+    url.search = new URLSearchParams({ query, limit: String(MAX_RESULTS_PER_SOURCE) }).toString();
+    return url;
+  }
+  if (sourceId === 'numbers') {
+    const number = String(query).match(/\d+/u)?.[0] || '0';
+    return new URL(`https://numbersapi.com/${number}?json`);
   }
 
   throw new RangeError(`مصدر البحث غير معروف: ${sourceId}`);
@@ -222,7 +259,7 @@ function makeResult(sourceId, title, excerpt, url, metadata = {}) {
 
 export function normalizeStoredCitation(value) {
   if (!value || typeof value !== 'object') return null;
-  const sourceId = API_SOURCES.some((source) => source.id === value.sourceId) ? value.sourceId : '';
+  const sourceId = [...API_SOURCES, ...LOCAL_AND_MANUAL_SOURCES].some((source) => source.id === value.sourceId) ? value.sourceId : '';
   if (!sourceId) return null;
   return makeResult(sourceId, value.title, value.excerpt, value.url, value.metadata);
 }
@@ -307,6 +344,22 @@ export function normalizeSourceResults(sourceId, payload, language = 'ar') {
         metadata
       );
     });
+  } else if (sourceId === 'wikipedia-en') {
+    const pages = payload?.query?.search;
+    records = resultList(pages).map((item) => {
+      const title = String(item?.title || '').trim();
+      if (!title) return null;
+      return makeResult(sourceId, title, item?.snippet, `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s+/gu, '_'))}`, item?.pageid ? `Page ID: ${item.pageid}` : '');
+    });
+  } else if (sourceId === 'duckduckgo') {
+    const abstract = payload?.AbstractText || payload?.Answer || '';
+    if (abstract || payload?.Heading) records = [makeResult(sourceId, payload?.Heading || 'DuckDuckGo Instant Answer', abstract || 'لم يتوفر ملخص نصي.', payload?.AbstractURL || 'https://duckduckgo.com/', payload?.AbstractSource || 'DuckDuckGo')];
+  } else if (sourceId === 'openlibrary') {
+    records = resultList(payload?.docs).map((item) => makeResult(sourceId, item?.title, `المؤلفون: ${(item?.author_name || []).slice(0, 3).join('، ') || 'غير متاح'}`, `https://openlibrary.org${item?.key || ''}`, item?.first_publish_year ? `أول نشر: ${item.first_publish_year}` : ''));
+  } else if (sourceId === 'quotable') {
+    records = resultList(payload?.results).map((item) => makeResult(sourceId, item?.author || 'حكمة', item?.content, `https://api.quotable.io/quotes/${encodeURIComponent(item?._id || '')}`, item?.tags?.join('، ') || ''));
+  } else if (sourceId === 'numbers') {
+    records = [makeResult(sourceId, payload?.number != null ? `حقيقة عن ${payload.number}` : 'Numbers API', payload?.text, `https://numbersapi.com/${encodeURIComponent(payload?.number ?? '0')}`, payload?.type || 'number')];
   }
 
   return records.filter(Boolean).slice(0, MAX_RESULTS_PER_SOURCE);
