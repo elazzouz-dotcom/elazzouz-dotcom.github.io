@@ -21,6 +21,8 @@ const MAX_LOCAL_MEMORY_ENTRIES = 100;
 const MAX_MEMORY_FILE_BYTES = 2 * 1024 * 1024;
 const MEMORY_FORMAT = 'azzouz-brain';
 const MEMORY_VERSION = 2;
+const NIGHT_MEMORY_KEY = 'azzouz-ai-night-topics-v1';
+const NIGHT_TOPICS = Object.freeze(['الثقب الأسود', 'النحل', 'فيزياء الكم', 'الذكاء الاصطناعي', 'النظام الشمسي', 'الدماغ البشري', 'دورة الماء', 'البناء الضوئي', 'مستعمرة النمل', 'المحيطات', 'الجبال', 'الرياضيات', 'الهندسة', 'التاريخ', 'الخط العربي']);
 const MAX_SEARCHES_PER_MINUTE = 5;
 const REQUEST_TIMEOUT_MS = 10000;
 const SOURCE_LABELS = Object.freeze(Object.fromEntries(API_SOURCES.map((source) => [source.id, source.label])));
@@ -44,6 +46,10 @@ const elements = {
   exportMemory: document.getElementById('export-memory'),
   importMemory: document.getElementById('import-memory'),
   importMemoryFile: document.getElementById('import-memory-file'),
+  nightInterval: document.getElementById('night-interval'),
+  nightToggle: document.getElementById('night-toggle'),
+  morningReport: document.getElementById('morning-report'),
+  nightStatus: document.getElementById('night-status'),
   sourceStatus: document.getElementById('source-status'),
   questionCount: document.getElementById('question-count'),
   citationCount: document.getElementById('citation-count'),
@@ -63,7 +69,11 @@ const state = {
   activeQuery: '',
   recognition: null,
   voiceSession: false,
-  busy: false
+  busy: false,
+  nightOn: false,
+  nightTimer: null,
+  nightIndex: 0,
+  nightTopics: []
 };
 let memoryDbPromise;
 
@@ -77,6 +87,28 @@ function updateStats() {
   elements.citationCount.textContent = String(state.citationCount);
   elements.sourceCount.textContent = String(state.successfulSources);
   elements.memoryCount.textContent = state.memoryLoaded ? String(state.memory.length) : 'غير مفعّلة';
+}
+
+function loadNightTopics() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(NIGHT_MEMORY_KEY) || '[]');
+    state.nightTopics = Array.isArray(raw) ? raw.map((item) => ({
+      question: stripMarkup(item?.question, 180),
+      createdAt: Number.isFinite(Number(item?.createdAt)) ? Number(item.createdAt) : 0
+    })).filter((item) => item.question).slice(-100) : [];
+  } catch {
+    state.nightTopics = [];
+  }
+}
+function saveNightTopics() {
+  try { localStorage.setItem(NIGHT_MEMORY_KEY, JSON.stringify(state.nightTopics.slice(-100))); } catch { /* التخزين الاختياري قد لا يتاح */ }
+}
+function updateNightStatus(message = '') {
+  if (!elements.nightStatus) return;
+  const prefix = state.nightOn ? 'السرب يعمل' : 'السرب متوقف';
+  elements.nightStatus.textContent = `${prefix} · ${state.nightTopics.length} موضوعًا محليًا${message ? ` · ${message}` : ''}`;
+  elements.nightToggle.textContent = state.nightOn ? 'إيقاف سرب الليل' : 'تشغيل سرب الليل';
+  elements.nightToggle.setAttribute('aria-pressed', String(state.nightOn));
 }
 
 function appendMessage(text, kind = 'system') {
@@ -282,6 +314,7 @@ async function exportMemory() {
       version: MEMORY_VERSION,
       exportedAt: new Date().toISOString(),
       entryCount: state.memory.length,
+      nightTopics: state.nightTopics.slice(-100),
       entries: normalizeMemoryEntries(state.memory)
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -320,6 +353,14 @@ async function importMemoryFile(file) {
     const added = imported.filter((entry) => !before.has(memoryIdentity(entry.question))).length;
     const updated = imported.length - added;
     await persistMemory();
+    if (Array.isArray(raw?.nightTopics)) {
+      state.nightTopics = raw.nightTopics.map((item) => ({
+        question: stripMarkup(item?.question, 180),
+        createdAt: Number.isFinite(Number(item?.createdAt)) ? Number(item.createdAt) : Date.now()
+      })).filter((item) => item.question).slice(-100);
+      saveNightTopics();
+      updateNightStatus();
+    }
     setStatus(`تم الدمج بنجاح: ${added} جديدة، ${updated} محدثة، والإجمالي ${state.memory.length} ذاكرة.`);
   } catch (error) {
     setStatus(error?.message || 'تعذر استيراد ملف الذاكرة.', 'warning');
@@ -444,7 +485,7 @@ function loadMemoryBeforeQuestion() {
   return elements.rememberQuestion.checked ? loadMemory() : [];
 }
 
-async function submitQuestion({ spoken = false } = {}) {
+async function submitQuestion({ spoken = false, night = false } = {}) {
   if (state.busy) return;
   const query = elements.question.value.trim();
   if (!query) {
@@ -459,7 +500,7 @@ async function submitQuestion({ spoken = false } = {}) {
 
   state.questionCount += 1;
   updateStats();
-  appendMessage(query, 'user');
+  appendMessage(night ? `🌙 سرب الليل يدرس: ${query}` : query, night ? 'night' : 'user');
   elements.question.value = '';
 
   let mathResult = null;
@@ -588,6 +629,62 @@ async function submitQuestion({ spoken = false } = {}) {
   }
 }
 
+async function learnNightTopic() {
+  if (!state.nightOn || state.busy) return;
+  if (!elements.externalConsent.checked) {
+    stopNight('سُحبت موافقة البحث؛ لم يُرسل موضوع جديد.');
+    return;
+  }
+  const query = NIGHT_TOPICS[state.nightIndex % NIGHT_TOPICS.length];
+  state.nightIndex += 1;
+  state.nightTopics.push({ question: query, createdAt: Date.now() });
+  state.nightTopics = state.nightTopics.slice(-100);
+  saveNightTopics();
+  updateNightStatus(`الموضوع الحالي: ${query}`);
+  elements.question.value = query;
+  await submitQuestion({ night: true });
+  updateNightStatus('اكتمل آخر موضوع أو تعذر مصدر من مصادره.');
+}
+function stopNight(message = '') {
+  state.nightOn = false;
+  if (state.nightTimer) window.clearInterval(state.nightTimer);
+  state.nightTimer = null;
+  updateNightStatus(message);
+}
+function startNight() {
+  if (!elements.externalConsent.checked) {
+    setStatus('فعّل موافقة البحث الخارجي أولًا؛ سرب الليل لا يعمل دون موافقة.', 'warning');
+    return;
+  }
+  if (!elements.rememberQuestion.checked) {
+    setStatus('فعّل الحفظ المحلي أولًا حتى لا يعمل السرب دون حفظ اختياري واضح.', 'warning');
+    return;
+  }
+  state.nightOn = true;
+  const minutes = Math.max(1, Number(elements.nightInterval.value) || 10);
+  updateNightStatus(`الموضوع التالي كل ${minutes} دقيقة`);
+  void learnNightTopic();
+  state.nightTimer = window.setInterval(() => { void learnNightTopic(); }, minutes * 60 * 1000);
+  setStatus('سرب الليل يعمل بموافقتك؛ يمكنك إيقافه في أي وقت.');
+}
+function toggleNight() {
+  if (state.nightOn) stopNight('أوقفته يدويًا.');
+  else startNight();
+}
+function morningReport() {
+  loadNightTopics();
+  if (!state.nightTopics.length) {
+    appendMessage('لا يوجد تقرير ليلي بعد؛ شغّل سرب الليل يدويًا بعد تفعيل الموافقات.', 'night');
+    setStatus('لا توجد مواضيع ليلية محفوظة بعد.', 'warning');
+    return;
+  }
+  const topics = state.nightTopics.slice(-3).map((item) => item.question).join('، ');
+  const report = `تقرير Azzouz الصباحي: سُجل ${state.nightTopics.length} موضوعًا محليًا. آخر المواضيع: ${topics}. هذه سجلات بحث محلية وليست تعلمًا مستقلًا أو ضمانًا لصحة النتائج.`;
+  appendMessage(`🌅 ${report}`, 'night');
+  setStatus(`تقرير الصباح جاهز · ${state.nightTopics.length} موضوعًا محليًا.`);
+  if (elements.speechConsent.checked) speakText(report);
+}
+
 function renderMemory() {
   const memory = loadMemory();
   if (!memory.length) {
@@ -604,10 +701,13 @@ function clearMemory() {
   if (!window.confirm('هل تريد مسح أسئلة ومراجع Azzouz AI المحفوظة على هذا الجهاز؟')) return;
   try {
     localStorage.removeItem(MEMORY_KEY);
+    localStorage.removeItem(NIGHT_MEMORY_KEY);
     void writeBrainMemory([]);
     state.memory = [];
+    state.nightTopics = [];
     state.memoryLoaded = true;
     updateStats();
+    updateNightStatus();
     appendMessage('مُسحت الذاكرة المحلية من هذا المتصفح.', 'system');
     setStatus('تم مسح الذاكرة المحلية.');
   } catch {
@@ -707,6 +807,8 @@ function startVoice() {
 function initialize() {
   const initialStatuses = Object.fromEntries(API_SOURCES.map((source) => [source.id, { text: 'بانتظار موافقتك', kind: '' }]));
   renderSourceStatuses(initialStatuses);
+  loadNightTopics();
+  updateNightStatus();
   updateStats();
 
   elements.ask.addEventListener('click', () => { void submitQuestion(); });
@@ -724,6 +826,8 @@ function initialize() {
   });
   elements.showMemory.addEventListener('click', renderMemory);
   elements.clearMemory.addEventListener('click', clearMemory);
+  elements.nightToggle.addEventListener('click', toggleNight);
+  elements.morningReport.addEventListener('click', morningReport);
   elements.exportMemory.addEventListener('click', () => { void exportMemory(); });
   elements.importMemory.addEventListener('click', () => elements.importMemoryFile.click());
   elements.importMemoryFile.addEventListener('change', (event) => { void importMemoryFile(event.target.files?.[0]); event.target.value = ''; });
@@ -733,6 +837,7 @@ function initialize() {
         state.searchCancelled = true;
         for (const controller of state.controllers) controller.abort();
         if (state.activeQuery) elements.question.value = state.activeQuery;
+        if (state.nightOn) stopNight('سُحبت الموافقة؛ أُوقف السرب.');
         setStatus('سحبت الموافقة؛ أرسلت إلغاءً للاتصالات الجارية ومنعت بدء البقية. قد يكون المزود استلم الطلبات السابقة.', 'warning');
       } else {
         setStatus('الموافقة غير مفعّلة؛ لن يبدأ أي بحث خارجي.', 'warning');

@@ -53,6 +53,27 @@
           <p class="consent-help">للقرآن: النتائج مطابقة نصية وليست تفسيرًا أو فتوى. OpenAlex وCrossref فهارس/بيانات ببليوغرافية، وGitHub دليل مستودعات؛ اقرأ المصدر الأصلي قبل الاعتماد.</p>
         </section>
 
+        <section class="night-panel" aria-labelledby="night-heading">
+          <div>
+            <p class="kicker">سرب الليل · اختياري</p>
+            <h2 id="night-heading">تعلّم دوري بموافقتك</h2>
+          </div>
+          <p>لا يبدأ السرب تلقائيًا. عند تشغيله، يستخدم موضوعًا تجريبيًا من القائمة ويرسله إلى المصادر بعد موافقة البحث الخارجي، ويحفظ النتيجة محليًا فقط إذا فعّلت خيار الحفظ.</p>
+          <div class="night-controls">
+            <label for="night-interval">الفاصل
+              <select id="night-interval">
+                <option value="1">دقيقة واحدة · تجربة</option>
+                <option value="5">5 دقائق</option>
+                <option value="10" selected>10 دقائق</option>
+                <option value="30">30 دقيقة</option>
+              </select>
+            </label>
+            <button id="night-toggle" class="secondary" type="button">تشغيل سرب الليل</button>
+            <button id="morning-report" class="secondary" type="button">تقرير الصباح</button>
+          </div>
+          <p id="night-status" class="night-status" role="status" aria-live="polite">السرب متوقف · لم تُرسل مواضيع تلقائيًا.</p>
+        </section>
+
         <section class="ai-explainer" aria-labelledby="ai-explainer-title">
           <p class="kicker">AZZOUZ AI · كيف يعمل؟</p>
           <h2 id="ai-explainer-title">ليس كتابًا محفوظًا، بل أنماط ثم تحقق بالمراجع</h2>

@@ -228,6 +228,16 @@ test('تصدير واستيراد الذاكرة يستخدمان صيغة إص�
   assert.match(html, /id="import-memory-file"/u);
 });
 
+test('سرب الليل اختياري ولا يبدأ إلا بعد موافقة البحث والحفظ المحلي', () => {
+  assert.match(appSource, /if \(!elements\.externalConsent\.checked\)/u);
+  assert.match(appSource, /if \(!elements\.rememberQuestion\.checked\)/u);
+  assert.match(appSource, /state\.nightTimer = window\.setInterval/u);
+  assert.match(appSource, /if \(state\.nightOn\) stopNight/u);
+  assert.match(appSource, /NIGHT_MEMORY_KEY/u);
+  assert.match(html, /id="night-toggle"/u);
+  assert.match(html, /id="morning-report"/u);
+});
+
 test('كل معرّفات DOM التي يستخدمها التطبيق موجودة في الصفحة', () => {
   const idsInHtml = new Set([...html.matchAll(/\bid="([^"]+)"/gu)].map((match) => match[1]));
   const idsInApp = [...appSource.matchAll(/getElementById\('([^']+)'\)/gu)].map((match) => match[1]);
@@ -263,6 +273,7 @@ test('سحب موافقة البحث يلغي الاتصالات الجارية 
     append(...nodes) { this.children.push(...nodes); }
     appendChild(node) { this.children.push(node); return node; }
     replaceChildren(...nodes) { this.children = [...nodes]; }
+    setAttribute() {}
     focus() {}
   }
 
