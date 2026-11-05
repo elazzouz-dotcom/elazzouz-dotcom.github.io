@@ -1,169 +1,22 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="دليل عربي واسع لمصادر الويب المفتوحة، واجهات البحث والبيانات، الأبحاث، الأرشيفات، وخدمات التخزين وقواعد البيانات السحابية.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self';">
-  <meta name="theme-color" content="#060a08">
-  <title>دليل المصادر الخارجية والتخزين · Azzouz AI</title>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="دليل عربي وإنجليزي لمصادر البحث والأبحاث والبيانات والتخزين السحابي.">
+  <meta name="theme-color" content="#060a08"><title>مصادر خارجية | External Sources · Azzouz AI</title>
   <link rel="stylesheet" href="/azzouz-ai/azzouz-ai.css">
+  <style>
+    .catalog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px;margin-top:14px}.catalog-card{display:grid;gap:7px;padding:15px;border:1px solid #244331;border-radius:14px;background:rgba(3,9,5,.55)}.catalog-card h3{margin:0;color:var(--green)}.catalog-card p{margin:0;color:var(--muted);font-size:.86rem}.catalog-card a{font-weight:800}.en{direction:ltr;text-align:left}.language-nav{display:flex;flex-wrap:wrap;gap:10px}.panel{margin-top:16px}.note{margin:12px 0 0}
+  </style>
 </head>
-<body>
-  <div class="page-shell">
-    <header class="page-header">
-      <div>
-        <div class="brand-row">
-          <a class="back-link" href="/azzouz-ai/">العودة إلى Azzouz AI</a>
-          <p class="kicker">دليل المصادر الخارجية</p>
-        </div>
-        <h1>مصادر الويب والبيانات والتخزين</h1>
-        <p class="lead">كتالوج واسع ومنظم لمواقع البحث، المعرفة المفتوحة، الأبحاث، البيانات العامة، الأرشيفات، والمستودعات السحابية. اضغط على رابط المصدر لفتحه أو مراجعة توثيقه الرسمي.</p>
-      </div>
-    </header>
-
-    <section class="panel" aria-label="حدود الدليل والخصوصية">
-      <p class="disclaimer"><strong>تنبيه:</strong> لا يمكن حصر «كل» المواقع أو قواعد البيانات في قائمة ثابتة؛ هذا دليل منتقى لمصادر معروفة وروابطها الرسمية. إدراج المصدر هنا لا يعني أن Azzouz AI متصل به أو يتحقق من كل محتواه. GitHub Pages موقع ثابت ولا يوفّر قاعدة بيانات خادمية. لا تُرسل بيانات حساسة ولا تضع مفاتيح API في JavaScript العام. قبل الربط أو تنزيل البيانات، راجع الترخيص، شروط الاستخدام، الخصوصية، حدود الطلبات، وإمكانية CORS. البحث الآلي في التطبيق يظل محدودًا بالمصادر المفعّلة فيه وبموافقتك.</p>
-    </section>
-
-    <main>
-      <section class="panel" aria-labelledby="search-heading">
-        <h2 id="search-heading">محركات البحث والبحث في الويب</h2>
-        <ul class="source-list">
-          <li><strong>Google Search</strong><span>محرك بحث عام؛ واجهات البرمجة التجارية منفصلة عن البحث اليدوي.</span><a href="https://www.google.com/" target="_blank" rel="noopener noreferrer">فتح الموقع</a></li>
-          <li><strong>Bing</strong><span>بحث ويب وخدمات بح�� من Microsoft.</span><a href="https://www.bing.com/" target="_blank" rel="noopener noreferrer">فتح الموقع</a></li>
-          <li><strong>DuckDuckGo</strong><span>بحث ويب؛ يمكن فتح الاستعلام يدويًا. واجهات الملخص ليست بحثًا شاملًا.</span><a href="https://duckduckgo.com/" target="_blank" rel="noopener noreferrer">فتح الموقع</a></li>
-          <li><strong>Brave Search</strong><span>محرك بحث وواجهات للمطورين وفق شروط المزود.</span><a href="https://search.brave.com/" target="_blank" rel="noopener noreferrer">فتح البحث</a> · <a href="https://api.search.brave.com/app/documentation" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>Mojeek</strong><span>محرك بحث مستقل.</span><a href="https://www.mojeek.com/" target="_blank" rel="noopener noreferrer">فتح الموقع</a></li>
-          <li><strong>Qwant</strong><span>محرك بحث أوروبي.</span><a href="https://www.qwant.com/" target="_blank" rel="noopener noreferrer">فتح الموقع</a></li>
-          <li><strong>Ecosia</strong><span>محرك بحث عام.</span><a href="https://www.ecosia.org/" target="_blank" rel="noopener noreferrer">فتح الموقع</a></li>
-          <li><strong>Startpage</strong><span>بحث ويب مع إعدادات خصوصية.</span><a href="https://www.startpage.com/" target="_blank" rel="noopener noreferrer">فتح الموقع</a></li>
-          <li><strong>Internet Archive Wayback Machine</strong><span>استكشاف نسخ مؤرشفة من صفحات الويب.</span><a href="https://web.archive.org/" target="_blank" rel="noopener noreferrer">فتح الأرشيف</a></li>
-        </ul>
-      </section>
-
-      <section class="panel" aria-labelledby="knowledge-heading">
-        <h2 id="knowledge-heading">الموسوعات وقواعد المعرفة</h2>
-        <ul class="source-list">
-          <li><strong>Wikipedia / MediaWiki</strong><span>موسوعة ومشاريع معرفة؛ واجهة بحث موثقة.</span><a href="https://www.mediawiki.org/wiki/API:Search" target="_blank" rel="noopener noreferrer">توثيق البحث</a></li>
-          <li><strong>Wikidata</strong><span>قاعدة معرفة منظمة واستعلامات SPARQL.</span><a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer">الموقع</a> · <a href="https://query.wikidata.org/" target="_blank" rel="noopener noreferrer">واجهة SPARQL</a></li>
-          <li><strong>DBpedia</strong><span>بيانات منظمة مستخرجة من ويكيبيديا.</span><a href="https://www.dbpedia.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>Encyclopedia of Life</strong><span>معل��مات عن التنوع الحيوي والكائنات.</span><a href="https://eol.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>AlQuran Cloud</strong><span>نصوص وواجهات للبحث النصي في القرآن؛ النتائج ليست تفسيرًا أو فتوى.</span><a href="https://alquran.cloud/api" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>Open Library</strong><span>فهرس كتب ومؤلفين؛ وجود سجل لا يعني توفر النص الكامل.</span><a href="https://openlibrary.org/developers/api" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>Google Books</strong><span>فهرس كتب وبيانات وصفية.</span><a href="https://developers.google.com/books" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-        </ul>
-      </section>
-
-      <section class="panel" aria-labelledby="research-heading">
-        <h2 id="research-heading">الأبحاث والأدبيات العلمية</h2>
-        <ul class="source-list">
-          <li><strong>OpenAlex</strong><span>فهرس مفتوح للأعمال العلمية والمؤلفين والمؤسسات.</span><a href="https://docs.openalex.org/" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>Crossref</strong><span>بيانات DOI والمنشورات والناشرين.</span><a href="https://www.crossref.org/documentation/retrieve-metadata/rest-api/" target="_blank" rel="noopener noreferrer">توثيق REST API</a></li>
-          <li><strong>PubMed / NCBI</strong><span>أبحاث الطب وعلوم الحياة وقواعد بيانات NCBI.</span><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" rel="noopener noreferrer">PubMed</a> · <a href="https://www.ncbi.nlm.nih.gov/home/develop/api/" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>Europe PMC</strong><span>أبحاث وملخصات وبيانات في علوم الحياة.</span><a href="https://europepmc.org/RestfulWebService" target="_blank" rel="noopener noreferrer">توثيق الواجهة</a></li>
-          <li><strong>Semantic Scholar</strong><span>اكتشاف الأوراق العلمية والاقتباسات؛ راجع شروط API.</span><a href="https://www.semanticscholar.org/product/api" target="_blank" rel="noopener noreferrer">بوابة API</a></li>
-          <li><strong>CORE</strong><span>اكتشاف أبحاث الوصول المفتوح من المستودعات والمجلات.</span><a href="https://core.ac.uk/services/api" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>OpenAIRE</strong><span>بوابة أبحاث ونتائج ومشروعات أوروبية مفتوحة.</span><a href="https://explore.openaire.eu/" target="_blank" rel="noopener noreferrer">استكشاف</a></li>
-          <li><strong>arXiv</strong><span>مستودع أوراق أولية في العلوم والرياضيات والحوسبة.</span><a href="https://info.arxiv.org/help/api/" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>DOAJ</strong><span>دليل مجلات الوصول المفتوح.</span><a href="https://doaj.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>Unpaywall</strong><span>اكتشاف نسخ قانونية مفتوحة من الأبحاث عبر DOI.</span><a href="https://unpaywall.org/products/api" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>Directory of Open Access Books</strong><span>دليل كتب أكاديمية مفتوحة.</span><a href="https://www.doabooks.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>OpenCitations</strong><span>بيانات مفتوحة للاقتباسات العلمية.</span><a href="https://opencitations.net/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-        </ul>
-      </section>
-
-      <section class="panel" aria-labelledby="datasets-heading">
-        <h2 id="datasets-heading">مجموعات البيانات والبيانات الحكومية</h2>
-        <ul class="source-list">
-          <li><strong>Google Dataset Search</strong><span>محرك لاكتشاف مجموعات البيانات المنشورة على الويب.</span><a href="https://datasetsearch.research.google.com/" target="_blank" rel="noopener noreferrer">البحث عن مجموعات</a></li>
-          <li><strong>Hugging Face Datasets</strong><span>مجموعات بيانات وأدوات للمجتمع العلمي والتعلم الآلي.</span><a href="https://huggingface.co/datasets" target="_blank" rel="noopener noreferrer">استكشاف</a> · <a href="https://huggingface.co/docs/datasets" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>Kaggle Datasets</strong><span>مجموعات بيانات ومسابقات وأدوات تحليل؛ بعض المحتوى يتطلب حسابًا.</span><a href="https://www.kaggle.com/datasets" target="_blank" rel="noopener noreferrer">استكشاف</a></li>
-          <li><strong>Data.gov</strong><span>بوابة البيانات الحكومية الأمريكية.</span><a href="https://data.gov/" target="_blank" rel="noopener noreferrer">فتح البوابة</a></li>
-          <li><strong>Data.europa.eu</strong><span>بيانات عامة من مؤسسات الاتحاد الأوروبي والدول الأعضاء.</span><a href="https://data.europa.eu/" target="_blank" rel="noopener noreferrer">فتح البوابة</a></li>
-          <li><strong>World Bank Open Data</strong><span>مؤشرات وبيانات التنمية والاقتصاد والدول.</span><a href="https://data.worldbank.org/" target="_blank" rel="noopener noreferrer">استكشاف</a> · <a href="https://datahelpdesk.worldbank.org/knowledgebase/topics/125589-developer-information" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>UNData</strong><span>إحصاءات وبيانات من منظومة الأمم المتحدة.</span><a href="https://data.un.org/" target="_blank" rel="noopener noreferrer">فتح UNData</a></li>
-          <li><strong>OECD Data</strong><span>إحصاءات ومؤشرات اقتصادية واجتماعية.</span><a href="https://data.oecd.org/" target="_blank" rel="noopener noreferrer">استكشاف</a></li>
-          <li><strong>IMF Data</strong><span>بيانات ومؤشرات مالية واقتصادية دولية.</span><a href="https://www.imf.org/en/Data" target="_blank" rel="noopener noreferrer">استكشاف</a></li>
-          <li><strong>UNICEF Data</strong><span>بيانات ومؤشرات متعلقة بالأطفال والرفاه.</span><a href="https://data.unicef.org/" target="_blank" rel="noopener noreferrer">استكشاف</a></li>
-          <li><strong>Our World in Data</strong><span>بيانات ورسوم ومقالات عن قضايا عالمية؛ راجع ترخيص كل مجموعة.</span><a href="https://ourworldindata.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>Google Cloud Public Datasets</strong><span>مجموعات عامة للاستعلام والتحليل على BigQuery.</span><a href="https://cloud.google.com/bigquery/public-data" target="_blank" rel="noopener noreferrer">كتالوج البيانات</a></li>
-          <li><strong>AWS Open Data Registry</strong><span>كتالوج مجموعات بيانات عامة على AWS.</span><a href="https://registry.opendata.aws/" target="_blank" rel="noopener noreferrer">استكشاف</a></li>
-          <li><strong>Microsoft Planetary Computer</strong><span>بيانات جغرافية وبيئية مفتوحة وأدوات تحليل.</span><a href="https://planetarycomputer.microsoft.com/" target="_blank" rel="noopener noreferrer">استكشاف</a></li>
-        </ul>
-      </section>
-
-      <section class="panel" aria-labelledby="archives-heading">
-        <h2 id="archives-heading">الأرشيفات والمستودعات البحثية</h2>
-        <ul class="source-list">
-          <li><strong>Internet Archive</strong><span>أرشيف رقمي للكتب والويب والوسائط؛ الإتاحة والحقوق تختلف حسب العنصر.</span><a href="https://archive.org/" target="_blank" rel="noopener noreferrer">استكشاف الأرشيف</a></li>
-          <li><strong>Zenodo</strong><span>مستودع للأبحاث والبيانات والبرمجيات مع معرفات DOI.</span><a href="https://zenodo.org/" target="_blank" rel="noopener noreferrer">الموقع</a> · <a href="https://developers.zenodo.org/" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>Harvard Dataverse</strong><span>شبكة مستودعات لمشاركة البيانات البحثية.</span><a href="https://dataverse.harvard.edu/" target="_blank" rel="noopener noreferrer">المستودع</a></li>
-          <li><strong>Figshare</strong><span>منصة لمشاركة البيانات والمواد البحثية.</span><a href="https://figshare.com/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>Dryad</strong><span>مستودع بيانات بحثية.</span><a href="https://datadryad.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>OSF</strong><span>منصة مفتوحة لإدارة ومشاركة المشاريع والمواد البحثية.</span><a href="https://osf.io/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>NASA Open Data</strong><span>بيانات ومجموعات من علوم الفضاء والأرض.</span><a href="https://data.nasa.gov/" target="_blank" rel="noopener noreferrer">بوابة البيانات</a></li>
-          <li><strong>NOAA</strong><span>بيانات الطقس والمحيطات والمناخ.</span><a href="https://www.noaa.gov/information-technology/open-data-dissemination" target="_blank" rel="noopener noreferrer">معلومات البيانات المفتوحة</a></li>
-          <li><strong>GBIF</strong><span>بيانات عالمية عن التنوع الحيوي والكائنات.</span><a href="https://www.gbif.org/developer/summary" target="_blank" rel="noopener noreferrer">بوابة المطورين</a></li>
-          <li><strong>Allen Brain Map</strong><span>موارد وبيانات بحثية لعلوم الأعصاب.</span><a href="https://portal.brain-map.org/" target="_blank" rel="noopener noreferrer">بوابة البيانات</a></li>
-        </ul>
-      </section>
-
-      <section class="panel" aria-labelledby="developer-heading">
-        <h2 id="developer-heading">البرمجيات والخرائط والخدمات المتخصصة</h2>
-        <ul class="source-list">
-          <li><strong>GitHub</strong><span>مستودعات الشيفرة والمشاريع العامة؛ توجد حدود للبحث والواجهة.</span><a href="https://docs.github.com/en/rest/search/search#search-repositories" target="_blank" rel="noopener noreferrer">توثيق البحث</a></li>
-          <li><strong>GitLab</strong><span>مستودعات ومشاريع برمجية.</span><a href="https://docs.gitlab.com/api/" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>Stack Exchange</strong><span>أسئلة وأجوبة تقنية؛ انتبه إلى ترخيص المحتوى وشروط API.</span><a href="https://api.stackexchange.com/" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>OpenStreetMap</strong><span>بيانات خرائط مفتوحة؛ خدمات الخريطة العامة لها سياسة استخدام مستقلة.</span><a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">الخريطة</a> · <a href="https://wiki.openstreetmap.org/wiki/API" target="_blank" rel="noopener noreferrer">توثيق API</a></li>
-          <li><strong>GeoNames</strong><span>قاعدة بيانات أسماء جغرافية.</span><a href="https://www.geonames.org/export/web-services.html" target="_blank" rel="noopener noreferrer">توثيق الخدمات</a></li>
-          <li><strong>Open-Meteo</strong><span>واجهات طقس ومناخ؛ راجع سياسة الاستخدام لكل واجهة.</span><a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>USGS</strong><span>بيانات علوم الأرض والزلازل والموارد.</span><a href="https://www.usgs.gov/products/data-and-tools/apis" target="_blank" rel="noopener noreferrer">واجهات API</a></li>
-          <li><strong>NASA APIs</strong><span>واجهات لصور وبيانات وخدمات NASA؛ بعض الاستخدامات تتطلب مفتاحًا.</span><a href="https://api.nasa.gov/" target="_blank" rel="noopener noreferrer">بوابة API</a></li>
-          <li><strong>OpenAQ</strong><span>بيانات جودة الهواء المفتوحة.</span><a href="https://docs.openaq.org/" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>W3C</strong><span>معايير وتقارير وتقنيات الويب.</span><a href="https://www.w3.org/standards/" target="_blank" rel="noopener noreferrer">المعايير</a></li>
-        </ul>
-      </section>
-
-      <section class="panel" aria-labelledby="storage-heading">
-        <h2 id="storage-heading">التخزين السحابي وقواعد البيانات</h2>
-        <ul class="source-list">
-          <li><strong>Amazon S3</strong><span>تخزين كائنات قابل للتوسع للملفات والنسخ الاحتياطية.</span><a href="https://aws.amazon.com/s3/" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Google Cloud Storage</strong><span>تخزين كائنات سحابي للملفات ومجموعات البيانات.</span><a href="https://cloud.google.com/storage" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Azure Blob Storage</strong><span>تخزين كائنات للبيانات غير المهيكلة والملفات.</span><a href="https://azure.microsoft.com/products/storage/blobs" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Cloudflare R2</strong><span>تخزين كائنات؛ اربطه بخادم أو Worker مضبوط الصلاحيات.</span><a href="https://developers.cloudflare.com/r2/" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>Backblaze B2</strong><span>تخزين كائنات ونسخ احتياطي سحابي.</span><a href="https://www.backblaze.com/cloud-storage" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Wasabi</strong><span>تخزين كائنات سحابي.</span><a href="https://wasabi.com/cloud-storage" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Supabase</strong><span>PostgreSQL مُدار وتخزين ملفات وخدمات إضافية؛ لا تكشف مفاتيح الخدمة.</span><a href="https://supabase.com/docs" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>Neon</strong><span>PostgreSQL سحابي؛ استخدمه من خادم موثوق مع أسرار محمية.</span><a href="https://neon.tech/docs" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>MongoDB Atlas</strong><span>قاعدة بيانات مستندية مُدارة.</span><a href="https://www.mongodb.com/atlas/database" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Cloudflare D1</strong><span>قاعدة بيانات SQL مُدارة لتطبيقات Workers.</span><a href="https://developers.cloudflare.com/d1/" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>Cloudflare Durable Objects</strong><span>تخزين حالة وتنسيق للتطبيقات العاملة على Workers.</span><a href="https://developers.cloudflare.com/durable-objects/" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>Firebase / Firestore</strong><span>قاعدة بيانات مستندية وخدمات تطبيقات؛ اضبط قواعد الأمان والمصادقة.</span><a href="https://firebase.google.com/docs/firestore" target="_blank" rel="noopener noreferrer">التوثيق</a></li>
-          <li><strong>Amazon DynamoDB</strong><span>قاعدة بيانات NoSQL مُدارة وقابلة للتوسع.</span><a href="https://aws.amazon.com/dynamodb/" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Amazon Aurora</strong><span>خدمة قواعد بيانات علائقية مُدارة.</span><a href="https://aws.amazon.com/rds/aurora/" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Google BigQuery</strong><span>مستودع بيانات وتحليلات على نطاق واسع.</span><a href="https://cloud.google.com/bigquery" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>Snowflake</strong><span>منصة بيانات سحابية ومستودع تحليلي.</span><a href="https://www.snowflake.com/en/" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>ClickHouse Cloud</strong><span>تحليلات ومستودع بيانات عمودي لأحجام كبيرة.</span><a href="https://clickhouse.com/cloud" target="_blank" rel="noopener noreferrer">الخدمة</a></li>
-          <li><strong>PostgreSQL</strong><span>قاعدة بيانات علائقية مفتوحة المصدر؛ يمكن استضافتها ذاتيًا أو عبر مزود سحابي.</span><a href="https://www.postgresql.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>Apache Cassandra</strong><span>قاعدة بيانات موزعة لأحمال كبيرة ومتاحة باستمرار.</span><a href="https://cassandra.apache.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>Apache Iceberg</strong><span>تنسيق جداول مفتوح لبحيرات البيانات والتحليلات.</span><a href="https://iceberg.apache.org/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-          <li><strong>MinIO</strong><span>تخزين كائنات متوافق مع S3 للاستضافة الذاتية أو البيئات الخاصة.</span><a href="https://min.io/" target="_blank" rel="noopener noreferrer">الموقع</a></li>
-        </ul>
-      </section>
-
-      <section class="panel" aria-labelledby="integration-heading">
-        <h2 id="integration-heading">ماذا تعني إضافة المصدر إلى الموقع؟</h2>
-        <ul class="source-list">
-          <li><strong>رابط في الدليل</strong><span>يفتح موقع المزود أو توثيقه فقط، ولا يرسل سؤال المستخدم.</span></li>
-          <li><strong>بحث آلي من المتصفح</strong><span>يتطلب API عامة مناسبة، CORS، التزامًا بالحدود، والتحقق من النتائج والروابط.</span></li>
-          <li><strong>قاعدة خاصة أو مفتاح سري</strong><span>تتطلب خدمة خلفية ومصادقة وتحديد صلاحيات؛ لا تضع الأسرار في صفحة GitHub Pages.</span></li>
-          <li><strong>قاعدة معرفة ضخمة</strong><span>تتطلب بنية تخزين وفهرسة ونسخًا احتياطيًا وتكلفة تشغيل وسياسة حذف وخصوصية؛ لا توجد سعة غير محدودة مجانية.</span></li>
-        </ul>
-        <p class="disclaimer">هذا كتالوج روابط منتقى وليس تكاملًا آليًا شاملًا. افحص التراخيص وشروط الاستخدام قبل جمع البيانات أو إعادة نشرها، ولا تحمّل قواعد بيانات كاملة دون إذن وخطة مناسبة.</p>
-      </section>
-    </main>
-    <footer class="footer-note">Azzouz AI · دليل خارجي منتقى. المواقع والخدمات تابعة لأطراف ثالثة وقد تتغير روابطها وشروطها وحدودها.</footer>
-  </div>
-</body>
-</html>
+<body><div class="page-shell">
+  <header class="page-header"><div><div class="brand-row"><a class="back-link" href="/azzouz-ai/">العودة إلى Azzouz AI</a><p class="kicker">دليل المصادر الخارجية · External sources directory</p></div><h1>مصادر المعرفة والتخزين · Knowledge &amp; Storage Sources</h1><p class="lead">دليل منظم وروابط مباشرة لمصادر البحث والأبحاث والبيانات والأرشيفات والتخزين. Directory of curated search, research, data, archive, and storage resources.</p></div></header>
+  <section class="panel"><nav class="language-nav" aria-label="Language / اللغة"><a href="#ar">العربية</a><a href="#en" lang="en" dir="ltr">English</a></nav><p class="disclaimer" id="ar"><strong>تنبيه:</strong> هذا دليل روابط، وليس تكاملًا آليًا. لا يمكن حصر كل المصادر الخارجية. إدراج الموقع لا يعني أن Azzouz AI متصل به. GitHub Pages لا يوفر قاعدة بيانات خادمية؛ لا تضع مفاتيح API أو بيانات اعتماد في الشيفرة العامة. تحقق من شروط الاستخدام والتراخيص والخصوصية وحدود الطلبات قبل الربط أو تنزيل البيانات.</p><p class="disclaimer en" id="en" lang="en"><strong>Note:</strong> This is a link directory, not an automatic integration. No static list can contain every external source. Listing a service does not mean Azzouz AI is connected to it. GitHub Pages does not provide a server-side database; never put API secrets or credentials in public client code. Check terms, licenses, privacy, and rate limits before connecting or downloading data.</p></section>
+  <main><section class="panel"><h2>التصنيفات · Categories</h2><div class="catalog-grid">
+    <article class="catalog-card"><h3>البحث والويب · Search &amp; Web</h3><p>محركات بحث وموسوعات وقواعد معرفة.</p><p class="en" lang="en">Search engines, encyclopedias, and knowledge bases.</p><a href="/azzouz-ai/sources/search/">استكشف · Explore</a></article>
+    <article class="catalog-card"><h3>الأبحاث · Research</h3><p>فهارس أوراق علمية وبيانات DOI ومستودعات أبحاث.</p><p class="en" lang="en">Scholarly indexes, DOI metadata, and research repositories.</p><a href="/azzouz-ai/sources/research/">استكشف · Explore</a></article>
+    <article class="catalog-card"><h3>البيانات · Data</h3><p>مجموعات بيانات مفتوحة وبوابات حكومية وأرشيفات.</p><p class="en" lang="en">Open datasets, government portals, and archives.</p><a href="/azzouz-ai/sources/data/">استكشف · Explore</a></article>
+    <article class="catalog-card"><h3>التخزين وقواعد البيانات · Storage &amp; Databases</h3><p>تخزين سحابي وقواعد بيانات و��ستودعات تحليلية.</p><p class="en" lang="en">Cloud storage, databases, and analytical warehouses.</p><a href="/azzouz-ai/sources/storage/">استكشف · Explore</a></article>
+  </div></section><section class="panel"><h2>عن الربط · About integrations</h2><p>للبحث الآلي، يلزم API موثقة تسمح بالاستخدام المناسب وCORS أو وسيط خادمي آمن. للبيانات الخاصة أو مفاتيح API استخدم backend أو Worker مع مصادقة وصلاحيات محدودة. التخزين الكبير يتطلب ميزانية وفهرسة ونسخًا احتياطيًا وسياسة حذف.</p><p class="en" lang="en">Automated search requires a documented API with appropriate usage permission and CORS, or a secure server-side proxy. Private data and API keys require a backend or Worker with authentication and least-privilege access. Large-scale storage requires budgeting, indexing, backups, and deletion policies.</p><a href="/azzouz-ai/">افتح مساعد Azzouz AI · Open Azzouz AI</a></section></main>
+  <footer class="footer-note">المصادر والخدمات لأطراف ثالثة وقد تتغير شروطها أو توفرها. Third-party resources may change availability and terms.</footer>
+</div></body></html>
