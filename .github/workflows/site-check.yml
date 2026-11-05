@@ -40,6 +40,8 @@ jobs:
         run: python3 scripts/check_github_apps_contract.py
       - name: Test SemVer node graph and safe URL parsing
         run: node --test semver-bnf/graph-model.test.mjs
+      - name: Test Azzouz AI source search, consent, and safe math
+        run: node --test azzouz-ai/app.test.mjs
       - name: Validate all SemVer network levels and relationships
         run: python3 scripts/validate_semver_bnf.py
       - name: Validate security finding taxonomy
