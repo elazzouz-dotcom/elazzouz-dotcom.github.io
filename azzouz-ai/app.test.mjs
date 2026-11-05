@@ -216,6 +216,18 @@ test('الواجهة مشددة CSP وتستخدم عناصر DOM نصية ول�
   assert.match(coreSource, /credentials: 'omit'/u);
 });
 
+test('تصدير واستيراد الذاكرة يستخدمان صيغة إصدار قابلة للتوافق وحدودًا ودمجًا آمنًا', () => {
+  assert.match(appSource, /MEMORY_FORMAT = 'azzouz-brain'/u);
+  assert.match(appSource, /MEMORY_VERSION = 2/u);
+  assert.match(appSource, /MAX_MEMORY_FILE_BYTES = 2 \* 1024 \* 1024/u);
+  assert.match(appSource, /raw\?\.format && raw\.format !== MEMORY_FORMAT/u);
+  assert.match(appSource, /raw\?\.version && Number\(raw\.version\) > MEMORY_VERSION/u);
+  assert.match(appSource, /mergeMemoryEntries\(state\.memory, imported\)/u);
+  assert.match(appSource, /entryCount: state\.memory\.length/u);
+  assert.match(html, /id="export-memory"/u);
+  assert.match(html, /id="import-memory-file"/u);
+});
+
 test('كل معرّفات DOM التي يستخدمها التطبيق موجودة في الصفحة', () => {
   const idsInHtml = new Set([...html.matchAll(/\bid="([^"]+)"/gu)].map((match) => match[1]));
   const idsInApp = [...appSource.matchAll(/getElementById\('([^']+)'\)/gu)].map((match) => match[1]);

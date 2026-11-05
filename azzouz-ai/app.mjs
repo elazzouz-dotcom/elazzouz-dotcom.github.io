@@ -18,6 +18,9 @@ const MEMORY_DB = 'azzouz-ai-brain-db';
 const MEMORY_STORE = 'knowledge';
 const MAX_MEMORY_ENTRIES = 500;
 const MAX_LOCAL_MEMORY_ENTRIES = 100;
+const MAX_MEMORY_FILE_BYTES = 2 * 1024 * 1024;
+const MEMORY_FORMAT = 'azzouz-brain';
+const MEMORY_VERSION = 2;
 const MAX_SEARCHES_PER_MINUTE = 5;
 const REQUEST_TIMEOUT_MS = 10000;
 const SOURCE_LABELS = Object.freeze(Object.fromEntries(API_SOURCES.map((source) => [source.id, source.label])));
@@ -159,6 +162,18 @@ function normalizeMemoryEntries(entries) {
     citations: Array.isArray(entry?.citations) ? entry.citations.map(normalizeStoredCitation).filter(Boolean).slice(0, 15) : []
   })).filter((entry) => entry.question).slice(-MAX_MEMORY_ENTRIES);
 }
+function memoryIdentity(question) {
+  return stripMarkup(question, 300).normalize('NFKC').trim().replace(/\s+/gu, ' ').toLocaleLowerCase('ar');
+}
+function mergeMemoryEntries(current, incoming) {
+  const merged = new Map();
+  for (const entry of normalizeMemoryEntries([...current, ...incoming])) {
+    const key = memoryIdentity(entry.question);
+    const previous = merged.get(key);
+    if (!previous || Number(entry.createdAt || 0) >= Number(previous.createdAt || 0)) merged.set(key, entry);
+  }
+  return [...merged.values()].sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0)).slice(-MAX_MEMORY_ENTRIES);
+}
 function openMemoryDb() {
   if (!('indexedDB' in window)) return Promise.resolve(null);
   if (memoryDbPromise) return memoryDbPromise;
@@ -181,7 +196,7 @@ async function readBrainMemory() {
 }
 async function writeBrainMemory(entries) {
   const db = await openMemoryDb();
-  if (!db) return;
+  if (!db) return false;
   await new Promise((resolve) => {
     const tx = db.transaction(MEMORY_STORE, 'readwrite');
     const store = tx.objectStore(MEMORY_STORE);
@@ -190,6 +205,7 @@ async function writeBrainMemory(entries) {
     tx.oncomplete = resolve;
     tx.onerror = resolve;
   });
+  return true;
 }
 function loadMemory() {
   if (state.memoryLoaded) return state.memory;
@@ -204,11 +220,19 @@ function loadMemory() {
   updateStats();
   void readBrainMemory().then((brain) => {
     if (!brain.length) return;
-    const merged = new Map([...state.memory, ...brain].map((entry) => [entry.question, entry]));
-    state.memory = [...merged.values()].sort((a, b) => a.createdAt - b.createdAt).slice(-MAX_MEMORY_ENTRIES);
+    state.memory = mergeMemoryEntries(state.memory, brain);
     updateStats();
   });
   return state.memory;
+}
+
+async function persistMemory() {
+  const entries = normalizeMemoryEntries(state.memory);
+  localStorage.setItem(MEMORY_KEY, JSON.stringify(entries.slice(-MAX_LOCAL_MEMORY_ENTRIES)));
+  await writeBrainMemory(entries);
+  state.memory = entries;
+  state.memoryLoaded = true;
+  updateStats();
 }
 
 function saveMemory(question, answer, citations = []) {
@@ -226,12 +250,9 @@ function saveMemory(question, answer, citations = []) {
       metadata: stripMarkup(item.metadata, 160)
     }))
   };
-  state.memory = state.memory.filter((entry) => entry.question !== record.question);
-  state.memory.push(record);
-  state.memory = state.memory.slice(-MAX_MEMORY_ENTRIES);
+  state.memory = mergeMemoryEntries(state.memory, [record]);
   try {
-    localStorage.setItem(MEMORY_KEY, JSON.stringify(state.memory.slice(-MAX_LOCAL_MEMORY_ENTRIES)));
-    void writeBrainMemory(state.memory);
+    void persistMemory().catch(() => setStatus('تعذر مزامنة الذاكرة مع التخزين الدائم؛ بقيت النتيجة في جلسة الصفحة.', 'warning'));
     updateStats();
     return true;
   } catch {
@@ -248,28 +269,64 @@ function renderMemoryMatch(record) {
     : [];
   if (citations.length) appendResultCards(citations, (id) => `ذاكرة محلية · ${sourceName(id)}`);
 }
-function exportMemory() {
-  const payload = { format: 'azzouz-brain', version: 1, exportedAt: new Date().toISOString(), entries: normalizeMemoryEntries(state.memory) };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url; link.download = 'azzouz-brain.json'; link.click();
-  URL.revokeObjectURL(url);
-  setStatus(`تم تصدير ${payload.entries.length} ذاكرة إلى azzouz-brain.json.`);
+async function exportMemory() {
+  elements.exportMemory.disabled = true;
+  elements.importMemory.disabled = true;
+  setStatus('جارٍ تجهيز ملف الذاكرة…');
+  try {
+    loadMemory();
+    const brain = await readBrainMemory();
+    state.memory = mergeMemoryEntries(state.memory, brain);
+    const payload = {
+      format: MEMORY_FORMAT,
+      version: MEMORY_VERSION,
+      exportedAt: new Date().toISOString(),
+      entryCount: state.memory.length,
+      entries: normalizeMemoryEntries(state.memory)
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = 'azzouz-brain.json'; link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    setStatus(`تم تصدير ${payload.entries.length} ذاكرة إلى azzouz-brain.json.`);
+  } catch {
+    setStatus('تعذر تجهيز ملف الذاكرة؛ لم تتغير الذاكرة المحلية.', 'warning');
+  } finally {
+    elements.exportMemory.disabled = false;
+    elements.importMemory.disabled = false;
+  }
 }
 async function importMemoryFile(file) {
   if (!file) return;
+  if (file.size > MAX_MEMORY_FILE_BYTES) {
+    setStatus('ملف الذاكرة أكبر من 2 ميغابايت؛ اختر ملفًا أصغر.', 'warning');
+    return;
+  }
+  elements.importMemory.disabled = true;
+  elements.exportMemory.disabled = true;
+  setStatus('جارٍ فحص ملف الذاكرة ودمجه…');
   try {
-    const payload = JSON.parse(await file.text());
-    const imported = normalizeMemoryEntries(payload?.entries || payload);
+    const raw = JSON.parse(await file.text());
+    const entries = Array.isArray(raw) ? raw : raw?.entries;
+    if (!Array.isArray(entries)) throw new Error('صيغة الملف غير صحيحة: يجب أن يحتوي على entries.');
+    if (raw?.format && raw.format !== MEMORY_FORMAT) throw new Error('هذا الملف ليس ملف ذاكرة Azzouz صالحًا.');
+    if (raw?.version && Number(raw.version) > MEMORY_VERSION) throw new Error('إصدار ملف الذاكرة أحدث من هذا التطبيق. حدّث الصفحة ثم أعد المحاولة.');
+    const imported = normalizeMemoryEntries(entries);
     if (!imported.length) throw new Error('الملف لا يحتوي على ذاكرة صالحة.');
-    const merged = new Map([...state.memory, ...imported].map((entry) => [entry.question, entry]));
-    state.memory = [...merged.values()].sort((a, b) => a.createdAt - b.createdAt).slice(-MAX_MEMORY_ENTRIES);
-    localStorage.setItem(MEMORY_KEY, JSON.stringify(state.memory.slice(-MAX_LOCAL_MEMORY_ENTRIES)));
-    await writeBrainMemory(state.memory);
-    state.memoryLoaded = true; updateStats();
-    setStatus(`تم استيراد ${imported.length} ذاكرة ودمجها مع عقل Azzouz.`);
-  } catch (error) { setStatus(error?.message || 'تعذر استيراد ملف الذاكرة.', 'warning'); }
+    loadMemory();
+    const before = new Map(state.memory.map((entry) => [memoryIdentity(entry.question), entry]));
+    state.memory = mergeMemoryEntries(state.memory, imported);
+    const added = imported.filter((entry) => !before.has(memoryIdentity(entry.question))).length;
+    const updated = imported.length - added;
+    await persistMemory();
+    setStatus(`تم الدمج بنجاح: ${added} جديدة، ${updated} محدثة، والإجمالي ${state.memory.length} ذاكرة.`);
+  } catch (error) {
+    setStatus(error?.message || 'تعذر استيراد ملف الذاكرة.', 'warning');
+  } finally {
+    elements.importMemory.disabled = false;
+    elements.exportMemory.disabled = false;
+  }
 }
 
 function buildInternalAnalysis(query) {
@@ -667,7 +724,7 @@ function initialize() {
   });
   elements.showMemory.addEventListener('click', renderMemory);
   elements.clearMemory.addEventListener('click', clearMemory);
-  elements.exportMemory.addEventListener('click', () => { loadMemory(); exportMemory(); });
+  elements.exportMemory.addEventListener('click', () => { void exportMemory(); });
   elements.importMemory.addEventListener('click', () => elements.importMemoryFile.click());
   elements.importMemoryFile.addEventListener('change', (event) => { void importMemoryFile(event.target.files?.[0]); event.target.value = ''; });
   elements.externalConsent.addEventListener('change', () => {
