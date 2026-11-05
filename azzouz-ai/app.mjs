@@ -228,6 +228,14 @@ function appendManualSearchLink(query) {
   elements.chat.appendChild(paragraph);
 }
 
+function buildGroundedAnswer(query, citations) {
+  if (!citations.length) return '';
+  const usable = citations.filter((item) => item.excerpt).slice(0, 6);
+  const sourceNames = [...new Set(citations.map((item) => sourceName(item.sourceId)))].join('، ');
+  const points = usable.slice(0, 4).map((item) => `• ${stripMarkup(item.excerpt, 240)}`).join('\n');
+  return `ملخص Azzouz AI المقيّد بالمراجع حول «${stripMarkup(query, 180)}»:\n${points || 'تتوفر سجلات وعناوين، لكن لا يتوفر مقتطف نصي كافٍ لصياغة ملخص.'}\n\nالمصادر التي بُني عليها هذا الملخص: ${sourceNames}. هذا توليد لغوي من النتائج المسترجعة، وليس اقتباسًا حرفيًا ولا إثباتًا نهائيًا؛ راجع الروابط الأصلية قبل الاعتماد.`;
+}
+
 function reserveSearchSlot() {
   const now = Date.now();
   state.searchTimes = state.searchTimes.filter((time) => now - time < 60000);
@@ -402,18 +410,20 @@ async function submitQuestion({ spoken = false } = {}) {
     const summary = wasCancelled
       ? `أُوقف البحث بعد سحب الموافقة. عُرضت فقط النتائج التي اكتملت قبل الإيقاف (${citations.length} نتيجة من ${successfulCount} مصادر)؛ لم يبدأ التطبيق طلبات المصادر المتبقية.`
       : citations.length
-        ? `انتهى الاسترجاع: ${citations.length} نتيجة من ${successfulCount} مصادر استجابت. هذه مقتطفات وبيانات مصدرية وليست إجابة مولّدة أو تحققًا نهائيًا؛ افتح الروابط لمراجعة السياق الأصلي.`
+        ? `انتهى الاسترجاع: ${citations.length} نتيجة من ${successfulCount} مصادر استجابت. سيُبنى الملخص التالي من هذه المقتطفات فقط؛ افتح الروابط لمراجعة السياق الأصلي.`
         : `لم تُرجع المصادر نتائج قابلة للعرض. نجحت استجابة ${successfulCount} من أصل ${API_SOURCES.length} واجهات؛ افحص الحالة أعلاه وجرّب عبارة أدق لاحقًا.`;
     appendMessage(summary, wasCancelled || !citations.length ? 'warning' : 'system');
+    const groundedAnswer = !wasCancelled ? buildGroundedAnswer(query, citations) : '';
+    if (groundedAnswer) appendMessage(groundedAnswer, 'system');
     if (citations.length) appendResultCards(citations);
     if (!wasCancelled) {
       appendManualSearchLink(query);
-      saveMemory(query, summary, citations);
+      saveMemory(query, groundedAnswer || summary, citations);
     }
     setStatus(wasCancelled
       ? 'أُوقف البحث؛ لم تُحفظ نتائج جزئية في الذاكرة.'
       : `اكتمل البحث · ${successfulCount} مصادر ناجحة · ${citations.length} استشهادات${elements.rememberQuestion.checked ? ' · حُفظ محليًا' : ''}.`);
-    if (spoken) speakText(summary);
+    if (spoken) speakText(groundedAnswer || summary);
   } catch {
     const message = 'تعذر إكمال عرض النتائج بسبب خطأ غير متوقع. لا تتضمن الرسالة تفاصيل السؤال أو بيانات شخصية.';
     appendMessage(message, 'warning');
