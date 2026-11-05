@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Azzouz AI مساعد بحث تجريبي يعرض مقتطفات وروابط مصادر عامة، مع بحث صوتي اختياري وذاكرة محلية على جهازك.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.alquran.cloud https://ar.wikipedia.org https://en.wikipedia.org https://api.openalex.org https://api.crossref.org https://api.github.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.alquran.cloud https://ar.wikipedia.org https://en.wikipedia.org https://api.openalex.org https://api.crossref.org https://api.github.com https://api.duckduckgo.com https://openlibrary.org https://api.quotable.io https://numbersapi.com;">
   <meta name="theme-color" content="#060a08">
   <title>Azzouz AI · مساعد بحث بالمراجع</title>
   <link rel="stylesheet" href="/azzouz-ai/azzouz-ai.css">
@@ -19,7 +19,7 @@
           <p class="kicker">مختبر بحث تجريبي · يعمل عبر GitHub Pages</p>
         </div>
         <h1>Azzouz AI · مساعد بحث بالمراجع</h1>
-        <p class="lead">ابحث في القرآن وويكيبيديا وOpenAlex وCrossref وGitHub. يعرض هذا الإصدار نتائج ومقتطفات وروابطها؛ لا يستخدم نموذجًا لغويًا لتوليد جواب أو لإثبات صحة ادعاء.</p>
+        <p class="lead">ابحث في القرآن وويكيبيديا وOpenAlex وCrossref وGitHub. يجمع Azzouz AI بين فهم الأنماط وصياغة ملخص محلي وبين البحث المرجعي القابل للتدقيق؛ لا يدّعي حفظ الكتب أو امتلاك معرفة كاملة بالإنترنت.</p>
       </div>
       <div class="stats-grid" aria-label="إحصاءات فعلية للجلسة">
         <div class="stat">الأسئلة<strong id="question-count">0</strong></div>
@@ -35,7 +35,7 @@
           <h2 id="privacy-heading">الخصوصية والتحكم</h2>
           <label class="consent-row">
             <input id="external-consent" type="checkbox">
-            <span><strong>أوافق على البحث الخارجي.</strong> عند تفعيل هذا الخيار ثم الضغط على «ابحث»، يُرسل نص السؤال فقط إلى واجهات AlQuran Cloud وWikipedia وOpenAlex وCrossref وGitHub؛ لا تُرسل بيانات حساب أو مفتاح API من هذه الصفحة.</span>
+            <span><strong>أوافق على البحث الخارجي.</strong> عند تفعيل هذا الخيار ثم الضغط على «ابحث»، يُرسل نص السؤال فقط إلى المصادر العامة المحددة؛ لا تُرسل بيانات حساب أو مفتاح API من هذه الصفحة.</span>
           </label>
           <p class="consent-help">الطلبات قراءة فقط، وبحد أقصى 3 نتائج لكل مصدر وخمسة أسئلة بحث في الدقيقة داخل الجلسة. لا يبدأ اتصال تلقائيًا؛ لا تُدخل كلمات مرور أو بيانات حساسة، وتُدار سجلات الطلب لدى كل مزود وفق سياسته.</p>
           <label class="consent-row">
@@ -51,6 +51,39 @@
             <span><strong>أوافق على إخراج الصوت بعد السؤال بالصوت.</strong> قد يستخدم صوت النظام محركًا محليًا أو خدمة شبكة؛ لا يُنطق الرد النصي تلقائيًا بعد الكتابة، ويمكنك إيقاف النطق أو سحب هذه الموافقة في أي وقت.</span>
           </label>
           <p class="consent-help">للقرآن: النتائج مطابقة نصية وليست تفسيرًا أو فتوى. OpenAlex وCrossref فهارس/بيانات ببليوغرافية، وGitHub دليل مستودعات؛ اقرأ المصدر الأصلي قبل الاعتماد.</p>
+        </section>
+
+        <section class="night-panel" aria-labelledby="night-heading">
+          <div>
+            <p class="kicker">سرب الليل · اختياري</p>
+            <h2 id="night-heading">تعلّم دوري بموافقتك</h2>
+          </div>
+          <p>لا يبدأ السرب تلقائيًا. عند تشغيله، يستخدم موضوعًا تجريبيًا من القائمة ويرسله إلى المصادر بعد موافقة البحث الخارجي، ويحفظ النتيجة محليًا فقط إذا فعّلت خيار الحفظ.</p>
+          <div class="night-controls">
+            <label for="night-interval">الفاصل
+              <select id="night-interval">
+                <option value="1">دقيقة واحدة · تجربة</option>
+                <option value="5">5 دقائق</option>
+                <option value="10" selected>10 دقائق</option>
+                <option value="30">30 دقيقة</option>
+              </select>
+            </label>
+            <button id="night-toggle" class="secondary" type="button">تشغيل سرب الليل</button>
+            <button id="morning-report" class="secondary" type="button">تقرير الصباح</button>
+          </div>
+          <p id="night-status" class="night-status" role="status" aria-live="polite">السرب متوقف · لم تُرسل مواضيع تلقائيًا.</p>
+        </section>
+
+        <section class="ai-explainer" aria-labelledby="ai-explainer-title">
+          <p class="kicker">AZZOUZ AI · كيف يعمل؟</p>
+          <h2 id="ai-explainer-title">ليس كتابًا محفوظًا، بل أنماط ثم تحقق بالمراجع</h2>
+          <p class="ai-explainer-intro">النماذج اللغوية لا تحتفظ عادةً بنسخة قابلة للتصفح من كل كتاب أو بحث. أثناء التدريب تتعلم أوزانًا وأنماطًا للعلاقة بين الكلمات والمعاني، ثم تولّد نصًا جديدًا عند السؤال. لذلك قد تخطئ ولا ينبغي اعتبار التوليد مرجعًا بذاته.</p>
+          <div class="ai-explainer-grid">
+            <article><strong>1 · التدريب على بيانات واسعة</strong><span>يتعلم النظام أنماطًا من نصوص وأكواد ومواد متنوعة بحسب بيانات النموذج وسياسة مزوده، لا من «ذاكرة كتب» يمكن فتحها حرفيًا.</span></article>
+            <article><strong>2 · فهم العلاقات والأنماط</strong><span>يحسب احتمالات لغوية وسياقية تساعده على ربط الأفكار وصياغة جواب؛ هذا ليس فهمًا بشريًا ولا ضمانًا للحقيقة.</span></article>
+            <article><strong>3 · توليد ثم بحث مباشر</strong><span>يصوغ Azzouz AI ملخصًا مقيّدًا بالمقتطفات المسترجعة، ويعرض روابط القرآن وWikipedia وOpenAlex وCrossref وGitHub كي تراجع الأصل.</span></article>
+          </div>
+          <p class="ai-explainer-note"><strong>المراحل العملية الثلاث:</strong> يقرأ مصادر متعددة، يستخرج الكلمات والمفاهيم المشتركة ليكوّن «فكرة جامعة» تقريبية، ثم يبحث في ذاكرته المحلية عن سؤال مطابق أو قريب ويضيف الجواب السابق إلى التحديث الجديد. لا يرسل السؤال ولا يبدأ بحثًا خارجيًا إلا بعد موافقتك، والذاكرة اختيارية ومحلية على جهازك فقط.</p>
         </section>
 
         <div id="chat" class="chat-log" role="log" aria-live="polite" aria-relevant="additions">
@@ -69,6 +102,9 @@
             <button id="speech-stop" class="secondary" type="button">إيقاف النطق</button>
             <button id="show-memory" class="secondary" type="button">عرض الذاكرة</button>
             <button id="clear-memory" class="danger" type="button">مسح الذاكرة</button>
+            <button id="export-memory" class="secondary" type="button">💾 تصدير الذاكرة</button>
+            <button id="import-memory" class="secondary" type="button">استيراد الذاكرة</button>
+            <input id="import-memory-file" type="file" accept="application/json,.json" hidden>
           </div>
           <div class="voice-settings">
             <label for="voice-language">لغة التعرف والنطق
@@ -94,7 +130,7 @@
       <aside class="panel" aria-labelledby="sources-heading">
         <div class="panel-header">
           <h2 id="sources-heading">المراجع المتاحة</h2>
-          <span class="pill">5 واجهات + ذاكرة محلية</span>
+          <span class="pill">10 مصادر + عقل محلي</span>
         </div>
         <ul class="source-list">
           <li>
@@ -122,15 +158,14 @@
             <span>مستودعات ومشاريع برمجية عامة؛ ليست مصدرًا علميًا عامًا.</span>
             <a href="https://docs.github.com/en/rest/search/search#search-repositories" target="_blank" rel="noopener noreferrer">توثيق البحث</a>
           </li>
-          <li>
-            <strong>ذاكرة Azzouz</strong>
-            <span>تطابق محلي اختياري على هذا الجهاز فقط؛ ليست مصدرًا مستقلًا ولا تتحقق من المعلومات.</span>
-          </li>
-          <li>
-            <strong>DuckDuckGo · بحث يدوي</strong>
-            <span>رابط بحث اختياري يفتحه المستخدم؛ لا تعتمد الصفحة على واجهة Instant Answer غير الموثقة حاليًا.</span>
-            <a href="https://duckduckgo.com/" target="_blank" rel="noopener noreferrer">فتح DuckDuckGo</a>
-          </li>
+          <li><strong>Wikipedia English</strong><span>مقارنة نتائج المصدر الإنجليزي مع ويكيبيديا العربية.</span></li>
+          <li><strong>DuckDuckGo · ملخص عام</strong><span>ملخص عام اختياري من Instant Answer API.</span></li>
+          <li><strong>Open Library · كتب</strong><span>فهرس الكتب والمؤلفين وسنوات النشر.</span></li>
+          <li><strong>Quotable · حكمة</strong><span>اقتباسات للمقارنة والإلهام، وليست دليلًا علميًا.</span></li>
+          <li><strong>Numbers API · حقيقة رياضية</strong><span>حقيقة عددية عند وجود رقم في السؤال.</span></li>
+          <li><strong>التحليل الداخلي · أبجد + آية</strong><span>حساب محلي لقيمة أبجد والجذر الرقمي ومؤشر آية/سورة.</span></li>
+          <li><strong>ذاكرة Azzouz</strong><span>آخر 100 سؤال سريعًا في LocalStorage، وحتى 500 معرفة متراكمة في IndexedDB.</span></li>
+          <li><strong>ذاكرة قابلة للنقل</strong><span>صدّر ملف azzouz-brain.json واستورده في جهاز آخر لنقل المعرفة المحلية.</span></li>
         </ul>
         <p class="disclaimer">هذه الصفحة لا تجمع كل الويب ولا تضمن اكتمال النتائج أو صحتها. البحث الخارجي يرسل عبارة البحث إلى الخدمات المحددة فقط بعد موافقتك؛ أما الذاكرة فتبقى محلية.</p>
         <ul id="source-status" class="source-status-list" aria-label="حالة واجهات المصادر"></ul>

@@ -22,10 +22,9 @@ const html = await readFile(new URL('./index.html', import.meta.url), 'utf8');
 const appSource = await readFile(new URL('./app.mjs', import.meta.url), 'utf8');
 const coreSource = await readFile(new URL('./core.mjs', import.meta.url), 'utf8');
 
-test('خمسة مصادر API محددة، والذاكرة محلية وDuckDuckGo يدوي فقط', () => {
-  assert.deepEqual(API_SOURCES.map((source) => source.id), ['alquran', 'wikipedia', 'openalex', 'crossref', 'github']);
-  assert.deepEqual(LOCAL_AND_MANUAL_SOURCES.map((source) => source.id), ['memory', 'duckduckgo-manual']);
-  assert.throws(() => buildSearchUrl('duckduckgo', 'black hole'), /غير معروف/);
+test('عشرة مصادر API والتحليل الداخلي وذاكرة Azzouz', () => {
+  assert.deepEqual(API_SOURCES.map((source) => source.id), ['alquran', 'wikipedia', 'openalex', 'crossref', 'github', 'wikipedia-en', 'duckduckgo', 'openlibrary', 'quotable', 'numbers']);
+  assert.deepEqual(LOCAL_AND_MANUAL_SOURCES.map((source) => source.id), ['memory', 'duckduckgo-manual', 'internal']);
   assert.equal(buildDuckDuckGoUrl('black hole').hostname, 'duckduckgo.com');
 });
 
@@ -217,6 +216,28 @@ test('الواجهة مشددة CSP وتستخدم عناصر DOM نصية ول�
   assert.match(coreSource, /credentials: 'omit'/u);
 });
 
+test('تصدير واستيراد الذاكرة يستخدمان صيغة إصدار قابلة للتوافق وحدودًا ودمجًا آمنًا', () => {
+  assert.match(appSource, /MEMORY_FORMAT = 'azzouz-brain'/u);
+  assert.match(appSource, /MEMORY_VERSION = 2/u);
+  assert.match(appSource, /MAX_MEMORY_FILE_BYTES = 2 \* 1024 \* 1024/u);
+  assert.match(appSource, /raw\?\.format && raw\.format !== MEMORY_FORMAT/u);
+  assert.match(appSource, /raw\?\.version && Number\(raw\.version\) > MEMORY_VERSION/u);
+  assert.match(appSource, /mergeMemoryEntries\(state\.memory, imported\)/u);
+  assert.match(appSource, /entryCount: state\.memory\.length/u);
+  assert.match(html, /id="export-memory"/u);
+  assert.match(html, /id="import-memory-file"/u);
+});
+
+test('سرب الليل اختياري ولا يبدأ إلا بعد موافقة البحث والحفظ المحلي', () => {
+  assert.match(appSource, /if \(!elements\.externalConsent\.checked\)/u);
+  assert.match(appSource, /if \(!elements\.rememberQuestion\.checked\)/u);
+  assert.match(appSource, /state\.nightTimer = window\.setInterval/u);
+  assert.match(appSource, /if \(state\.nightOn\) stopNight/u);
+  assert.match(appSource, /NIGHT_MEMORY_KEY/u);
+  assert.match(html, /id="night-toggle"/u);
+  assert.match(html, /id="morning-report"/u);
+});
+
 test('كل معرّفات DOM التي يستخدمها التطبيق موجودة في الصفحة', () => {
   const idsInHtml = new Set([...html.matchAll(/\bid="([^"]+)"/gu)].map((match) => match[1]));
   const idsInApp = [...appSource.matchAll(/getElementById\('([^']+)'\)/gu)].map((match) => match[1]);
@@ -252,6 +273,7 @@ test('سحب موافقة البحث يلغي الاتصالات الجارية 
     append(...nodes) { this.children.push(...nodes); }
     appendChild(node) { this.children.push(node); return node; }
     replaceChildren(...nodes) { this.children = [...nodes]; }
+    setAttribute() {}
     focus() {}
   }
 
@@ -297,7 +319,7 @@ test('سحب موافقة البحث يلغي الاتصالات الجارية 
     }
 
     assert.equal(abortCount, 3, 'all in-flight requests should receive abort signals');
-    assert.equal(requestCount, 3, 'the remaining two sources must not receive a request');
+    assert.equal(requestCount, 3, 'the remaining sources must not receive a request');
     assert.equal(question.value, 'black hole', 'the query should remain available for the user');
     assert.match(status.textContent, /أُوقف البحث/u);
 

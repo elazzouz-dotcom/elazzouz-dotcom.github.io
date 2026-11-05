@@ -14,7 +14,15 @@ import {
 } from './core.mjs';
 
 const MEMORY_KEY = 'azzouz-ai-memory-v1';
-const MAX_MEMORY_ENTRIES = 50;
+const MEMORY_DB = 'azzouz-ai-brain-db';
+const MEMORY_STORE = 'knowledge';
+const MAX_MEMORY_ENTRIES = 500;
+const MAX_LOCAL_MEMORY_ENTRIES = 100;
+const MAX_MEMORY_FILE_BYTES = 2 * 1024 * 1024;
+const MEMORY_FORMAT = 'azzouz-brain';
+const MEMORY_VERSION = 2;
+const NIGHT_MEMORY_KEY = 'azzouz-ai-night-topics-v1';
+const NIGHT_TOPICS = Object.freeze(['الثقب الأسود', 'النحل', 'فيزياء الكم', 'الذكاء الاصطناعي', 'النظام الشمسي', 'الدماغ البشري', 'دورة الماء', 'البناء الضوئي', 'مستعمرة النمل', 'المحيطات', 'الجبال', 'الرياضيات', 'الهندسة', 'التاريخ', 'الخط العربي']);
 const MAX_SEARCHES_PER_MINUTE = 5;
 const REQUEST_TIMEOUT_MS = 10000;
 const SOURCE_LABELS = Object.freeze(Object.fromEntries(API_SOURCES.map((source) => [source.id, source.label])));
@@ -35,6 +43,13 @@ const elements = {
   voiceRate: document.getElementById('voice-rate'),
   showMemory: document.getElementById('show-memory'),
   clearMemory: document.getElementById('clear-memory'),
+  exportMemory: document.getElementById('export-memory'),
+  importMemory: document.getElementById('import-memory'),
+  importMemoryFile: document.getElementById('import-memory-file'),
+  nightInterval: document.getElementById('night-interval'),
+  nightToggle: document.getElementById('night-toggle'),
+  morningReport: document.getElementById('morning-report'),
+  nightStatus: document.getElementById('night-status'),
   sourceStatus: document.getElementById('source-status'),
   questionCount: document.getElementById('question-count'),
   citationCount: document.getElementById('citation-count'),
@@ -54,8 +69,13 @@ const state = {
   activeQuery: '',
   recognition: null,
   voiceSession: false,
-  busy: false
+  busy: false,
+  nightOn: false,
+  nightTimer: null,
+  nightIndex: 0,
+  nightTopics: []
 };
+let memoryDbPromise;
 
 function setStatus(message, kind = '') {
   elements.status.textContent = String(message);
@@ -67,6 +87,28 @@ function updateStats() {
   elements.citationCount.textContent = String(state.citationCount);
   elements.sourceCount.textContent = String(state.successfulSources);
   elements.memoryCount.textContent = state.memoryLoaded ? String(state.memory.length) : 'غير مفعّلة';
+}
+
+function loadNightTopics() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(NIGHT_MEMORY_KEY) || '[]');
+    state.nightTopics = Array.isArray(raw) ? raw.map((item) => ({
+      question: stripMarkup(item?.question, 180),
+      createdAt: Number.isFinite(Number(item?.createdAt)) ? Number(item.createdAt) : 0
+    })).filter((item) => item.question).slice(-100) : [];
+  } catch {
+    state.nightTopics = [];
+  }
+}
+function saveNightTopics() {
+  try { localStorage.setItem(NIGHT_MEMORY_KEY, JSON.stringify(state.nightTopics.slice(-100))); } catch { /* التخزين الاختياري قد لا يتاح */ }
+}
+function updateNightStatus(message = '') {
+  if (!elements.nightStatus) return;
+  const prefix = state.nightOn ? 'السرب يعمل' : 'السرب متوقف';
+  elements.nightStatus.textContent = `${prefix} · ${state.nightTopics.length} موضوعًا محليًا${message ? ` · ${message}` : ''}`;
+  elements.nightToggle.textContent = state.nightOn ? 'إيقاف سرب الليل' : 'تشغيل سرب الليل';
+  elements.nightToggle.setAttribute('aria-pressed', String(state.nightOn));
 }
 
 function appendMessage(text, kind = 'system') {
@@ -144,30 +186,85 @@ function renderSourceStatuses(statuses) {
   }
 }
 
+function normalizeMemoryEntries(entries) {
+  return (Array.isArray(entries) ? entries : []).map((entry) => ({
+    question: stripMarkup(entry?.question, 300),
+    answer: stripMarkup(entry?.answer, 1000),
+    createdAt: Number.isFinite(Number(entry?.createdAt)) ? Number(entry.createdAt) : 0,
+    citations: Array.isArray(entry?.citations) ? entry.citations.map(normalizeStoredCitation).filter(Boolean).slice(0, 15) : []
+  })).filter((entry) => entry.question).slice(-MAX_MEMORY_ENTRIES);
+}
+function memoryIdentity(question) {
+  return stripMarkup(question, 300).normalize('NFKC').trim().replace(/\s+/gu, ' ').toLocaleLowerCase('ar');
+}
+function mergeMemoryEntries(current, incoming) {
+  const merged = new Map();
+  for (const entry of normalizeMemoryEntries([...current, ...incoming])) {
+    const key = memoryIdentity(entry.question);
+    const previous = merged.get(key);
+    if (!previous || Number(entry.createdAt || 0) >= Number(previous.createdAt || 0)) merged.set(key, entry);
+  }
+  return [...merged.values()].sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0)).slice(-MAX_MEMORY_ENTRIES);
+}
+function openMemoryDb() {
+  if (!('indexedDB' in window)) return Promise.resolve(null);
+  if (memoryDbPromise) return memoryDbPromise;
+  memoryDbPromise = new Promise((resolve) => {
+    const request = indexedDB.open(MEMORY_DB, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(MEMORY_STORE, { keyPath: 'question' });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+  });
+  return memoryDbPromise;
+}
+async function readBrainMemory() {
+  const db = await openMemoryDb();
+  if (!db) return [];
+  return new Promise((resolve) => {
+    const request = db.transaction(MEMORY_STORE, 'readonly').objectStore(MEMORY_STORE).getAll();
+    request.onsuccess = () => resolve(normalizeMemoryEntries(request.result));
+    request.onerror = () => resolve([]);
+  });
+}
+async function writeBrainMemory(entries) {
+  const db = await openMemoryDb();
+  if (!db) return false;
+  await new Promise((resolve) => {
+    const tx = db.transaction(MEMORY_STORE, 'readwrite');
+    const store = tx.objectStore(MEMORY_STORE);
+    store.clear();
+    normalizeMemoryEntries(entries).forEach((entry) => store.put(entry));
+    tx.oncomplete = resolve;
+    tx.onerror = resolve;
+  });
+  return true;
+}
 function loadMemory() {
   if (state.memoryLoaded) return state.memory;
   state.memoryLoaded = true;
   try {
     const raw = localStorage.getItem(MEMORY_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    state.memory = Array.isArray(parsed)
-      ? parsed.slice(-MAX_MEMORY_ENTRIES).map((entry) => {
-          const citations = Array.isArray(entry?.citations)
-            ? entry.citations.map(normalizeStoredCitation).filter(Boolean).slice(0, 15)
-            : [];
-          return {
-            question: stripMarkup(entry?.question, 300),
-            answer: stripMarkup(entry?.answer, 700),
-            createdAt: Number.isFinite(Number(entry?.createdAt)) ? Number(entry.createdAt) : 0,
-            citations
-          };
-        }).filter((entry) => entry.question)
-      : [];
+    state.memory = normalizeMemoryEntries(parsed).slice(-MAX_LOCAL_MEMORY_ENTRIES);
   } catch {
     state.memory = [];
   }
   updateStats();
+  void readBrainMemory().then((brain) => {
+    if (!brain.length) return;
+    state.memory = mergeMemoryEntries(state.memory, brain);
+    updateStats();
+  });
   return state.memory;
+}
+
+async function persistMemory() {
+  const entries = normalizeMemoryEntries(state.memory);
+  localStorage.setItem(MEMORY_KEY, JSON.stringify(entries.slice(-MAX_LOCAL_MEMORY_ENTRIES)));
+  await writeBrainMemory(entries);
+  state.memory = entries;
+  state.memoryLoaded = true;
+  updateStats();
 }
 
 function saveMemory(question, answer, citations = []) {
@@ -185,11 +282,9 @@ function saveMemory(question, answer, citations = []) {
       metadata: stripMarkup(item.metadata, 160)
     }))
   };
-  state.memory = state.memory.filter((entry) => entry.question !== record.question);
-  state.memory.push(record);
-  state.memory = state.memory.slice(-MAX_MEMORY_ENTRIES);
+  state.memory = mergeMemoryEntries(state.memory, [record]);
   try {
-    localStorage.setItem(MEMORY_KEY, JSON.stringify(state.memory));
+    void persistMemory().catch(() => setStatus('تعذر مزامنة الذاكرة مع التخزين الدائم؛ بقيت النتيجة في جلسة الصفحة.', 'warning'));
     updateStats();
     return true;
   } catch {
@@ -205,6 +300,83 @@ function renderMemoryMatch(record) {
     ? record.citations.map(normalizeStoredCitation).filter(Boolean)
     : [];
   if (citations.length) appendResultCards(citations, (id) => `ذاكرة محلية · ${sourceName(id)}`);
+}
+async function exportMemory() {
+  elements.exportMemory.disabled = true;
+  elements.importMemory.disabled = true;
+  setStatus('جارٍ تجهيز ملف الذاكرة…');
+  try {
+    loadMemory();
+    const brain = await readBrainMemory();
+    state.memory = mergeMemoryEntries(state.memory, brain);
+    const payload = {
+      format: MEMORY_FORMAT,
+      version: MEMORY_VERSION,
+      exportedAt: new Date().toISOString(),
+      entryCount: state.memory.length,
+      nightTopics: state.nightTopics.slice(-100),
+      entries: normalizeMemoryEntries(state.memory)
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = 'azzouz-brain.json'; link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    setStatus(`تم تصدير ${payload.entries.length} ذاكرة إلى azzouz-brain.json.`);
+  } catch {
+    setStatus('تعذر تجهيز ملف الذاكرة؛ لم تتغير الذاكرة المحلية.', 'warning');
+  } finally {
+    elements.exportMemory.disabled = false;
+    elements.importMemory.disabled = false;
+  }
+}
+async function importMemoryFile(file) {
+  if (!file) return;
+  if (file.size > MAX_MEMORY_FILE_BYTES) {
+    setStatus('ملف الذاكرة أكبر من 2 ميغابايت؛ اختر ملفًا أصغر.', 'warning');
+    return;
+  }
+  elements.importMemory.disabled = true;
+  elements.exportMemory.disabled = true;
+  setStatus('جارٍ فحص ملف الذاكرة ودمجه…');
+  try {
+    const raw = JSON.parse(await file.text());
+    const entries = Array.isArray(raw) ? raw : raw?.entries;
+    if (!Array.isArray(entries)) throw new Error('صيغة الملف غير صحيحة: يجب أن يحتوي على entries.');
+    if (raw?.format && raw.format !== MEMORY_FORMAT) throw new Error('هذا الملف ليس ملف ذاكرة Azzouz صالحًا.');
+    if (raw?.version && Number(raw.version) > MEMORY_VERSION) throw new Error('إصدار ملف الذاكرة أحدث من هذا التطبيق. حدّث الصفحة ثم أعد المحاولة.');
+    const imported = normalizeMemoryEntries(entries);
+    if (!imported.length) throw new Error('الملف لا يحتوي على ذاكرة صالحة.');
+    loadMemory();
+    const before = new Map(state.memory.map((entry) => [memoryIdentity(entry.question), entry]));
+    state.memory = mergeMemoryEntries(state.memory, imported);
+    const added = imported.filter((entry) => !before.has(memoryIdentity(entry.question))).length;
+    const updated = imported.length - added;
+    await persistMemory();
+    if (Array.isArray(raw?.nightTopics)) {
+      state.nightTopics = raw.nightTopics.map((item) => ({
+        question: stripMarkup(item?.question, 180),
+        createdAt: Number.isFinite(Number(item?.createdAt)) ? Number(item.createdAt) : Date.now()
+      })).filter((item) => item.question).slice(-100);
+      saveNightTopics();
+      updateNightStatus();
+    }
+    setStatus(`تم الدمج بنجاح: ${added} جديدة، ${updated} محدثة، والإجمالي ${state.memory.length} ذاكرة.`);
+  } catch (error) {
+    setStatus(error?.message || 'تعذر استيراد ملف الذاكرة.', 'warning');
+  } finally {
+    elements.importMemory.disabled = false;
+    elements.exportMemory.disabled = false;
+  }
+}
+
+function buildInternalAnalysis(query) {
+  const abjad = { ا: 1, أ: 1, إ: 1, آ: 1, ب: 2, ج: 3, د: 4, ه: 5, ة: 5, و: 6, ز: 7, ح: 8, ط: 9, ي: 10, ى: 10, ك: 20, ل: 30, م: 40, ن: 50, س: 60, ع: 70, ف: 80, ص: 90, ق: 100, ر: 200, ش: 300, ت: 400, ث: 500, خ: 600, ذ: 700, ض: 800, ظ: 900, غ: 1000 };
+  const value = [...String(query)].reduce((sum, letter) => sum + (abjad[letter] || 0), 0);
+  const number = Number(String(query).match(/\d+/u)?.[0] || 0);
+  const root = (n) => n ? 1 + ((n - 1) % 9) : 0;
+  const ayah = number >= 1 && number <= 114 ? `الرقم ${number} يمكن استخدامه كمؤشر سورة/آية داخل المختبر؛ لا يمثل تفسيرًا أو حكمًا.` : 'لم يُذكر رقم بين 1 و114 في السؤال.';
+  return { sourceId: 'internal', title: 'التحليل الداخلي · أبجد + آية', excerpt: `قيمة أبجد التقريبية لعبارة السؤال: ${value}. الجذر الرقمي: ${root(value)}. ${ayah}`, url: 'https://elazzouz-dotcom.github.io/azzouz-ai/#internal-analysis', metadata: 'حساب محلي قابل للتكرار · لا اتصال خارجي' };
 }
 
 function validateMathQuestion(question) {
@@ -226,6 +398,31 @@ function appendManualSearchLink(query) {
   link.textContent = 'افتح البحث يدويًا';
   paragraph.append(note, link);
   elements.chat.appendChild(paragraph);
+}
+
+const MEMORY_STOPWORDS = new Set('من في على إلى عن مع هذا هذه ذلك التي الذي هو هي من كان تكون يتم حول بين بعد قبل عند أو و ثم كما إن أن لا ما قد كل'.split(' '));
+function meaningfulTokens(value) {
+  return stripMarkup(value, 1200).toLocaleLowerCase('ar').replace(/[\u0640\u064b-\u065f\u06d6-\u06ed]/gu, '').split(/[^\p{L}\p{N}]+/u).filter((token) => token.length > 2 && !MEMORY_STOPWORDS.has(token));
+}
+function relatedMemories(memory, query) {
+  const queryTokens = new Set(meaningfulTokens(query));
+  if (!queryTokens.size) return [];
+  return memory.map((entry) => {
+    const entryTokens = new Set(meaningfulTokens(`${entry.question} ${entry.answer}`));
+    const overlap = [...queryTokens].filter((token) => entryTokens.has(token)).length;
+    return { entry, score: overlap / queryTokens.size };
+  }).filter((item) => item.score >= 0.34).sort((a, b) => b.score - a.score || Number(b.entry.createdAt || 0) - Number(a.entry.createdAt || 0)).slice(0, 3);
+}
+function buildGroundedAnswer(query, citations, previous = []) {
+  if (!citations.length) return '';
+  const usable = citations.filter((item) => item.excerpt).slice(0, 6);
+  const sourceNames = [...new Set(citations.map((item) => sourceName(item.sourceId)))].join('، ');
+  const counts = new Map();
+  usable.forEach((item) => meaningfulTokens(item.excerpt).forEach((token) => counts.set(token, (counts.get(token) || 0) + 1)));
+  const sharedTerms = [...counts.entries()].filter(([, count]) => count >= Math.min(2, usable.length)).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([token]) => token);
+  const points = usable.slice(0, 4).map((item) => `• ${stripMarkup(item.excerpt, 240)}`).join('\n');
+  const memoryNote = previous.length ? `\n\nذاكرة سابقة مرتبطة بالسؤال:\n${previous.map(({ entry }) => `• ${stripMarkup(entry.answer, 220)}`).join('\n')}\nتمت مقارنة الذاكرة بالمصادر الجديدة وإضافة التحديث بدل استبدالها.` : '';
+  return `ملخص Azzouz AI المقيّد بالمراجع حول «${stripMarkup(query, 180)}»:\n\nالفكرة الجامعة التقريبية: ${sharedTerms.length ? `تتكرر بين المقتطفات مفاهيم ${sharedTerms.join('، ')}؛ لذلك يجمعها هذا المحور المشترك.` : 'لا توجد كلمات مشتركة كافية، لذا أعرض المقتطفات للمقارنة بدل اختلاق فكرة موحدة.'}\n\nالمقتطفات الداعمة:\n${points || 'تتوفر سجلات وعناوين، لكن لا يتوفر مقتطف نصي كافٍ لصياغة ملخص.'}${memoryNote}\n\nالمصادر: ${sourceNames}. هذا تركيب لغوي خوارزمي من النتائج المسترجعة، وليس اقتباسًا حرفيًا ولا إثباتًا نهائيًا؛ راجع الروابط الأصلية قبل الاعتماد.`;
 }
 
 function reserveSearchSlot() {
@@ -288,7 +485,7 @@ function loadMemoryBeforeQuestion() {
   return elements.rememberQuestion.checked ? loadMemory() : [];
 }
 
-async function submitQuestion({ spoken = false } = {}) {
+async function submitQuestion({ spoken = false, night = false } = {}) {
   if (state.busy) return;
   const query = elements.question.value.trim();
   if (!query) {
@@ -303,7 +500,7 @@ async function submitQuestion({ spoken = false } = {}) {
 
   state.questionCount += 1;
   updateStats();
-  appendMessage(query, 'user');
+  appendMessage(night ? `🌙 سرب الليل يدرس: ${query}` : query, night ? 'night' : 'user');
   elements.question.value = '';
 
   let mathResult = null;
@@ -321,15 +518,17 @@ async function submitQuestion({ spoken = false } = {}) {
   }
 
   const memory = loadMemoryBeforeQuestion();
-  const match = findExactMemory(memory, query);
-  if (match) renderMemoryMatch(match);
+  const exactMatch = findExactMemory(memory, query);
+  const related = relatedMemories(memory, query);
+  if (exactMatch) renderMemoryMatch(exactMatch);
+  else if (related.length) appendMessage(`تذكرت ${related.length} إجابة مرتبطة بهذا السؤال، وسأقارنها بالمصادر الجديدة بدل البدء من الصفر.`, 'system');
 
   if (!elements.externalConsent.checked) {
     const explanation = 'لم أرسل السؤال إلى أي مصدر. فعّل موافقة البحث الخارجي ثم اضغط «ابحث بالمراجع» إذا أردت طلب نتائج جديدة.';
     appendMessage(explanation, 'warning');
     elements.question.value = query;
     setStatus('البحث الخارجي متوقف حتى توافق صراحةً.', 'warning');
-    if (spoken) speakText(match?.answer || 'فعّل موافقة البحث الخارجي أولًا أو اكتب سؤالك محليًا.');
+    if (spoken) speakText(exactMatch?.answer || 'فعّل موافقة البحث الخارجي أولًا أو اكتب سؤالك محليًا.');
     return;
   }
 
@@ -349,7 +548,7 @@ async function submitQuestion({ spoken = false } = {}) {
   state.controllers.clear();
   elements.ask.disabled = true;
   elements.voiceStart.disabled = true;
-  elements.status.textContent = 'جارٍ البحث في خمس واجهات عامة؛ أُرسل نص السؤال فقط.';
+  elements.status.textContent = 'جارٍ البحث في المصادر العامة؛ أُرسل نص السؤال فقط.';
   const language = queryLanguage(query);
   const statuses = Object.fromEntries(API_SOURCES.map((source) => [source.id, { text: 'جارٍ البحث…', kind: '' }]));
   renderSourceStatuses(statuses);
@@ -393,7 +592,7 @@ async function submitQuestion({ spoken = false } = {}) {
       }
     });
 
-    citations = responses.flatMap((response) => response.results);
+    citations = [buildInternalAnalysis(query), ...responses.flatMap((response) => response.results)];
     state.successfulSources = successfulCount;
     state.citationCount += citations.length;
     updateStats();
@@ -402,18 +601,20 @@ async function submitQuestion({ spoken = false } = {}) {
     const summary = wasCancelled
       ? `أُوقف البحث بعد سحب الموافقة. عُرضت فقط النتائج التي اكتملت قبل الإيقاف (${citations.length} نتيجة من ${successfulCount} مصادر)؛ لم يبدأ التطبيق طلبات المصادر المتبقية.`
       : citations.length
-        ? `انتهى الاسترجاع: ${citations.length} نتيجة من ${successfulCount} مصادر استجابت. هذه مقتطفات وبيانات مصدرية وليست إجابة مولّدة أو تحققًا نهائيًا؛ افتح الروابط لمراجعة السياق الأصلي.`
+        ? `انتهى الاسترجاع: ${citations.length} نتيجة من ${successfulCount} مصادر استجابت. سيُبنى الملخص التالي من هذه المقتطفات فقط؛ افتح الروابط لمراجعة السياق الأصلي.`
         : `لم تُرجع المصادر نتائج قابلة للعرض. نجحت استجابة ${successfulCount} من أصل ${API_SOURCES.length} واجهات؛ افحص الحالة أعلاه وجرّب عبارة أدق لاحقًا.`;
     appendMessage(summary, wasCancelled || !citations.length ? 'warning' : 'system');
+    const groundedAnswer = !wasCancelled ? buildGroundedAnswer(query, citations, related) : '';
+    if (groundedAnswer) appendMessage(groundedAnswer, 'system');
     if (citations.length) appendResultCards(citations);
     if (!wasCancelled) {
       appendManualSearchLink(query);
-      saveMemory(query, summary, citations);
+      saveMemory(query, groundedAnswer || summary, citations);
     }
     setStatus(wasCancelled
       ? 'أُوقف البحث؛ لم تُحفظ نتائج جزئية في الذاكرة.'
       : `اكتمل البحث · ${successfulCount} مصادر ناجحة · ${citations.length} استشهادات${elements.rememberQuestion.checked ? ' · حُفظ محليًا' : ''}.`);
-    if (spoken) speakText(summary);
+    if (spoken) speakText(groundedAnswer || summary);
   } catch {
     const message = 'تعذر إكمال عرض النتائج بسبب خطأ غير متوقع. لا تتضمن الرسالة تفاصيل السؤال أو بيانات شخصية.';
     appendMessage(message, 'warning');
@@ -426,6 +627,62 @@ async function submitQuestion({ spoken = false } = {}) {
     elements.ask.disabled = false;
     elements.voiceStart.disabled = false;
   }
+}
+
+async function learnNightTopic() {
+  if (!state.nightOn || state.busy) return;
+  if (!elements.externalConsent.checked) {
+    stopNight('سُحبت موافقة البحث؛ لم يُرسل موضوع جديد.');
+    return;
+  }
+  const query = NIGHT_TOPICS[state.nightIndex % NIGHT_TOPICS.length];
+  state.nightIndex += 1;
+  state.nightTopics.push({ question: query, createdAt: Date.now() });
+  state.nightTopics = state.nightTopics.slice(-100);
+  saveNightTopics();
+  updateNightStatus(`الموضوع الحالي: ${query}`);
+  elements.question.value = query;
+  await submitQuestion({ night: true });
+  updateNightStatus('اكتمل آخر موضوع أو تعذر مصدر من مصادره.');
+}
+function stopNight(message = '') {
+  state.nightOn = false;
+  if (state.nightTimer) window.clearInterval(state.nightTimer);
+  state.nightTimer = null;
+  updateNightStatus(message);
+}
+function startNight() {
+  if (!elements.externalConsent.checked) {
+    setStatus('فعّل موافقة البحث الخارجي أولًا؛ سرب الليل لا يعمل دون موافقة.', 'warning');
+    return;
+  }
+  if (!elements.rememberQuestion.checked) {
+    setStatus('فعّل الحفظ المحلي أولًا حتى لا يعمل السرب دون حفظ اختياري واضح.', 'warning');
+    return;
+  }
+  state.nightOn = true;
+  const minutes = Math.max(1, Number(elements.nightInterval.value) || 10);
+  updateNightStatus(`الموضوع التالي كل ${minutes} دقيقة`);
+  void learnNightTopic();
+  state.nightTimer = window.setInterval(() => { void learnNightTopic(); }, minutes * 60 * 1000);
+  setStatus('سرب الليل يعمل بموافقتك؛ يمكنك إيقافه في أي وقت.');
+}
+function toggleNight() {
+  if (state.nightOn) stopNight('أوقفته يدويًا.');
+  else startNight();
+}
+function morningReport() {
+  loadNightTopics();
+  if (!state.nightTopics.length) {
+    appendMessage('لا يوجد تقرير ليلي بعد؛ شغّل سرب الليل يدويًا بعد تفعيل الموافقات.', 'night');
+    setStatus('لا توجد مواضيع ليلية محفوظة بعد.', 'warning');
+    return;
+  }
+  const topics = state.nightTopics.slice(-3).map((item) => item.question).join('، ');
+  const report = `تقرير Azzouz الصباحي: سُجل ${state.nightTopics.length} موضوعًا محليًا. آخر المواضيع: ${topics}. هذه سجلات بحث محلية وليست تعلمًا مستقلًا أو ضمانًا لصحة النتائج.`;
+  appendMessage(`🌅 ${report}`, 'night');
+  setStatus(`تقرير الصباح جاهز · ${state.nightTopics.length} موضوعًا محليًا.`);
+  if (elements.speechConsent.checked) speakText(report);
 }
 
 function renderMemory() {
@@ -444,9 +701,13 @@ function clearMemory() {
   if (!window.confirm('هل تريد مسح أسئلة ومراجع Azzouz AI المحفوظة على هذا الجهاز؟')) return;
   try {
     localStorage.removeItem(MEMORY_KEY);
+    localStorage.removeItem(NIGHT_MEMORY_KEY);
+    void writeBrainMemory([]);
     state.memory = [];
+    state.nightTopics = [];
     state.memoryLoaded = true;
     updateStats();
+    updateNightStatus();
     appendMessage('مُسحت الذاكرة المحلية من هذا المتصفح.', 'system');
     setStatus('تم مسح الذاكرة المحلية.');
   } catch {
@@ -546,6 +807,8 @@ function startVoice() {
 function initialize() {
   const initialStatuses = Object.fromEntries(API_SOURCES.map((source) => [source.id, { text: 'بانتظار موافقتك', kind: '' }]));
   renderSourceStatuses(initialStatuses);
+  loadNightTopics();
+  updateNightStatus();
   updateStats();
 
   elements.ask.addEventListener('click', () => { void submitQuestion(); });
@@ -563,12 +826,18 @@ function initialize() {
   });
   elements.showMemory.addEventListener('click', renderMemory);
   elements.clearMemory.addEventListener('click', clearMemory);
+  elements.nightToggle.addEventListener('click', toggleNight);
+  elements.morningReport.addEventListener('click', morningReport);
+  elements.exportMemory.addEventListener('click', () => { void exportMemory(); });
+  elements.importMemory.addEventListener('click', () => elements.importMemoryFile.click());
+  elements.importMemoryFile.addEventListener('change', (event) => { void importMemoryFile(event.target.files?.[0]); event.target.value = ''; });
   elements.externalConsent.addEventListener('change', () => {
     if (!elements.externalConsent.checked) {
       if (state.busy) {
         state.searchCancelled = true;
         for (const controller of state.controllers) controller.abort();
         if (state.activeQuery) elements.question.value = state.activeQuery;
+        if (state.nightOn) stopNight('سُحبت الموافقة؛ أُوقف السرب.');
         setStatus('سحبت الموافقة؛ أرسلت إلغاءً للاتصالات الجارية ومنعت بدء البقية. قد يكون المزود استلم الطلبات السابقة.', 'warning');
       } else {
         setStatus('الموافقة غير مفعّلة؛ لن يبدأ أي بحث خارجي.', 'warning');
