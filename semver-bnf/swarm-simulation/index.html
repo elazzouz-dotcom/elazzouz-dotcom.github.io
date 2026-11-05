@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="محاكاة عربية محلية للسرب ومختبر عينات من التوزيع المنتظم وGaussian وبواسون مع مخطط وإحصاءات؛ لا تفحص مواقع ولا ترسل بيانات.">
+  <title>محاكاة السرب المتوازن | Azzouz</title>
+  <link rel="canonical" href="https://elazzouz-dotcom.github.io/semver-bnf/swarm-simulation/">
+  <meta property="og:title" content="محاكاة السرب المتوازن | Azzouz">
+  <meta property="og:description" content="مختبر محلي لعينات التوزيع المنتظم وGaussian وبواسون، مع مخطط وإحصاءات وبذور قابلة لإعادة الإنتاج.">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/semver-bnf/swarm-simulation/">
+  <meta property="og:site_name" content="Azzouz">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/azzouz-logo.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="محاكاة السرب المتوازن | Azzouz">
+  <meta name="twitter:description" content="مختبر محلي لعينات التوزيع المنتظم وGaussian وبواسون، مع مخطط وإحصاءات وبذور قابلة لإعادة الإنتاج.">
+  <meta name="twitter:image" content="https://elazzouz-dotcom.github.io/assets/azzouz-logo.jpg">
+  <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/semver-bnf/semver-bnf.css">
+  <link rel="stylesheet" href="/semver-bnf/swarm-simulation/swarm-simulation.css">
+  <link rel="icon" type="image/jpeg" href="/assets/azzouz-logo.jpg">
+  <script src="/semver-bnf/swarm-simulation/numpy-pcg64.js" defer></script>
+  <script src="/semver-bnf/swarm-simulation/swarm-simulation-model.js" defer></script>
+  <script src="/semver-bnf/swarm-simulation/swarm-simulation.js" defer></script>
+</head>
+<body class="semver-page swarm-simulation-page">
+  <header class="semver-header">
+    <div class="semver-container semver-header-inner">
+      <a class="semver-brand" href="/" aria-label="Azzouz — الصفحة الرئيسية">
+        <img class="semver-brand-logo" src="/assets/azzouz-logo.jpg" alt="شعار Azzouz"><span>Azzouz</span>
+      </a>
+      <nav class="swarm-tool-nav" aria-label="التنقل">
+        <a href="/semver-bnf/">شبكة 6600 عقدة</a>
+        <a href="/tools/">فهرس الأدوات</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="semver-container swarm-tool-main">
+    <section class="swarm-tool-heading" aria-labelledby="swarm-title">
+      <p class="semver-kicker">العقدة N-6600 · تجربة محلية</p>
+      <h1 id="swarm-title">محاكاة السرب المتوازن</h1>
+      <p>قارن بين توزيع متوازن وتوزيعات مائلة، غيّر عدد الوكلاء والسرعة، ثم راقب كيف تتغير الأعداد ومؤشر التوازن.</p>
+    </section>
+
+    <section class="semver-card swarm-tool-shell" aria-label="لوحة المحاكاة">
+      <div class="swarm-notice" role="note">
+        <strong>محاكاة تعليمية فقط</strong>
+        <span>لا تفحص مواقع أو شبكات خارجية، ولا ترسل بيانات، ولا تمثل نظام حماية حقيقيًا.</span>
+        <span>تستخدم تسلسل NumPy PCG64 بالبذرة 12345؛ إعادة الضبط تعيد التسلسل إلى بدايته.</span>
+      </div>
+
+      <div class="swarm-metrics" aria-label="إحصاءات المحاكاة">
+        <article class="swarm-stat"><span>إجمالي الوكلاء</span><strong id="agent-count">57</strong><i class="swarm-meter"><i id="agent-meter"></i></i></article>
+        <article class="swarm-stat"><span>استكشاف</span><strong id="explore-count">19</strong><i class="swarm-meter"><i id="explore-meter"></i></i></article>
+        <article class="swarm-stat"><span>فحص تعليمي</span><strong id="inspect-count">19</strong><i class="swarm-meter swarm-meter-gold"><i id="inspect-meter"></i></i></article>
+        <article class="swarm-stat"><span>حماية افتراضية</span><strong id="protect-count">19</strong><i class="swarm-meter swarm-meter-blue"><i id="protect-meter"></i></i></article>
+        <article class="swarm-stat"><span>توازن الأدوار</span><strong id="balance-value">100%</strong><i class="swarm-meter"><i id="balance-meter"></i></i></article>
+      </div>
+      <p class="swarm-metric-note">مؤشر 100% يعني أن الأعداد موزعة بالتساوي بين الأدوار الثلاثة. هو وصف رياضي مبسط للتوزيع، وليس مقياسًا للأمن أو الحماية.</p>
+
+      <section class="swarm-settings" aria-label="إعدادات التجربة">
+        <div class="swarm-setting-card">
+          <label class="swarm-setting-label" for="swarm-scenario">سيناريو توزيع الأدوار</label>
+          <select id="swarm-scenario" class="semver-select">
+            <option value="balanced">توزيع متوازن</option>
+            <option value="explore-heavy">تركيز الاستكشاف</option>
+            <option value="inspect-heavy">تركيز الفحص التعليمي</option>
+            <option value="protect-heavy">تركيز الحماية الافتراضية</option>
+            <option value="random">توزيع عشوائي</option>
+          </select>
+          <button id="swarm-apply-scenario" class="semver-button" type="button">تطبيق السيناريو</button>
+        </div>
+        <div class="swarm-setting-card">
+          <label class="swarm-setting-label" for="swarm-count">عدد الوكلاء: <output id="swarm-count-value" for="swarm-count">57</output></label>
+          <input id="swarm-count" class="swarm-range" type="range" min="3" max="300" step="1" value="57" aria-describedby="swarm-count-help">
+          <p id="swarm-count-help" class="swarm-setting-help">من 3 إلى 300 وكيل</p>
+          <button id="swarm-apply-count" class="semver-button" type="button">تطبيق العدد</button>
+        </div>
+        <div class="swarm-setting-card">
+          <label class="swarm-setting-label" for="swarm-speed">سرعة المحاكاة: <output id="swarm-speed-value" for="swarm-speed">1×</output></label>
+          <input id="swarm-speed" class="swarm-range" type="range" min="0.5" max="3" step="0.5" value="1" aria-describedby="swarm-speed-help">
+          <p id="swarm-speed-help" class="swarm-setting-help">غيّر معدل خطوات المحاكاة</p>
+        </div>
+      </section>
+
+      <div class="swarm-controls" role="group" aria-label="أوامر المحاكاة">
+        <button id="swarm-toggle" class="semver-button semver-button-primary" type="button" aria-pressed="false">تشغيل المحاكاة</button>
+        <button id="swarm-rebalance" class="semver-button" type="button">إعادة توازن الأدوار</button>
+        <button id="swarm-add" class="semver-button" type="button">إضافة 10 وكلاء</button>
+        <button id="swarm-remove" class="semver-button" type="button">تقليل 10 وكلاء</button>
+        <button id="swarm-reset" class="semver-button" type="button">إعادة ضبط التجربة</button>
+        <button id="swarm-clear" class="semver-button semver-button-danger" type="button">مسح سجل الأحداث</button>
+      </div>
+
+      <div class="swarm-visual-card">
+        <div class="swarm-visual-heading">
+          <h2>الحركة بين الأدوار</h2>
+          <span id="swarm-state" class="swarm-state" role="status" aria-live="polite">المحاكاة متوقفة</span>
+        </div>
+        <canvas id="swarm-canvas" aria-label="رسم متحرك لوكلاء ملونين يتوزعون على ثلاثة أدوار تعليمية داخل مساحة مغلقة؛ لا يمثل اتصالًا شبكيًا."></canvas>
+        <div class="swarm-legend" aria-label="مفتاح الألوان">
+          <span><i class="swarm-dot swarm-dot-green"></i>استكشاف</span>
+          <span><i class="swarm-dot swarm-dot-gold"></i>فحص تعليمي</span>
+          <span><i class="swarm-dot swarm-dot-blue"></i>حماية افتراضية</span>
+        </div>
+      </div>
+
+      <div class="swarm-lower-grid">
+        <section class="swarm-explanation" aria-labelledby="swarm-about-title">
+          <h2 id="swarm-about-title">كيف يُحسب التوازن؟</h2>
+          <p>يقارن المؤشر أعداد الأدوار بالتوزيع المتساوي الممكن لعدد الوكلاء الحالي؛ 100% تعني توازنًا كاملًا، ويقل الرقم كلما تركزت الوكلاء في أدوار أقل.</p>
+          <p class="swarm-limit">هذا نموذج تعليمي مبسط، لا يقيس جودة الفحص ولا فاعلية الحماية. الحد الأعلى 300 وكيل، ويمكن تشغيل التجربة أو إيقافها في أي وقت.</p>
+        </section>
+        <section class="swarm-log-section" aria-labelledby="swarm-log-title">
+          <div class="swarm-log-heading"><h2 id="swarm-log-title">سجل الأحداث</h2><span>محلي في الصفحة</span></div>
+          <ol id="swarm-log" class="swarm-log" role="log" aria-live="polite" aria-relevant="additions text"></ol>
+        </section>
+      </div>
+
+      <section class="swarm-distribution-lab" aria-labelledby="swarm-distribution-title">
+        <header class="swarm-distribution-heading">
+          <div>
+            <p class="semver-kicker">مختبر احتمالي محلي</p>
+            <h2 id="swarm-distribution-title">تجربة التوزيعات الاحتمالية</h2>
+            <p>ولّد عينة، ثم راقب شكلها ومتوسطها وتباينها. هذا المختبر مستقل عن حركة السرب.</p>
+          </div>
+          <span class="swarm-distribution-badge">PCG64 · بلا اتصال خارجي</span>
+        </header>
+
+        <div class="swarm-distribution-controls" aria-label="إعدادات التوزيع والعينة">
+          <div class="swarm-distribution-field">
+            <label for="swarm-distribution">التوزيع</label>
+            <select id="swarm-distribution" class="semver-select" aria-controls="swarm-uniform-parameters swarm-gaussian-parameters swarm-poisson-parameters">
+              <option value="uniform">منتظم (Uniform)</option>
+              <option value="gaussian" selected>طبيعي (Gaussian)</option>
+              <option value="poisson">بواسون (Poisson)</option>
+            </select>
+          </div>
+          <div class="swarm-distribution-field">
+            <label for="swarm-sample-count">حجم العينة: <output id="swarm-sample-count-value" for="swarm-sample-count">500</output></label>
+            <input id="swarm-sample-count" class="swarm-range" type="range" min="50" max="2000" step="50" value="500" aria-describedby="swarm-sample-count-help">
+            <small id="swarm-sample-count-help">من 50 إلى 2000 قيمة</small>
+          </div>
+          <div class="swarm-distribution-field">
+            <label for="swarm-distribution-seed">بذرة العينة</label>
+            <input id="swarm-distribution-seed" class="swarm-number-input" type="text" inputmode="numeric" pattern="[0-9]+" maxlength="256" value="12345" aria-describedby="swarm-distribution-seed-help">
+            <small id="swarm-distribution-seed-help">عدد صحيح غير سالب؛ تكرار الإعدادات يعيد العينة نفسها.</small>
+          </div>
+        </div>
+
+        <fieldset id="swarm-uniform-parameters" class="swarm-distribution-parameters" hidden>
+          <legend>حدود التوزيع المنتظم</legend>
+          <label>الحد الأدنى <input id="swarm-uniform-min" type="number" min="-1000" max="1000" step="0.1" value="0"></label>
+          <label>الحد الأعلى <input id="swarm-uniform-max" type="number" min="-1000" max="1000" step="0.1" value="1"></label>
+        </fieldset>
+        <fieldset id="swarm-gaussian-parameters" class="swarm-distribution-parameters">
+          <legend>معاملات التوزيع الطبيعي (Gaussian)</legend>
+          <label>المتوسط μ <input id="swarm-gaussian-mean" type="number" min="-1000" max="1000" step="0.1" value="0"></label>
+          <label>الانحراف المعياري σ <input id="swarm-gaussian-deviation" type="number" min="0" max="100" step="0.1" value="1"></label>
+        </fieldset>
+        <fieldset id="swarm-poisson-parameters" class="swarm-distribution-parameters" hidden>
+          <legend>معامل توزيع بواسون</legend>
+          <label>المعدل λ <input id="swarm-poisson-lambda" type="number" min="0" max="100" step="0.1" value="4"></label>
+          <small>النطاق المدعوم: من 0 إلى 100.</small>
+        </fieldset>
+
+        <div class="swarm-distribution-actions">
+          <button id="swarm-generate-samples" class="semver-button semver-button-primary" type="button">توليد العينة وعرض المخطط</button>
+          <span id="swarm-distribution-state" role="status" aria-live="polite">جهّز المعاملات ثم ولّد العينة.</span>
+        </div>
+
+        <div class="swarm-distribution-results">
+          <canvas id="swarm-distribution-canvas" role="img" aria-label="مخطط تكراري لعينة التوزيع الاحتمالي"></canvas>
+          <dl class="swarm-distribution-summary" aria-label="إحصاءات العينة" aria-live="polite">
+            <div><dt>عدد القيم</dt><dd id="swarm-distribution-count-result">—</dd></div>
+            <div><dt>المتوسط</dt><dd id="swarm-distribution-mean-result">—</dd></div>
+            <div><dt>التباين</dt><dd id="swarm-distribution-variance-result">—</dd></div>
+            <div><dt>الحد الأدنى / الأعلى</dt><dd id="swarm-distribution-range-result">—</dd></div>
+          </dl>
+        </div>
+        <p class="swarm-distribution-note">يستخدم Gaussian تحويل Box–Muller، ويستخدم Poisson عكس دالة التوزيع التراكمية؛ تيار PCG64 الأساسي متوافق مع NumPy، لكن هذين التحويلين لا يدّعيان مطابقة عينات <code>Generator.normal()</code> أو <code>Generator.poisson()</code> حرفيًا.</p>
+      </section>
+    </section>
+    <p class="swarm-back-link"><a class="semver-button semver-button-subtle" href="/semver-bnf/">العودة إلى شبكة SemVer ذات 6600 عقدة</a></p>
+  </main>
+</body>
+</html>

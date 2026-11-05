@@ -1,0 +1,21 @@
+{
+  "name": "quranic-cyber-swarm",
+  "version": "1.0.0",
+  "description": "A consent-first, offline-friendly Web Component for a balanced visual swarm simulation.",
+  "type": "module",
+  "main": "./quranic-swarm.js",
+  "module": "./quranic-swarm.js",
+  "exports": {
+    ".": "./quranic-swarm.js"
+  },
+  "files": [
+    "quranic-swarm.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": ["web-component", "swarm", "canvas", "offline", "simulation"],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="مختبر عربي للتحقق من إصدارات Semantic Versioning واستكشاف شبكة تفاعلية من 6600 عقدة وروابط الويب بأمان داخل الموقع.">
+  <meta name="knowledge-api" content="https://azzouz-knowledge-api.YOUR_SUBDOMAIN.workers.dev">
+  <title>Slaks · مختبر SemVer وشبكة 6600 عقدة</title>
+  <link rel="canonical" href="https://elazzouz-dotcom.github.io/semver-bnf/">
+  <meta property="og:title" content="Slaks · مختبر SemVer وشبكة 6600 عقدة">
+  <meta property="og:description" content="تحقق محلي من الإصدارات، واستكشف شبكة تفاعلية من 6600 عقدة، واحفظ روابطك في متصفحك.">
+  <meta property="og:url" content="https://elazzouz-dotcom.github.io/semver-bnf/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://elazzouz-dotcom.github.io/assets/azzouz-logo.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/semver-bnf/semver-bnf.css">
+  <link rel="icon" type="image/jpeg" href="/assets/azzouz-logo.jpg">
+</head>
+<body class="semver-page">
+  <header class="semver-header">
+    <div class="semver-container semver-header-inner">
+      <a class="semver-brand" href="/" aria-label="Slaks — الصفحة الرئيسية">
+        <img class="semver-brand-logo" src="/assets/azzouz-logo.jpg" alt="شعار Slaks"><span>Slaks</span>
+      </a>
+      <button id="menu-toggle" class="semver-menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="فتح قائمة التنقل">☰</button>
+      <nav id="site-nav" class="semver-nav" aria-label="التنقل الرئيسي">
+        <a href="#node-chat-room">دردشة الذكاء المحلي</a>
+        <a href="/tools">الأدوات</a>
+        <a href="/api-tool">أدوات API</a>
+        <a href="/quran-analysis/">التحليل القرآني</a>
+        <a href="/semver-bnf/cosmic-law.html">محاكاة السرب الكوني الموحّدة</a>
+        <a href="/semver-bnf/mega-bridges.html">الجسور البرمجية الضخمة</a>
+        <a href="/semver-bnf/cosmic-law.html#quranic-component">مكوّن السرب الموحّد</a>
+        <a href="/">الرئيسية</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="semver-hero">
+      <div class="semver-container semver-hero-grid">
+        <div class="semver-hero-copy">
+          <p class="semver-eyebrow">مختبر الإصدارات · شبكة تفاعلية</p>
+          <h1>افهم الإصدار.<br><span>وتتبّع كل عقدة.</span></h1>
+          <p>تحقق من صيغة Semantic Versioning محليًا، واستكشف شبكة من 6600 عقدة. احفظ روابط الاتصال والويب، أو اعرض HTML محليًا داخل إطار معزول، ثم مرّر ملخصًا محليًا عبر مسار العقد.</p>
+          <div class="semver-actions">
+            <a class="semver-button semver-button-primary" href="#node-hub">استكشف شبكة العقد <span aria-hidden="true">↓</span></a>
+            <a class="semver-button semver-button-subtle" href="#node-chat-room">تحدث مع العقد</a>
+            <a class="semver-button semver-button-subtle" href="/semver-bnf/cosmic-law.html">شغّل السرب الموحّد</a>
+            <a class="semver-button semver-button-subtle" href="#validator">تحقق من إصدار</a>
+          </div>
+          <ul class="semver-proof-row" aria-label="خصائص المختبر">
+            <li><strong>6600</strong> عقدة</li>
+            <li><strong>6599</strong> علاقة</li>
+            <li>حفظ محلي في المتصفح</li>
+          </ul>
+        </div>
+        <div class="orbit-card">
+          <div class="orbit-card-head">
+            <strong>مسار الزمن المركّب · تجاوز نقطة التفرد</strong>
+            <button id="orbit-toggle" class="semver-button" type="button" aria-pressed="false">إيقاف الحركة</button>
+          </div>
+          <div class="orbit-canvas-wrap">
+            <canvas id="orbit-canvas" aria-label="رسم متحرك لمسار دائري في المستوى المركب يلتف حول نقطة التفرد، مع قطع فرعي أحمر على المحور الحقيقي السالب."></canvas>
+          </div>
+          <div class="orbit-caption"><span>المحور الحقيقي Re(t)</span><span>المحور التخيلي Im(t)</span></div>
+          <p class="orbit-note">تصور هندسي للمسار حول الأصل والقطع الفرعي. الرسم تعليمي ولا يمثل محاكاة فيزيائية أو قياسًا علميًا.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="node-plan" class="semver-section node-plan-section" aria-labelledby="node-plan-title">
+      <div class="semver-container">
+        <div class="node-plan-card">
+          <div class="node-plan-brand"><img src="/assets/azzouz-logo.jpg" alt="شعار Slaks"><span>Slaks</span><span class="node-plan-close" aria-hidden="true">×</span></div>
+          <div class="node-plan-content">
+            <p class="node-plan-kicker">6600 USER INFORMATION CARRIER</p>
+            <h2 id="node-plan-title">Slaks 6600 · ناقل معلومات المستخدم</h2>
+            <p class="node-plan-lead">مسار مرئي ينقل المعلومات من المواقع والنصوص البرمجية إلى عقد المستخدم، ثم يمررها إلى مختبر التحليل والتقرير النهائي.</p>
+            <div class="node-plan-stats" aria-label="إحصاءات المخطط"><span><strong>6600</strong> ناقل معلومات</span><span><strong>6599</strong> علاقة</span><span><strong>114</strong> مستويات متزايدة</span></div>
+            <div class="node-plan-flow" aria-label="مخطط تدفق معلومات 6600 عقدة">
+              <div class="node-plan-stage"><span class="node-plan-stage-title">المواقع</span><div class="node-plan-source node-plan-source-one">◉<small>مواقع</small></div><div class="node-plan-source node-plan-source-two">◈<small>روابط</small></div><div class="node-plan-source node-plan-source-three">◇<small>HTML</small></div></div>
+              <div class="node-plan-arrow">1</div>
+              <div class="node-plan-stage"><span class="node-plan-stage-title">النصوص البرمجية</span><div class="node-plan-stack"><span>Python · JSON</span><span>JavaScript · Workers</span><span>بيانات الجذور</span><span>نتائج المحاكاة</span></div></div>
+              <div class="node-plan-arrow">2</div>
+              <div class="node-plan-stage"><span class="node-plan-stage-title">USER NODES</span><div class="node-plan-box"><b>6600</b><small>ناقل معلومات</small></div><div class="node-plan-mini-row"><i>↔</i><i>↔</i><i>↔</i></div></div>
+              <div class="node-plan-arrow">3</div>
+              <div class="node-plan-stage"><span class="node-plan-stage-title">مختبر التحليل</span><div class="node-plan-analysis"><span>χ²</span><span>p</span><span>V</span></div><small>كاي-تربيع · مونت كارلو</small></div>
+              <div class="node-plan-arrow">4</div>
+              <div class="node-plan-stage"><span class="node-plan-stage-title">PUBLISH</span><div class="node-plan-publish">↗</div><small>المعاينة داخل الموقع</small></div>
+            </div>
+            <ol class="node-plan-steps">
+              <li><span>1</span><p>تُستقبل المعلومات من المواقع والروابط وملفات HTML المحلية.</p></li>
+              <li><span>2</span><p>تقرأ عقد الناقل نصوص Python وJavaScript وJSON وبيانات الجذور ونتائج المحاكاة.</p></li>
+              <li><span>3</span><p>تتدرج شبكة المستخدم من عقدة واحدة إلى 6600 عقدة عبر 114 مستوى متناسق.</p></li>
+              <li><span>4</span><p>تنقل كل عقدة المعلومات إلى فرعها ثم إلى الجذر دون فقدان العلاقة الهرمية.</p></li>
+              <li><span>5</span><p>تُحفظ الملخصات في نفق المعلومات وتصب تلقائيًا في الدردشة.</p></li>
+              <li><span>6</span><p>تُجمع البيانات في سجل عقدة واضح يمكن البحث فيه وتصفيته.</p></li>
+              <li><span>7</span><p>تُنشأ معاينة داخلية مع زر عرض الرابط دون مغادرة الموقع.</p></li>
+              <li><span>8</span><p>يعرض مختبر التحليل كاي-تربيع ونتائج مونت كارلو والروابط من بطاقة واحدة.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="sovereign-dashboard" class="semver-section" aria-labelledby="sovereign-dashboard-title">
+      <div class="semver-container">
+        <div class="semver-section-head">
+          <div><p class="semver-kicker">لوحة التشغيل الموحدة</p><h2 id="sovereign-dashboard-title">مراقبة العقد والتحليل في مكان واحد</h2><p>لوحة محلية تعرض حالة الفحص، ورادار بيانات السور، ومقاييس الشبكة دون استبدال أدوات المعاينة أو مسار المضخات.</p></div>
+        </div>
+        <div class="sovereign-dashboard-grid">
+          <article class="sovereign-panel">
+            <div class="sovereign-panel-heading"><h3>وكلاء الفحص وحالة خط البناء</h3><span id="agent-status" class="sovereign-live">● سرب يستعد</span></div>
+            <button id="swarm-toggle" class="semver-button swarm-toggle" type="button" aria-pressed="true">إيقاف السرب</button>
+            <div class="cosmic-swarm-bridge"><div class="cosmic-swarm-bridge-heading"><strong>المحاكاة الكونية المرتبطة بالعقد</strong><span id="cosmic-bridge-stats">57 وكيلًا · 0 زيارة · 0% بيانات</span></div><canvas id="cosmic-bridge-canvas" aria-label="محاكاة السرب الكوني المرتبط بشبكة العقد"></canvas><div id="cosmic-bridge-equations" class="cosmic-bridge-equations">a(t)=1.000x · Q(t)=320k حرف ثابت · N(t)=57 · توازن Δ=0 · استقرار 75%</div></div>
+            <div id="agent-code-view" class="agent-code-view" aria-live="polite">
+              <div class="agent-code-line" data-agent-line="0">01. initialize_sovereign_network(nodes=6600, levels=114)</div>
+              <div class="agent-code-line" data-agent-line="1">02. validate_hierarchy(edges=6599, parents=1)</div>
+              <div class="agent-code-line" data-agent-line="2">03. run_mod9_and_quran_metrics(B=200000)</div>
+              <div class="agent-code-line" data-agent-line="3">04. stress_test_information_pumps(waves=16)</div>
+              <div class="agent-code-line" data-agent-line="4">05. publish_after_quality_gate()</div>
+            </div>
+            <p id="agent-code-status" class="sovereign-muted">جاهز لتشغيل دورة فحص محلية.</p>
+          </article>
+          <article class="sovereign-panel">
+            <div class="sovereign-panel-heading"><h3>رادار السور وعقد الشبكة</h3><span id="radar-index" class="sovereign-live">1 / 114</span></div>
+            <div id="surah-radar" class="surah-radar" role="button" tabindex="0" aria-label="فحص سجل الرادار في مختبر Mod 9" aria-live="polite">
+              <strong id="radar-name">سورة الفاتحة (1)</strong>
+              <span id="radar-details">الآيات: 7 · النوع: مكية · الجذر المركب: 8 · الجمل: 525</span>
+              <div class="radar-meter"><span id="radar-meter-fill"></span></div>
+            </div>
+            <p class="sovereign-muted">يتنقل الرادار بين السجلات الـ114 من البيانات المحلية المولدة للتحليل.</p>
+          </article>
+        </div>
+        <article class="sovereign-panel swarm-report-panel" aria-labelledby="swarm-report-title">
+          <div class="sovereign-panel-heading"><h3 id="swarm-report-title">سجل تقارير الفحص الدوري</h3><span id="swarm-report-count" class="sovereign-live">0 سجل</span></div>
+          <p id="swarm-report-last" class="sovereign-muted">سيُحفظ كل فحص محليًا عند تشغيل السرب.</p>
+          <div class="swarm-report-actions">
+            <button id="swarm-report-json" class="semver-button" type="button">تصدير JSON</button>
+            <button id="swarm-report-csv" class="semver-button" type="button">تصدير CSV</button>
+            <button id="swarm-report-clear" class="semver-button semver-button-danger" type="button">مسح السجل</button>
+          </div>
+          <div id="swarm-report-log" class="swarm-report-log" role="log" aria-live="polite"></div>
+        </article>
+        <div class="sovereign-metrics" aria-label="المقاييس الأساسية">
+          <div><span>إجمالي العقد</span><strong>6600</strong></div>
+          <div><span>العلاقات الهرمية</span><strong>6599</strong></div>
+          <div><span>المستويات</span><strong>114</strong></div>
+          <div><span>عينات الضغط</span><strong>12.67M</strong></div>
+        </div>
+      </div>
+    </section>
+    <section id="node-hub" class="semver-section">
+      <div class="semver-container">
+        <div class="semver-section-head">
+          <div>
+            <p class="semver-kicker">شبكة SemVer Hub</p>
+            <h2>6600 عقدة، ومسار واضح بين الآباء والفروع</h2>
+            <p>تعمل العقد الـ6600 كناقلات معلومات بين المواقع والنصوص البرمجية ومختبر التحليل، مع شجرة علاقات تصل كل عقدة إلى الجذر. ابحث عن ناقل، صفِّ العقد، أو حرّكها أفقيًا وعموديًا.</p>
+          </div>
+        </div>
+        <div class="semver-stat-row" aria-label="ملخص الشبكة">
+          <div class="semver-stat"><span>إجمالي العقد</span><strong id="node-total">6600</strong></div>
+          <div class="semver-stat"><span>عقد تحتوي روابط أو HTML</span><strong id="active-count">0</strong></div>
+          <div class="semver-stat"><span>العلاقات الهرمية</span><strong id="relation-count">6599</strong></div>
+        </div>
+        <div class="node-toolbar">
+          <label class="semver-field-label search-field" for="node-search">بحث سريع في العقد
+            <span class="search-control"><span class="search-icon" aria-hidden="true">⌕</span><input id="node-search" class="semver-input" type="search" placeholder="N-6600 أو محاكاة السرب أو example.com" autocomplete="off"><button id="node-search-jump" class="search-jump" type="button" aria-label="الانتقال إلى رقم العقدة">↵</button><button id="node-search-clear" class="search-clear" type="button" aria-label="مسح البحث" hidden>×</button></span>
+          </label>
+          <label class="semver-field-label" for="node-filter">عرض العقد
+            <select id="node-filter" class="semver-select">
+              <option value="all">كل العقد</option>
+              <option value="active">المهيأة فقط</option>
+              <option value="empty">الفارغة فقط</option>
+            </select>
+          </label>
+          <label class="semver-field-label" for="software-filter">نوع المحتوى
+            <select id="software-filter" class="semver-select">
+              <option value="all">كل الأنواع</option>
+              <option value="software">برمجيات وتطبيقات</option>
+              <option value="download">ملفات تنزيل</option>
+              <option value="web">صفحات ويب</option>
+              <option value="app">روابط تطبيقات</option>
+              <option value="matrix">غرف Matrix</option>
+              <option value="html">HTML محلي</option>
+            </select>
+          </label>
+          <label class="semver-field-label" for="level-filter">المستوى
+            <select id="level-filter" class="semver-select">
+              <option value="all">كل المستويات</option>
+            </select>
+          </label>
+          <div class="node-toolbar-controls" role="group" aria-label="تحكم في تكبير الخريطة">
+            <button id="map-zoom-out" class="semver-button" type="button" aria-label="تصغير الخريطة">−</button>
+            <span id="zoom-level" aria-live="polite">100%</span>
+            <button id="map-zoom-in" class="semver-button" type="button" aria-label="تكبير الخريطة">+</button>
+            <button id="map-reset" class="semver-button" type="button">إعادة العرض</button><button id="map-fit" class="semver-button" type="button">ملاءمة الشبكة</button>
+            <button id="map-layout-reset" class="semver-button" type="button">استعادة ترتيب 8 سم</button>
+            <button id="show-all-nodes" class="semver-button semver-button-primary" type="button">عرض كل العقد</button>
+            <button id="map-root" class="semver-button" type="button">إلى الجذر</button>
+            <button id="export-nodes" class="semver-button" type="button">تصدير العقد JSON</button>
+            <button id="export-map-json" class="semver-button" type="button">تصدير الخريطة JSON</button>
+            <button id="export-map-svg" class="semver-button" type="button">صورة الخريطة SVG</button>
+            <button id="import-nodes" class="semver-button" type="button">استيراد JSON</button>
+            <input id="node-import-file" class="node-import-file" type="file" accept="application/json,.json" hidden>
+          </div>
+        </div>
+        <div id="quick-node-results" class="quick-node-results" aria-live="polite" hidden></div>
+        <details class="advanced-node-search">
+          <summary>بحث متقدم داخل الأنظمة الفرعية</summary>
+          <div class="advanced-node-search-body">
+            <label class="semver-field-label" for="node-search-mode">مطابقة الكلمات
+              <select id="node-search-mode" class="semver-select"><option value="all">كل الكلمات</option><option value="any">أي كلمة</option></select>
+            </label>
+            <label class="semver-field-label" for="node-sort">ترتيب النتائج
+              <select id="node-sort" class="semver-select"><option value="id">رقم العقدة</option><option value="level">المستوى ثم الرقم</option><option value="active">المهيأة أولًا</option></select>
+            </label>
+            <label class="semver-field-label" for="node-result-limit">عدد البطاقات
+              <select id="node-result-limit" class="semver-select"><option value="8">8</option><option value="16" selected>16</option><option value="32">32</option></select>
+            </label>
+            <p class="advanced-node-search-help">اكتب كلمات متعددة مثل <strong>N-600 VSAT</strong> أو <strong>software github</strong>. ابحث في رقم العقدة والرابط والتصنيف ومحتوى HTML، ثم اضغط بطاقة للانتقال إليها.</p>
+            <div id="advanced-node-results" class="advanced-node-results" aria-live="polite"></div>
+          </div>
+        </details>
+        <section class="node-centrality-panel" aria-labelledby="node-centrality-title">
+          <div class="node-centrality-head"><div><p class="semver-kicker">NETWORK CENTRALITY</p><h2 id="node-centrality-title">العقد الأكثر تأثيرًا</h2><p>الدرجة تقيس عدد الروابط المباشرة، والوساطة تقيس عدد المسارات التي تمر عبر العقدة بين أجزاء الشبكة.</p></div><span class="node-centrality-method">شجرة 6600 عقدة · 6599 علاقة</span></div>
+          <div class="node-centrality-grid"><div><h3>أعلى درجة</h3><ol id="centrality-degree-list"></ol></div><div><h3>أعلى وساطة</h3><ol id="centrality-betweenness-list"></ol></div></div>
+        </section>
+        <details class="relation-customizer">
+          <summary>تخصيص ألوان وأشكال خطوط الربط</summary>
+          <div class="relation-control-grid">
+            <label>علاقة هرمية <span><input class="relation-color" data-relation="hierarchy" type="color" value="#59e0a3"><select class="relation-style" data-relation="hierarchy"><option value="solid">متصل</option><option value="dashed">متقطع</option><option value="dotted">منقط</option></select></span></label>
+            <label>علاقة بيانات <span><input class="relation-color" data-relation="content" type="color" value="#55b8e8"><select class="relation-style" data-relation="content"><option value="solid">متصل</option><option value="dashed" selected>متقطع</option><option value="dotted">منقط</option></select></span></label>
+            <label>علاقة برمجية <span><input class="relation-color" data-relation="software" type="color" value="#f4ce72"><select class="relation-style" data-relation="software"><option value="solid">متصل</option><option value="dashed">متقطع</option><option value="dotted" selected>منقط</option></select></span></label>
+          </div>
+          <button id="relation-reset" class="semver-button" type="button">إعادة الألوان الافتراضية</button>
+        </details>
+        <div class="node-map-shell">
+          <div class="pipe-flow-controls" role="group" aria-label="تحكم في مضخات الأنابيب">
+            <span class="pipe-flow-indicator" aria-hidden="true"></span>
+            <strong>مضخات الأنابيب</strong>
+            <span id="pipe-flow-status" aria-live="polite">تدفق المعلومات متوقف</span>
+            <button id="pipe-flow-toggle" class="semver-button semver-button-primary" type="button" aria-pressed="true">إيقاف المضخات</button>
+          </div>
+          <div id="node-viewport" class="node-viewport" role="region" aria-label="خريطة تفاعلية من 6600 عقدة" tabindex="0">
+            <canvas id="network-canvas" aria-label="شبكة Canvas تفاعلية من 6600 عقدة"></canvas>
+            <div id="network-stage-wrap" class="network-stage-wrap">
+              <div id="network-stage" class="network-stage">
+                <svg id="node-lines" aria-hidden="true"></svg>
+                <div id="node-network" role="group" aria-label="اختيار عقدة من الشبكة"></div>
+              </div>
+            </div>
+          </div>
+          <div class="node-map-legend"><span><strong>أخضر</strong> عقدة غير مهيأة</span><span><strong>ذهبي</strong> عقدة تحتوي رابطًا أو محتوى</span><span><strong>نبض ذهبي</strong> مضخة تدفع البيانات داخل الأنبوب</span><span><strong>N-6600</strong> آخر عقدة في الشبكة</span><span>اختر العقدة لفتح إعداداتها</span></div>
+        </div>
+        <p id="node-status" class="node-status" aria-live="polite">جارٍ تجهيز شبكة العقد…</p>
+        <p class="semver-note">تُقبل روابط HTTP/HTTPS العامة وتُحفظ محليًا، ولا تجلب الصفحة محتوى المواقع الخارجية. عند الفتح يختار iOS أو Android التطبيق المرتبط برابط Universal/App Link إن كان مثبتًا، وإلا يفتح المتصفح. تُدعم روابط mailto: وtel: وsms: وwhatsapp: وtg: وspotify: وitms-apps: وgeo: وcomgooglemaps:. تُرفض مخططات JavaScript والملفات المحلية والعناوين الخاصة. يعرض الإطار HTML الذي تدخله أنت فقط، مع sandbox محدود الصلاحيات. التخزين في هذا المتصفح فقط وبسقف إجمالي تقريبي 650 كيلوبايت.</p>
+      </div>
+    </section>
+
+    <section id="node-chat-room" class="semver-section">
+      <div class="semver-container">
+        <div class="node-chat-room">
+          <div class="node-chat-room-head"><div class="node-chat-brand"><img src="/assets/azzouz-logo.jpg" alt="شعار Slaks"><div><p class="semver-kicker">SLAKS NODE CHAT</p><h2>دردشة معلومات العقد</h2><p>مساحة مستقلة تصل إليها معلومات جميع العقد الـ6600 تلقائيًا.</p></div></div><span class="info-chat-live">● مباشر</span></div>
+          <label class="node-chat-room-search" for="node-chat-room-search">بحث سريع داخل الدردشة<input id="node-chat-room-search" class="semver-input" type="search" placeholder="N-042 أو رابط أو نوع برمجية" autocomplete="off"></label>
+          <div id="node-chat-room-log" class="node-chat-room-log" role="log" aria-live="polite"></div>
+          <p id="node-chat-room-status" class="node-chat-room-status">جارٍ ربط العقد بالدردشة…</p>
+          <section class="node-ai-panel" aria-labelledby="node-ai-title">
+            <div class="node-ai-heading"><div><p class="semver-kicker">LOCAL NODE INTELLIGENCE</p><h3 id="node-ai-title">اسأل ذكاء العقد المحلي</h3><p>يبحث أولًا في بيانات العقد الـ6600 داخل المتصفح. ويمكنه استخدام Ollama أو LM Studio محليًا عند توفير عنوان النموذج.</p></div><span id="node-ai-engine" class="info-chat-live">● محلي</span></div>
+            <div class="node-ai-controls"><label for="node-ai-query" class="sr-only">رسالة الدردشة</label><input id="node-ai-query" class="semver-input" type="search" placeholder="اكتب رسالتك هنا… مثال: ما حالة العقدة N-600؟" autocomplete="off"><button id="node-ai-send" class="semver-button semver-button-primary" type="button">إرسال</button><button id="node-ai-new-chat" class="semver-button" type="button">محادثة جديدة</button></div>
+            <details class="node-ai-local-model"><summary>إعداد نموذج محلي اختياري</summary><div class="node-ai-model-grid"><label>النمط<select id="node-ai-mode" class="semver-select"><option value="local">محرك العقد المحلي</option><option value="ollama">Ollama / LM Studio</option></select></label><label>عنوان API المحلي<input id="node-ai-endpoint" class="semver-input" value="http://127.0.0.1:11434/api/chat" inputmode="url"></label><label>اسم النموذج<input id="node-ai-model" class="semver-input" value="llama3.2" autocomplete="off"></label></div></details>
+            <div id="node-ai-chat-log" class="node-ai-chat-log" role="log" aria-live="polite"></div>
+            <p id="node-ai-status" class="node-chat-room-status">المحرك المحلي جاهز؛ لم تُرسل بيانات العقد إلى الخارج.</p>
+            <div class="node-ai-constraints" aria-label="قيود سياق العقد الستة"><span>1 · ست عقد فقط</span><span>2 · العقدة المطابقة أولًا</span><span>3 · بيانات محلية فقط</span><span>4 · محتوى مقصوص</span><span>5 · لا جلب روابط</span><span>6 · ذكر المصادر</span></div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <section id="reports" class="semver-section">
+      <div class="semver-container">
+        <div class="semver-card" style="padding:clamp(1rem,3vw,1.6rem)">
+          <div class="semver-section-head">
+            <div><p class="semver-kicker">تقرير الروابط</p><h2>اجمع ملخصًا محليًا للعقد النشطة</h2><p>يعرض التقرير بيانات الرابط المحفوظ وملخص HTML المحلي فقط. لا يرسل طلبات إلى المواقع الخارجية ولا يجلب محتواها.</p></div>
+            <div class="report-actions"><button id="collect-report" class="semver-button semver-button-primary" type="button">جمع التقرير</button><button id="export-report" class="semver-button" type="button" disabled>تصدير JSON</button><button id="clear-report-cache" class="semver-button" type="button">مسح ذاكرة الروابط</button></div>
+          </div>
+          <p id="report-status" class="hub-status" aria-live="polite">سيبدأ نفق المعلومات تلقائيًا عند فتح الصفحة.</p><p id="report-cache-status" class="node-chat-room-status" aria-live="polite"></p>
+          <div class="report-tunnel">
+            <section class="info-chat-panel" aria-labelledby="info-chat-title">
+              <div class="info-chat-heading"><span class="semver-kicker">INFO TUNNEL</span><h3 id="info-chat-title">دردشة تدفق المعلومات</h3><span class="info-chat-live">● مباشر</span></div>
+              <p class="info-chat-intro">تصل ملخصات العقد إلى هذه الدردشة تلقائيًا، من دون فتح كل عقدة أو طلب تحليل منفصل.</p>
+              <div id="info-chat-log" class="info-chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+            </section>
+            <div id="network-report" class="report-grid" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="validator" class="semver-section">
+      <div class="semver-container">
+        <div class="semver-section-head"><div><p class="semver-kicker">مدقق Semantic Versioning</p><h2>تحقق من صيغة الإصدار</h2><p>يعمل التحقق داخل المتصفح فقط؛ لا تُرسل قيمة الإصدار إلى خادم.</p></div></div>
+        <div class="semver-card" style="padding:clamp(1rem,3vw,1.6rem)">
+          <div class="validator-row">
+            <label class="sr-only" for="version-input">رقم الإصدار</label>
+            <input id="version-input" class="semver-input" value="1.4.2-beta.3+build.7" autocomplete="off" spellcheck="false">
+            <button id="validate-version" class="semver-button semver-button-primary" type="button">تحقق</button>
+          </div>
+          <p id="version-result" class="version-result" aria-live="polite"></p>
+          <div class="example-buttons" aria-label="أمثلة سريعة">
+            <button class="example-chip" type="button" data-example="1.0.0">1.0.0</button>
+            <button class="example-chip" type="button" data-example="2.1.0-rc.1">2.1.0-rc.1</button>
+            <button class="example-chip" type="button" data-example="1.0.0+build.42">1.0.0+build.42</button>
+            <button class="example-chip" type="button" data-example="01.2.3">01.2.3 (غير صالح)</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="mod9-lab" class="semver-section" aria-labelledby="mod9-title">
+      <div class="semver-container">
+        <div class="mod9-card">
+          <div class="mod9-heading">
+            <div>
+              <p class="semver-kicker">MOD 9 ENGINE · مختبر محلي</p>
+              <h2 id="mod9-title">مختبر التحقق الجبري والجذر الرقمي</h2>
+            </div>
+            <span class="mod9-badge">حساب فوري</span>
+          </div>
+          <p class="mod9-citation">{وَكَانَ فِي الْمَدِينَةِ تِسْعَةُ رَهْطٍ يُفْسِدُونَ فِي الْأَرْضِ وَلَا يُصْلِحُونَ} [سورة النمل: 48]</p>
+          <p class="mod9-note">أدخل عددًا صحيحًا أو اختر سياقًا. يتكيف المختبر مع السنة، مستويات الشبكة، إجمالي العقد، قيمة جُمّل الفاتحة، أو العقدة التي فتحتها، ثم يعيد الحساب فورًا.</p>
+          <div class="mod9-input-row">
+            <label class="semver-field-label" for="mod9-input">العدد أو السنة
+              <input id="mod9-input" class="semver-input" type="number" inputmode="numeric" step="1" value="2025" aria-describedby="mod9-help">
+            </label>
+            <label class="semver-field-label" for="mod9-context">سياق التحليل
+              <select id="mod9-context" class="semver-select">
+                <option value="year">السنة / الحدث (2025)</option>
+                <option value="levels">مستويات الشبكة (114)</option>
+                <option value="nodes">إجمالي عقد الشبكة (6600)</option>
+                <option value="fatiha">قيمة جُمّل الفاتحة (1014)</option>
+                <option value="active-node">العقدة النشطة</option>
+                <option value="manual">إدخال يدوي</option>
+              </select>
+            </label>
+            <button id="mod9-run" class="semver-button semver-button-primary" type="button">تشغيل الفحص</button>
+          </div>
+          <p id="mod9-help" class="mod9-help">يُنفّذ التحليل محليًا باستخدام أعداد صحيحة دقيقة.</p>
+          <div id="mod9-results" class="mod9-results" aria-live="polite"></div>
+          <section class="quran-analysis-panel" aria-labelledby="quran-analysis-title">
+            <div class="quran-analysis-heading"><div><p class="semver-kicker">المصحف الشريف · بيانات محلية</p><h3 id="quran-analysis-title">تحليل السور داخل المختبر</h3></div><span>114 سورة</span></div>
+            <div class="quran-analysis-controls">
+              <label class="semver-field-label" for="quran-surah-select">اختر السورة
+                <select id="quran-surah-select" class="semver-select"></select>
+              </label>
+              <button id="quran-analyze" class="semver-button" type="button">تحليل السورة في Mod 9</button>
+            </div>
+            <div id="quran-analysis-summary" class="quran-analysis-summary" aria-live="polite"></div>
+            <div class="quran-ayah-search">
+              <label class="semver-field-label" for="quran-ayah-number">رقم الآية داخل السورة
+                <input id="quran-ayah-number" class="semver-input" type="number" min="1" step="1" inputmode="numeric" placeholder="مثال: 1">
+              </label>
+              <button id="quran-ayah-search" class="semver-button" type="button">بحث وتحليل الآية</button>
+            </div>
+            <div id="quran-ayah-result" class="quran-ayah-result" aria-live="polite">اختر سورة وأدخل رقم آية لعرض نصها عند توفر الاتصال وتحليلها رقميًا.</div>
+            <p class="quran-analysis-note">يعرض هذا القسم بيانات السورة المحلية المستخدمة في التحليل: عدد الآيات، النوع، القيمة المركبة، وقيمة الجُمّل. لا يستبدل نص المصحف أو التفسير.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="semver-section">
+      <div class="semver-container">
+        <div class="semver-section-head"><div><p class="semver-kicker">القواعد الأساسية</p><h2>صيغة SemVer بإيجاز</h2><p>الإصدار القياسي يتكوّن من أرقام رئيسية وثانوية وتصحيحية، مع معلومات اختيارية لما قبل الإصدار والبناء.</p></div></div>
+        <div class="grammar-grid">
+          <article class="semver-card grammar-card"><h3>الإصدار الكامل</h3><pre>&lt;إصدار صالح&gt; ::= &lt;الإصدار الأساسي&gt;
+               | &lt;الإصدار الأساسي&gt; - &lt;ما قبل الإصدار&gt;
+               | &lt;الإصدار الأساسي&gt; + &lt;بيانات البناء&gt;
+               | &lt;الإصدار الأساسي&gt; - &lt;ما قبل الإصدار&gt; + &lt;بيانات البناء&gt;</pre></article>
+          <article class="semver-card grammar-card"><h3>الإصدار الأساسي</h3><pre>&lt;الإصدار الأساسي&gt; ::= &lt;رئيسي&gt; . &lt;ثانوي&gt; . &lt;تصحيح&gt;
+&lt;رئيسي&gt; ::= &lt;عدد غير سالب بلا أصفار بادئة&gt;
+&lt;ثانوي&gt; ::= &lt;عدد غير سالب بلا أصفار بادئة&gt;
+&lt;تصحيح&gt; ::= &lt;عدد غير سالب بلا أصفار بادئة&gt;</pre></article>
+          <article class="semver-card grammar-card"><h3>ما قبل الإصدار</h3><pre>&lt;ما قبل الإصدار&gt; ::= &lt;معرّف&gt; ( . &lt;معرّف&gt; )*
+&lt;معرّف رقمي&gt; ::= 0 | [1-9][0-9]*
+&lt;معرّف نصي&gt; ::= [0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*</pre></article>
+          <article class="semver-card grammar-card"><h3>بيانات البناء</h3><pre>&lt;بيانات البناء&gt; ::= &lt;معرّف بناء&gt; ( . &lt;معرّف بناء&gt; )*
+&lt;معرّف بناء&gt; ::= [0-9A-Za-z-]+
+
+مثال: 1.2.3-rc.1+linux.x64</pre></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="hub-modal" class="hub-modal" hidden>
+    <section id="hub-dialog" class="hub-dialog" role="dialog" aria-modal="true" aria-labelledby="hub-title">
+      <div class="hub-dialog-head">
+        <div class="hub-title-block"><img class="hub-site-logo" src="/assets/azzouz-logo.jpg" alt="شعار Slaks"><div><p class="semver-kicker">تحليل الموقع · عقدة تفاعلية</p><h2 id="hub-title">العقدة <span id="hub-node-number" class="hub-number"></span></h2><p>بطاقة معاينة وتحليل للرابط، مستوحاة من التصميم الأبيض الظاهر في الصورة، مع فتح الموقع الخارجي عند الطلب.</p></div></div>
+        <button id="hub-close" class="semver-button" type="button" aria-label="إغلاق نافذة العقدة">×</button>
+      </div>
+      <div class="hub-form-grid">
+        <label class="semver-field-label full" for="hub-url">رابط ويب أو رابط اتصال
+          <input id="hub-url" class="semver-input" type="text" inputmode="url" autocomplete="url" placeholder="https://example.com/page أو example.com">
+        </label>
+        <label class="semver-field-label full" for="hub-html">أو HTML محلي للمعاينة
+          <textarea id="hub-html" class="semver-textarea" spellcheck="false" placeholder="&lt;h1&gt;محتوى محلي&lt;/h1&gt;"></textarea>
+        </label>
+        <label class="semver-field-label" for="hub-search-query">بحث عبر محركات البحث
+          <input id="hub-search-query" class="semver-input" type="search" placeholder="اكتب عبارة البحث" autocomplete="off">
+        </label>
+        <label class="semver-field-label" for="hub-search-engine">محرك البحث
+          <select id="hub-search-engine" class="semver-select">
+            <option value="google">Google</option><option value="bing">Bing</option><option value="duckduckgo">DuckDuckGo</option><option value="brave">Brave Search</option><option value="yahoo">Yahoo</option><option value="ecosia">Ecosia</option><option value="startpage">Startpage</option><option value="qwant">Qwant</option><option value="kagi">Kagi</option><option value="yandex">Yandex</option><option value="baidu">Baidu</option>
+          </select>
+        </label>
+      </div>
+      <p class="hub-tip">تُقبل روابط HTTP/HTTPS مع المسارات والاستعلامات والمنافذ والنطاقات الدولية، وتُحفظ كروابط فقط دون جلب محتواها. يمكن أيضًا إدخال رابط تطبيق مثل whatsapp: أو tg: أو sms: أو itms-apps:؛ سيحاول الجهاز فتح التطبيق ثم يستخدم المتصفح أو المتجر عند عدم توفره. لا تدخل كلمات مرور أو روابط خاصة. يمكنك إضافة HTML محلي محدود الحجم لمعاينته في إطار sandbox.</p>
+      <div id="hub-link-state" class="hub-link-state" data-state="local-only" aria-live="polite">حالة الرابط: معاينة محلية فقط</div>
+      <div class="hub-actions">
+        <button id="hub-build" class="semver-button semver-button-primary" type="button">بناء المعاينة</button>
+        <button id="hub-search" class="semver-button" type="button">بحث بالمحرك المختار</button>
+        <button id="hub-search-all" class="semver-button" type="button">بوابة الويب الشامل</button>
+        <button id="hub-fetch" class="semver-button" type="button">حفظ الملخص في مسار العقد</button>
+        <button id="hub-save" class="semver-button" type="button">حفظ العقدة</button>
+        <button id="hub-open" class="semver-button" type="button">فتح في التطبيق أو المتصفح</button>
+        <button id="hub-stop" class="semver-button" type="button">الخروج من المعاينة</button>
+        <button id="hub-clear" class="semver-button semver-button-danger" type="button">مسح إعدادات العقدة</button>
+        <button id="hub-fullscreen" class="semver-button" type="button">ملء الشاشة</button>
+        <button id="hub-minimize" class="semver-button" type="button">تصغير</button>
+      </div>
+      <section class="hub-analysis" aria-labelledby="hub-analysis-title">
+        <div class="hub-analysis-heading"><span class="hub-analysis-label">SITE ANALYSIS</span><h3 id="hub-analysis-title">ملخص العقدة وتحليل الموقع</h3></div>
+        <ol class="hub-analysis-list">
+          <li><strong>المصدر</strong><span>الرابط أو HTML الذي أدخلته لهذه العقدة.</span></li>
+          <li><strong>المعاينة</strong><span>تظهر داخل البطاقة عندما يسمح الموقع بالتضمين.</span></li>
+          <li><strong>التحليل</strong><span>العنوان والعناصر والروابط تُستخرج محليًا من HTML المضاف.</span></li>
+          <li><strong>الفتح الخارجي</strong><span>استخدم الزر لفتح الموقع الحقيقي في تبويب مستقل.</span></li>
+        </ol>
+      </section>
+      <section class="hub-quran-analysis" aria-labelledby="hub-quran-analysis-title">
+        <div class="hub-analysis-heading"><span class="hub-analysis-label">QURAN METRICS</span><h3 id="hub-quran-analysis-title">حسابات العقدة والاختبارات الإحصائية</h3></div>
+        <div class="hub-quran-api-controls"><input id="hub-quran-api-base" type="url" dir="ltr" placeholder="https://api.example.com" aria-label="عنوان FastAPI"><button id="hub-quran-api-sync" class="semver-button" type="button">مزامنة FastAPI</button><span id="hub-quran-api-status" role="status">المصدر المحلي الاحتياطي</span></div>
+        <div id="hub-quran-analysis" class="hub-quran-analysis-body"></div>
+      </section>
+      <p id="hub-status" class="hub-status" aria-live="polite">لم تُحفظ إعدادات لهذه العقدة بعد.</p>
+      <div class="browser-frame">
+        <div class="browser-toolbar"><span class="browser-dot" aria-hidden="true"></span><span class="browser-dot" aria-hidden="true"></span><span class="browser-dot" aria-hidden="true"></span><span id="hub-address" class="browser-address">معاينة معزولة</span></div>
+        <iframe id="hub-preview" class="hub-preview" title="معاينة معزولة لمحتوى العقدة" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
+      </div>
+      <div id="hub-extraction" class="hub-extraction" aria-live="polite">ستظهر هنا خلاصة النص والعنوان بعد بناء المعاينة.</div>
+    </section>
+  </div>
+
+  <div id="external-link-modal" class="external-link-modal" hidden>
+    <section class="external-link-dialog" role="dialog" aria-modal="true" aria-labelledby="external-link-title">
+      <header class="external-link-header">
+        <div class="external-link-heading"><img src="/assets/azzouz-logo.jpg" alt="شعار Slaks"><div><span class="external-link-kicker">IN-SITE PREVIEW</span><h2 id="external-link-title">معاينة الرابط الخارجي</h2><p id="external-link-address">جارٍ تجهيز الرابط…</p></div></div>
+        <button id="external-link-close" class="external-link-close" type="button" aria-label="إغلاق المعاينة">×</button>
+      </header>
+      <div class="external-link-actions"><span id="external-link-status">يتم عرض الرابط داخل الموقع.</span><a id="external-link-open" href="#" target="_blank" rel="noopener noreferrer">فتح خارجي ↗</a></div>
+      <iframe id="external-link-frame" title="معاينة رابط خارجي داخل الموقع" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allow="fullscreen; picture-in-picture; clipboard-read; clipboard-write"></iframe>
+    </section>
+  </div>
+  <footer class="semver-footer">
+    <div class="semver-container">
+      <div class="semver-footer-row"><a href="/">Slaks</a><span>مختبر SemVer · معالجة محلية للعقد</span><a href="/tools">العودة إلى الأدوات</a></div>
+      <div class="site-license-notice" lang="ar" dir="rtl" aria-label="ترخيص النصوص والرسومات الأصلية">
+        <p>باستثناء ما يُذكر خلاف ذلك، النصوص والرسومات الأصلية المنشورة في هذا الموقع مرخّصة بموجب <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="license">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</a>.</p>
+        <p>لا يشمل هذا الترخيص الشيفرة أو العلامات التجارية أو المحتوى التابع لأطراف ثالثة.</p>
+        <span aria-hidden="true"><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"><img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"></span>
+      </div>
+    </div>
+  </footer>
+  <script src="/language.js" defer></script>
+  <script defer src="/semver-bnf/sovereign-bug-swarm.js?v=swarm-v2"></script>
+  <script type="module" src="/semver-bnf/knowledge-api-client.js?v=knowledge-api-v1"></script>
+  <script type="module" src="/semver-bnf/semver-bnf.js?v=hierarchical-8cm-v1"></script>
+</body>
+</html>

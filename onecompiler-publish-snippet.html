@@ -1,0 +1,9 @@
+<!-- OneCompiler → GitHub Pages: paste this into the OneCompiler project -->
+<script src="https://elazzouz-dotcom.github.io/onecompiler-publish-bridge.js"></script>
+<script>
+  // Pass the final changed files as { "relative/path": "file content" }.
+  await OneCompilerGitHub.publishToGitHub({
+    owner: 'elazzouz-dotcom', repo: 'elazzouz-dotcom.github.io', branch: 'main',
+    message: 'Update site from OneCompiler AI', files
+  });
+</script>
