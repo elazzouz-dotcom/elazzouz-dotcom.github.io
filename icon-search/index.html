@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b141a"><title>بحث وتصنيف الأيقونات | Platform Suite</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b141a;color:#e9edef;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;padding:16px 10px 30px}.shell{max-width:760px;margin:auto}.top{display:flex;gap:10px;align-items:center;background:#202c33;border:1px solid #2a3942;border-radius:16px;padding:12px;margin-bottom:10px}.top b{flex:1;font-size:16px}.top span{display:block;color:#8696a0;font-size:11px;margin-top:3px}.top a{color:#8fd7c4;text-decoration:none;font-size:11px}.panel{background:#111b21;border:1px solid #2a3942;border-radius:16px;padding:12px;margin-bottom:10px}.search{display:flex;gap:7px}.search input{flex:1;background:#0f1a20;border:1px solid #2a3942;border-radius:10px;color:#e9edef;padding:11px;font:inherit;outline:none}.search input:focus{border-color:#00a884}.btn{border:0;border-radius:10px;padding:9px 11px;background:#00a884;color:#04241c;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.btn.secondary{background:#2a3942;color:#d8e8ec}.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.chip{border:1px solid #2a4248;background:#1b2b31;color:#a9c0c5;border-radius:14px;padding:6px 10px;font:inherit;font-size:11px;cursor:pointer}.chip.on{background:#00a884;border-color:#00a884;color:#04241c;font-weight:700}.hint{color:#8696a0;font-size:11px;line-height:1.6;margin-top:8px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.stat{background:#16242a;border:1px solid #24373e;border-radius:10px;text-align:center;padding:9px}.stat b{display:block;font-size:19px;color:#8fd7c4}.stat span{font-size:10.5px;color:#7e969e}.results{display:flex;flex-direction:column;gap:7px;margin-top:10px}.result{display:flex;gap:9px;align-items:center;background:#17262d;border:1px solid #22343b;border-radius:10px;padding:9px}.result b{font-size:12.5px;flex:1}.result small{display:block;color:#82979f;font-size:10.5px;margin-top:3px}.badge{background:#203b3c;color:#8fd7c4;border-radius:9px;padding:4px 7px;font-size:10px;white-space:nowrap}.empty{text-align:center;color:#81979f;font-size:12px;padding:22px}.file{display:none}.notice{color:#d9a441;font-size:11px;margin-top:7px}.footer{text-align:center;color:#71858d;font-size:11px;margin-top:12px}.footer a{color:#8fd7c4}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top"><div><b>بحث وتصنيف الأيقونات</b><span>بحث تلقائي حسب الاسم والوصف مع تصنيف ذكي</span></div><a href="../?locale=ar">المنصة</a></header>
+<section class="panel">
+  <div class="search"><input id="query" placeholder="قلب بحال: coin أو play أو selected" autocomplete="off"><button class="btn" id="searchBtn">بحث</button></div>
+  <div class="toolbar" id="categories"></div>
+  <div class="toolbar"><button class="btn secondary" id="loadBtn">رفع manifest.json</button><input class="file" id="fileInput" type="file" accept="application/json,.json"><button class="btn secondary" id="exportBtn">تصدير التصنيف JSON</button><button class="btn secondary" id="exportCsvBtn">تصدير CSV</button></div>
+  <div class="hint">يمكنك البحث فالاسم أو الوصف، أو رفع manifest كامل. الصفحة كتخدم مباشرة حتى بلا ملف باستعمال أمثلة الأيقونات الموجودة.</div><div class="notice" id="notice"></div>
+</section>
+<section class="panel"><div class="stats"><div class="stat"><b id="total">0</b><span>كل الأيقونات</span></div><div class="stat"><b id="shown">0</b><span>النتائج</span></div><div class="stat"><b id="groups">0</b><span>الفئات</span></div></div><div class="results" id="results"></div></section>
+<div class="footer"><a href="../?locale=ar">العودة إلى Platform Suite</a></div>
+</main>
+<script src="./app.js?v=3"></script>
+
+</body>
+</html>

@@ -1,0 +1,197 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
+#define STEPS 300
+
+/* 
+ * تم دمج هيكلية وتوجيهات تخصيص الذاكرة الديناميكية المستوحاة من مكتبة stdlib القياسية 
+ * لإدارة الذاكرة الحرة للخلية الجذعية الكمية بمرونة عالية.
+ */
+
+typedef struct {
+    double *a_values;
+    double dx;
+    double *raw_potential;
+    double *wave_function;
+    char state_type[32];
+    double ai_weights[4];
+} QuantumStemCell;
+
+// تخصيص وتحجيم الخلية الجذعية ديناميكياً باستخدام malloc من stdlib
+QuantumStemCell* stem_create(int steps) {
+    QuantumStemCell *cell = (QuantumStemCell*) malloc(sizeof(QuantumStemCell));
+    if (cell == NULL) {
+        fprintf(stderr, "[Error] Memory allocation failed via stdlib malloc!\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    strcpy(cell->state_type, "Pluripotent");
+    double a_min = 0.01;
+    double a_max = 5.0;
+    cell->dx = (a_max - a_min) / (steps - 1);
+    
+    cell->a_values = (double*) malloc(steps * sizeof(double));
+    cell->raw_potential = (double*) malloc(steps * sizeof(double));
+    cell->wave_function = (double*) malloc(steps * sizeof(double));
+    
+    for (int i = 0; i < steps; i++) {
+        cell->a_values[i] = a_min + i * cell->dx;
+        cell->raw_potential[i] = 0.0;
+        cell->wave_function[i] = 0.0;
+    }
+    
+    for (int i = 0; i < 4; i++) {
+        cell->ai_weights[i] = ((double)rand() / RAND_MAX) * 0.2 - 0.1;
+    }
+    
+    return cell;
+}
+
+// تحرير الذاكرة باستخدام free القياسية من stdlib لمنع تسريب الذاكرة
+void stem_free(QuantumStemCell *cell) {
+    if (cell != NULL) {
+        free(cell->a_values);
+        free(cell->raw_potential);
+        free(cell->wave_function);
+        free(cell);
+        printf("[stdlib memory] Quantum stem cell memory safely deallocated using free().\n");
+    }
+}
+
+// دالة التجدد الذاتي (Self-Renewal)
+void stem_self_renew(QuantumStemCell *cell, int steps) {
+    printf("[Stem Cell] Self-renewing base quantum state...\n");
+    for (int i = 0; i < steps; i++) {
+        cell->wave_function[i] = 0.0;
+    }
+    strcpy(cell->state_type, "Pluripotent");
+}
+
+// محاكاة الإنزيمات المتغذية على الشفرة المصدرية
+double feed_on_code() {
+    int code_length = 1420; 
+    double metabolic_energy = code_length * 0.005;
+    printf("[Enzyme] Digesting C source code structure... Metabolic energy harvested: %.4f units.\n", metabolic_energy);
+    return metabolic_energy;
+}
+
+// حل معادلة ويلر-ديويت الدالة الموجية
+void solve_wave_function(QuantumStemCell *cell, int steps) {
+    double *psi = (double*) calloc(steps, sizeof(double));
+    
+    psi[steps - 1] = 0.0;
+    psi[steps - 2] = 1e-5;
+    
+    for (int i = steps - 2; i > 0; i--) {
+        psi[i - 1] = 2.0 * psi[i] - psi[i + 1] + (cell->dx * cell->dx) * cell->raw_potential[i] * psi[i];
+    }
+    
+    double max_val = 0.0;
+    for (int i = 0; i < steps; i++) {
+        if (fabs(psi[i]) > max_val) {
+            max_val = fabs(psi[i]);
+        }
+    }
+    
+    if (max_val > 0.0) {
+        for (int i = 0; i < steps; i++) {
+            cell->wave_function[i] = psi[i] / max_val;
+        }
+    }
+    
+    free(psi); // تنظيف الذاكرة المؤقتة
+}
+
+// حلقة التحسين والذكاء الاصطناعي المتVariational
+void ai_optimize(QuantumStemCell *cell, int steps, double target_energy) {
+    printf("[AI Quantum Core] Initiating neural-guided variational optimization...\n");
+    double enzyme_boost = feed_on_code();
+    double learning_rate = 0.01;
+    
+    for (int epoch = 0; epoch < 20; epoch++) {
+        double expectation_value = 0.0;
+        double weight_sum = 0.0;
+        
+        for (int i = 0; i < steps; i++) {
+            expectation_value += cell->wave_function[i] * cell->raw_potential[i];
+        }
+        expectation_value /= steps;
+        
+        for (int i = 0; i < 4; i++) {
+            weight_sum += cell->ai_weights[i] * cell->ai_weights[i];
+        }
+        
+        double total_val = expectation_value + weight_sum;
+        double grad = 2.0 * (total_val - target_energy) * expectation_value;
+        for (int i = 0; i < 4; i++) {
+            cell->ai_weights[i] -= learning_rate * grad * cell->ai_weights[i];
+        }
+    }
+    
+    double weight_total = 0.0;
+    for (int i = 0; i < 4; i++) weight_total += cell->ai_weights[i];
+    double coherence_factor = exp(-0.05 * fabs(weight_total));
+    
+    for (int i = 0; i < steps; i++) {
+        cell->wave_function[i] *= coherence_factor;
+    }
+    
+    printf("[AI Quantum Core] Optimization completed with stdlib integration. Loss minimized.\n");
+}
+
+// محاكاة الأنبوب الكمي (Quantum Tube Transformation)
+void quantum_tube_transform(QuantumStemCell *cell, int steps) {
+    printf("[Tube: Singularity-Tube] Executing instantaneous phase shift transformation...\n");
+    for (int i = 0; i < steps; i++) {
+        cell->wave_function[i] = fabs(cell->wave_function[i]);
+    }
+}
+
+// التمايز الخلوي الكوني
+void stem_differentiate(QuantumStemCell *cell, int steps, const char *regime, double param) {
+    strcpy(cell->state_type, regime);
+    
+    if (strcmp(regime, "inflationary") == 0) {
+        double lambda_cosmo = param;
+        double curvature = 1.0;
+        for (int i = 0; i < steps; i++) {
+            double a = cell->a_values[i];
+            cell->raw_potential[i] = (curvature * a * a) - (lambda_cosmo * (a * a * a * a) / 3.0);
+        }
+    } else if (strcmp(regime, "cyclic") == 0) {
+        double frequency = param;
+        for (int i = 0; i < steps; i++) {
+            double a = cell->a_values[i];
+            cell->raw_potential[i] = sin(frequency * a) * a;
+        }
+    }
+    
+    solve_wave_function(cell, steps);
+    quantum_tube_transform(cell, steps);
+    ai_optimize(cell, steps, 0.0);
+    
+    printf("[Stem Cell] Successfully differentiated into: %s regime.\n\n", cell->state_type);
+}
+
+int main() {
+    // تهيئة الخلية الجذعية باستخدام مخصصات الذاكرة القياسية stdlib
+    QuantumStemCell *universe_cell = stem_create(STEPS);
+    
+    printf("Initial State -> %s (Managed via stdlib memory allocator)\n", universe_cell->state_type);
+    
+    // 1. الدخول في مسار التمايز التضخمي
+    stem_differentiate(universe_cell, STEPS, "inflationary", 3.0);
+    
+    // 2. التجدد الذاتي للخلية
+    stem_self_renew(universe_cell, STEPS);
+    
+    // 3. التمايز نحو الكون الدوري
+    stem_differentiate(universe_cell, STEPS, "cyclic", 2.5);
+    
+    // تنظيف الموارد وتحرير الذاكرة بشكل نهائي
+    stem_free(universe_cell);
+    
+    return EXIT_SUCCESS;
+}

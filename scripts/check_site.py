@@ -31,18 +31,20 @@ class PageParser(HTMLParser):
                 target = ROOT / clean / 'index.html'
             else:
                 target = ROOT / clean
-                if not target.suffix:
-                    target = ROOT / clean / 'index.html'
+            if not target.suffix:
+                target = ROOT / clean / 'index.html'
             if not target.exists():
                 errors.append(f'{self.path}: missing internal {value}')
 
-for page in sorted(ROOT.rglob('*.html')):
-    if '.git' in page.parts:
-        continue
+pages = [
+    page for page in sorted(ROOT.rglob('*.html'))
+    if '.git' not in page.parts and 'node_modules' not in page.parts
+]
+for page in pages:
     parser = PageParser(page.relative_to(ROOT))
     parser.feed(page.read_text(encoding='utf-8'))
 
 if errors:
     print('\n'.join(errors))
     raise SystemExit(1)
-print(f'OK: checked {len(list(ROOT.rglob("*.html")))} HTML pages and internal links')
+print(f'OK: checked {len(pages)} HTML pages and internal links')

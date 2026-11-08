@@ -3,10 +3,15 @@ export default {
     const url = new URL(request.url);
     const method = request.method;
     const path = url.pathname;
+    const allowedOrigins = new Set(['https://elazzouz-dotcom.github.io']);
+    const requestOrigin = request.headers.get('Origin');
 
     // CORS headers
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowedOrigins.has(requestOrigin) ? requestOrigin : 'https://elazzouz-dotcom.github.io',
+      'Vary': 'Origin',
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
     };
@@ -17,6 +22,7 @@ export default {
 
     const API_BASE = 'https://api.github.com';
     const GITHUB_AUTH = 'https://github.com/login/oauth';
+    const allowedClientIds = new Set(['Ov23liCSQUsIFcULd37T', 'Ov23li9xlu3kRKACL6Tz']);
 
     // POST /device/code - Start device flow
     if (path === '/device/code' && method === 'POST') {
@@ -24,9 +30,9 @@ export default {
         const body = await request.json();
         const client_id = body.client_id;
 
-        if (!client_id) {
+        if (!client_id || !allowedClientIds.has(client_id)) {
           return new Response(
-            JSON.stringify({ error: 'Missing client_id' }),
+            JSON.stringify({ error: 'Invalid client_id' }),
             { 
               status: 400, 
               headers: { 'Content-Type': 'application/json', ...corsHeaders } 
@@ -87,9 +93,9 @@ export default {
         const body = await request.json();
         const { client_id, device_code } = body;
 
-        if (!client_id || !device_code) {
+        if (!client_id || !allowedClientIds.has(client_id) || !device_code) {
           return new Response(
-            JSON.stringify({ error: 'Missing client_id or device_code' }),
+            JSON.stringify({ error: 'Invalid client_id or device_code' }),
             { 
               status: 400, 
               headers: { 'Content-Type': 'application/json', ...corsHeaders } 
