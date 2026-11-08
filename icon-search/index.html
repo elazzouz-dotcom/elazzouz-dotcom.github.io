@@ -12,14 +12,14 @@
 <section class="panel">
   <div class="search"><input id="query" placeholder="قلب بحال: coin أو play أو selected" autocomplete="off"><button class="btn" id="searchBtn">بحث</button></div>
   <div class="toolbar" id="categories"></div>
-  <div class="toolbar"><button class="btn secondary" id="loadBtn">رفع manifest.json</button><input class="file" id="fileInput" type="file" accept="application/json,.json"><button class="btn secondary" id="exportBtn">تصدير التصنيف JSON</button><button class="btn secondary" id="exportCsvBtn">تصدير CSV</button><button class="btn secondary" id="clearBtn">مسح المحفوظ</button><select class="sort" id="sortMode" aria-label="ترتيب النتائج"><option value="name">ترتيب: الاسم</option><option value="category">ترتيب: الفئة</option></select></div>
-  <div class="drop" id="dropZone">أو جرّ ملف JSON وأفلِتو هنا</div>
+  <div class="toolbar"><button class="btn secondary" id="loadBtn">رفع manifest.json</button><input class="file" id="fileInput" type="file" accept="application/json,.json"><button class="btn secondary" id="svgBtn">إضافة SVG تلقائيًا</button><input class="file" id="svgInput" type="file" accept=".svg,image/svg+xml" multiple webkitdirectory><button class="btn secondary" id="exportBtn">تصدير التصنيف JSON</button><button class="btn secondary" id="exportCsvBtn">تصدير CSV</button><button class="btn secondary" id="clearBtn">مسح المحفوظ</button><select class="sort" id="sortMode" aria-label="ترتيب النتائج"><option value="name">ترتيب: الاسم</option><option value="category">ترتيب: الفئة</option></select></div>
+  <div class="drop" id="dropZone">أو جرّ ملف JSON وأفلِتو هنا</div><div class="hint">زر SVG يقبل عدة ملفات أو مجلد كامل، ويحوّل مثلًا <b>gift-box.svg</b> إلى <b>GiftBoxIcon</b> ويصنّفه تلقائيًا.</div>
   <div class="hint">يمكنك البحث فالاسم أو الوصف، أو رفع manifest كامل. الصفحة كتخدم مباشرة حتى بلا ملف باستعمال أمثلة الأيقونات الموجودة.</div><div class="notice" id="notice"></div>
 </section>
 <section class="panel"><div class="stats"><div class="stat"><b id="total">0</b><span>كل الأيقونات</span></div><div class="stat"><b id="shown">0</b><span>النتائج</span></div><div class="stat"><b id="groups">0</b><span>الفئات</span></div></div><div class="results" id="results"></div></section>
 <div class="footer"><a href="../?locale=ar">العودة إلى Platform Suite</a></div>
 </main>
-<script src="./app.js?v=4"></script>
+<script src="./app.js?v=5"></script>
 
 </body>
 </html>
