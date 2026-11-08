@@ -1,1 +1,0 @@
-"""Browserbase Search Analyzer package."""

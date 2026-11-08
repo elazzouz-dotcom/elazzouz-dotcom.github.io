@@ -1,8 +1,0 @@
-CREATE TABLE IF NOT EXISTS swarm_members (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  site TEXT NOT NULL,
-  count INTEGER NOT NULL DEFAULT 57 CHECK (count BETWEEN 1 AND 300),
-  role TEXT NOT NULL DEFAULT 'استكشاف',
-  joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_swarm_members_joined_at ON swarm_members(joined_at);
