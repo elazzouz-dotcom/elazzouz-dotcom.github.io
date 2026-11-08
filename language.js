@@ -74,6 +74,7 @@
         ['🚀 GitHub Pages publishing guide', '/github-pages'],
         ['🐘 Project files', '/project-files'],
         ['GitHub Studios', '/github-studios'],
+        ['GitHub login setup', '/github-login'],
         ['📋 Project requests', '/project-requests'],
         ['◈ AIP Trading Company', '/aip'],
         ['✉ Contact', '/contact'],
@@ -84,7 +85,7 @@
       title: 'Build and test',
       links: [
         ['Developer toolkit', '/developer-tools'],
-        ['Azzouz Vault image vault', '/azzouz-vault'],
+        ['SLaksi image vault', '/slaksi'],
         ['Vault cell architecture', '/cell-architecture'],
         ['One App Router playground', '/one-app-router'],
         ['Form automation builder', '/form-automation'],
@@ -338,18 +339,13 @@
   }
 
   function loadTranslator(language) {
-    if (!language || language === SOURCE_LANGUAGE) return;
     window.googleTranslateElementInit = () => {
-      try {
-        new google.translate.TranslateElement({
-          pageLanguage: SOURCE_LANGUAGE,
-          includedLanguages: LANGUAGES.map(([code]) => code).join(','),
-          autoDisplay: false
-        }, 'google_translate_element');
-        window.setTimeout(() => translatePage(language), 400);
-      } catch {
-        // الترجمة الخارجية اختيارية؛ لا تمنع تشغيل الموقع عند غيابها.
-      }
+      new google.translate.TranslateElement({
+        pageLanguage: SOURCE_LANGUAGE,
+        includedLanguages: LANGUAGES.map(([code]) => code).join(','),
+        autoDisplay: false
+      }, 'google_translate_element');
+      window.setTimeout(() => translatePage(language), 400);
     };
 
     if (!document.querySelector('#google-translate-script')) {
@@ -363,10 +359,6 @@
       script.id = 'google-translate-script';
       script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
       script.async = true;
-      script.onerror = () => {
-        script.remove();
-        delete window.googleTranslateElementInit;
-      };
       document.head.append(script);
     }
   }
@@ -515,7 +507,9 @@
       subtree: true
     });
 
-    // الترجمة الخارجية اختيارية ولا تُستخدم كشرط لتشغيل الموقع أو أي تطبيق.
+    // Keep page startup independent of the external translator. A visitor can
+    // still request translation explicitly from the language selector.
+    // This avoids background translation failures surfacing as unhandled rejections.
   }
 
   if (document.readyState === 'loading') {

@@ -1,6 +1,6 @@
-# Azzouz
+# elazzouz-dotcom.github.io
 
-المستودع الرسمي لموقع **Azzouz** المنشور عبر GitHub Pages.
+المستودع الرسمي لموقع **Slaks** المنشور عبر GitHub Pages.
 
 ## المصدر الرئيسي
 
@@ -19,7 +19,3 @@
 4. ينتظر GitHub Pages اكتمال البناء ثم ينشر النسخة الجديدة.
 
 لوحة الإدارة مقيّدة بالمستودع والفرع أعلاه، ولا تحفظ Access Token في `localStorage`. لا تضع أي أسرار أو مفاتيح API داخل الملفات العامة.
-
-## CSS محلي للصفحة الرئيسية والتطبيقات
-
-تعتمد الصفحتان `/` و`/apps/` على ملف Tailwind ثابت ومحلي بدل تشغيل CDN وقت زيارة الصفحة. عند تعديل فئات Tailwind في هاتين الصفحتين، شغّل `pnpm install --frozen-lockfile` ثم `pnpm build:css` وضمّن تحديث `assets/css/site-tailwind.min.css`. تتحقق فحوص GitHub Actions من حداثة الملف قبل النشر.
