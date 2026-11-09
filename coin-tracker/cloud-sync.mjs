@@ -14,7 +14,7 @@ const friendlyError=(error,fallback='تعذر تنفيذ العملية.')=>{con
 const merge=(local,remote)=>{const map=new Map(remote.map(item=>[item.id,item]));for(const item of local)if(!map.has(item.id))map.set(item.id,item);return [...map.values()]};
 
 export function initCloudSync(){
- const root=$('cloudSync');if(!root)return;const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);let user=null;let applyingRemote=false;let timer=null;
+ const root=$('cloudSync');if(!root)return;const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);window.__azzouzSupabase=supabase;let user=null;let applyingRemote=false;let timer=null;
  const status=(text,type='')=>{$('cloudStatus').textContent=text;$('cloudStatus').className=`cloud-status ${type}`};
  const setSignedIn=logged=>{$('cloudAuthForm').hidden=logged;$('cloudMethods').hidden=logged;$('cloudRecovery').hidden=true;$('cloudAccount').hidden=!logged;$('cloudUserEmail').textContent=user?.email||user?.phone||''};
  const localPayload=()=>({version:1,updatedAt:new Date().toISOString(),celebrities:read(CELEB_KEY),boxes:read(BOX_KEY),cryptoAlerts:readObject(CRYPTO_KEY)});
