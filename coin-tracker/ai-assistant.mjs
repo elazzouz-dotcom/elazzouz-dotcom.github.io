@@ -13,6 +13,18 @@ function snapshot() {
   const crypto = readJson(CRYPTO_KEY, { alerts: [], prices: {} });
   return { target: Number(coin.target || 1133), sessions: Array.isArray(coin.sessions) ? coin.sessions.slice(-30) : [], boxes: Array.isArray(boxes) ? boxes.slice(-30) : [], cryptoAlerts: Array.isArray(crypto.alerts) ? crypto.alerts.slice(-30) : [], prices: crypto.prices || {} };
 }
+function localCommentAnswer(raw) {
+  const comments = String(raw || '').split(/\n+/).map((item) => item.trim()).filter(Boolean).slice(0, 100);
+  if (!comments.length) return 'الصق تعليقات البث أولًا، تعليقًا في كل سطر.';
+  const question = comments.filter((item) => /[؟?]|كيف|متى|أين|واش|شنو|علاش|هل/.test(item));
+  const positive = comments.filter((item) => /مبروك|جميل|رائع|زوين|شكرا|شكراً|احب|أحب|متابعة|تحية/.test(item));
+  const complaint = comments.filter((item) => /مشكل|مشكلة|لا يعمل|ما خدام|سيئ|سيء|شكوى|غاضب/.test(item));
+  const spam = comments.filter((item) => /(http\s?:|www\.|تابعني|ربح سريع|free money|crypto giveaway)/i.test(item));
+  const other = comments.filter((item) => !question.includes(item) && !positive.includes(item) && !complaint.includes(item) && !spam.includes(item));
+  const sample = (items) => items.slice(0, 3).map((item) => `  - ${item}`).join('\n') || '  - لا توجد';
+  return `تحليل يدوي لـ ${comments.length.toLocaleString('ar-MA')} تعليق:\n\nأسئلة: ${question.length}\n${sample(question)}\n\nإيجابي ومدح: ${positive.length}\n${sample(positive)}\n\nشكاوى تحتاج انتباهًا: ${complaint.length}\n${sample(complaint)}\n\nسبام محتمل: ${spam.length}\n${sample(spam)}\n\nأخرى: ${other.length}\n\nرد مقترح للأسئلة: «شكرًا على سؤالك، سأراجعه وأجيبك يدويًا خلال البث.»\nرد مقترح للشكاوى: «وصلت ملاحظتك، شكرًا على التنبيه وسأتحقق منها.»\n\nانسخ الرد وأرسله بنفسك داخل TikTok.`;
+}
+
 function localAnswer(mode, question = '') {
   const data = snapshot();
   const today = new Date().toISOString().slice(0, 10);
@@ -33,19 +45,20 @@ export function initAiAssistant() {
   if (!root) return;
   const output = $('aiOutput');
   const setOutput = (text, error = false) => { output.className = `ai-output${error ? ' error' : ''}`; output.textContent = text; };
-  const askCloud = async (mode, question) => {
+  const askCloud = async (mode, question, comments = '') => {
     const session = await window.__azzouzSupabase?.auth.getSession();
     const token = session?.data?.session?.access_token;
     if (!token) return null;
-    const response = await fetch(AI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ mode, question, snapshot: snapshot() }) });
+    const response = await fetch(AI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ mode, question, comments: String(comments || '').slice(0, 12000), snapshot: snapshot() }) });
     if (!response.ok) return null;
     const data = await response.json();
     return data.answer || null;
   };
   const run = async (mode) => {
     const question = $('aiQuestion').value.trim();
+    const comments = $('aiComments').value.trim();
     $('aiAsk').disabled = true; setOutput('جارٍ التفكير...');
-    try { const answer = await askCloud(mode, question) || localAnswer(mode, question); setOutput(answer); } catch { setOutput(`${localAnswer(mode, question)}\n\nملاحظة: تم استخدام التحليل المحلي لأن المساعد السحابي غير متاح حاليًا.`); } finally { $('aiAsk').disabled = false; }
+    try { const answer = mode === 'comments' ? ((await askCloud(mode, question, comments)) || localCommentAnswer(comments)) : ((await askCloud(mode, question, comments)) || localAnswer(mode, question)); setOutput(answer); } catch { setOutput(`${mode === 'comments' ? localCommentAnswer(comments) : localAnswer(mode, question)}\n\nملاحظة: تم استخدام التحليل المحلي لأن المساعد السحابي غير متاح حاليًا.`); } finally { $('aiAsk').disabled = false; }
   };
   $('aiToggle').onclick = () => { root.classList.toggle('hidden'); };
   $('aiAsk').onclick = () => run($('aiMode').value);
@@ -53,5 +66,6 @@ export function initAiAssistant() {
   $('aiQuickAnalyze').onclick = () => { $('aiMode').value = 'analyze'; run('analyze'); };
   $('aiQuickShare').onclick = () => { $('aiMode').value = 'share'; run('share'); };
   $('aiQuickPrice').onclick = () => { $('aiMode').value = 'price'; run('price'); };
+  $('aiAnalyzeComments').onclick = () => { $('aiMode').value = 'comments'; run('comments'); };
   setOutput('اختر مهمة أو اكتب سؤالك. التحليل المحلي متاح فورًا.');
 }

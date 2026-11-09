@@ -28,13 +28,14 @@ Deno.serve(async (request) => {
   const model = Deno.env.get("OPENAI_MODEL");
   if (!apiKey || !model) return json({ ok: false, error: "المساعد السحابي غير مفعّل بعد." }, 503);
 
-  let payload: { mode?: string; question?: string; snapshot?: Record<string, unknown> };
+  let payload: { mode?: string; question?: string; comments?: string; snapshot?: Record<string, unknown> };
   try { payload = await request.json(); } catch { return json({ ok: false, error: "صيغة JSON غير صالحة." }, 400); }
-  const mode = ["chat", "analyze", "share", "price"].includes(payload.mode || "") ? payload.mode : "chat";
+  const mode = ["chat", "analyze", "share", "price", "comments"].includes(payload.mode || "") ? payload.mode : "chat";
   const snapshot = JSON.stringify(payload.snapshot || {}).slice(0, 16000);
   const question = limitText(payload.question, 1000);
-  const system = `أنت مساعد عربي داخل أداة متابعة يدوية. أجب بالعربية المغربية أو العربية الفصحى المبسطة وباختصار. حلل البيانات التي يرسلها المستخدم فقط. لا تدّعي أنك دخلت TikTok، ولا تقترح أتمتة أو قراءة الشاشة أو فتح الصناديق أو جمع العملات. لا تقدم توصيات مالية بالشراء أو البيع؛ قدم وصفًا وتنبيهًا عامًا فقط. أنشئ نصوص مشاركة آمنة عند الطلب. المهمة الحالية: ${mode}.`;
-  const userMessage = `سؤال المستخدم: ${question || "حلل البيانات وقدّم اقتراحًا عمليًا."}\nبيانات الأداة المحلية (قد تكون فارغة): ${snapshot}`;
+  const comments = limitText(payload.comments, 12000);
+  const system = `أنت مساعد عربي داخل أداة متابعة يدوية. أجب بالعربية المغربية أو العربية الفصحى المبسطة وباختصار. حلل البيانات التي يرسلها المستخدم فقط. لا تدّعي أنك دخلت TikTok، ولا تقترح أتمتة أو قراءة الشاشة أو فتح الصناديق أو جمع العملات. لا تقدم توصيات مالية بالشراء أو البيع؛ قدم وصفًا وتنبيهًا عامًا فقط. أنشئ نصوص مشاركة آمنة عند الطلب. المهمة الحالية: ${mode}. إذا كانت المهمة comments فصنّف التعليقات إلى أسئلة ومدح وشكاوى وسبام وأخرى، واقترح ردودًا قصيرة قابلة للنسخ. لا ترسلها بنفسك.`;
+  const userMessage = `سؤال المستخدم: ${question || "حلل البيانات وقدّم اقتراحًا عمليًا."}\nتعليقات البث الملصقة يدويًا (قد تكون فارغة): ${comments}\nبيانات الأداة المحلية (قد تكون فارغة): ${snapshot}`;
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
