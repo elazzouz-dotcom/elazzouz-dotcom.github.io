@@ -49,6 +49,8 @@ export function initCoinWidget() {
   const allToday = () => state.sessions.filter((item) => item.day === todayKey());
   const totalCoins = (items) => items.reduce((sum, item) => sum + Number(item.coins || 0), 0);
   const totalMinutes = (items) => items.reduce((sum, item) => sum + Number(item.minutes || 0), 0);
+  const dateKeyOffset = (offset) => { const date = new Date(); date.setHours(12, 0, 0, 0); date.setDate(date.getDate() - offset); return date.toISOString().slice(0, 10); };
+  const sevenDayKeys = () => Array.from({ length: 7 }, (_, index) => dateKeyOffset(6 - index));
 
   function exportJson() {
     const backup = {
@@ -67,6 +69,14 @@ export function initCoinWidget() {
     link.download = `azzouz-coin-log-${todayKey()}.json`;
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportCsv() {
+    const escapeCsv = (value) => { const text = String(value ?? ''); return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text; };
+    const rows = [['day', 'time', 'coins', 'minutes', 'note'], ...state.sessions.map(item => [item.day, item.time, item.coins, item.minutes, item.note || ''])];
+    const csv = '\ufeff' + rows.map(row => row.map(escapeCsv).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }); const url = URL.createObjectURL(blob); const link = document.createElement('a');
+    link.href = url; link.download = `azzouz-coin-log-${todayKey()}.csv`; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   function validateBackup(data) {
@@ -115,6 +125,19 @@ export function initCoinWidget() {
     $('coinList').querySelectorAll('[data-delete]').forEach((button) => button.onclick = () => { state.sessions = state.sessions.filter((item) => item.id !== button.dataset.delete); persist(); render(); });
   }
 
+  function renderAnalytics() {
+    const keys = sevenDayKeys();
+    const daily = keys.map(day => ({ day, items: state.sessions.filter(item => item.day === day) }));
+    const totals = daily.map(row => totalCoins(row.items));
+    const weekCoins = totals.reduce((sum, value) => sum + value, 0);
+    const weekSessions = daily.reduce((sum, row) => sum + row.items.length, 0);
+    const bestIndex = totals.indexOf(Math.max(...totals));
+    let streak = 0;
+    for (let index = keys.length - 1; index >= 0 && totals[index] > 0; index -= 1) streak += 1;
+    const max = Math.max(1, ...totals);
+    $('coinAnalyticsBody').innerHTML = `<div class="analytics-cards"><div class="analytics-card"><b>${weekCoins.toLocaleString('ar-MA')}</b><span>عملات الأسبوع</span></div><div class="analytics-card"><b>${weekSessions.toLocaleString('ar-MA')}</b><span>دورات الأسبوع</span></div><div class="analytics-card"><b>${Math.round(weekCoins / 7).toLocaleString('ar-MA')}</b><span>متوسط يومي</span></div><div class="analytics-card"><b>${streak.toLocaleString('ar-MA')}</b><span>سلسلة أيام</span></div></div><div class="analytics-bars">${daily.map((row, index) => `<div class="analytics-bar" title="${formatDate(row.day)}: ${totals[index]} عملة"><span>${totals[index] ? totals[index].toLocaleString('ar-MA') : ''}</span><i style="height:${Math.max(4, Math.round((totals[index] / max) * 52))}px"></i><b>${index === 6 ? 'اليوم' : formatDate(row.day)}</b></div>`).join('')}</div><div class="analytics-empty">أفضل يوم: ${totals[bestIndex] ? `${formatDate(daily[bestIndex].day)} · ${totals[bestIndex].toLocaleString('ar-MA')} عملة` : 'لا توجد بيانات بعد'}</div>`;
+  }
+
   function render() {
     $('coinCd').textContent = formatTime(state.remaining);
     $('coinState').textContent = state.running ? 'المؤقت يعمل · اجمع يدويًا' : (state.remaining === 0 ? 'انتهت الدورة · سجّل ما جمعت' : 'جاهز للتجميع اليدوي');
@@ -127,7 +150,7 @@ export function initCoinWidget() {
     $('coinInterval').querySelectorAll('[data-seconds]').forEach((button) => { const selected = Number(button.dataset.seconds) === state.interval; button.classList.toggle('on', selected); button.innerHTML = `${icon(selected ? 'selected' : 'empty')}${button.dataset.label}`; });
     $('coinTarget').value = state.target || 1000;
     $('coinNotify').checked = Boolean(state.settings.notifications);
-    renderDays(); renderStats(); renderList();
+    renderDays(); renderStats(); renderAnalytics(); renderList();
   }
 
   function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
@@ -154,6 +177,8 @@ export function initCoinWidget() {
   $('coinTarget').onchange = () => { state.target = Math.max(0, Number($('coinTarget').value || 0)); persist(); renderStats(); };
   $('coinNotify').onchange = async () => { state.settings.notifications = $('coinNotify').checked; if (state.settings.notifications && 'Notification' in window && Notification.permission === 'default') { const permission = await Notification.requestPermission(); state.settings.notifications = permission === 'granted'; } persist(); render(); };
   $('coinExport').onclick = exportJson;
+  $('coinExportCsv').onclick = exportCsv;
+  $('coinAnalyticsToggle').onclick = () => { const panel = $('coinAnalytics'); const collapsed = panel.classList.toggle('collapsed'); $('coinAnalyticsToggle').textContent = collapsed ? '⌄ فتح' : '⌃ إخفاء'; };
   $('coinImport').onclick = () => $('coinImportInput').click();
   $('coinImportInput').onchange = async (event) => { const file = event.target.files?.[0]; if (file) await importJson(file); event.target.value = ''; };
   $('coinClear').onclick = () => { if (state.sessions.length && confirm('حذف كل سجل العملات؟')) { state.sessions = []; persist(); render(); } };
