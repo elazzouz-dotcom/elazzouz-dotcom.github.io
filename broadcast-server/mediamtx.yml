@@ -1,0 +1,43 @@
+# MediaMTX configuration for the Azzouz manual broadcast bridge.
+# Replace the two TIKTOK_* placeholders on the server only.
+# Never commit a real TikTok stream key to GitHub.
+
+logLevel: info
+
+# RTMP ingest: OBS, TikTok-compatible encoder, or a server-side publisher can send to:
+# rtmp://YOUR_SERVER_IP:1935/live
+rtmp: true
+rtmpAddress: :1935
+
+# WebRTC/WHIP endpoints for a future browser publisher.
+webrtc: true
+webrtcAddress: :8889
+webrtcAllowOrigins: ['https://elazzouz-dotcom.github.io']
+
+# Keep the control API private; do not expose it publicly.
+api: false
+metrics: false
+
+# Restrict anonymous publishing to the single live path in production by replacing
+# the internal auth block with JWT or HTTP authentication.
+authMethod: internal
+authInternalUsers:
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: publish
+        path: live
+      - action: read
+        path: live
+
+paths:
+  live:
+    # MediaMTX supports RTMP forwarding. The destination must be supplied by the
+    # account owner and must include the TikTok RTMP URL plus its stream key.
+    # Example form: rtmps://provider.example/app#STREAM_KEY
+    forward:
+      - dest: rtmps://TIKTOK_RTMP_HOST/TIKTOK_RTMP_APP#TIKTOK_STREAM_KEY
+
+    # Do not record or retain the stream by default.
+    record: false
