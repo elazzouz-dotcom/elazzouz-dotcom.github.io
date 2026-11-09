@@ -3,18 +3,11 @@ services:
     image: bluenviron/mediamtx:1
     container_name: azzouz-mediamtx
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
-      - "1935:1935"       # RTMP ingest
-      - "8889:8889"       # WebRTC HTTP/WHIP/WHEP
-      - "8189:8189/udp"   # WebRTC ICE/UDP
-      - "8890:8890/udp"   # WebRTC additional UDP listener
+      - "1935:1935"
+      - "8889:8889"
+      - "8189:8189/udp"
+      - "8890:8890/udp"
     volumes:
-      - ./mediamtx.yml:/mediamtx.yml:ro
+      - ./mediamtx.runtime.yml:/mediamtx.yml:ro
     command: ["/mediamtx", "/mediamtx.yml"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:9997/v3/paths/list >/dev/null 2>&1 || exit 0"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
