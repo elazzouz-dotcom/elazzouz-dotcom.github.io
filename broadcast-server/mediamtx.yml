@@ -18,12 +18,11 @@ webrtcAllowOrigins: ['https://elazzouz-dotcom.github.io']
 api: false
 metrics: false
 
-# Restrict anonymous publishing to the single live path in production by replacing
-# the internal auth block with JWT or HTTP authentication.
+# Require credentials for publishing. Change this placeholder on the server.
 authMethod: internal
 authInternalUsers:
-  - user: any
-    pass:
+  - user: publisher
+    pass: CHANGE_ME_TO_A_LONG_RANDOM_PASSWORD
     ips: []
     permissions:
       - action: publish

@@ -12,7 +12,7 @@
 ## الإعداد
 
 1. انسخ `mediamtx.yml` إلى الخادم.
-2. افتح الملف على الخادم فقط، واستبدل:
+2. افتح الملف على الخادم فقط، غيّر كلمة مرور `CHANGE_ME_TO_A_LONG_RANDOM_PASSWORD` إلى قيمة عشوائية طويلة، ثم استبدل:
    - `TIKTOK_RTMP_HOST`
    - `TIKTOK_RTMP_APP`
    - `TIKTOK_STREAM_KEY`
@@ -34,7 +34,7 @@ docker compose logs -f mediamtx
 rtmp://YOUR_SERVER_IP:1935/live
 ```
 
-بعد وصول فيديو وصوت إلى مسار `live`، سيحاول MediaMTX تمريره إلى وجهة RTMPS المحددة في الإعداد.
+في صفحة الاستوديو، أدخل عنوان MediaMTX مثل `https://stream.example.com:8889` واضغط «فتح الناشر»، ثم أدخل بيانات المستخدم عند طلبها. بعد وصول فيديو وصوت إلى مسار `live`، سيحاول MediaMTX تمريره إلى وجهة RTMPS المحددة في الإعداد.
 
 ## المنافذ
 
