@@ -184,6 +184,7 @@ export function initCoinWidget() {
   $('coinClear').onclick = () => { if (state.sessions.length && confirm('حذف كل سجل العملات؟')) { state.sessions = []; persist(); render(); } };
   $('coinToggle').onclick = () => { root.classList.toggle('collapsed'); $('coinToggle').setAttribute('aria-expanded', String(!root.classList.contains('collapsed'))); };
 
+  window.addEventListener('floating-manual-entry', (event) => { const coins = Number(event.detail?.coins || 0); if (!coins) return; $('coinAmount').value = coins; $('coinNote').value = String(event.detail?.note || 'تسجيل من الأداة العائمة').slice(0, 60); $('coinAmount').focus(); document.getElementById('coinWidget')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   window.addEventListener('beforeunload', stopTimer);
   render();
 }
