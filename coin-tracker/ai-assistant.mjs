@@ -67,5 +67,11 @@ export function initAiAssistant() {
   $('aiQuickShare').onclick = () => { $('aiMode').value = 'share'; run('share'); };
   $('aiQuickPrice').onclick = () => { $('aiMode').value = 'price'; run('price'); };
   $('aiAnalyzeComments').onclick = () => { $('aiMode').value = 'comments'; run('comments'); };
+  const updateCommentCount = () => { const count = $('aiComments').value.split(/\n+/).map((item) => item.trim()).filter(Boolean).length; $('aiCommentCount').textContent = `${count.toLocaleString('ar-MA')} تعليق`; $('aiCommentStatus').textContent = count ? 'جاهز للتحليل اليدوي' : 'ألصق تعليقًا في كل سطر'; };
+  $('aiComments').oninput = updateCommentCount;
+  $('aiSampleComments').onclick = () => { $('aiComments').value = 'واش غادي يبدا البث؟\nمحتوى زوين، بالتوفيق\nما خدامش الرابط\nتابعني واربح سريع https://example.com'; updateCommentCount(); };
+  $('aiClearComments').onclick = () => { $('aiComments').value = ''; updateCommentCount(); $('aiOutput').textContent = 'ألصق التعليقات ثم اضغط حلل الآن.'; };
+  $('aiCopyOutput').onclick = async () => { const text = $('aiOutput').textContent.trim(); if (!text) return; try { await navigator.clipboard.writeText(text); $('aiCommentStatus').textContent = 'تم نسخ النتيجة'; } catch { $('aiCommentStatus').textContent = 'انسخ النتيجة يدويًا من الشاشة'; } };
   setOutput('اختر مهمة أو اكتب سؤالك. التحليل المحلي متاح فورًا.');
+  updateCommentCount();
 }
