@@ -11,6 +11,19 @@
 
 ## الإعداد
 
+## إعداد سريع من الهاتف
+
+بعد فتح طرفية Cloud Computer من الهاتف ورفع مجلد `broadcast-server`، نفّذ:
+
+```bash
+cd broadcast-server
+chmod +x setup-server.sh
+# غيّر كلمة المرور وبيانات RTMP في mediamtx.yml قبل التشغيل
+sudo ./setup-server.sh
+```
+
+السكربت يفتح المنافذ المطلوبة، يفعّل UFW بعد فتح SSH، يتحقق من Docker، ثم يشغّل MediaMTX ويعرض الحالة. إذا ظهرت رسالة تفيد بوجود قيم تجريبية، عدّلها أولًا ولا تتجاوز الفحص.
+
 1. انسخ `mediamtx.yml` إلى الخادم.
 2. افتح الملف على الخادم فقط، غيّر كلمة مرور `CHANGE_ME_TO_A_LONG_RANDOM_PASSWORD` إلى قيمة عشوائية طويلة، ثم استبدل:
    - `TIKTOK_RTMP_HOST`
