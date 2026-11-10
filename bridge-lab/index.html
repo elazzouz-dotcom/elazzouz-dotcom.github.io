@@ -22,7 +22,7 @@
     button { background: #00ff88; color: #00150b; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: bold; }
     button:hover { background: #7dffbd; }
     @media (max-width: 700px) { .brand { flex-basis: 100%; } .chip { min-width: 72px; } button { flex: 1; } }
-    .fixer-toggle { background: #b9ffda; color: #00150b; box-shadow: 0 0 8px #00ff88, 0 0 24px #00ff8866; }
+    .fixer-toggle { position: fixed; top: 78px; inset-inline-start: 10px; z-index: 13; background: #b9ffda; color: #00150b; box-shadow: 0 0 8px #00ff88, 0 0 24px #00ff8866; }
     #fixer-panel { position: fixed; top: 78px; inset-inline-start: 10px; width: min(430px, calc(100vw - 20px)); max-height: calc(100vh - 170px); overflow: auto; display: none; z-index: 12; padding: 14px; border: 1px solid #00ff88; border-radius: 16px; background: linear-gradient(145deg, rgba(4,24,15,.98), rgba(0,0,0,.96)); box-shadow: 0 0 10px #00ff88, 0 0 34px #00ff8855, inset 0 0 28px #00ff8812; }
     #fixer-panel.open { display: block; animation: fixerPulse .55s ease-out; }
     @keyframes fixerPulse { from { opacity: 0; transform: translateY(-10px) scale(.98); box-shadow: 0 0 0 #00ff88; } to { opacity: 1; transform: translateY(0) scale(1); box-shadow: 0 0 10px #00ff88, 0 0 34px #00ff8855, inset 0 0 28px #00ff8812; } }
