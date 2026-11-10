@@ -85,6 +85,17 @@
           <div id="stream-analysis" class="stream-analysis" role="status" aria-live="polite">لم يبدأ التحليل بعد.</div>
         </section>
 
+        <section class="code-fixer" aria-labelledby="code-fixer-title">
+          <div class="stream-assistant-head"><div><p class="kicker">مصلح الكود · آمن ومحلي</p><h2 id="code-fixer-title">حلّل الخطأ واقترح إصلاحًا</h2></div><span class="pill">لا تنفيذ تلقائي</span></div>
+          <p>ألصق الكود ورسالة الخطأ. يفحص المتصفح أنماطًا شائعة ويقترح خطوات واضحة دون تشغيل أوامر، تثبيت مكتبات، أو تعديل ملفاتك.</p>
+          <label for="fixer-code">الكود</label>
+          <textarea id="fixer-code" rows="6" maxlength="20000" placeholder="name = unknown_value"></textarea>
+          <label for="fixer-error">رسالة الخطأ</label>
+          <textarea id="fixer-error" rows="3" maxlength="6000" placeholder="NameError: name 'unknown_value' is not defined"></textarea>
+          <div class="stream-actions"><button id="fixer-analyze" type="button">حلّل واقترح</button><button id="fixer-sample" class="secondary" type="button">إضافة مثال</button><button id="fixer-clear" class="secondary" type="button">مسح</button></div>
+          <div id="fixer-result" class="stream-analysis" role="status" aria-live="polite">لم يبدأ فحص الكود بعد.</div>
+        </section>
+
         <section class="ai-explainer" aria-labelledby="ai-explainer-title">
           <p class="kicker">AZZOUZ AI · كيف يعمل؟</p>
           <h2 id="ai-explainer-title">ليس كتابًا محفوظًا، بل أنماط ثم تحقق بالمراجع</h2>

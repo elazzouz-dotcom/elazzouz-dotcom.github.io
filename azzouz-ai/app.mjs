@@ -59,7 +59,13 @@ const elements = {
   analyzeStreamComments: document.getElementById('analyze-stream-comments'),
   sampleStreamComments: document.getElementById('sample-stream-comments'),
   clearStreamComments: document.getElementById('clear-stream-comments'),
-  streamAnalysis: document.getElementById('stream-analysis')
+  streamAnalysis: document.getElementById('stream-analysis'),
+  fixerCode: document.getElementById('fixer-code'),
+  fixerError: document.getElementById('fixer-error'),
+  fixerAnalyze: document.getElementById('fixer-analyze'),
+  fixerSample: document.getElementById('fixer-sample'),
+  fixerClear: document.getElementById('fixer-clear'),
+  fixerResult: document.getElementById('fixer-result')
 };
 
 const state = {
@@ -828,6 +834,23 @@ function sampleStreamComments() {
 }
 function clearStreamComments() { elements.streamComments.value = ''; elements.streamAnalysis.textContent = 'تم المسح. لم تُرسل التعليقات إلى أي خدمة.'; }
 
+function analyzeCodeFix() {
+  const code = String(elements.fixerCode.value || '');
+  const error = String(elements.fixerError.value || '').trim();
+  if (!error) { elements.fixerResult.textContent = 'ألصق رسالة الخطأ أولًا.'; return; }
+  const suggestions = [];
+  if (/NameError.*requests|name ['"]requests['"] is not defined/iu.test(error) && !/^\s*import\s+requests\b/mu.test(code)) suggestions.push('أضف `import requests` في أعلى الملف إذا كان استخدام المكتبة مقصودًا.');
+  const missing = error.match(/No module named ['"]([^'"]+)['"]/iu);
+  if (missing) suggestions.push(`المكتبة «${missing[1]}» غير موجودة. ثبّتها يدويًا داخل بيئة موثوقة بعد مراجعة اسمها، ولا تثبّت شيئًا تلقائيًا من الموقع.`);
+  if (/SyntaxError/iu.test(error)) suggestions.push('راجع السطر المذكور، الأقواس، النقطتين، وعلامات الاقتباس. شغّل أداة الفحص محليًا بعد أخذ نسخة احتياطية.');
+  if (/client[_ -]?key|redirect[_ -]?uri|oauth/iu.test(error)) suggestions.push('تحقق من Client Key وRedirect URI المطابقين حرفيًا، ومن إضافة الحساب إلى Test users في وضع Sandbox.');
+  if (/undefined|null/iu.test(error)) suggestions.push('تحقق من قيمة المتغير قبل استعمالها، واستعمل قيمة افتراضية أو فحصًا صريحًا بدل تغيير الملف عشوائيًا.');
+  if (!suggestions.length) suggestions.push('لم يتعرف الفاحص على نمط آمن محدد. راجع السطر المشار إليه، اختبر نسخة احتياطية، ولا تطبق تعديلًا قبل فهمه.');
+  elements.fixerResult.textContent = `نتيجة الفحص\n${suggestions.map((item, i) => `${i + 1}. ${item}`).join('\n')}\n\nالفحص محلي فقط: لم يُنفّذ الكود، ولم تُكتب ملفات، ولم تُثبت حزم، ولم تُرسل البيانات إلى خدمة خارجية.`;
+}
+function sampleCodeFix() { elements.fixerCode.value = 'name = requests.get(url)'; elements.fixerError.value = "NameError: name 'requests' is not defined"; analyzeCodeFix(); }
+function clearCodeFix() { elements.fixerCode.value = ''; elements.fixerError.value = ''; elements.fixerResult.textContent = 'تم المسح. لم يُنفّذ أي كود.'; }
+
 function initialize() {
   const initialStatuses = Object.fromEntries(API_SOURCES.map((source) => [source.id, { text: 'بانتظار موافقتك', kind: '' }]));
   renderSourceStatuses(initialStatuses);
@@ -858,6 +881,9 @@ function initialize() {
   elements.analyzeStreamComments.addEventListener('click', analyzeStreamComments);
   elements.sampleStreamComments.addEventListener('click', sampleStreamComments);
   elements.clearStreamComments.addEventListener('click', clearStreamComments);
+  elements.fixerAnalyze.addEventListener('click', analyzeCodeFix);
+  elements.fixerSample.addEventListener('click', sampleCodeFix);
+  elements.fixerClear.addEventListener('click', clearCodeFix);
   elements.externalConsent.addEventListener('change', () => {
     if (!elements.externalConsent.checked) {
       if (state.busy) {
