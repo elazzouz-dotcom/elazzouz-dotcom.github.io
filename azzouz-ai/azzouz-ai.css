@@ -199,3 +199,6 @@ h1 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.15rem); line-height: 1.3; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+.stream-assistant{display:grid;gap:10px;margin:16px;padding:16px;border:1px solid #31583e;border-radius:16px;background:linear-gradient(145deg,rgba(18,40,26,.94),rgba(8,13,10,.96))}.stream-assistant-head{display:flex;align-items:start;justify-content:space-between;gap:10px}.stream-assistant h2{margin:0;font-size:1.12rem}.stream-assistant>p{margin:0;color:var(--muted);font-size:.84rem}.stream-assistant label{color:var(--muted);font-size:.82rem;font-weight:700}.stream-assistant textarea{width:100%;resize:vertical;min-height:130px;border:1px solid #324539;border-radius:12px;padding:.7rem;background:#070d09;color:var(--text);line-height:1.7}.stream-actions{display:flex;flex-wrap:wrap;gap:8px}.stream-actions button{flex:1 1 150px}.stream-analysis{min-height:54px;padding:10px 12px;border:1px solid #244331;border-radius:12px;background:rgba(3,9,5,.55);color:#d8e7dc;white-space:pre-wrap}.stream-analysis strong{color:var(--green)}
+@media(max-width:560px){.stream-assistant{margin:10px;padding:12px}.stream-assistant-head{display:grid}}

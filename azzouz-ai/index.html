@@ -15,7 +15,7 @@
     <header class="page-header">
       <div>
         <div class="brand-row">
-          <a class="back-link" href="/">العودة إلى Azzouz</a>
+          <a class="back-link" href="/">العودة إلى Azzouz</a><a class="back-link" href="/coin-tracker/live-studio.html">استوديو البث</a>
           <p class="kicker">مختبر بحث تجريبي · يعمل عبر GitHub Pages</p>
         </div>
         <h1>Azzouz AI · مساعد بحث بالمراجع</h1>
@@ -72,6 +72,17 @@
             <button id="morning-report" class="secondary" type="button">تقرير الصباح</button>
           </div>
           <p id="night-status" class="night-status" role="status" aria-live="polite">السرب متوقف · لم تُرسل مواضيع تلقائيًا.</p>
+        </section>
+
+        <section class="stream-assistant" aria-labelledby="stream-assistant-title">
+          <div class="stream-assistant-head"><div><p class="kicker">مساعد البث اليدوي · محلي</p><h2 id="stream-assistant-title">حلّل التعليقات قبل الرد</h2></div><span class="pill">بدون إرسال تلقائي</span></div>
+          <p>الصق التعليقات هنا، وسيصنفها المتصفح إلى أسئلة وإيجابية ومخاوف ورسائل مزعجة. لا تُرسل البيانات إلى أي خدمة ولا يكتب المساعد ردًا داخل TikTok.</p>
+          <label for="stream-comments">تعليقات البث، تعليق في كل سطر</label>
+          <textarea id="stream-comments" rows="6" maxlength="12000" placeholder="مثال: كيفاش نبدأ؟
+الصوت واضح اليوم
+فين الرابط؟"></textarea>
+          <div class="stream-actions"><button id="analyze-stream-comments" type="button">حلّل التعليقات</button><button id="sample-stream-comments" class="secondary" type="button">إضافة مثال</button><button id="clear-stream-comments" class="secondary" type="button">مسح</button></div>
+          <div id="stream-analysis" class="stream-analysis" role="status" aria-live="polite">لم يبدأ التحليل بعد.</div>
         </section>
 
         <section class="ai-explainer" aria-labelledby="ai-explainer-title">

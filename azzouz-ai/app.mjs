@@ -54,7 +54,12 @@ const elements = {
   questionCount: document.getElementById('question-count'),
   citationCount: document.getElementById('citation-count'),
   sourceCount: document.getElementById('source-count'),
-  memoryCount: document.getElementById('memory-count')
+  memoryCount: document.getElementById('memory-count'),
+  streamComments: document.getElementById('stream-comments'),
+  analyzeStreamComments: document.getElementById('analyze-stream-comments'),
+  sampleStreamComments: document.getElementById('sample-stream-comments'),
+  clearStreamComments: document.getElementById('clear-stream-comments'),
+  streamAnalysis: document.getElementById('stream-analysis')
 };
 
 const state = {
@@ -804,6 +809,25 @@ function startVoice() {
   }
 }
 
+function analyzeStreamComments() {
+  const lines = String(elements.streamComments.value || '').split(/\r?\n/gu).map((line) => line.trim()).filter(Boolean).slice(0, 200);
+  if (!lines.length) { elements.streamAnalysis.textContent = 'ألصق تعليقًا واحدًا على الأقل ثم أعد التحليل.'; return; }
+  const patterns = { question: /[؟?]|كيف|واش|فين|علاش|متى|شنو|هل|why|how|where/iu, positive: /شكرا|رائع|زوين|ممتاز|واضح|برافو|love|great|good/iu, concern: /مشكل|ما خدام|ضعيف|خايف|تأخر|صوتك|الصوت|مقطوع|help|problem/iu, spam: /تابعني|رابط ربحي|جائزة مجانية|اضغط هنا|free|follow me|http[s]?:\/\//iu };
+  const counts = Object.fromEntries(Object.keys(patterns).map((key) => [key, 0]));
+  const examples = Object.fromEntries(Object.keys(patterns).map((key) => [key, []]));
+  for (const line of lines) for (const [key, pattern] of Object.entries(patterns)) if (pattern.test(line)) { counts[key] += 1; if (examples[key].length < 2) examples[key].push(line.slice(0, 140)); }
+  const labels = { question: 'أسئلة', positive: 'إيجابية', concern: 'مخاوف/مشاكل', spam: 'مزعجة' };
+  const summary = Object.entries(labels).map(([key, label]) => `${label}: ${counts[key]}`).join(' · ');
+  const focus = Object.entries(counts).sort((a, b) => b[1] - a[1]).find(([, count]) => count > 0)?.[0];
+  const next = focus === 'question' ? 'الأولوية: أجب عن الأسئلة المتكررة يدويًا.' : focus === 'concern' ? 'الأولوية: وضّح المشكلة أو افحص الصوت والاتصال.' : focus === 'spam' ? 'الأولوية: تجاهل الرسائل المزعجة يدويًا.' : 'الأولوية: تابع البث وراجع التعليقات المهمة يدويًا.';
+  elements.streamAnalysis.textContent = `حلّل المتصفح ${lines.length} تعليقًا.\n${summary}\n${next}`;
+}
+function sampleStreamComments() {
+  elements.streamComments.value = 'كيفاش نبدأ؟\nالصوت واضح اليوم\nفين الرابط؟\nالصوت مقطوع عندي\nبرافو على البث\nتابعني واربح جائزة مجانية';
+  analyzeStreamComments();
+}
+function clearStreamComments() { elements.streamComments.value = ''; elements.streamAnalysis.textContent = 'تم المسح. لم تُرسل التعليقات إلى أي خدمة.'; }
+
 function initialize() {
   const initialStatuses = Object.fromEntries(API_SOURCES.map((source) => [source.id, { text: 'بانتظار موافقتك', kind: '' }]));
   renderSourceStatuses(initialStatuses);
@@ -831,6 +855,9 @@ function initialize() {
   elements.exportMemory.addEventListener('click', () => { void exportMemory(); });
   elements.importMemory.addEventListener('click', () => elements.importMemoryFile.click());
   elements.importMemoryFile.addEventListener('change', (event) => { void importMemoryFile(event.target.files?.[0]); event.target.value = ''; });
+  elements.analyzeStreamComments.addEventListener('click', analyzeStreamComments);
+  elements.sampleStreamComments.addEventListener('click', sampleStreamComments);
+  elements.clearStreamComments.addEventListener('click', clearStreamComments);
   elements.externalConsent.addEventListener('change', () => {
     if (!elements.externalConsent.checked) {
       if (state.busy) {
