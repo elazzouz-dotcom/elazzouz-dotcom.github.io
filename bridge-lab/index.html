@@ -22,6 +22,20 @@
     button { background: #00ff88; color: #00150b; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: bold; }
     button:hover { background: #7dffbd; }
     @media (max-width: 700px) { .brand { flex-basis: 100%; } .chip { min-width: 72px; } button { flex: 1; } }
+    .fixer-toggle { background: #b9ffda; color: #00150b; box-shadow: 0 0 8px #00ff88, 0 0 24px #00ff8866; }
+    #fixer-panel { position: fixed; top: 78px; inset-inline-start: 10px; width: min(430px, calc(100vw - 20px)); max-height: calc(100vh - 170px); overflow: auto; display: none; z-index: 12; padding: 14px; border: 1px solid #00ff88; border-radius: 16px; background: linear-gradient(145deg, rgba(4,24,15,.98), rgba(0,0,0,.96)); box-shadow: 0 0 10px #00ff88, 0 0 34px #00ff8855, inset 0 0 28px #00ff8812; }
+    #fixer-panel.open { display: block; animation: fixerPulse .55s ease-out; }
+    @keyframes fixerPulse { from { opacity: 0; transform: translateY(-10px) scale(.98); box-shadow: 0 0 0 #00ff88; } to { opacity: 1; transform: translateY(0) scale(1); box-shadow: 0 0 10px #00ff88, 0 0 34px #00ff8855, inset 0 0 28px #00ff8812; } }
+    #fixer-panel h2 { margin: 0 0 4px; color: #b9ffd9; font-size: 16px; }
+    #fixer-panel p { color: #9bc6ad; font-size: 11px; line-height: 1.7; margin: 4px 0 10px; }
+    #fixer-panel label { display: block; margin-top: 8px; color: #00ff88; font-size: 11px; font-weight: 800; }
+    #fixer-panel textarea { width: 100%; min-height: 70px; resize: vertical; margin-top: 4px; padding: 8px; border: 1px solid #276c49; border-radius: 8px; background: #020a05; color: #eafff1; font: 11px/1.5 Consolas, monospace; direction: ltr; text-align: left; }
+    #fixer-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    #fixer-actions button { flex: 1; min-width: 95px; }
+    #fixer-result { white-space: pre-wrap; margin-top: 10px; padding: 9px; min-height: 54px; border: 1px solid #285f42; border-radius: 8px; color: #c7ffda; background: #00150b; font: 11px/1.65 Consolas, monospace; }
+    #fixer-result.warn { border-color: #a57924; color: #ffe2a0; }
+    @media (max-width: 700px) { #fixer-panel { top: 132px; inset-inline-start: 8px; } }
+
   </style>
 </head>
 <body>
@@ -41,9 +55,51 @@
     <div class="cycle">استكشاف (HTML · يحتاج حماية) → حماية (Security · يحتاج نور) → نور (الآيات · يحتاج ميزان) → ميزان (التوازن · يحتاج بناء) → بناء (CSS · يحتاج فحص) → فحص (JavaScript · يحتاج استكشاف)</div>
     <p><strong>قاعدة الجسر:</strong> إذا حُذفت طبقة ضعفت البنية؛ وإذا اجتمعت الطبقات اكتمل الجسر.</p>
   </details>
+
+  <button class="fixer-toggle" id="fixer-toggle" type="button" aria-expanded="false" aria-controls="fixer-panel">مصلح الجسر ✦</button>
+  <section id="fixer-panel" aria-labelledby="fixer-title">
+    <h2 id="fixer-title">مختبر إصلاح الجسر · Auto-Fixer آمن</h2>
+    <p>ألصق الكود ورسالة الخطأ لتحليل محلي قوي. لا يُنفّذ الكود، لا تُكتب الملفات، لا تُثبّت حزم، ولا تُرسل البيانات إلى الخارج.</p>
+    <label for="fixer-code">الكود</label>
+    <textarea id="fixer-code" spellcheck="false" placeholder="ألصق الكود هنا"></textarea>
+    <label for="fixer-error">رسالة الخطأ</label>
+    <textarea id="fixer-error" spellcheck="false" placeholder="ألصق رسالة الخطأ هنا"></textarea>
+    <div id="fixer-actions">
+      <button id="fixer-analyze" type="button">تحليل الخطأ</button>
+      <button id="fixer-sample" type="button">مثال</button>
+      <button id="fixer-clear" type="button">مسح</button>
+    </div>
+    <div id="fixer-result" role="status" aria-live="polite">جاهز للتحليل المحلي.</div>
+  </section>
   <canvas id="cv" aria-label="محاكاة الجسور البرمجية"></canvas>
   <div id="log" aria-live="polite"></div>
   <script>
+
+    const fixer = {
+      toggle: document.getElementById('fixer-toggle'), panel: document.getElementById('fixer-panel'),
+      code: document.getElementById('fixer-code'), error: document.getElementById('fixer-error'),
+      analyze: document.getElementById('fixer-analyze'), sample: document.getElementById('fixer-sample'),
+      clear: document.getElementById('fixer-clear'), result: document.getElementById('fixer-result')
+    };
+    function analyzeBridgeFix() {
+      const code = fixer.code.value || '', error = (fixer.error.value || '').trim();
+      if (!error) { fixer.result.textContent = 'ألصق رسالة الخطأ أولًا.'; fixer.result.className = 'warn'; return; }
+      const tips = [];
+      if (/NameError.*requests|name ['"]requests['"] is not defined/iu.test(error) && !/^\s*import\s+requests\b/mu.test(code)) tips.push('أضف import requests في أعلى الملف إذا كان الاستخدام مقصودًا.');
+      const missing = error.match(/No module named ['"]([^'"]+)['"]/iu);
+      if (missing) tips.push(`المكتبة «${missing[1]}» غير موجودة. ثبّتها يدويًا بعد مراجعة الاسم؛ التثبيت التلقائي معطل.`);
+      if (/SyntaxError|IndentationError|TabError/iu.test(error)) tips.push('راجع السطر المشار إليه والأقواس والمسافات البادئة وعلامات الاقتباس.');
+      if (/client[_ -]?key|redirect[_ -]?uri|oauth/iu.test(error)) tips.push('تحقق من Client Key وRedirect URI المطابقين حرفيًا داخل لوحة المزود.');
+      if (/undefined|null/iu.test(error)) tips.push('تحقق من القيمة قبل استعمالها، وأضف فحصًا صريحًا بدل تعديل عشوائي.');
+      if (!tips.length) tips.push('لم يطابق الفاحص نمطًا معروفًا. راجع السطر المشار إليه واختبر نسخة احتياطية.');
+      fixer.result.className = '';
+      fixer.result.textContent = `نتيجة التحليل المحلي\n${tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}\n\nحماية الجسر: لم يُنفّذ الكود، ولم تُكتب ملفات، ولم تُثبت حزم، ولم تُرسل البيانات.`;
+      log('مصلح الجسر حلّل رسالة خطأ محليًا دون تنفيذ.');
+    }
+    fixer.toggle.addEventListener('click', () => { const open = fixer.panel.classList.toggle('open'); fixer.toggle.setAttribute('aria-expanded', String(open)); });
+    fixer.analyze.addEventListener('click', analyzeBridgeFix);
+    fixer.sample.addEventListener('click', () => { fixer.code.value = 'name = requests.get(url)'; fixer.error.value = "NameError: name 'requests' is not defined"; analyzeBridgeFix(); });
+    fixer.clear.addEventListener('click', () => { fixer.code.value = ''; fixer.error.value = ''; fixer.result.className = ''; fixer.result.textContent = 'تم المسح. لم يُنفّذ أي كود.'; });
     const cv = document.getElementById('cv');
     const ctx = cv.getContext('2d');
     function resize() { cv.width = innerWidth; cv.height = innerHeight; }
