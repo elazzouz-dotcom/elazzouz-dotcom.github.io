@@ -5,6 +5,8 @@
   const urlInput = document.getElementById('https-url');
   const result = document.getElementById('https-result');
   const close = document.getElementById('https-close');
+  const sourcesInput = document.getElementById('https-sources-input');
+  const sourceList = document.getElementById('https-source-list');
   if (!canvas || !panel) return;
   const ctx = canvas.getContext('2d');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -73,5 +75,35 @@
   close.addEventListener('click', () => panel.classList.remove('open'));
   document.getElementById('https-search').addEventListener('click', () => { const text = query.value.trim(); if (!text) { result.textContent = 'اكتب موضوع البحث أولًا.'; return; } const target = `https://duckduckgo.com/?q=${encodeURIComponent(text + ' https')}`; result.textContent = 'سيتم فتح بحث عام محدود؛ لم يتم فتح نتائج أو زحف تلقائي.'; window.open(target, '_blank', 'noopener,noreferrer'); });
   document.getElementById('https-check').addEventListener('click', () => { const raw = urlInput.value.trim(); try { const u = new URL(raw); const privateHost = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[0-1])\.)/i.test(u.hostname); const dangerous = /\.(exe|bat|cmd|sh|scr|dll|zip|js|json|py|mp4|png|jpg|jpeg|gif)$/i.test(u.pathname); if (u.protocol !== 'https:') throw new Error('الرابط ليس HTTPS.'); if (privateHost) throw new Error('النطاق يشير إلى شبكة محلية أو عنوان خاص.'); if (dangerous) throw new Error('امتداد الملف يحتاج مراجعة يدوية.'); result.innerHTML = '<span class="https-safe">الرابط يطابق الفحوصات الشكلية الأساسية.</span><br>هذا لا يثبت سلامة الموقع؛ لم يتم فتح الرابط تلقائيًا.'; } catch (error) { result.innerHTML = `<span class="https-warn">${error.message}</span>`; } });
+  function addSourceCard(url, title, note) {
+    const li = document.createElement('li');
+    const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = title || url;
+    const meta = document.createElement('div'); meta.className = 'https-source-note'; meta.textContent = `${url} · ${note}`;
+    li.append(link, meta); sourceList.append(li);
+  }
+  async function readSources() {
+    sourceList.textContent = '';
+    const urls = [...new Set(sourcesInput.value.split(/[\n,]+/).map((value) => value.trim()).filter(Boolean))].slice(0, 5);
+    if (!urls.length) { result.textContent = 'ضع رابطًا واحدًا على الأقل في قارئ المصادر.'; return; }
+    result.textContent = `جارٍ قراءة ${urls.length} مصدرًا ضمن الحدود الآمنة…`;
+    for (const raw of urls) {
+      try {
+        const target = new URL(raw);
+        if (target.protocol !== 'https:') throw new Error('ليس HTTPS');
+        if (target.origin !== location.origin) { addSourceCard(target.href, 'مرجع خارجي HTTPS', 'تم حفظ المرجع فقط؛ قراءة المحتوى الخارجي محجوبة بواسطة المتصفح'); continue; }
+        const response = await fetch(target.href, { cache: 'no-store', credentials: 'omit' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        doc.querySelectorAll('script,style,noscript,svg').forEach((node) => node.remove());
+        const title = doc.title?.textContent.trim() || target.href;
+        const description = doc.querySelector('meta[name="description"]')?.content?.trim();
+        const snippet = (description || doc.body?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+        addSourceCard(target.href, title, snippet || 'تمت قراءة الصفحة بدون وصف نصي');
+      } catch (error) { addSourceCard(raw, 'تعذر قراءة المصدر', error.message); }
+    }
+    result.textContent = 'اكتملت قراءة المصادر. لم يتم تنفيذ أي كود أو الزحف خارج نطاق الموقع.';
+  }
+  document.getElementById('https-read-sources').addEventListener('click', readSources);
   draw(performance.now());
 })();
