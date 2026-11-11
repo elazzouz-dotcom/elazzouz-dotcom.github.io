@@ -11,10 +11,15 @@
   if (!canvas || !panel) return;
   const ctx = canvas.getContext('2d');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const storageGet = (key, fallback) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
+  const storageSet = (key, value) => { try { localStorage.setItem(key, value); return true; } catch { return false; } };
   const node = { x: 0, y: 0, tx: 0, ty: 0, r: 39, pulse: 0, hover: false, manual: false, manualPos: null };
   try {
-    const savedNode = JSON.parse(localStorage.getItem('cycleLabHttpsNodePosition') || 'null');
-    if (savedNode && Number.isFinite(savedNode.x) && Number.isFinite(savedNode.y)) { node.manual = true; node.manualPos = savedNode; }
+    const savedNode = JSON.parse(storageGet('cycleLabHttpsNodePosition', 'null'));
+    if (savedNode && Number.isFinite(savedNode.x) && Number.isFinite(savedNode.y)
+      && savedNode.x >= 0 && savedNode.x <= 1 && savedNode.y >= 0 && savedNode.y <= 1) {
+      node.manual = true; node.manualPos = savedNode;
+    }
   } catch { /* تخزين غير صالح: نبدأ بالوضع التلقائي */ }
   const ripples = [];
   let dragState = null;
@@ -26,7 +31,13 @@
     { label: 'تحقق', color: '#8ff7bd', phase: 2.1 },
     { label: 'حماية', color: '#ffd477', phase: 4.2 },
   ];
-  const sourceNodes = JSON.parse(localStorage.getItem('cycleLabHttpsSources') || '[]').slice(0, 18);
+  let sourceNodes = [];
+  try {
+    const saved = JSON.parse(storageGet('cycleLabHttpsSources', '[]'));
+    sourceNodes = Array.isArray(saved) ? saved.filter((source) => typeof source?.url === 'string').slice(0, 18).map((source, index) => ({
+      url: source.url, title: String(source.title || '').slice(0, 120), phase: Number.isFinite(source.phase) ? source.phase : index * 1.37, hover: false,
+    })) : [];
+  } catch { sourceNodes = []; }
   const trail = [];
   let mobileMode = innerWidth < 600;
   const viewport = { width: innerWidth, height: innerHeight, dpr: 1 };
@@ -82,7 +93,7 @@
     ctx.fillText(`مصدر ${index + 1}`, x, y - 13);
   }
 
-  function sourceAt(x, y) { return sourceNodes.find((source) => source.x && Math.hypot(x - source.x, y - source.y) <= 14); }
+  function sourceAt(x, y) { return sourceNodes.find((source) => Number.isFinite(source.x) && Number.isFinite(source.y) && Math.hypot(x - source.x, y - source.y) <= (mobileMode ? 20 : 14)); }
 
   function draw(timestamp) {
     const dt = Math.min((timestamp - lastTime) / 1000, .05); lastTime = timestamp; elapsed += dt;
@@ -129,7 +140,7 @@
     sourceNodes.forEach((source) => { source.hover = Math.hypot(x - (source.x || -9999), y - (source.y || -9999)) <= 16; });
     canvas.style.cursor = dragState ? 'grabbing' : (node.hover || sourceNodes.some((source) => source.hover) ? 'grab' : 'crosshair');
   }
-  function saveNodePosition() { localStorage.setItem('cycleLabHttpsNodePosition', JSON.stringify(node.manualPos)); }
+  function saveNodePosition() { storageSet('cycleLabHttpsNodePosition', JSON.stringify(node.manualPos)); }
   function beginDrag(event) {
     updateHover(event.clientX, event.clientY);
     const source = sourceAt(event.clientX, event.clientY);
@@ -147,7 +158,7 @@
       const source = dragState.source;
       source.phase = Math.atan2(event.clientY - node.y, event.clientX - node.x) - elapsed * (reducedMotion ? .08 : .42);
       source.dragging = true;
-      localStorage.setItem('cycleLabHttpsSources', JSON.stringify(sourceNodes.slice(-18).map(({ x, y, hover, dragging, ...saved }) => saved)));
+      storageSet('cycleLabHttpsSources', JSON.stringify(sourceNodes.slice(-18).map(({ x, y, hover, dragging, ...saved }) => saved)));
     }
     updateHover(event.clientX, event.clientY);
   }
@@ -174,9 +185,12 @@
     const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = title || url;
     const meta = document.createElement('div'); meta.className = 'https-source-note'; meta.textContent = `${url} · ${note}`;
     li.append(link, meta); sourceList.append(li);
-    if (!sourceNodes.some((source) => source.url === url)) {
-      sourceNodes.push({ url, title, phase: sourceNodes.length * 1.37, hover: false });
-      localStorage.setItem('cycleLabHttpsSources', JSON.stringify(sourceNodes.slice(-18)));
+    let parsed;
+    try { parsed = new URL(url); } catch { return; }
+    if (parsed.protocol !== 'https:') return;
+    if (!sourceNodes.some((source) => source.url === parsed.href)) {
+      sourceNodes = [...sourceNodes, { url: parsed.href, title: String(title || '').slice(0, 120), phase: sourceNodes.length * 1.37, hover: false }].slice(-18);
+      storageSet('cycleLabHttpsSources', JSON.stringify(sourceNodes));
     }
   }
   async function readSources() {
@@ -187,6 +201,8 @@
       try {
         const target = new URL(raw);
         if (target.protocol !== 'https:') throw new Error('ليس HTTPS');
+        if (target.username || target.password) throw new Error('الرابط يحتوي بيانات دخول، وتم رفضه.');
+        if (target.hostname.length > 253) throw new Error('اسم النطاق طويل أو غير صالح.');
         if (target.origin !== location.origin) { addSourceCard(target.href, 'مرجع خارجي HTTPS', 'تم حفظ المرجع فقط؛ قراءة المحتوى الخارجي محجوبة بواسطة المتصفح'); continue; }
         const response = await fetch(target.href, { cache: 'no-store', credentials: 'omit' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
