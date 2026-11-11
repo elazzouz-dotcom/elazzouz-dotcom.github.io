@@ -22,12 +22,28 @@ import requests
 from bs4 import BeautifulSoup
 
 USER_AGENT = "Azzouz-CycleLab-AuthorizedCrawler/1.0 (+local defensive audit)"
-IGNORED_EXTENSIONS = (".pdf", ".jpg", ".jpeg", ".png", ".gif", ".zip", ".exe", ".mp4", ".mp3", ".woff", ".woff2")
+IGNORED_EXTENSIONS = (".pdf", ".jpg", ".jpeg", ".png", ".gif", ".zip", ".exe", ".mp4", ".mp3", ".woff", ".woff2", ".py", ".json", ".js", ".css", ".xml", ".txt")
 TOKEN_RE = re.compile(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9_-]{2,}|[\u0600-\u06FF]{2,}")
-STOPWORDS = {
-    "the", "and", "for", "with", "this", "that", "from", "are", "was", "www", "com",
-    "من", "في", "على", "إلى", "الى", "عن", "مع", "هذا", "هذه", "ذلك", "التي", "هو", "هي",
+ARABIC_STOPWORDS = {
+    "من", "في", "على", "إلى", "الى", "عن", "مع", "هذا", "هذه", "ذلك", "تلك", "الذي", "التي",
+    "الذين", "اللذين", "هو", "هي", "هم", "هن", "أنا", "نحن", "أنت", "انتم", "أنتم", "كان", "كانت",
+    "يكون", "تكون", "تم", "قد", "لقد", "ما", "ماذا", "متى", "كيف", "لم", "لن", "لا", "نعم", "أو",
+    "و", "ف", "ب", "ك", "ل", "ثم", "لكن", "بل", "حتى", "أي", "أية", "كل", "بعض", "غير", "مثل",
+    "عند", "بعد", "قبل", "بين", "ضمن", "حول", "هناك", "هنا", "حيث", "أثناء", "عبر", "بدون", "أيضا",
+    "أيضاً", "جدا", "جداً", "لقد", "إن", "أن", "إنه", "إنها", "أنه", "أنها", "كما", "إذا", "اذا",
 }
+ENGLISH_STOPWORDS = {
+    "the", "and", "for", "with", "this", "that", "from", "are", "was", "were", "will", "shall", "have",
+    "has", "had", "not", "but", "you", "your", "our", "their", "into", "about", "over", "under", "then",
+    "than", "also", "can", "may", "all", "any", "some", "more", "most", "www", "com", "http", "https",
+}
+UI_STOPWORDS = {
+    "اضغط", "اختبار", "فحص", "الفحص", "مسح", "انتظار", "بانتظار", "جاهز", "تحديث", "فتح", "تنزيل", "صفحة", "الصفحة", "الموقع",
+    "button", "click", "open", "download", "refresh", "home", "menu", "login", "copyright",
+}
+SITE_BOILERPLATE = {"azzouz", "full", "cycle", "lab", "bridge", "book", "مختبر", "html"}
+STOPWORDS = ARABIC_STOPWORDS | ENGLISH_STOPWORDS | UI_STOPWORDS | SITE_BOILERPLATE
+ARABIC_DIACRITICS_RE = re.compile(r"[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]")
 
 
 def host_is_public(host: str) -> bool:
@@ -52,13 +68,45 @@ def normalize(url: str) -> str | None:
     return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, parsed.path or "/", "", parsed.query, ""))
 
 
+def normalize_token(token: str) -> str:
+    """يوحّد أشكالًا شائعة في العربية لتحسين التجميع دون تغيير النص المعروض."""
+    token = ARABIC_DIACRITICS_RE.sub("", token.lower()).replace("ـ", "")
+    return token.translate(str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ى": "ي"}))
+
+
 def extract_keywords(soup: BeautifulSoup, limit: int = 15) -> list[dict]:
-    """يستخرج كلمات متكررة من النص المرئي محليًا، دون إرسال النص لخدمة خارجية."""
-    for node in soup(["script", "style", "noscript", "svg"]):
+    """يستخرج كلمات دقيقة من أقسام الصفحة بوزن أعلى للعنوان والعناوين الفرعية."""
+    counts: Counter[str] = Counter()
+    display_forms: dict[str, Counter[str]] = {}
+    cloned = BeautifulSoup(str(soup), "html.parser")
+    for node in cloned(["script", "style", "noscript", "svg", "nav", "footer"]):
         node.decompose()
-    words = [w for w in TOKEN_RE.findall(soup.get_text(" ", strip=True).lower()) if w not in STOPWORDS]
-    counts = Counter(words)
-    return [{"word": word, "count": count} for word, count in counts.most_common(limit)]
+
+    sections = [(cloned.title.get_text(" ", strip=True) if cloned.title else "", 4)]
+    sections.extend((node.get_text(" ", strip=True), 3) for node in cloned.select("h1,h2,h3"))
+    description = cloned.find("meta", attrs={"name": re.compile("^description$", re.I)})
+    if description and description.get("content"):
+        sections.append((description["content"], 2))
+    sections.append((cloned.get_text(" ", strip=True), 1))
+
+    for text, weight in sections:
+        for raw in TOKEN_RE.findall(text.lower()):
+            token = normalize_token(raw)
+            if token in STOPWORDS or token.isdigit() or len(token) < 3:
+                continue
+            counts[token] += weight
+            display_forms.setdefault(token, Counter())[raw] += weight
+
+    results = []
+    for token, score in counts.most_common():
+        # لا نعرض كلمة ظهرت مرة واحدة في النص العادي إلا إذا ظهرت في عنوان/وصف موزون.
+        if score < 2:
+            continue
+        display = display_forms[token].most_common(1)[0][0]
+        results.append({"word": display, "normalized": token, "score": score})
+        if len(results) >= limit:
+            break
+    return results
 
 
 def safe_external_link(url: str, allowed_hosts: set[str]) -> bool:

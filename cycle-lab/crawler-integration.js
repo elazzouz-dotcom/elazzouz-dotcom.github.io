@@ -34,8 +34,8 @@
       pageCount.textContent = pages.length;
       externalCount.textContent = report.analysis?.external_links_checked_locally ?? 0;
       pages.forEach((page) => addItem(pageList, `${page.status_code || '—'} · ${page.title || page.url}`));
-      const keywords = pages.flatMap((page) => page.keywords || []).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 12);
-      keywords.forEach((item) => addItem(keywordList, `${item.word} · ${item.count}`));
+      const keywords = pages.flatMap((page) => page.keywords || []).sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 12);
+      keywords.forEach((item) => addItem(keywordList, `${item.word} · درجة الصلة ${item.score}`));
       status.textContent = `تم تحميل التقرير المحلي المنشور · ${report.timestamp || 'بدون وقت'}. لم يتم تشغيل Python داخل المتصفح.`;
     } catch (error) {
       status.textContent = `تعذر تحميل التقرير: ${error.message}. يمكنك تنزيله أو تشغيل الزاحف محليًا.`;
