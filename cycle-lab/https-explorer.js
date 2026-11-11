@@ -23,20 +23,31 @@
   ];
   const sourceNodes = JSON.parse(localStorage.getItem('cycleLabHttpsSources') || '[]').slice(0, 18);
   const trail = [];
-  const mobileMode = innerWidth < 600;
+  let mobileMode = innerWidth < 600;
+  const viewport = { width: innerWidth, height: innerHeight, dpr: 1 };
 
-  function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
-  addEventListener('resize', resize); resize();
+  function resize() {
+    viewport.width = visualViewport?.width || innerWidth;
+    viewport.height = visualViewport?.height || innerHeight;
+    mobileMode = viewport.width < 600;
+    viewport.dpr = Math.min(devicePixelRatio || 1, 2);
+    canvas.style.width = `${viewport.width}px`; canvas.style.height = `${viewport.height}px`;
+    canvas.width = Math.round(viewport.width * viewport.dpr); canvas.height = Math.round(viewport.height * viewport.dpr);
+    ctx.setTransform(viewport.dpr, 0, 0, viewport.dpr, 0, 0);
+    node.r = mobileMode ? 34 : 39;
+  }
+  addEventListener('resize', resize); visualViewport?.addEventListener('resize', resize); resize();
 
   function setTarget() {
-    const radius = Math.min(innerWidth, innerHeight) * (innerWidth < 600 ? .32 : .29);
+    const radius = mobileMode ? Math.min(viewport.width * .27, viewport.height * .22) : Math.min(viewport.width, viewport.height) * .29;
     const angle = -Math.PI / 4 + Math.sin(elapsed * (reducedMotion ? .08 : .22)) * .11;
-    node.tx = innerWidth / 2 + Math.cos(angle) * radius;
-    node.ty = innerHeight / 2 + Math.sin(angle) * radius;
+    const centerY = mobileMode ? viewport.height * .55 : viewport.height / 2;
+    node.tx = viewport.width / 2 + Math.cos(angle) * radius;
+    node.ty = centerY + Math.sin(angle) * radius;
   }
 
   function drawSatellite(satellite, index) {
-    const orbit = node.r + 27 + index * 8;
+    const orbit = node.r + (mobileMode ? 21 : 27) + index * (mobileMode ? 5 : 8);
     const angle = elapsed * (reducedMotion ? .1 : .42) + satellite.phase;
     const x = node.x + Math.cos(angle) * orbit;
     const y = node.y + Math.sin(angle) * orbit;
@@ -48,7 +59,7 @@
   }
 
   function drawSourceNode(source, index) {
-    const orbit = node.r + 78 + (index % 3) * 13;
+    const orbit = node.r + (mobileMode ? 58 : 78) + (index % (mobileMode ? 4 : 3)) * (mobileMode ? 8 : 13);
     const angle = elapsed * (reducedMotion ? .08 : .42) + (source.phase || index * 1.7);
     const x = node.x + Math.cos(angle) * orbit;
     const y = node.y + Math.sin(angle) * orbit;
@@ -57,7 +68,7 @@
     ctx.strokeStyle = source.hover ? 'rgba(255,212,119,.9)' : 'rgba(255,212,119,.34)'; ctx.lineWidth = source.hover ? 2 : 1; ctx.stroke();
     ctx.beginPath(); ctx.arc(x, y, source.hover ? 9 : 7, 0, Math.PI * 2);
     ctx.fillStyle = '#ffd477'; ctx.shadowColor = '#ffd477'; ctx.shadowBlur = source.hover ? 18 : 9; ctx.fill(); ctx.shadowBlur = 0;
-    ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffe8ae';
+    ctx.font = `${mobileMode ? 7 : 9}px sans-serif`; ctx.textAlign = 'center'; ctx.fillStyle = '#ffe8ae';
     ctx.fillText(`مصدر ${index + 1}`, x, y - 13);
   }
 
@@ -69,7 +80,7 @@
     const ease = 1 - Math.pow(.001, dt * (reducedMotion ? 5 : 11));
     node.x += (node.tx - node.x) * ease; node.y += (node.ty - node.y) * ease;
     node.pulse += dt * (reducedMotion ? .8 : 3.2);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, viewport.width, viewport.height);
     if (!reducedMotion) {
       trail.push({ x: node.x, y: node.y, alpha: 1 });
       if (trail.length > (mobileMode ? 18 : 32)) trail.shift();
@@ -80,7 +91,7 @@
       });
     }
 
-    ctx.beginPath(); ctx.arc(innerWidth / 2, innerHeight / 2, Math.min(innerWidth, innerHeight) * .29, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(viewport.width / 2, mobileMode ? viewport.height * .55 : viewport.height / 2, Math.min(viewport.width, viewport.height) * (mobileMode ? .24 : .29), 0, Math.PI * 2);
     ctx.setLineDash([3, 11]); ctx.strokeStyle = 'rgba(101,214,255,.12)'; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
     [node.r + 55, node.r + 78, node.r + 105].forEach((radius, index) => {
       ctx.beginPath(); ctx.arc(node.x, node.y, radius, elapsed * (index % 2 ? -.18 : .14), elapsed * (index % 2 ? -.18 : .14) + Math.PI * 1.55);
@@ -95,9 +106,9 @@
     const gradient = ctx.createRadialGradient(node.x - 10, node.y - 12, 3, node.x, node.y, node.r + 8);
     gradient.addColorStop(0, node.hover ? '#1e7897' : '#12465b'); gradient.addColorStop(.58, '#062d40'); gradient.addColorStop(1, '#031923');
     ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gradient; ctx.fill(); ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = '#65d6ff'; ctx.lineWidth = node.hover ? 3 : 2; ctx.stroke();
-    ctx.fillStyle = '#65d6ff'; ctx.font = 'bold 23px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('↗', node.x, node.y + 8);
-    ctx.font = 'bold 11px sans-serif'; ctx.fillText('مستكشف HTTPS', node.x, node.y + node.r + 19);
-    ctx.font = '9px sans-serif'; ctx.fillStyle = '#b8d7e6'; ctx.fillText(node.hover ? 'اضغط لفتح اللوحة' : 'اقترب أو اضغط', node.x, node.y + node.r + 32);
+    ctx.fillStyle = '#65d6ff'; ctx.font = `bold ${mobileMode ? 20 : 23}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText('↗', node.x, node.y + 8);
+    ctx.font = `bold ${mobileMode ? 9 : 11}px sans-serif`; ctx.fillText('مستكشف HTTPS', node.x, node.y + node.r + (mobileMode ? 15 : 19));
+    ctx.font = `${mobileMode ? 7 : 9}px sans-serif`; ctx.fillStyle = '#b8d7e6'; ctx.fillText(node.hover ? 'اضغط لفتح اللوحة' : 'اقترب أو اضغط', node.x, node.y + node.r + (mobileMode ? 27 : 32));
 
     ripples.splice(0).forEach((ripple) => { ripple.size += dt * 90; ripple.alpha -= dt * 1.2; if (ripple.alpha > 0) { ctx.beginPath(); ctx.arc(ripple.x, ripple.y, ripple.size, 0, Math.PI * 2); ctx.strokeStyle = `rgba(101,214,255,${ripple.alpha})`; ctx.lineWidth = 2; ctx.stroke(); ripples.push(ripple); } });
     requestAnimationFrame(draw);
