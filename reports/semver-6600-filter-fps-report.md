@@ -1,4 +1,4 @@
-# تقرير أداء FPS — شبكة Slaks ذات 6600 عقدة
+# تقرير أداء FPS — شبكة Azzouz ذات 6600 عقدة
 
 **التاريخ:** 2026-11-01  
 **الصفحة المختبرة:** https://elazzouz-dotcom.github.io/semver-bnf/  

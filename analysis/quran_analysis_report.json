@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp_utc": "2026-11-02T02:16:58.495772+00:00",
+    "timestamp_utc": "2026-11-03T17:57:49.731422+00:00",
     "total_surahs": 114,
     "civil_surahs": 28,
     "simulations_B": 200000,
@@ -248,6 +248,13 @@
         "degrees_of_freedom": 1,
         "p_value": 0.05625895536980014,
         "epsilon_squared": 0.023401538286511862
+      },
+      "multiple_comparison": {
+        "raw_p": 0.05625895536980014,
+        "p_holm": 0.16877686610940043,
+        "p_benjamini_hochberg": 0.11251791073960028,
+        "reject_holm": false,
+        "reject_benjamini_hochberg": false
       }
     },
     "ayahs_count": {
@@ -262,6 +269,13 @@
         "degrees_of_freedom": 1,
         "p_value": 0.7074467475134982,
         "epsilon_squared": 0.0
+      },
+      "multiple_comparison": {
+        "raw_p": 0.7074467475134982,
+        "p_holm": 0.8248992483863113,
+        "p_benjamini_hochberg": 0.7074467475134982,
+        "reject_holm": false,
+        "reject_benjamini_hochberg": false
       }
     },
     "combined_value": {
@@ -276,6 +290,13 @@
         "degrees_of_freedom": 1,
         "p_value": 0.0017037329575853427,
         "epsilon_squared": 0.07826675696773436
+      },
+      "multiple_comparison": {
+        "raw_p": 0.0017037329575853427,
+        "p_holm": 0.006814931830341371,
+        "p_benjamini_hochberg": 0.006814931830341371,
+        "reject_holm": true,
+        "reject_benjamini_hochberg": true
       }
     },
     "abjad_value": {
@@ -290,6 +311,51 @@
         "degrees_of_freedom": 1,
         "p_value": 0.4124496241931557,
         "epsilon_squared": 0.0
+      },
+      "multiple_comparison": {
+        "raw_p": 0.4124496241931557,
+        "p_holm": 0.8248992483863113,
+        "p_benjamini_hochberg": 0.5499328322575409,
+        "reject_holm": false,
+        "reject_benjamini_hochberg": false
+      }
+    }
+  },
+  "multiple_comparison": {
+    "scope": "kruskal_wallis",
+    "alpha": 0.05,
+    "methods": [
+      "Holm step-down",
+      "Benjamini-Hochberg"
+    ],
+    "results": {
+      "surah_number": {
+        "raw_p": 0.05625895536980014,
+        "p_holm": 0.16877686610940043,
+        "p_benjamini_hochberg": 0.11251791073960028,
+        "reject_holm": false,
+        "reject_benjamini_hochberg": false
+      },
+      "ayahs_count": {
+        "raw_p": 0.7074467475134982,
+        "p_holm": 0.8248992483863113,
+        "p_benjamini_hochberg": 0.7074467475134982,
+        "reject_holm": false,
+        "reject_benjamini_hochberg": false
+      },
+      "combined_value": {
+        "raw_p": 0.0017037329575853427,
+        "p_holm": 0.006814931830341371,
+        "p_benjamini_hochberg": 0.006814931830341371,
+        "reject_holm": true,
+        "reject_benjamini_hochberg": true
+      },
+      "abjad_value": {
+        "raw_p": 0.4124496241931557,
+        "p_holm": 0.8248992483863113,
+        "p_benjamini_hochberg": 0.5499328322575409,
+        "reject_holm": false,
+        "reject_benjamini_hochberg": false
       }
     }
   },

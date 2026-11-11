@@ -71,10 +71,11 @@ async function renderKruskal() {
     const labels = { surah_number: 'رقم السورة', ayahs_count: 'عدد الآيات', combined_value: 'القيمة المركبة', abjad_value: 'قيمة الجمل' };
     body.innerHTML = Object.entries(report.kruskal_wallis || {}).map(([key, item]) => {
       const metrics = item.statistical_metrics;
-      return `<tr><td>${labels[key] || key}</td><td>${metrics.H_statistic.toFixed(4)}</td><td>${metrics.degrees_of_freedom}</td><td class="${metrics.p_value < .05 ? 'significant' : ''}">${metrics.p_value.toFixed(5)}</td><td>${metrics.epsilon_squared.toFixed(4)}</td></tr>`;
-    }).join('') || '<tr><td colspan="5">لا توجد نتائج محفوظة.</td></tr>';
+      const correction = item.multiple_comparison || {};
+      return `<tr><td>${labels[key] || key}</td><td>${metrics.H_statistic.toFixed(4)}</td><td>${metrics.p_value.toFixed(5)}</td><td class="${correction.reject_holm ? 'significant' : ''}">${correction.p_holm.toFixed(5)}</td><td class="${correction.reject_benjamini_hochberg ? 'significant' : ''}">${correction.p_benjamini_hochberg.toFixed(5)}</td><td>${metrics.epsilon_squared.toFixed(4)}</td></tr>`;
+    }).join('') || '<tr><td colspan="6">لا توجد نتائج محفوظة.</td></tr>';
   } catch (error) {
-    body.innerHTML = '<tr><td colspan="5">تعذر تحميل التقرير المحفوظ.</td></tr>';
+    body.innerHTML = '<tr><td colspan="6">تعذر تحميل التقرير المحفوظ.</td></tr>';
   }
 }
 

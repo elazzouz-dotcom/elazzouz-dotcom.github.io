@@ -19,7 +19,7 @@ from typing import Any
 from scientific_quran_analyzer import DEFAULT_SAMPLES, DEFAULT_SEED, ScientificQuranAnalyzer, SimulationConfig
 from run_reproducible_pipeline import load_surahs
 
-DEFAULT_OUTPUT = Path(".slaks-live-preview")
+DEFAULT_OUTPUT = Path(".azzouz-live-preview")
 
 
 def load_json_dataset(path: Path) -> list[tuple[int, str, int]]:
@@ -56,7 +56,7 @@ def render_html(output_dir: Path) -> None:
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Slaks · المعاينة الحية للتحليل</title>
+<title>Azzouz · المعاينة الحية للتحليل</title>
 <style>
 :root{color-scheme:dark;--bg:#030712;--panel:#0b1220;--line:#263449;--cyan:#22d3ee;--green:#34d399;--muted:#9ca3af}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#12314a 0,#030712 42%);color:#f8fafc;font-family:Tahoma,"Segoe UI",sans-serif}.wrap{max-width:1100px;margin:auto;padding:24px}.hero,.box{background:#0b1220e8;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px #0004}.hero{padding:26px;margin-bottom:16px}.hero h1{margin:0;color:var(--cyan);font-size:clamp(24px,4vw,40px)}.hero p{color:var(--muted);margin:8px 0 0}.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}.box{padding:20px}.box h2{font-size:16px;color:var(--green);margin:0 0 14px;border-bottom:1px solid var(--line);padding-bottom:9px}.code{background:#010409;border:1px solid var(--line);border-radius:10px;padding:15px;min-height:190px;font:12px/2.1 monospace;color:var(--cyan)}.code div{opacity:.42}.code div.active{opacity:1;color:#fff;background:#164e6355}.radar{min-height:190px;display:grid;place-items:center;text-align:center;background:#010409;border:1px solid var(--line);border-radius:10px}.radar strong{display:block;color:var(--cyan);font-size:22px}.radar span{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}.stat{background:#101b2b;border:1px solid var(--line);border-right:3px solid var(--green);border-radius:10px;padding:15px}.stat small{display:block;color:var(--muted);font-size:11px}.stat b{display:block;font-size:19px;margin-top:5px}.status{margin-top:16px;color:var(--muted);font-size:12px}.status.ok{color:var(--green)}@media(max-width:760px){.grid,.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.stats .stat{min-height:80px}}@media(max-width:430px){.stats{grid-template-columns:1fr 1fr}.wrap{padding:14px}}
 </style></head><body><main class="wrap">

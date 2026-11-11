@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ar-MA" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#06140c">
+  <meta name="description" content="تقرير تفصيلي عن اختبار مصلح الجسر وتجربة المستخدم في Azzouz Bridge Lab.">
+  <title>تقرير اختبار مصلح الجسر · Azzouz</title>
+  <style>
+    :root{--bg:#06100b;--panel:#0b1d12;--panel2:#102a1a;--line:#23563a;--text:#f1fff5;--muted:#a8c7b1;--green:#65f29e;--gold:#ffd477;--red:#ff9c9c}*{box-sizing:border-box}body{margin:0;background:radial-gradient(850px 420px at 15% -10%,#18482e 0,var(--bg) 65%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;line-height:1.75}.wrap{width:min(980px,calc(100% - 24px));margin:auto;padding:18px 0 38px}header,.card{border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,rgba(14,39,24,.96),rgba(5,18,10,.97));box-shadow:0 15px 42px #0005}header{padding:22px;margin-bottom:14px}.top{display:flex;justify-content:space-between;gap:10px;align-items:center}.brand{color:var(--green);font-weight:900}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:7px 13px;border:1px solid var(--line);border-radius:10px;color:var(--green);text-decoration:none;font-weight:800;background:#102a1a}h1{margin:14px 0 4px;font-size:clamp(1.45rem,4vw,2.35rem);line-height:1.3}.lead{margin:0;color:var(--muted)}.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}.pill{padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--green);font-size:.82rem}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}.metric{padding:15px;text-align:center}.metric strong{display:block;color:var(--green);font-size:1.55rem}.metric span{color:var(--muted);font-size:.82rem}.card{padding:17px;margin-bottom:14px}.card h2{margin:0 0 10px;font-size:1.18rem;color:var(--green)}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:580px}.table th,.table td{padding:10px;border-bottom:1px solid #1a3b27;text-align:right;vertical-align:top}.table th{color:var(--green);font-size:.88rem}.table td{color:var(--muted);font-size:.9rem}.ok{color:var(--green)!important;font-weight:800}.note{padding:11px 13px;border-right:4px solid var(--gold);border-radius:10px;background:#ffd47712;color:#ffe5aa}.safe{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.safe div{padding:11px;border:1px solid #1e4930;border-radius:11px;background:#0a1a10;color:var(--muted)}.safe b{display:block;color:var(--green);margin-bottom:3px}.timeline{display:grid;gap:9px}.event{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}.dot{display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:var(--green);color:#042010;font-weight:900}.event p{margin:0;color:var(--muted)}.event strong{color:var(--text)}ul{margin:5px 0;padding-right:21px;color:var(--muted)}footer{text-align:center;color:#769881;font-size:.82rem;margin-top:16px}@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.safe{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.card,header{border-radius:16px;padding:14px}}@media(max-width:430px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="top"><div class="brand">AZZOUZ · BRIDGE LAB</div><a class="btn" href="./">العودة إلى مختبر الجسر</a></div>
+      <h1>تقرير اختبار مصلح الجسر وتجربة المستخدم</h1>
+      <p class="lead">تقرير عملي عن النسخة المنشورة من مصلح الجسر الآمن داخل Azzouz Bridge Lab، مع توثيق التفاعل والنتائج وحدود الأداة.</p>
+      <div class="meta"><span class="pill">تاريخ الاختبار: 10 نونبر 2026</span><span class="pill">البيئة: نسخة GitHub Pages العامة</span><span class="pill">الوضع: محلي وآمن</span></div>
+    </header>
+
+    <section class="grid" aria-label="ملخص النتائج">
+      <article class="card metric"><strong>ناجح</strong><span>حالة النشر والتحميل</span></article>
+      <article class="card metric"><strong>5/5</strong><span>التفاعلات الرئيسية</span></article>
+      <article class="card metric"><strong>0</strong><span>تنفيذ أوامر خارجي</span></article>
+    </section>
+
+    <section class="card"><h2>ملخص تنفيذي</h2><p class="note">تم فتح مصلح الجسر مباشرة من موقع عزوز دتكوم. ظهرت اللوحة فوق محاكاة الجسر، وعملت أزرار الفتح والمثال والتحليل والمسح والإغلاق. بقيت المحاكاة نشطة طوال الاختبار.</p><p>المصلح المدمج هو نسخة تحليل محلي مستوحاة من ملف Auto-Fixer المرفق، لكنه لا ينفذ الكود ولا يكتب الملفات ولا يثبت المكتبات ولا يرسل المحتوى إلى خدمة خارجية.</p></section>
+
+    <section class="card"><h2>سجل خطوات الاختبار</h2><div class="timeline">
+      <div class="event"><span class="dot">1</span><p><strong>فتح الصفحة:</strong> تم تحميل Bridge Lab من الرابط العام وظهرت محاكاة الحشرات والجسر وشريط التحكم.</p></div>
+      <div class="event"><span class="dot">2</span><p><strong>فتح المصلح:</strong> زر «مصلح الجسر ✦» ظهر فوق الواجهة مع هالة خضراء واضحة وقابل للنقر.</p></div>
+      <div class="event"><span class="dot">3</span><p><strong>تشغيل المثال:</strong> تم ملء الكود برسالة NameError تخص requests ورسالة الخطأ المقابلة.</p></div>
+      <div class="event"><span class="dot">4</span><p><strong>تحليل الخطأ:</strong> ظهر اقتراح إضافة <code>import requests</code> عند الحاجة، مع رسالة حماية محلية.</p></div>
+      <div class="event"><span class="dot">5</span><p><strong>المسح:</strong> تم تفريغ حقلي الكود والخطأ، وعادت النتيجة إلى «تم المسح. لم يُنفّذ أي كود.»</p></div>
+      <div class="event"><span class="dot">6</span><p><strong>الإغلاق:</strong> أُغلقت اللوحة وعادت المحاكاة إلى عرضها الطبيعي.</p></div>
+    </div></section>
+
+    <section class="card"><h2>مصفوفة نتائج الأزرار</h2><div class="table-wrap"><table class="table"><thead><tr><th>العنصر</th><th>النتيجة المتوقعة</th><th>النتيجة الفعلية</th><th>الحالة</th></tr></thead><tbody>
+      <tr><td>مصلح الجسر ✦</td><td>فتح/إغلاق اللوحة</td><td>فتح اللوحة ثم إغلاقها دون تعطيل المحاكاة</td><td class="ok">ناجح</td></tr>
+      <tr><td>مثال</td><td>ملء بيانات اختبار</td><td>ملأ الكود ورسالة NameError</td><td class="ok">ناجح</td></tr>
+      <tr><td>تحليل الخطأ</td><td>عرض اقتراح محلي</td><td>عرض اقتراح import requests ورسالة الأمان</td><td class="ok">ناجح</td></tr>
+      <tr><td>مسح</td><td>تفريغ الحقول والنتيجة</td><td>تم تفريغ الحقول وظهرت رسالة المسح</td><td class="ok">ناجح</td></tr>
+      <tr><td>محاكاة الجسر</td><td>الاستمرار أثناء استخدام اللوحة</td><td>استمرت الحشرات وسجل التكامل في العمل</td><td class="ok">ناجح</td></tr>
+    </tbody></table></div></section>
+
+    <section class="card"><h2>تقييم تجربة المستخدم</h2><div class="safe">
+      <div><b>وضوح الوصول</b>زر ظاهر دائمًا أعلى الواجهة وباسم مباشر.</div>
+      <div><b>التغذية الراجعة</b>النتيجة تظهر داخل اللوحة، كما يسجل المختبر حدث التحليل.</div>
+      <div><b>الهوية البصرية</b>الهالة الخضراء تربط المصلح بفكرة الجسر والطاقة والتكامل.</div>
+      <div><b>الهاتف</b>اللوحة تتقلص إلى عرض الشاشة وتبقى قابلة للتمرير.</div>
+      <div><b>اللغة</b>العناوين والأزرار والنتائج بالعربية، مع إبقاء أسماء الأخطاء البرمجية الأصلية.</div>
+      <div><b>عدم الإزعاج</b>المصلح مغلق افتراضيًا ولا يغطي المحاكاة إلا بعد طلب المستخدم.</div>
+    </div></section>
+
+    <section class="card"><h2>حدود الأداة وإجراءات الأمان</h2><ul><li>لا يتم تشغيل الكود الملصق.</li><li>لا يتم تعديل أي ملف على الخادم أو جهاز المستخدم.</li><li>لا يتم تثبيت حزم تلقائيًا عبر pip.</li><li>لا يتم الاتصال بعنوان AI أو Webhook خارجي.</li><li>الاقتراحات إرشادية، ويجب اختبار أي تغيير يدويًا على نسخة احتياطية.</li><li>لا يحتوي الاختبار على مفاتيح سرية أو كلمات مرور.</li></ul></section>
+
+    <section class="card"><h2>الخلاصة والتوصية</h2><p>النسخة المنشورة مناسبة كأداة تشخيص أولية داخل مختبر الجسر. أوصي باستخدامها لفهم نمط الخطأ وتحديد الخطوة التالية، ثم تطبيق الإصلاح يدويًا بعد مراجعة الكود واختباره في بيئة منفصلة.</p><a class="btn" href="./?v=fixer2">تجربة مصلح الجسر الآن</a></section>
+    <footer>تقرير محلي عن تجربة المستخدم · لا يمثل اعتمادًا رسميًا من TikTok أو أي مزود خارجي.</footer>
+  </main>
+</body>
+</html>

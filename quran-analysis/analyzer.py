@@ -46,6 +46,23 @@ def normalized_abjad_value(text: str) -> int:
     return sum(ABJAD_MAP.get(char, 0) for char in text if not char.isspace())
 
 
+def adjust_multiple_comparisons(p_values: dict[str, float], alpha: float = 0.05) -> dict[str, dict[str, Any]]:
+    """Return Holm step-down and Benjamini-Hochberg adjusted p-values."""
+    items = sorted(p_values.items(), key=lambda item: item[1])
+    count = len(items)
+    holm: dict[str, float] = {}
+    running = 0.0
+    for rank, (name, p_value) in enumerate(items):
+        running = max(running, min(1.0, (count - rank) * p_value))
+        holm[name] = running
+    bh: dict[str, float] = {}
+    running = 1.0
+    for rank, (name, p_value) in reversed(list(enumerate(items, start=1))):
+        running = min(running, min(1.0, p_value * count / rank))
+        bh[name] = running
+    return {name: {"raw_p": float(p_values[name]), "p_holm": float(holm[name]), "p_benjamini_hochberg": float(bh[name]), "reject_holm": bool(holm[name] <= alpha), "reject_benjamini_hochberg": bool(bh[name] <= alpha)} for name in p_values}
+
+
 class ScientificQuranAnalyzer:
     def __init__(self, surahs_dataset: list[tuple[int, str, int]]):
         self.raw_data = surahs_dataset
@@ -128,6 +145,10 @@ class ScientificQuranAnalyzer:
 
     def build_report(self, B: int = DEFAULT_B, seed: int = DEFAULT_SEED) -> dict[str, Any]:
         columns = ["surah_number_root", "ayahs_count_root", "combined_root", "abjad_root"]
+        kruskal_results = {column: self.run_kruskal_wallis_test(column) for column in KRUSKAL_COLUMNS}
+        corrections = adjust_multiple_comparisons({column: item["p_value"] for column, item in kruskal_results.items()})
+        for column, correction in corrections.items():
+            kruskal_results[column]["multiple_comparison"] = correction
         return {
             "metadata": {
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -142,6 +163,7 @@ class ScientificQuranAnalyzer:
                 "normalization_rules": NORMALIZATION_RULES,
             },
             "tests": {column: self.run_monte_carlo_test(column, B=B, seed=seed) for column in columns},
-            "kruskal_wallis": {column: self.run_kruskal_wallis_test(column) for column in KRUSKAL_COLUMNS},
+            "kruskal_wallis": kruskal_results,
+            "multiple_comparison": {"scope": "kruskal_wallis", "alpha": 0.05, "methods": ["Holm step-down", "Benjamini-Hochberg"], "results": corrections},
             "rows": self.df.to_dict(orient="records"),
         }

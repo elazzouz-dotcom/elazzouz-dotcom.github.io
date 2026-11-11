@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar-MA" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07120d">
+  <meta name="description" content="دليل خطوة بخطوة لحل مشاكل ربط حساب TikTok عبر OAuth الرسمي.">
+  <title>حل مشاكل ربط TikTok · Azzouz</title>
+  <style>
+    :root{--bg:#07120d;--panel:#0e1d15;--panel2:#12271b;--line:#244735;--text:#f2fff6;--muted:#a8c2ae;--green:#63f09d;--gold:#ffd47a;--red:#ff9a9a;--blue:#8ed8ff}*{box-sizing:border-box}html{background:var(--bg);scroll-behavior:smooth}body{margin:0;color:var(--text);background:radial-gradient(900px 420px at 85% -10%,#17442c 0,var(--bg) 65%);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;line-height:1.75}.wrap{width:min(980px,calc(100% - 24px));margin:auto;padding:18px 0 36px}header,.card{border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,rgba(15,34,23,.97),rgba(8,18,12,.97));box-shadow:0 16px 45px #0004}header{padding:22px;margin-bottom:14px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center}.back,.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 13px;border-radius:12px;text-decoration:none;font-weight:800}.back{border:1px solid var(--line);color:var(--green)}h1{margin:12px 0 5px;font-size:clamp(1.5rem,4vw,2.5rem);line-height:1.25}.lead{margin:0;color:var(--muted);max-width:72ch}.notice{margin-top:16px;padding:12px 14px;border-right:4px solid var(--gold);border-radius:12px;background:#ffd47a12;color:#ffe8ad}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{padding:17px;margin-bottom:12px}.card h2{margin:0 0 8px;font-size:1.15rem}.card p{margin:6px 0;color:var(--muted)}.step{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}.num{display:grid;place-items:center;width:35px;height:35px;border-radius:50%;background:var(--green);color:#062012;font-weight:900}.step h3{margin:0;color:var(--green);font-size:1rem}.step p{margin-top:2px}.code{direction:ltr;text-align:left;display:block;overflow:auto;padding:10px 12px;margin-top:9px;border:1px solid var(--line);border-radius:10px;background:#050b07;color:#d7ffe4;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.83rem;white-space:pre-wrap;overflow-wrap:anywhere}.checklist{display:grid;gap:8px;padding:0;list-style:none}.checklist label{display:flex;gap:9px;align-items:flex-start;padding:9px;border:1px solid #1c3828;border-radius:10px;color:var(--muted);cursor:pointer}.checklist input{margin-top:6px;accent-color:var(--green)}.checklist input:checked+span{text-decoration:line-through;color:#708e78}.diag{display:grid;gap:9px}.diag label{color:var(--muted);font-size:.85rem;font-weight:700}.diag input{min-height:44px;width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#061009;color:var(--text);font:inherit;direction:ltr}.btn{border:1px solid #2b8b53;background:var(--green);color:#052112;cursor:pointer;font:inherit}.btn.alt{background:#12281b;color:var(--green);border-color:var(--line)}.result{min-height:50px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#09150d;color:var(--muted);white-space:pre-wrap}.result.ok{border-color:#2b8b53;color:var(--green)}.result.warn{border-color:#785c29;color:#ffe0a0}.faq{display:grid;gap:8px}.faq details{border:1px solid var(--line);border-radius:11px;padding:9px 12px;background:#0a1810}.faq summary{cursor:pointer;color:var(--green);font-weight:800}.small{font-size:.84rem;color:var(--muted)}footer{color:#78917f;text-align:center;font-size:.8rem;margin-top:14px}@media(max-width:680px){.grid{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}header,.card{border-radius:17px;padding:14px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="top"><strong>AZZOUZ · TikTok OAuth</strong><a class="back" href="../azzouz-ai/">العودة إلى Azzouz AI</a></div>
+      <h1>حل مشاكل ربط حساب TikTok</h1>
+      <p class="lead">دليل عملي خطوة بخطوة لربط الحساب عبر OAuth الرسمي فقط. هذه الصفحة لا تطلب كلمة مرور TikTok ولا تجمع العملات ولا تشغّل أي تفاعل آلي.</p>
+      <div class="notice"><strong>قبل البدء:</strong> الربط لا يعمل إذا كان التطبيق غير منشور أو كان حسابك غير مضاف إلى Test users في وضع Sandbox.</div>
+    </header>
+
+    <section class="card" aria-labelledby="steps-title"><h2 id="steps-title">الخطوات الأساسية</h2>
+      <div class="step"><span class="num">1</span><div><h3>افتح TikTok for Developers</h3><p>سجّل الدخول بالحساب المالك للتطبيق، ثم افتح التطبيق الذي يحتوي على Login Kit.</p><a class="btn alt" href="https://developers.tiktok.com/" target="_blank" rel="noopener noreferrer">فتح TikTok Developers</a></div></div>
+      <div class="step"><span class="num">2</span><div><h3>فعّل Login Kit للويب</h3><p>من Products أو Login Kit اختر Web، وتأكد أن Web Redirect URI مضاف حرفيًا.</p><code class="code">https://elazzouz-dotcom.github.io/coin-tracker/live-studio.html</code></div></div>
+      <div class="step"><span class="num">3</span><div><h3>أضف الصلاحية المطلوبة</h3><p>فعّل <b>user.info.basic</b> فقط عند الحاجة لمعلومات الحساب العامة. لا تستخدم صلاحيات غير ضرورية.</p></div></div>
+      <div class="step"><span class="num">4</span><div><h3>في Sandbox أضف حسابك إلى Test users</h3><p>أضف اسم حساب TikTok الذي سيجرب الربط، ثم وافق على الدعوة من حساب TikTok نفسه.</p></div></div>
+      <div class="step"><span class="num">5</span><div><h3>ابدأ الربط من Azzouz</h3><p>افتح Hunter أو صفحة الاستوديو واضغط «ربط حساب TikTok». وافق من صفحة TikTok، ثم انتظر الرجوع إلى الموقع.</p><a class="btn" href="../coin-tracker/live-studio.html">فتح استوديو البث</a></div></div>
+    </section>
+
+    <div class="grid">
+      <section class="card"><h2>قائمة تحقق سريعة</h2><ul class="checklist">
+        <li><label><input type="checkbox"><span>الرابط يبدأ بـ HTTPS.</span></label></li>
+        <li><label><input type="checkbox"><span>Redirect URI مطابق حرفيًا، بما في ذلك المسار.</span></label></li>
+        <li><label><input type="checkbox"><span>Client Key يخص نفس تطبيق TikTok.</span></label></li>
+        <li><label><input type="checkbox"><span>الحساب موجود في Test users إذا كان التطبيق Sandbox.</span></label></li>
+        <li><label><input type="checkbox"><span>لم أرسل كلمة مرور TikTok أو مفتاحًا سريًا للموقع.</span></label></li>
+      </ul></section>
+      <section class="card"><h2>تشخيص محلي للرابط</h2><p class="small">أدخل Redirect URI وClient Key لفحص الشكل فقط. لا يتم إرسال القيم إلى أي خادم.</p><div class="diag"><label for="redirect">Redirect URI</label><input id="redirect" value="https://elazzouz-dotcom.github.io/coin-tracker/live-studio.html"><label for="client">Client Key</label><input id="client" placeholder="aw..." autocomplete="off"><div><button class="btn" id="diagnose" type="button">تشخيص</button> <button class="btn alt" id="reset" type="button">إعادة الافتراضي</button></div><div id="diag-result" class="result" role="status" aria-live="polite">لم يبدأ التشخيص بعد.</div></div></section>
+    </div>
+
+    <section class="card"><h2>رسائل الخطأ الشائعة وحلها</h2><div class="faq">
+      <details><summary>Unsupported provider أو Provider is not enabled</summary><p>هذه الرسالة تخص مزود مصادقة غير مفعّل في خدمة المصادقة، وليست خطأ في كلمة مرور TikTok. فعّل المزود الصحيح أو استخدم Login Kit الرسمي الخاص بـ TikTok.</p></details>
+      <details><summary>Redirect URI mismatch</summary><p>انسخ الرابط من صفحة التطبيق كما هو. لا تضف شرطة مائلة في النهاية إذا لم تكن موجودة، ولا تستخدم رابطًا مختلفًا بين localhost والموقع العام.</p></details>
+      <details><summary>App is in Sandbox / user not authorized</summary><p>أضف الحساب إلى Test users، وافتح الدعوة من حساب TikTok نفسه. لا يمكن للكود تجاوز قيود Sandbox.</p></details>
+      <details><summary>تعاد الصفحة إلى الموقع دون حساب مربوط</summary><p>امسح جلسة الربط القديمة، أعد فتح الموقع، وتأكد من السماح بالنوافذ وإكمال الموافقة. إذا استمر الخطأ، راجع Client Key وRedirect URI وسجل الخطأ الظاهر.</p></details>
+      <details><summary>هل يستطيع الموقع جمع صناديق LIVE أو العملات تلقائيًا؟</summary><p>لا. TikTok لا يوفّر هنا API عموميًا لجمع صناديق LIVE أو العملات، والأداة مخصصة للتتبع اليدوي والربط الرسمي للمعلومات العامة فقط.</p></details>
+    </div></section>
+    <footer>صفحة مساعدة محلية · لا تطلب كلمة مرور TikTok · لا تتجاوز سياسات TikTok · <a href="../legal/privacy.html">الخصوصية</a></footer>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    $('diagnose').addEventListener('click', () => {
+      const uri = $('redirect').value.trim(); const key = $('client').value.trim(); const issues = [];
+      try { const u = new URL(uri); if (u.protocol !== 'https:') issues.push('يجب أن يبدأ Redirect URI بـ HTTPS.'); if (u.hash) issues.push('احذف الجزء بعد # من Redirect URI.'); } catch { issues.push('Redirect URI غير صالح.'); }
+      if (key && !/^aw[a-zA-Z0-9_-]{8,}$/u.test(key)) issues.push('Client Key يبدو غير صالح؛ غالبًا يبدأ بـ aw ويتكوّن من أحرف وأرقام.');
+      if (!key) issues.push('لم تدخل Client Key؛ هذا فحص اختياري، ويمكنك إدخاله محليًا فقط.');
+      const out = issues.length ? `توجد ملاحظات:\n• ${issues.join('\n• ')}` : 'الشكل يبدو سليمًا. بقيت مراجعة TikTok Developers وTest users ضرورية.';
+      $('diag-result').textContent = out; $('diag-result').className = `result ${issues.length ? 'warn' : 'ok'}`;
+    });
+    $('reset').addEventListener('click', () => { $('redirect').value = 'https://elazzouz-dotcom.github.io/coin-tracker/live-studio.html'; $('client').value = ''; $('diag-result').textContent = 'تمت إعادة القيم الافتراضية.'; $('diag-result').className = 'result'; });
+  </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-name = "slaks-pages-cache"
+name = "azzouz-pages-cache"
 main = "cloudflare-cache-worker.js"
 compatibility_date = "2026-11-01"
 

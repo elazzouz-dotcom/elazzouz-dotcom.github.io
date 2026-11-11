@@ -11,7 +11,7 @@
   let token = null, currentSha = null, currentDevice = null, activeClientId = CLIENT_ID;
   let currentUserCode = '';
   let currentVerificationUrl = '';
-  const STORAGE_KEY = 'slaks.github.access-token';
+  const STORAGE_KEY = 'azzouz.github.access-token';
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const setStatus = (message, good = false) => {
     status.textContent = message; window.studioLog?.(message, good ? 'success' : 'info');
@@ -43,7 +43,7 @@
   const saveToken = (value) => { try { sessionStorage.setItem(STORAGE_KEY, value); } catch {} };
   const readToken = () => { try { return sessionStorage.getItem(STORAGE_KEY); } catch { return null; } };
   const clearToken = () => { try { sessionStorage.removeItem(STORAGE_KEY); } catch {} };
-  const activateSession = (user, message) => { panel.classList.remove('hidden'); setEnabled(true); setLogoutVisible(true); connect.disabled = true; connect.textContent = 'جلسة GitHub نشطة'; setStatus(message, true); window.dispatchEvent(new CustomEvent('slaks-github-session', { detail: { connected: true, user } })); loadBranches(); };
+  const activateSession = (user, message) => { panel.classList.remove('hidden'); setEnabled(true); setLogoutVisible(true); connect.disabled = true; connect.textContent = 'جلسة GitHub نشطة'; setStatus(message, true); window.dispatchEvent(new CustomEvent('azzouz-github-session', { detail: { connected: true, user } })); loadBranches(); };
 
   async function connectGitHub() {
     connect.disabled = true; setStatus('جاري طلب رمز آمن من GitHub...');
@@ -97,7 +97,7 @@
     if (topAuthButton) topAuthButton.hidden = true;
     if (copyCodeButton) copyCodeButton.hidden = true;
     if (topCopyCodeButton) topCopyCodeButton.hidden = true;
-    setStatus('تم تسجيل الخروج يدويًا.'); window.dispatchEvent(new CustomEvent('slaks-github-session', { detail: { connected: false } }));
+    setStatus('تم تسجيل الخروج يدويًا.'); window.dispatchEvent(new CustomEvent('azzouz-github-session', { detail: { connected: false } }));
   }
 
   async function copyGitHubCode() {
@@ -180,7 +180,14 @@
     if (!terminalOutput) return;
     const line = document.createElement('div'); line.className = `terminal-line ${kind}`; line.textContent = text; terminalOutput.appendChild(line); terminalOutput.scrollTop = terminalOutput.scrollHeight;
   }
-  function terminalList() { return ['help                 عرض الأوامر الآمنة', 'status               حالة المستودع الحالي', 'whoami               حساب GitHub المتصل', 'branches             عرض فروع المستودع', 'branch               عرض الفرع النشط', 'search QUERY        البحث في مستودعات GitHub', 'ai PROMPT            مساعد AI محلي لاقتراح الأمر الآمن', 'compare SRC TARGET   عرض الملفات بين فرعين', 'load PATH            تحميل ملف إلى المحرر', 'clef                 تحليل الملف الحالي عبر Space', 'preview              تحديث المعاينة الحية', 'clear                مسح الطرفية']; }
+  function terminalList() { return ['help                 عرض الأوامر الآمنة', 'auth                 إرشادات مصادقة GitHub الآمنة', 'login                فتح تسجيل الدخول عبر GitHub', 'status               حالة المستودع الحالي', 'whoami               حساب GitHub المتصل', 'branches             عرض فروع المستودع', 'branch               عرض الفرع النشط', 'search QUERY        البحث في مستودعات GitHub', 'ai PROMPT            مساعد AI محلي لاقتراح الأمر الآمن', 'compare SRC TARGET   عرض الملفات بين فرعين', 'load PATH            تحميل ملف إلى المحرر', 'clef                 تحليل الملف الحالي عبر Space', 'preview              تحديث المعاينة الحية', 'clear                مسح الطرفية']; }
+  function terminalAuthGuide() {
+    terminalPrint('مصادقة GitHub الآمنة:', 'terminal-success');
+    terminalPrint('1. اضغط «ربط حساب GitHub» أعلى لوحة Hosting Studio.', 'terminal-info');
+    terminalPrint('2. أكمل Device Flow في نافذة GitHub، ثم عد إلى الطرفية.', 'terminal-info');
+    terminalPrint('3. أعد تشغيل search أو whoami بعد ظهور حالة «متصل».', 'terminal-info');
+    terminalPrint('لا تلصق Access Token داخل الطرفية أو ملفات الموقع؛ لا يوجد Token مضمّن في الكود العام.', 'terminal-warning');
+  }
   async function terminalSearch(query) {
     if (!query) throw new Error('الاستخدام: search QUERY');
     terminalPrint(`جاري البحث في GitHub عن: ${query}`, 'terminal-info');
@@ -204,6 +211,8 @@
     const [name, ...args] = command.split(/\s+/); const lower = name.toLowerCase();
     try {
       if (lower === 'help') terminalList().forEach(line => terminalPrint(line, 'terminal-info'));
+      else if (lower === 'auth') terminalAuthGuide();
+      else if (lower === 'login') { connect?.click(); terminalPrint('تم فتح مسار تسجيل الدخول إلى GitHub أعلى اللوحة.', 'terminal-success'); }
       else if (lower === 'clear') terminalOutput.innerHTML = '';
       else if (lower === 'branch') terminalPrint(`الفرع النشط: ${$('ghw-branch').value.trim() || 'غير محدد'}`, 'terminal-success');
       else if (lower === 'branches') { await loadBranches(); terminalPrint('تم تحديث قائمة الفروع أعلى اللوحة.', 'terminal-success'); }
@@ -216,7 +225,13 @@
       else if (lower === 'clef') { await analyzeWithClef(); terminalPrint('تم إرسال الملف إلى Clef. راجع Console Logs للنتيجة.', 'terminal-success'); }
       else if (lower === 'preview') { window.studioRefreshPreview?.(); terminalPrint('تم طلب تحديث المعاينة الحية.', 'terminal-success'); }
       else terminalPrint(`أمر غير معروف: ${name}. اكتب help.`, 'terminal-error');
-    } catch (error) { terminalPrint(`خطأ: ${error.message}`, 'terminal-error'); }
+    } catch (error) {
+      const message = String(error.message || error);
+      terminalPrint(`خطأ: ${message}`, 'terminal-error');
+      if (/401|missing_token|unauthorized/i.test(message)) {
+        terminalPrint('لم يتم العثور على جلسة GitHub. اكتب auth لعرض خطوات المصادقة، أو login لفتح Device Flow.', 'terminal-warning');
+      }
+    }
   }
   function renderMergeReport(title, details = [], kind = 'info') {
     if (!mergeReport) return;

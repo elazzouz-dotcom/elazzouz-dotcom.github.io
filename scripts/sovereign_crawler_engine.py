@@ -23,7 +23,7 @@ import ipaddress
 EXPECTED_NODES = 6600
 DEFAULT_REGISTRY = Path("semver-node-metrics.json")
 DEFAULT_REPORT = Path("reports/sovereign-crawl-report.json")
-USER_AGENT = "Slaks-SovereignCrawler/1.0 (+https://elazzouz-dotcom.github.io/semver-bnf/)"
+USER_AGENT = "Azzouz-SovereignCrawler/1.0 (+https://elazzouz-dotcom.github.io/semver-bnf/)"
 
 
 def is_public_host(hostname: str) -> bool:

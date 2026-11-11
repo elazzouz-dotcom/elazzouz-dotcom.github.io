@@ -7,7 +7,7 @@
 
 ## المسار الموصى به مع GitHub Pages الحالي
 
-GitHub Pages لا يسمح للمستودع بتغيير `Cache-Control` الخاص به. لذلك استخدم Worker مستقلًا خلف نطاق مخصص تملكه في Cloudflare. لا يمكن اعتراض النطاق الافتراضي `elazzouz-dotcom.github.io` من داخل Zone لا تملكها؛ يجب أولًا استخدام نطاق أو نطاق فرعي تملكه، مثل `slaks.example.com`، ثم جعله Proxied في Cloudflare.
+GitHub Pages لا يسمح للمستودع بتغيير `Cache-Control` الخاص به. لذلك استخدم Worker مستقلًا خلف نطاق مخصص تملكه في Cloudflare. لا يمكن اعتراض النطاق الافتراضي `elazzouz-dotcom.github.io` من داخل Zone لا تملكها؛ يجب أولًا استخدام نطاق أو نطاق فرعي تملكه، مثل `azzouz.example.com`، ثم جعله Proxied في Cloudflare.
 
 ينشر Worker من إعداد [`wrangler.cache.toml`](/wrangler.cache.toml):
 
@@ -18,10 +18,10 @@ npx wrangler deploy --config wrangler.cache.toml
 بعد النشر، أضف Custom Domain أو Route في Cloudflare للنطاق المخصص، مثل:
 
 ```text
-slaks.example.com/*
+azzouz.example.com/*
 ```
 
-ثم اجعل `slaks.example.com` هو العنوان العام للموقع بدل رابط GitHub Pages المباشر. لا تربط هذا Worker بـ `github-oauth-proxy`؛ هما خدمتان منفصلتان.
+ثم اجعل `azzouz.example.com` هو العنوان العام للموقع بدل رابط GitHub Pages المباشر. لا تربط هذا Worker بـ `github-oauth-proxy`؛ هما خدمتان منفصلتان.
 
 ## سياسة الكاش
 
@@ -37,14 +37,14 @@ Cache-Control: public, max-age=31536000, immutable
 Cache-Control: public, max-age=0, must-revalidate
 ```
 
-بهذا تُخزَّن الملفات الثابتة بسرعة، بينما تظهر تغييرات الصفحات والتقارير فورًا. يضيف Worker أيضًا الترويسة `X-Slaks-Cache-Policy` لتسهيل الفحص.
+بهذا تُخزَّن الملفات الثابتة بسرعة، بينما تظهر تغييرات الصفحات والتقارير فورًا. يضيف Worker أيضًا الترويسة `X-Azzouz-Cache-Policy` لتسهيل الفحص.
 
 ## اختبار بعد التفعيل
 
 ```bash
-curl -sSI 'https://slaks.example.com/quran-analysis/app.js?v=HASH'
-curl -sSI 'https://slaks.example.com/quran-analysis/'
-curl -sSI 'https://slaks.example.com/provenance.json'
+curl -sSI 'https://azzouz.example.com/quran-analysis/app.js?v=HASH'
+curl -sSI 'https://azzouz.example.com/quran-analysis/'
+curl -sSI 'https://azzouz.example.com/provenance.json'
 ```
 
 المتوقع أن يظهر للأصل المرقّم `max-age=31536000, immutable`، وأن يظهر للصفحة وملف Provenance `max-age=0, must-revalidate`.

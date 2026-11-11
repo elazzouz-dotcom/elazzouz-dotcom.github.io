@@ -84,7 +84,7 @@
       title: 'Build and test',
       links: [
         ['Developer toolkit', '/developer-tools'],
-        ['SLaksi image vault', '/slaksi'],
+        ['Azzouz Vault image vault', '/azzouz-vault'],
         ['Vault cell architecture', '/cell-architecture'],
         ['One App Router playground', '/one-app-router'],
         ['Form automation builder', '/form-automation'],

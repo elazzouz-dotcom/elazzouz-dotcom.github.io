@@ -1,6 +1,7 @@
 const FULL_LEVEL_COUNT = 113;
 const TRIANGLE_TOTAL = FULL_LEVEL_COUNT * (FULL_LEVEL_COUNT + 1) / 2;
 const FINAL_LEVEL_COUNT = 6600 - TRIANGLE_TOTAL;
+import { QURAN_STATISTICS, quranMetricForNode } from './quran-node-metrics.mjs';
 // تدرج بصري واضح: 1، 2، 3، 4… مع مستوى أخير يكمل العدد الإجمالي إلى 6600.
 export const NODE_LEVELS = Object.freeze([
   ...Array.from({ length: FULL_LEVEL_COUNT }, (_, index) => index + 1),
@@ -38,6 +39,44 @@ export function getNodeChildren(id) {
     if (parentIndex === parent.index) children.push(childFirst + childIndex);
   }
   return children;
+}
+
+export function getNodeStatisticalProfile(id, statistics = QURAN_STATISTICS) {
+  const metric = quranMetricForNode(id);
+  return { node_id: Number(id), metric, statistics };
+}
+
+export function normalizeQuranApiStatistics(payload) {
+  const results = payload?.results || {};
+  const kruskal_wallis = Object.fromEntries(Object.entries(results).map(([feature, item]) => [feature, {
+    column: feature,
+    test: item.test || 'Kruskal-Wallis H',
+    groups: item.groups || {},
+    statistical_metrics: {
+      H_statistic: Number(item.H_statistic),
+      degrees_of_freedom: Number(item.degrees_of_freedom),
+      p_value: Number(item.raw_p_value),
+      epsilon_squared: Number(item.epsilon_squared),
+    },
+    multiple_comparison: item.multiple_comparison || {},
+  }]));
+  return {
+    kruskal_wallis,
+    multiple_comparison: {
+      scope: 'kruskal_wallis',
+      alpha: Number(payload.alpha ?? 0.05),
+      methods: payload.correction_methods || ['Holm step-down', 'Benjamini-Hochberg'],
+      results: Object.fromEntries(Object.entries(kruskal_wallis).map(([key, item]) => [key, item.multiple_comparison])),
+    },
+  };
+}
+
+export async function fetchQuranStatistics(apiBase) {
+  const rawBase = String(apiBase || '').trim().replace(/\/+$/, '');
+  if (!rawBase) throw new Error('أدخل عنوان FastAPI مثل https://api.example.com');
+  const response = await fetch(`${rawBase}/api/v1/kruskal-wallis`, { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error(`تعذر جلب FastAPI (${response.status})`);
+  return normalizeQuranApiStatistics(await response.json());
 }
 
 function isPrivateIpv4(host) {

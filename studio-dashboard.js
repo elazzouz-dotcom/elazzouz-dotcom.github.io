@@ -17,7 +17,7 @@
   if (status && topStatus) {
     const sync = () => { topStatus.textContent = status.textContent || 'غير متصل'; if (/متصل|تم ربط|جلسة GitHub|تسجيل الدخول|استعادة جلسة|connected/i.test(status.textContent)) { topStatus.style.color = '#6ee7a5'; if (topButton) { topButton.textContent = 'جلسة GitHub نشطة'; topButton.disabled = true; } } else if (topButton) { topButton.textContent = 'تسجيل الدخول إلى GitHub'; topButton.disabled = false; } };
     new MutationObserver(sync).observe(status, { childList: true, characterData: true, subtree: true });
-    window.addEventListener('slaks-github-session', sync);
+    window.addEventListener('azzouz-github-session', sync);
     sync();
   }
 })();
@@ -84,7 +84,7 @@
 // Role management uses the same GitHub session as the workbench.
 (() => {
   const API = 'https://github-oauth-proxy.elazzouz4.workers.dev';
-  const key = 'slaks.github.access-token';
+  const key = 'azzouz.github.access-token';
   const form = document.getElementById('studio-permission-form');
   const login = document.getElementById('studio-permission-login');
   const role = document.getElementById('studio-permission-role');
@@ -124,5 +124,5 @@
     try { form.querySelector('button').disabled = true; setStatus('جاري حفظ الصلاحية...'); const data = await request('/permissions', { method: 'PUT', body: JSON.stringify({ login: username, role: role.value }) }); login.value = ''; render(data); }
     catch (error) { setStatus(`تعذر حفظ الصلاحية: ${error.message}`); } finally { form.querySelector('button').disabled = false; }
   });
-  window.addEventListener('slaks-github-session', refresh); refresh();
+  window.addEventListener('azzouz-github-session', refresh); refresh();
 })();

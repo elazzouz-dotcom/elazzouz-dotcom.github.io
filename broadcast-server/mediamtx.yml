@@ -1,0 +1,28 @@
+# Public template only. setup-server.sh creates mediamtx.runtime.yml privately.
+# Never put a real TikTok destination or password in this file.
+
+logLevel: info
+rtmp: true
+rtmpAddress: :1935
+webrtc: true
+webrtcAddress: :8889
+webrtcAllowOrigins: ['https://elazzouz-dotcom.github.io']
+api: false
+metrics: false
+
+authMethod: internal
+authInternalUsers:
+  - user: publisher
+    pass: __PUBLISH_PASSWORD__
+    ips: []
+    permissions:
+      - action: publish
+        path: live
+      - action: read
+        path: live
+
+paths:
+  live:
+    forward:
+      - dest: __TIKTOK_RTMP_DEST__
+    record: false

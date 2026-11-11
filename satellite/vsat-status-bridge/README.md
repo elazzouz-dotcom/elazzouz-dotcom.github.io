@@ -75,6 +75,6 @@ GET /health
 
 لا تضع `PROVIDER_API_TOKEN` أو `STATUS_READ_TOKEN` داخل كود GitHub Pages؛ استخدم خادمًا وسيطًا أو وظيفة Serverless مع أسرار مُدارة.
 
-## ربط مختبر شبكة Slaks
+## ربط مختبر شبكة Azzouz
 
 هذه الحزمة مرتبطة بالعقدة `N-600` في مختبر SemVer. صفحة GitHub Pages تفتح لوحة `/satellite/`، أما خادم Node هذا فيجب تشغيله على خادم خاص أو جهاز المحطة الأرضية. لا ترفع ملف `.env` ولا تشغّل الجسر على GitHub Pages؛ ما زال يلزم رابط API رسمي من مزود VSAT قبل استقبال بيانات حقيقية.

@@ -3,6 +3,7 @@ const MAX_BODY_BYTES = 64 * 1024;
 const MAX_QUERY_CHARS = 500;
 const MAX_RESULTS = 20;
 const MAX_NODE_LIST_RESULTS = 6600;
+const MAX_SWARM_COUNT = 300;
 
 function cors(request, env) {
   const origin = request.headers.get('Origin') || '';
@@ -72,7 +73,7 @@ function requireAdmin(request, env) {
 
 async function health(request, env) {
   const row = await env.DB.prepare('SELECT COUNT(*) AS count FROM nodes').first();
-  return reply(request, env, { ok: true, service: 'slaks-knowledge-api', nodeCount: Number(row?.count || 0), timestamp: new Date().toISOString() });
+  return reply(request, env, { ok: true, service: 'azzouz-knowledge-api', nodeCount: Number(row?.count || 0), timestamp: new Date().toISOString() });
 }
 
 async function listNodes(request, env, url) {
@@ -143,6 +144,26 @@ async function createConversation(request, env) {
   return reply(request, env, { ok: true, id, sessionId });
 }
 
+async function joinSwarm(request, env) {
+  const body = await readJson(request);
+  const site = cleanText(body.site, 100);
+  const role = cleanText(body.role || 'استكشاف', 50);
+  const count = Number(body.count ?? 57);
+  if (!site) return reply(request, env, { error: 'حقل site مطلوب.' }, 400);
+  if (!Number.isInteger(count) || count < 1 || count > MAX_SWARM_COUNT) {
+    return reply(request, env, { error: `count يجب أن يكون عددًا صحيحًا بين 1 و${MAX_SWARM_COUNT}.` }, 400);
+  }
+  if (!role) return reply(request, env, { error: 'حقل role غير صالح.' }, 400);
+  // لا نزور site ولا نتحقق منه؛ نسجل طلب الانضمام فقط.
+  await env.DB.prepare('INSERT INTO swarm_members (site, count, role) VALUES (?, ?, ?)').bind(site, count, role).run();
+  const row = await env.DB.prepare('SELECT COUNT(*) AS total FROM swarm_members').first();
+  return reply(request, env, {
+    ok: true,
+    message: '﴿ وتعاونوا على البر والتقوى ﴾ - انضممت للسرب الكوني',
+    total: Number(row?.total || 0)
+  }, 201);
+}
+
 async function conversationHistory(request, env, url) {
   const sessionId = cleanText(url.searchParams.get('sessionId'), 128);
   if (!sessionId) return reply(request, env, { error: 'sessionId مطلوب.' }, 400);
@@ -163,6 +184,7 @@ export default {
       if (url.pathname === '/api/search' && request.method === 'GET') return searchNodes(request, env, url);
       if (url.pathname === '/api/conversations' && request.method === 'GET') return conversationHistory(request, env, url);
       if (url.pathname === '/api/conversations' && request.method === 'POST') return createConversation(request, env);
+      if (url.pathname === '/api/swarm/join' && request.method === 'POST') return joinSwarm(request, env);
       return reply(request, env, { error: 'المسار غير موجود.' }, 404);
     } catch (error) {
       console.error(error);

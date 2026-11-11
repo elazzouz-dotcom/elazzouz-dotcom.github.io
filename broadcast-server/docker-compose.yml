@@ -1,0 +1,13 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:1
+    container_name: azzouz-mediamtx
+    restart: unless-stopped
+    ports:
+      - "1935:1935"
+      - "8889:8889"
+      - "8189:8189/udp"
+      - "8890:8890/udp"
+    volumes:
+      - ./mediamtx.runtime.yml:/mediamtx.yml:ro
+    command: ["/mediamtx", "/mediamtx.yml"]
