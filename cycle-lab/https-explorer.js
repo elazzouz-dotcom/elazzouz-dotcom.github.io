@@ -22,6 +22,8 @@
     { label: 'حماية', color: '#ffd477', phase: 4.2 },
   ];
   const sourceNodes = JSON.parse(localStorage.getItem('cycleLabHttpsSources') || '[]').slice(0, 18);
+  const trail = [];
+  const mobileMode = innerWidth < 600;
 
   function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
   addEventListener('resize', resize); resize();
@@ -68,16 +70,31 @@
     node.x += (node.tx - node.x) * ease; node.y += (node.ty - node.y) * ease;
     node.pulse += dt * (reducedMotion ? .8 : 3.2);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!reducedMotion) {
+      trail.push({ x: node.x, y: node.y, alpha: 1 });
+      if (trail.length > (mobileMode ? 18 : 32)) trail.shift();
+      trail.forEach((point, index) => {
+        point.alpha *= .965;
+        ctx.beginPath(); ctx.arc(point.x, point.y, 1.5 + index / 18, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(101,214,255,${point.alpha * .18})`; ctx.fill();
+      });
+    }
 
     ctx.beginPath(); ctx.arc(innerWidth / 2, innerHeight / 2, Math.min(innerWidth, innerHeight) * .29, 0, Math.PI * 2);
     ctx.setLineDash([3, 11]); ctx.strokeStyle = 'rgba(101,214,255,.12)'; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+    [node.r + 55, node.r + 78, node.r + 105].forEach((radius, index) => {
+      ctx.beginPath(); ctx.arc(node.x, node.y, radius, elapsed * (index % 2 ? -.18 : .14), elapsed * (index % 2 ? -.18 : .14) + Math.PI * 1.55);
+      ctx.strokeStyle = `rgba(${index === 1 ? '255,212,119' : '101,214,255'},${.12 + index * .035})`; ctx.lineWidth = index === 1 ? 1.5 : 1; ctx.stroke();
+    });
     satellites.forEach(drawSatellite);
     sourceNodes.forEach(drawSourceNode);
 
     const glow = node.r + 10 + Math.sin(node.pulse) * 5 + (node.hover ? 8 : 0);
     for (let i = 2; i >= 0; i--) { ctx.beginPath(); ctx.arc(node.x, node.y, glow + i * 8, 0, Math.PI * 2); ctx.strokeStyle = `rgba(101,214,255,${.16 - i * .035})`; ctx.lineWidth = 2; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(node.x, node.y, node.r + (node.hover ? 3 : 0), 0, Math.PI * 2);
-    ctx.fillStyle = node.hover ? 'rgba(6,45,64,.98)' : 'rgba(3,25,38,.95)'; ctx.fill(); ctx.strokeStyle = '#65d6ff'; ctx.lineWidth = node.hover ? 3 : 2; ctx.stroke();
+    const gradient = ctx.createRadialGradient(node.x - 10, node.y - 12, 3, node.x, node.y, node.r + 8);
+    gradient.addColorStop(0, node.hover ? '#1e7897' : '#12465b'); gradient.addColorStop(.58, '#062d40'); gradient.addColorStop(1, '#031923');
+    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gradient; ctx.fill(); ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = '#65d6ff'; ctx.lineWidth = node.hover ? 3 : 2; ctx.stroke();
     ctx.fillStyle = '#65d6ff'; ctx.font = 'bold 23px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('↗', node.x, node.y + 8);
     ctx.font = 'bold 11px sans-serif'; ctx.fillText('مستكشف HTTPS', node.x, node.y + node.r + 19);
     ctx.font = '9px sans-serif'; ctx.fillStyle = '#b8d7e6'; ctx.fillText(node.hover ? 'اضغط لفتح اللوحة' : 'اقترب أو اضغط', node.x, node.y + node.r + 32);
