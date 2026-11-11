@@ -7,6 +7,7 @@
   const close = document.getElementById('https-close');
   const sourcesInput = document.getElementById('https-sources-input');
   const sourceList = document.getElementById('https-source-list');
+  const sourceQuery = document.getElementById('https-source-query');
   if (!canvas || !panel) return;
   const ctx = canvas.getContext('2d');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -104,6 +105,20 @@
     }
     result.textContent = 'اكتملت قراءة المصادر. لم يتم تنفيذ أي كود أو الزحف خارج نطاق الموقع.';
   }
+  function autoSearchSources() {
+    const text = sourceQuery.value.trim();
+    sourceList.textContent = '';
+    if (!text) { result.textContent = 'اكتب موضوعًا للبحث عن المصادر.'; return; }
+    const encoded = encodeURIComponent(`${text} sources HTTPS`);
+    const searches = [
+      ['DuckDuckGo · بحث عام', `https://duckduckgo.com/?q=${encoded}`],
+      ['Bing · بحث عام', `https://www.bing.com/search?q=${encoded}`],
+      ['Google Scholar · مصادر أكاديمية', `https://scholar.google.com/scholar?q=${encodeURIComponent(text)}`],
+    ];
+    searches.forEach(([title, url]) => addSourceCard(url, title, 'رابط بحث مولّد تلقائيًا؛ اختر المصادر يدويًا قبل قراءتها'));
+    result.textContent = 'تم إنشاء 3 بوابات بحث للمصادر. لم يتم فتح النتائج أو قراءة مواقع خارجية تلقائيًا.';
+  }
   document.getElementById('https-read-sources').addEventListener('click', readSources);
+  document.getElementById('https-auto-sources').addEventListener('click', autoSearchSources);
   draw(performance.now());
 })();
