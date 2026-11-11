@@ -1,0 +1,233 @@
+{
+  "timestamp": "2026-11-11T14:58:47.662077+00:00",
+  "allowed_hosts": [
+    "elazzouz-dotcom.github.io"
+  ],
+  "analysis": {
+    "pages_scanned": 3,
+    "external_links_checked_locally": 0,
+    "note": "الروابط الخارجية تم التحقق منها شكليًا وDNS فقط ولم يتم فتحها."
+  },
+  "pages": [
+    {
+      "url": "https://elazzouz-dotcom.github.io/cycle-lab/",
+      "depth": 0,
+      "title": "Azzouz Full Cycle Lab · كل في فلك يسبحون",
+      "links": [
+        "https://elazzouz-dotcom.github.io/bridge-lab/",
+        "https://elazzouz-dotcom.github.io/cycle-lab/book-lab.html"
+      ],
+      "external_links": [],
+      "keywords": [
+        {
+          "word": "المعلومة",
+          "count": 4
+        },
+        {
+          "word": "لا",
+          "count": 4
+        },
+        {
+          "word": "الفحص",
+          "count": 4
+        },
+        {
+          "word": "أو",
+          "count": 4
+        },
+        {
+          "word": "azzouz",
+          "count": 3
+        },
+        {
+          "word": "فحص",
+          "count": 3
+        },
+        {
+          "word": "الحساب",
+          "count": 3
+        },
+        {
+          "word": "العكسي",
+          "count": 3
+        },
+        {
+          "word": "الفلتر",
+          "count": 3
+        },
+        {
+          "word": "بانتظار",
+          "count": 3
+        },
+        {
+          "word": "احسب",
+          "count": 3
+        },
+        {
+          "word": "full",
+          "count": 2
+        },
+        {
+          "word": "cycle",
+          "count": 2
+        },
+        {
+          "word": "lab",
+          "count": 2
+        },
+        {
+          "word": "مختبر",
+          "count": 2
+        }
+      ],
+      "status": "ok",
+      "status_code": 200
+    },
+    {
+      "url": "https://elazzouz-dotcom.github.io/bridge-lab/",
+      "depth": 1,
+      "title": "Azzouz Bridge Lab · جسور برمجية ضخمة",
+      "links": [
+        "https://elazzouz-dotcom.github.io/bridge-lab/test-report.html"
+      ],
+      "external_links": [],
+      "keywords": [
+        {
+          "word": "يحتاج",
+          "count": 6
+        },
+        {
+          "word": "الجسر",
+          "count": 5
+        },
+        {
+          "word": "azzouz",
+          "count": 3
+        },
+        {
+          "word": "ابنِ",
+          "count": 3
+        },
+        {
+          "word": "الخطأ",
+          "count": 3
+        },
+        {
+          "word": "لا",
+          "count": 3
+        },
+        {
+          "word": "bridge",
+          "count": 2
+        },
+        {
+          "word": "lab",
+          "count": 2
+        },
+        {
+          "word": "جسور",
+          "count": 2
+        },
+        {
+          "word": "برمجية",
+          "count": 2
+        },
+        {
+          "word": "ضخمة",
+          "count": 2
+        },
+        {
+          "word": "التكامل",
+          "count": 2
+        },
+        {
+          "word": "استكشاف",
+          "count": 2
+        },
+        {
+          "word": "حماية",
+          "count": 2
+        },
+        {
+          "word": "نور",
+          "count": 2
+        }
+      ],
+      "status": "ok",
+      "status_code": 200
+    },
+    {
+      "url": "https://elazzouz-dotcom.github.io/cycle-lab/book-lab.html",
+      "depth": 1,
+      "title": "Azzouz Book Study Lab · مختبر دراسة المصدر",
+      "links": [
+        "https://elazzouz-dotcom.github.io/cycle-lab/"
+      ],
+      "external_links": [],
+      "keywords": [
+        {
+          "word": "المصدر",
+          "count": 8
+        },
+        {
+          "word": "أو",
+          "count": 7
+        },
+        {
+          "word": "الصفحة",
+          "count": 7
+        },
+        {
+          "word": "دراسة",
+          "count": 5
+        },
+        {
+          "word": "azzouz",
+          "count": 4
+        },
+        {
+          "word": "pdf",
+          "count": 4
+        },
+        {
+          "word": "ocr",
+          "count": 4
+        },
+        {
+          "word": "المفاهيم",
+          "count": 4
+        },
+        {
+          "word": "lab",
+          "count": 3
+        },
+        {
+          "word": "مختبر",
+          "count": 3
+        },
+        {
+          "word": "الكتاب",
+          "count": 3
+        },
+        {
+          "word": "صفحة",
+          "count": 3
+        },
+        {
+          "word": "لا",
+          "count": 3
+        },
+        {
+          "word": "الملاحظات",
+          "count": 3
+        },
+        {
+          "word": "نص",
+          "count": 3
+        }
+      ],
+      "status": "ok",
+      "status_code": 200
+    }
+  ]
+}
