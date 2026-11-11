@@ -21,6 +21,7 @@
     { label: 'تحقق', color: '#8ff7bd', phase: 2.1 },
     { label: 'حماية', color: '#ffd477', phase: 4.2 },
   ];
+  const sourceNodes = JSON.parse(localStorage.getItem('cycleLabHttpsSources') || '[]').slice(0, 18);
 
   function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
   addEventListener('resize', resize); resize();
@@ -44,6 +45,22 @@
     ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = satellite.color; ctx.fillText(satellite.label, x, y - 10);
   }
 
+  function drawSourceNode(source, index) {
+    const orbit = node.r + 78 + (index % 3) * 13;
+    const angle = elapsed * (reducedMotion ? .08 : .42) + (source.phase || index * 1.7);
+    const x = node.x + Math.cos(angle) * orbit;
+    const y = node.y + Math.sin(angle) * orbit;
+    source.x = x; source.y = y;
+    ctx.beginPath(); ctx.moveTo(node.x, node.y); ctx.lineTo(x, y);
+    ctx.strokeStyle = source.hover ? 'rgba(255,212,119,.9)' : 'rgba(255,212,119,.34)'; ctx.lineWidth = source.hover ? 2 : 1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, source.hover ? 9 : 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffd477'; ctx.shadowColor = '#ffd477'; ctx.shadowBlur = source.hover ? 18 : 9; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffe8ae';
+    ctx.fillText(`مصدر ${index + 1}`, x, y - 13);
+  }
+
+  function sourceAt(x, y) { return sourceNodes.find((source) => source.x && Math.hypot(x - source.x, y - source.y) <= 14); }
+
   function draw(timestamp) {
     const dt = Math.min((timestamp - lastTime) / 1000, .05); lastTime = timestamp; elapsed += dt;
     setTarget();
@@ -55,6 +72,7 @@
     ctx.beginPath(); ctx.arc(innerWidth / 2, innerHeight / 2, Math.min(innerWidth, innerHeight) * .29, 0, Math.PI * 2);
     ctx.setLineDash([3, 11]); ctx.strokeStyle = 'rgba(101,214,255,.12)'; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
     satellites.forEach(drawSatellite);
+    sourceNodes.forEach(drawSourceNode);
 
     const glow = node.r + 10 + Math.sin(node.pulse) * 5 + (node.hover ? 8 : 0);
     for (let i = 2; i >= 0; i--) { ctx.beginPath(); ctx.arc(node.x, node.y, glow + i * 8, 0, Math.PI * 2); ctx.strokeStyle = `rgba(101,214,255,${.16 - i * .035})`; ctx.lineWidth = 2; ctx.stroke(); }
@@ -68,10 +86,10 @@
     requestAnimationFrame(draw);
   }
 
-  function updateHover(x, y) { pointer = { x, y }; node.hover = Math.hypot(x - node.x, y - node.y) <= node.r + 16; canvas.style.cursor = node.hover ? 'pointer' : 'crosshair'; }
+  function updateHover(x, y) { pointer = { x, y }; node.hover = Math.hypot(x - node.x, y - node.y) <= node.r + 16; sourceNodes.forEach((source) => { source.hover = Math.hypot(x - (source.x || -9999), y - (source.y || -9999)) <= 14; }); canvas.style.cursor = node.hover || sourceNodes.some((source) => source.hover) ? 'pointer' : 'crosshair'; }
   canvas.addEventListener('pointermove', (event) => updateHover(event.clientX, event.clientY));
   canvas.addEventListener('pointerleave', () => { node.hover = false; canvas.style.cursor = 'crosshair'; });
-  canvas.addEventListener('pointerdown', (event) => { updateHover(event.clientX, event.clientY); if (node.hover) { ripples.push({ x: node.x, y: node.y, size: node.r, alpha: .75 }); openPanel(); } });
+  canvas.addEventListener('pointerdown', (event) => { updateHover(event.clientX, event.clientY); const source = sourceAt(event.clientX, event.clientY); if (source) { ripples.push({ x: source.x, y: source.y, size: 8, alpha: .75 }); sourcesInput.value = source.url; openPanel(); result.textContent = `مصدر ثابت: ${source.title || source.url}`; } else if (node.hover) { ripples.push({ x: node.x, y: node.y, size: node.r, alpha: .75 }); openPanel(); } });
   function openPanel() { panel.classList.add('open'); result.textContent = 'اختر بحثًا أو ألصق رابط HTTPS للتحقق المحلي.'; query.focus(); }
   close.addEventListener('click', () => panel.classList.remove('open'));
   document.getElementById('https-search').addEventListener('click', () => { const text = query.value.trim(); if (!text) { result.textContent = 'اكتب موضوع البحث أولًا.'; return; } const target = `https://duckduckgo.com/?q=${encodeURIComponent(text + ' https')}`; result.textContent = 'سيتم فتح بحث عام محدود؛ لم يتم فتح نتائج أو زحف تلقائي.'; window.open(target, '_blank', 'noopener,noreferrer'); });
@@ -81,9 +99,12 @@
     const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = title || url;
     const meta = document.createElement('div'); meta.className = 'https-source-note'; meta.textContent = `${url} · ${note}`;
     li.append(link, meta); sourceList.append(li);
+    if (!sourceNodes.some((source) => source.url === url)) {
+      sourceNodes.push({ url, title, phase: sourceNodes.length * 1.37, hover: false });
+      localStorage.setItem('cycleLabHttpsSources', JSON.stringify(sourceNodes.slice(-18)));
+    }
   }
   async function readSources() {
-    sourceList.textContent = '';
     const urls = [...new Set(sourcesInput.value.split(/[\n,]+/).map((value) => value.trim()).filter(Boolean))].slice(0, 5);
     if (!urls.length) { result.textContent = 'ضع رابطًا واحدًا على الأقل في قارئ المصادر.'; return; }
     result.textContent = `جارٍ قراءة ${urls.length} مصدرًا ضمن الحدود الآمنة…`;
@@ -107,7 +128,6 @@
   }
   function autoSearchSources() {
     const text = sourceQuery.value.trim();
-    sourceList.textContent = '';
     if (!text) { result.textContent = 'اكتب موضوعًا للبحث عن المصادر.'; return; }
     const encoded = encodeURIComponent(`${text} sources HTTPS`);
     const searches = [
