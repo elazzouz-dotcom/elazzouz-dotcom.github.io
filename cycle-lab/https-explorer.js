@@ -11,8 +11,13 @@
   if (!canvas || !panel) return;
   const ctx = canvas.getContext('2d');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const node = { x: 0, y: 0, tx: 0, ty: 0, r: 39, pulse: 0, hover: false };
+  const node = { x: 0, y: 0, tx: 0, ty: 0, r: 39, pulse: 0, hover: false, manual: false, manualPos: null };
+  try {
+    const savedNode = JSON.parse(localStorage.getItem('cycleLabHttpsNodePosition') || 'null');
+    if (savedNode && Number.isFinite(savedNode.x) && Number.isFinite(savedNode.y)) { node.manual = true; node.manualPos = savedNode; }
+  } catch { /* تخزين غير صالح: نبدأ بالوضع التلقائي */ }
   const ripples = [];
+  let dragState = null;
   let lastTime = performance.now();
   let elapsed = 0;
   let pointer = { x: -9999, y: -9999 };
@@ -35,10 +40,15 @@
     canvas.width = Math.round(viewport.width * viewport.dpr); canvas.height = Math.round(viewport.height * viewport.dpr);
     ctx.setTransform(viewport.dpr, 0, 0, viewport.dpr, 0, 0);
     node.r = mobileMode ? 34 : 39;
+    if (node.manual && node.manualPos) {
+      node.tx = node.manualPos.x * viewport.width; node.ty = node.manualPos.y * viewport.height;
+      if (!node.x && !node.y) { node.x = node.tx; node.y = node.ty; }
+    }
   }
   addEventListener('resize', resize); visualViewport?.addEventListener('resize', resize); resize();
 
   function setTarget() {
+    if (node.manual && node.manualPos) { node.tx = node.manualPos.x * viewport.width; node.ty = node.manualPos.y * viewport.height; return; }
     const radius = mobileMode ? Math.min(viewport.width * .27, viewport.height * .22) : Math.min(viewport.width, viewport.height) * .29;
     const angle = -Math.PI / 4 + Math.sin(elapsed * (reducedMotion ? .08 : .22)) * .11;
     const centerY = mobileMode ? viewport.height * .55 : viewport.height / 2;
@@ -114,10 +124,47 @@
     requestAnimationFrame(draw);
   }
 
-  function updateHover(x, y) { pointer = { x, y }; node.hover = Math.hypot(x - node.x, y - node.y) <= node.r + 16; sourceNodes.forEach((source) => { source.hover = Math.hypot(x - (source.x || -9999), y - (source.y || -9999)) <= 14; }); canvas.style.cursor = node.hover || sourceNodes.some((source) => source.hover) ? 'pointer' : 'crosshair'; }
-  canvas.addEventListener('pointermove', (event) => updateHover(event.clientX, event.clientY));
-  canvas.addEventListener('pointerleave', () => { node.hover = false; canvas.style.cursor = 'crosshair'; });
-  canvas.addEventListener('pointerdown', (event) => { updateHover(event.clientX, event.clientY); const source = sourceAt(event.clientX, event.clientY); if (source) { ripples.push({ x: source.x, y: source.y, size: 8, alpha: .75 }); sourcesInput.value = source.url; openPanel(); result.textContent = `مصدر ثابت: ${source.title || source.url}`; } else if (node.hover) { ripples.push({ x: node.x, y: node.y, size: node.r, alpha: .75 }); openPanel(); } });
+  function updateHover(x, y) {
+    pointer = { x, y }; node.hover = Math.hypot(x - node.x, y - node.y) <= node.r + 18;
+    sourceNodes.forEach((source) => { source.hover = Math.hypot(x - (source.x || -9999), y - (source.y || -9999)) <= 16; });
+    canvas.style.cursor = dragState ? 'grabbing' : (node.hover || sourceNodes.some((source) => source.hover) ? 'grab' : 'crosshair');
+  }
+  function saveNodePosition() { localStorage.setItem('cycleLabHttpsNodePosition', JSON.stringify(node.manualPos)); }
+  function beginDrag(event) {
+    updateHover(event.clientX, event.clientY);
+    const source = sourceAt(event.clientX, event.clientY);
+    if (source) { dragState = { kind: 'source', source, moved: false }; source.dragging = true; canvas.setPointerCapture?.(event.pointerId); return; }
+    if (node.hover) { dragState = { kind: 'node', moved: false }; node.manual = true; canvas.setPointerCapture?.(event.pointerId); }
+  }
+  function moveDrag(event) {
+    if (!dragState) { updateHover(event.clientX, event.clientY); return; }
+    dragState.moved = true;
+    if (dragState.kind === 'node') {
+      node.x = Math.max(node.r + 12, Math.min(viewport.width - node.r - 12, event.clientX));
+      node.y = Math.max(node.r + 12, Math.min(viewport.height - node.r - 12, event.clientY));
+      node.tx = node.x; node.ty = node.y; node.manualPos = { x: node.x / viewport.width, y: node.y / viewport.height }; saveNodePosition();
+    } else {
+      const source = dragState.source;
+      source.phase = Math.atan2(event.clientY - node.y, event.clientX - node.x) - elapsed * (reducedMotion ? .08 : .42);
+      source.dragging = true;
+      localStorage.setItem('cycleLabHttpsSources', JSON.stringify(sourceNodes.slice(-18).map(({ x, y, hover, dragging, ...saved }) => saved)));
+    }
+    updateHover(event.clientX, event.clientY);
+  }
+  function endDrag(event) {
+    if (!dragState) return;
+    const wasNodeClick = dragState.kind === 'node' && !dragState.moved;
+    const source = dragState.source;
+    if (source) source.dragging = false;
+    canvas.releasePointerCapture?.(event.pointerId);
+    dragState = null; updateHover(event.clientX, event.clientY);
+    if (wasNodeClick) { ripples.push({ x: node.x, y: node.y, size: node.r, alpha: .75 }); openPanel(); }
+  }
+  canvas.addEventListener('pointermove', moveDrag);
+  canvas.addEventListener('pointerleave', () => { if (!dragState) { node.hover = false; canvas.style.cursor = 'crosshair'; } });
+  canvas.addEventListener('pointerdown', beginDrag);
+  canvas.addEventListener('pointerup', (event) => { const source = dragState?.source; if (source && !dragState.moved) { sourcesInput.value = source.url; openPanel(); result.textContent = `مصدر ثابت: ${source.title || source.url}`; } endDrag(event); });
+  canvas.addEventListener('pointercancel', endDrag);
   function openPanel() { panel.classList.add('open'); result.textContent = 'اختر بحثًا أو ألصق رابط HTTPS للتحقق المحلي.'; query.focus(); }
   close.addEventListener('click', () => panel.classList.remove('open'));
   document.getElementById('https-search').addEventListener('click', () => { const text = query.value.trim(); if (!text) { result.textContent = 'اكتب موضوع البحث أولًا.'; return; } const target = `https://duckduckgo.com/?q=${encodeURIComponent(text + ' https')}`; result.textContent = 'سيتم فتح بحث عام محدود؛ لم يتم فتح نتائج أو زحف تلقائي.'; window.open(target, '_blank', 'noopener,noreferrer'); });
