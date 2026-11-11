@@ -1,0 +1,278 @@
+{
+  "timestamp": "2026-11-11T15:17:38.827237+00:00",
+  "allowed_hosts": [
+    "elazzouz-dotcom.github.io"
+  ],
+  "analysis": {
+    "pages_scanned": 3,
+    "external_links_checked_locally": 0,
+    "note": "الروابط الخارجية تم التحقق منها شكليًا وDNS فقط ولم يتم فتحها."
+  },
+  "pages": [
+    {
+      "url": "https://elazzouz-dotcom.github.io/cycle-lab/",
+      "depth": 0,
+      "title": "Azzouz Full Cycle Lab · كل في فلك يسبحون",
+      "links": [
+        "https://elazzouz-dotcom.github.io/bridge-lab/",
+        "https://elazzouz-dotcom.github.io/cycle-lab/book-lab.html"
+      ],
+      "external_links": [],
+      "keywords": [
+        {
+          "word": "فلك",
+          "normalized": "فلك",
+          "score": 5
+        },
+        {
+          "word": "يسبحون",
+          "normalized": "يسبحون",
+          "score": 5
+        },
+        {
+          "word": "تكامل",
+          "normalized": "تكامل",
+          "score": 4
+        },
+        {
+          "word": "المعلومة",
+          "normalized": "المعلومة",
+          "score": 4
+        },
+        {
+          "word": "security",
+          "normalized": "security",
+          "score": 3
+        },
+        {
+          "word": "css",
+          "normalized": "css",
+          "score": 3
+        },
+        {
+          "word": "javascript",
+          "normalized": "javascript",
+          "score": 3
+        },
+        {
+          "word": "الحساب",
+          "normalized": "الحساب",
+          "score": 3
+        },
+        {
+          "word": "العكسي",
+          "normalized": "العكسي",
+          "score": 3
+        },
+        {
+          "word": "الفلتر",
+          "normalized": "الفلتر",
+          "score": 3
+        },
+        {
+          "word": "احسب",
+          "normalized": "احسب",
+          "score": 3
+        },
+        {
+          "word": "محليًا",
+          "normalized": "محليا",
+          "score": 3
+        },
+        {
+          "word": "github",
+          "normalized": "github",
+          "score": 3
+        },
+        {
+          "word": "التقرير",
+          "normalized": "التقرير",
+          "score": 3
+        },
+        {
+          "word": "دورة",
+          "normalized": "دورة",
+          "score": 2
+        }
+      ],
+      "status": "ok",
+      "status_code": 200
+    },
+    {
+      "url": "https://elazzouz-dotcom.github.io/bridge-lab/",
+      "depth": 1,
+      "title": "Azzouz Bridge Lab · جسور برمجية ضخمة",
+      "links": [
+        "https://elazzouz-dotcom.github.io/bridge-lab/test-report.html"
+      ],
+      "external_links": [],
+      "keywords": [
+        {
+          "word": "برمجية",
+          "normalized": "برمجية",
+          "score": 8
+        },
+        {
+          "word": "ضخمة",
+          "normalized": "ضخمة",
+          "score": 8
+        },
+        {
+          "word": "الجسر",
+          "normalized": "الجسر",
+          "score": 8
+        },
+        {
+          "word": "جسور",
+          "normalized": "جسور",
+          "score": 6
+        },
+        {
+          "word": "يحتاج",
+          "normalized": "يحتاج",
+          "score": 6
+        },
+        {
+          "word": "إصلاح",
+          "normalized": "اصلاح",
+          "score": 4
+        },
+        {
+          "word": "auto-fixer",
+          "normalized": "auto-fixer",
+          "score": 4
+        },
+        {
+          "word": "آمن",
+          "normalized": "امن",
+          "score": 4
+        },
+        {
+          "word": "ابنِ",
+          "normalized": "ابن",
+          "score": 3
+        },
+        {
+          "word": "الخطأ",
+          "normalized": "الخطا",
+          "score": 3
+        },
+        {
+          "word": "محاكاة",
+          "normalized": "محاكاة",
+          "score": 2
+        },
+        {
+          "word": "تفاعلية",
+          "normalized": "تفاعلية",
+          "score": 2
+        },
+        {
+          "word": "لجسور",
+          "normalized": "لجسور",
+          "score": 2
+        },
+        {
+          "word": "وشبكات",
+          "normalized": "وشبكات",
+          "score": 2
+        },
+        {
+          "word": "التكامل",
+          "normalized": "التكامل",
+          "score": 2
+        }
+      ],
+      "status": "ok",
+      "status_code": 200
+    },
+    {
+      "url": "https://elazzouz-dotcom.github.io/cycle-lab/book-lab.html",
+      "depth": 1,
+      "title": "Azzouz Book Study Lab · مختبر دراسة المصدر",
+      "links": [
+        "https://elazzouz-dotcom.github.io/cycle-lab/"
+      ],
+      "external_links": [],
+      "keywords": [
+        {
+          "word": "دراسة",
+          "normalized": "دراسة",
+          "score": 16
+        },
+        {
+          "word": "المصدر",
+          "normalized": "المصدر",
+          "score": 16
+        },
+        {
+          "word": "ocr",
+          "normalized": "ocr",
+          "score": 9
+        },
+        {
+          "word": "المفاهيم",
+          "normalized": "المفاهيم",
+          "score": 7
+        },
+        {
+          "word": "study",
+          "normalized": "study",
+          "score": 6
+        },
+        {
+          "word": "المحلي",
+          "normalized": "المحلي",
+          "score": 5
+        },
+        {
+          "word": "خريطة",
+          "normalized": "خريطة",
+          "score": 5
+        },
+        {
+          "word": "ملف",
+          "normalized": "ملف",
+          "score": 5
+        },
+        {
+          "word": "pdf",
+          "normalized": "pdf",
+          "score": 5
+        },
+        {
+          "word": "القارئ",
+          "normalized": "القارئ",
+          "score": 4
+        },
+        {
+          "word": "ملاحظات",
+          "normalized": "ملاحظات",
+          "score": 4
+        },
+        {
+          "word": "مرتبطة",
+          "normalized": "مرتبطة",
+          "score": 4
+        },
+        {
+          "word": "بالصفحة",
+          "normalized": "بالصفحة",
+          "score": 4
+        },
+        {
+          "word": "مسار",
+          "normalized": "مسار",
+          "score": 4
+        },
+        {
+          "word": "أربع",
+          "normalized": "اربع",
+          "score": 4
+        }
+      ],
+      "status": "ok",
+      "status_code": 200
+    }
+  ]
+}
