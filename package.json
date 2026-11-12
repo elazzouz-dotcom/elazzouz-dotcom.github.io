@@ -7,7 +7,7 @@
     "test:navigator": "node --test tests/tawhid-github-navigator.test.mjs"
   },
   "devDependencies": {
-    "lighthouse": "13.5.0",
+    "lighthouse": "13.6.0",
     "tailwindcss": "3.4.17"
   }
 }
